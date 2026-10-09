@@ -8,7 +8,7 @@ import { Avatar, IconButton } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
-import { archiveThread, readThread } from "@/app/messages/actions";
+import { archiveThread } from "@/app/messages/actions";
 import { useInbox, type InboxData } from "./data";
 import { Drafts, Threads } from "./list";
 import { Conversation } from "./thread";
@@ -54,6 +54,7 @@ export function InboxScreen({
     view,
     key: open,
     watching: true,
+    reading: Boolean(open),
     // Only the view the server rendered starts filled; the others arrive on
     // their first ask, which is what pressing them is.
     initial: view === "inbox" ? initial : undefined,
@@ -69,14 +70,6 @@ export function InboxScreen({
   const name = open === "office"
     ? churchName
     : here?.name || row?.name || "";
-
-  React.useEffect(() => {
-    /* Not waited on: it changes nothing on this screen, and waiting for it
-       put a round trip in front of the words. */
-    if (open) void readThread(open, church);
-    // The address is the only thing that opens one.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, church]);
 
   const go = (key: string) => {
     setWriting(false);

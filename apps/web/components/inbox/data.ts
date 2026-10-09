@@ -66,11 +66,13 @@ export function useInbox(
     view?: "inbox" | "sent" | "drafts";
     key?: string | null;
     watching?: boolean;
+    /** Whether the conversation named by `key` is on screen and being read. */
+    reading?: boolean;
     /** What the server already put into the page, so nothing paints empty. */
     initial?: InboxData;
   } = {},
 ): { data: InboxData; refresh: () => void } {
-  const { view = "inbox", key = null, watching = false, initial } = opts;
+  const { view = "inbox", key = null, watching = false, reading = false, initial } = opts;
   const [data, setData] = React.useState<InboxData>(initial ?? EMPTY);
 
   /*
@@ -87,7 +89,8 @@ export function useInbox(
   const read = React.useCallback(async () => {
     const mine = ++ticket.current;
     const where = `/api/inbox?church=${encodeURIComponent(church)}&view=${view}`
-      + (key ? `&key=${encodeURIComponent(key)}` : "");
+      + (key ? `&key=${encodeURIComponent(key)}` : "")
+      + (key && reading ? "&reading=1" : "");
     try {
       const answer = await fetch(where, { cache: "no-store" });
       if (!answer.ok || mine !== ticket.current) return;
@@ -96,7 +99,7 @@ export function useInbox(
     } catch {
       // A dropped connection is the next poll's problem, not the reader's.
     }
-  }, [church, view, key]);
+  }, [church, view, key, reading]);
 
   /* What is on screen belongs to the conversation that was asked for. While a
      different one is on its way, the old lines are held rather than cleared:

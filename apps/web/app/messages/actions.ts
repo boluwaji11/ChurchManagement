@@ -1,7 +1,7 @@
 "use server";
 
 import {
-  withTenant, sendMessage, markThreadRead, setThreadArchived, threadAt,
+  withTenant, sendMessage, setThreadArchived, threadAt,
   saveDraft, dropDraft, recipientsFor, peopleNamed, canEditPeople,
   type Recipient,
 } from "@connectapp/db";
@@ -44,21 +44,6 @@ export async function send(
       });
       return { key: to };
     });
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-/** R16.9. Opening a conversation is reading it. */
-export async function readThread(key: string, church?: string): Promise<{ error?: string }> {
-  try {
-    const { session, ctx } = await context(church);
-    await withTenant(ctx, async (tx) => {
-      const me = await readerFor(tx, session);
-      const thread = await threadAt(tx, me, key);
-      if (thread) await markThreadRead(tx, me, thread.id);
-    });
-    return {};
   } catch (error) {
     return { error: explain(error) };
   }

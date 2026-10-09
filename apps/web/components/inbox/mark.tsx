@@ -6,7 +6,7 @@ import { ArrowLeft, Archive, MessageSquare, PenSquare } from "lucide-react";
 import { Avatar, IconButton } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import { archiveThread, readThread } from "@/app/messages/actions";
+import { archiveThread } from "@/app/messages/actions";
 import { EMPTY, useInbox } from "./data";
 import { Drafts, Threads } from "./list";
 import { Conversation } from "./thread";
@@ -66,6 +66,8 @@ export function InboxMark({
     view,
     key,
     watching: open,
+    /* Looking at it is reading it, line by line as they arrive. */
+    reading: open && Boolean(key),
     initial: { ...EMPTY, unread },
   });
 
@@ -79,9 +81,6 @@ export function InboxMark({
     setWriting(false);
     setOpening({ key: next, name: name ?? "" });
     setKey(next);
-    /* The read mark is not waited on: it changes nothing on this screen, and
-       waiting for it put a round trip in front of the words. */
-    void readThread(next, church);
   };
 
   const back = () => { setKey(null); setWriting(false); };

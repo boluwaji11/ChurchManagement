@@ -35,7 +35,7 @@ export default async function MemberThreadPage({
     redirect(`/messages/${key}?church=${session.tenantSlug}`);
   }
 
-  const first = await readInbox(session, { key: key });
+  const first = await readInbox(session, { key, reading: true });
 
   return (
     <PortalShell session={session} tab={t("inbox.title")}>

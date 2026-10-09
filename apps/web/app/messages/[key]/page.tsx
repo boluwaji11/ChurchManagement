@@ -46,7 +46,7 @@ export default async function MessageThreadPage({
   }
 
   /* R16.9. Read here, so the screen arrives filled. */
-  const first = await readInbox(session, { key: key });
+  const first = await readInbox(session, { key, reading: true });
 
   return (
     <AppShell session={session} title={t("inbox.title")} wide>

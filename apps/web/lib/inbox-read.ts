@@ -1,5 +1,6 @@
 import {
-  withTenant, inboxFor, sentFor, draftsFor, messagesIn, threadAt, unreadFor, getChurch,
+  withTenant, inboxFor, sentFor, draftsFor, messagesIn, threadAt, markThreadRead,
+  unreadFor, getChurch,
 } from "@connectapp/db";
 import { localeFor } from "@connectapp/i18n";
 import { readerFor } from "@/lib/inbox";
@@ -17,7 +18,19 @@ import type { InboxData } from "@/components/inbox/data";
  */
 export async function readInbox(
   session: Session,
-  opts: { view?: string; key?: string | null; archived?: boolean } = {},
+  opts: {
+    view?: string;
+    key?: string | null;
+    archived?: boolean;
+    /**
+     * R16.9. Whether this reader is looking at the conversation right now.
+     *
+     * Marked read here rather than on a call of its own, so a line that
+     * arrives while somebody is reading the thread clears itself on the same
+     * breath it appears in.
+     */
+    reading?: boolean;
+  } = {},
 ): Promise<InboxData> {
   const view = opts.view ?? "inbox";
   const key = opts.key ?? null;
@@ -31,12 +44,15 @@ export async function readInbox(
     },
     async (tx) => {
       const me = await readerFor(tx, session);
+      const drafts = view === "drafts" ? await draftsFor(tx, me) : [];
+      const open = key ? await threadAt(tx, me, key) : null;
+      if (open && opts.reading) await markThreadRead(tx, me, open.id);
+      const said = open ? await messagesIn(tx, me, open.id) : [];
+      /* After the read mark, so the count in this answer is what the reader
+         is about to be looking at. */
       const listed = view === "sent"
         ? await sentFor(tx, me)
         : await inboxFor(tx, me, { archivedOnly: opts.archived });
-      const drafts = view === "drafts" ? await draftsFor(tx, me) : [];
-      const open = key ? await threadAt(tx, me, key) : null;
-      const said = open ? await messagesIn(tx, me, open.id) : [];
       const country = (await getChurch(tx, session.tenantId))?.country ?? null;
       /* The inbox already knows what is waiting; only the other two views
          have to ask. */
