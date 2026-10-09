@@ -150,6 +150,16 @@ export default async function GroupsPage({
     : null;
   const shown = only ? groups.filter((group) => group.typeId === only.id) : groups;
 
+  /*
+   * R9.5. The requests waiting are the ones for the groups on this screen.
+   *
+   * A church reading its Small groups was shown somebody asking to join the
+   * Worship Team, which is a different kind and a different list. A leader
+   * answers requests for what they are looking at.
+   */
+  const here = new Set(shown.map((group) => group.id));
+  const waiting = requests.filter((request) => here.has(request.groupId));
+
   const finder = (
     <Finder
         church={session.tenantSlug}
@@ -162,7 +172,7 @@ export default async function GroupsPage({
           description: type.description,
           hue: type.hue,
         }))}
-        requests={requests.map((request) => ({
+        requests={waiting.map((request) => ({
           id: request.id,
           groupId: request.groupId,
           groupSlug: request.groupSlug,
