@@ -435,7 +435,6 @@ export const en = {
   "directory.filter": "Filter",
   "directory.filterOn": "Filter · {count}",
   "directory.filterTitle": "Filter members",
-  "directory.showThem": "Show members",
   "directory.anyOf": "Any",
   "directory.has.email": "Has an email",
   "directory.has.noEmail": "No email",

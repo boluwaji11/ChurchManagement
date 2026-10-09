@@ -291,7 +291,7 @@ export function Directory({
           dir={params.get("dir") === "desc" ? "desc" : "asc"}
           busy={narrowingNow}
           options={SORTS}
-          done={t("directory.showThem")}
+          done={t("directory.sort")}
           onApply={({ sort, dir }) =>
             setParam({
               sort: sort === "name" ? undefined : sort,
@@ -912,7 +912,7 @@ function DirectoryFilters({
       onApply={() => apply(draft)}
       /* No count on it. The server narrows the list, so a figure here is the
          one from before the last answer. */
-      done={t("directory.showThem")}
+      done={t("directory.filter")}
     >
       <div className="flex flex-col gap-1.5">
         <span className="text-label text-fg">{t("directory.filterStatus")}</span>

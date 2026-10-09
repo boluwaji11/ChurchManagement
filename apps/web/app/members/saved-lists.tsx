@@ -150,9 +150,10 @@ export function OpenList({
         emptyLabel={t("lists.noneFound")}
         clearLabel={t("common.close")}
         aria-label={t("lists.which")}
-        /* The same hairline and the same height as the box beside it: the two
-           are one pair, a way in by name and a way in by list. */
-        className="min-h-[var(--d-tap)] border-line text-[13px] shadow-none hover:border-line-strong"
+        /* The same hairline as the box beside it: the two are one pair, a way
+           in by name and a way in by list. The field's own border is on the
+           box inside this one, so it is reached through it. */
+        className="[&>div]:border-line [&>div]:shadow-none hover:[&>div]:border-line-strong"
       />
     </div>
   );
