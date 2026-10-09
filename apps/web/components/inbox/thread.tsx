@@ -164,10 +164,10 @@ export function Conversation({
                     className={`relative select-none ${
                       alone
                         ? `emoji px-1 pt-0.5 ${alone === 1 ? "text-[40px]" : "text-[30px]"} ${
-                            room ? "pb-6" : "pb-0.5"
+                            room ? "pb-3" : "pb-0.5"
                           }`
                         : `rounded-2xl px-3.5 pt-2 text-[15px] leading-6 ${
-                            room ? "pb-8" : "pb-2"
+                            room ? "pb-4" : "pb-2"
                           } ${
                             one.mine
                               ? "rounded-br-sm bg-primary-soft text-fg"

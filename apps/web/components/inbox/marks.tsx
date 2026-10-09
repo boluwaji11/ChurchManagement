@@ -84,7 +84,10 @@ export function Marks({
      */
     <span
       className={total > 0
-        ? `absolute bottom-1.5 z-10 ${mine ? "left-2.5" : "right-2.5"}`
+        /* Half in the message and half out of it, on the corner. The message
+           keeps just enough room at its foot that the half inside lands on
+           nothing. */
+        ? `absolute -bottom-2.5 z-10 ${mine ? "left-2.5" : "right-2.5"}`
         : `absolute top-1/2 z-10 -translate-y-1/2 ${mine ? "-left-9" : "-right-9"}`}
     >
       <span className="relative flex items-center">
@@ -94,17 +97,17 @@ export function Marks({
             disabled={mine}
             aria-label={plural("inbox.reactions", total)}
             onClick={() => setOpen((was) => !was)}
-            className={`flex min-h-[22px] items-center gap-0.5 rounded-full border bg-surface px-1.5 shadow-sm ${
+            className={`flex min-h-[20px] items-center gap-0.5 rounded-full border bg-surface px-1 shadow-sm ${
               theirs ? "border-primary" : "border-line"
             } ${mine ? "cursor-default" : "cursor-pointer hover:bg-sunken"}`}
           >
             {shown.map((one) => (
-              <span key={one.emoji} aria-hidden className="emoji text-[13px]">
+              <span key={one.emoji} aria-hidden className="emoji text-[12px]">
                 {one.emoji}
               </span>
             ))}
             {total > 1 ? (
-              <span className="pl-0.5 text-[11px] font-medium text-fg-muted tabular-nums">
+              <span className="pr-0.5 pl-px text-[10px] font-medium text-fg-muted tabular-nums">
                 {tally(total)}
               </span>
             ) : null}
