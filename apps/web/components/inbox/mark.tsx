@@ -126,7 +126,14 @@ export function InboxMark({
       >
         <MessageSquare className={floating ? "size-6" : "size-[17px]"} aria-hidden />
         {data.unread > 0 ? (
-          <span className="absolute -top-[5px] -right-[5px] grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-[5px] text-[11px] font-semibold text-white">
+          /* On the round launcher the count sits on the circle's own edge,
+             with a ring in the page's colour so it reads as a count rather
+             than as a blob stuck to the side of it. */
+          <span
+            className={floating
+              ? "absolute -top-0.5 -right-0.5 grid h-[22px] min-w-[22px] place-items-center rounded-full bg-danger px-1.5 text-[12px] font-semibold leading-none text-white ring-2 ring-[var(--canvas)] tabular-nums"
+              : "absolute -top-[5px] -right-[5px] grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-[5px] text-[11px] font-semibold leading-none text-white tabular-nums"}
+          >
             {data.unread}
           </span>
         ) : null}
