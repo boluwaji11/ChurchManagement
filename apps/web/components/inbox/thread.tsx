@@ -11,6 +11,24 @@ import { keepDraft, send } from "@/app/messages/actions";
 import type { Said } from "./data";
 
 /**
+ * R16.9. A line that is nothing but a mark or two.
+ *
+ * Somebody answering with a heart has not written a sentence, and a heart set
+ * at reading size inside a bubble looks like a typo. Three or fewer and it is
+ * drawn large, with no bubble around it, which is what every messenger does.
+ */
+const ONLY_MARKS = /^(?:\p{Extended_Pictographic}|\p{Emoji_Component}|\uFE0F|\u200D|\s)+$/u;
+
+const marksAlone = (body: string): number => {
+  const words = body.trim();
+  if (!words || !ONLY_MARKS.test(words)) return 0;
+  const bits = typeof Intl !== "undefined" && "Segmenter" in Intl
+    ? [...new Intl.Segmenter().segment(words.replace(/\s+/g, ""))].length
+    : [...words.replace(/\s+/g, "")].length;
+  return bits <= 3 ? bits : 0;
+};
+
+/**
  * R16.9. A conversation, laid out the way everybody already reads one.
  *
  * Theirs on the left with their face, yours on the right in the church's own
@@ -92,6 +110,7 @@ export function Conversation({
           const starts = fresh || !before || before.mine !== one.mine
             || before.fromOffice !== one.fromOffice;
           const name = one.fromOffice ? churchName : one.mine ? t("inbox.you") : one.name;
+          const alone = marksAlone(one.body);
 
           return (
             <React.Fragment key={one.id}>
@@ -139,20 +158,18 @@ export function Conversation({
                       if (event.pointerType === "mouse") return;
                       tap(one.id, one.mine);
                     }}
-                    className={`rounded-2xl px-3.5 py-2 text-[15px] leading-6 select-none ${
-                      one.mine
-                        ? "rounded-br-sm bg-primary-soft text-fg"
-                        : "rounded-bl-sm border border-line bg-surface text-fg"
-                    } [&_p]:mb-2 [&_p:last-child]:mb-0`}
-                  >
-                    <Markdown text={one.body} />
-                  </div>
-
-                  <span
-                    className={`flex items-center gap-2 px-1 ${
-                      one.mine ? "flex-row-reverse" : ""
+                    className={`relative select-none ${
+                      alone
+                        ? `emoji px-1 py-0.5 ${alone === 1 ? "text-[40px]" : "text-[30px]"}`
+                        : `rounded-2xl px-3.5 py-2 text-[15px] leading-6 ${
+                            one.mine
+                              ? "rounded-br-sm bg-primary-soft text-fg"
+                              : "rounded-bl-sm border border-line bg-surface text-fg"
+                          } [&_p]:mb-2 [&_p:last-child]:mb-0`
                     }`}
                   >
+                    {alone ? one.body.trim() : <Markdown text={one.body} />}
+
                     <Marks
                       church={church}
                       id={one.id}
@@ -160,7 +177,12 @@ export function Conversation({
                       mine={one.mine}
                       onChanged={onChanged ?? onSent}
                     />
-                    <span className="text-[11px] text-fg-subtle tabular-nums">{one.clock}</span>
+                  </div>
+
+                  {/* The time sits on its own, so nothing put against the
+                      message can move it. */}
+                  <span className="px-1 text-[11px] text-fg-subtle tabular-nums">
+                    {one.clock}
                   </span>
                 </div>
               </div>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { SmilePlus } from "lucide-react";
-import { t } from "@connectapp/i18n";
+import { plural, t } from "@connectapp/i18n";
 import { markMessage } from "@/app/messages/actions";
 import type { Mark } from "./data";
 
@@ -20,12 +20,22 @@ export const MARKS = [
 /** R16.9. What two taps on a line puts against it. */
 export const LIKE = MARKS[0]!;
 
+/** A count that has to fit in a pill: 999, then 1.2k. */
+const tally = (n: number): string =>
+  n < 1000 ? String(n) : `${(n / 1000).toFixed(n < 10000 ? 1 : 0).replace(/\.0$/, "")}k`;
+
 /**
- * What has been put against one message, and the way to add one.
+ * R16.9. What has been put against one message, and the way to add one.
  *
- * The marks sit under the words rather than on them, because a reaction is an
- * answer to a line rather than part of it. Pressing one that is already yours
- * takes it off, which is what everybody's hands already expect.
+ * One pill holding at most two marks and the count, hung on the corner of the
+ * message rather than placed in the line under it. Two reasons: a row of
+ * chips grows with every new mark and shoves the time along with it, and a
+ * group of forty would fill the width of the panel with a line of faces. The
+ * pill is the shape Teams, iMessage and LinkedIn all settled on for the same
+ * reason.
+ *
+ * It sits on the far corner from the time, so the two can never collide and
+ * the time never moves.
  */
 export function Marks({
   church,
@@ -54,76 +64,81 @@ export function Marks({
     });
   };
 
-  if (mine) {
-    /* R16.9. What others put against it, with nothing to press: a mark is an
-       answer to somebody, and answering yourself is not one. */
-    if (marks.length === 0) return null;
-    return (
-      <span className="flex flex-row-reverse items-center gap-1">
-        {marks.map((one) => (
-          <span
-            key={one.emoji}
-            className="flex min-h-6 items-center gap-1 rounded-full border border-line bg-surface px-1.5 text-[12px] leading-none text-fg-muted tabular-nums"
-          >
-            <span aria-hidden className="emoji text-[14px]">{one.emoji}</span>
-            {one.count > 1 ? one.count : null}
-          </span>
-        ))}
-      </span>
-    );
-  }
+  const total = marks.reduce((sum, one) => sum + one.count, 0);
+  const shown = marks.slice(0, 2);
+  const theirs = marks.some((one) => one.mine);
+
+  /* Nothing on it, and nothing this reader may put on it. */
+  if (total === 0 && mine) return null;
 
   return (
-    <div className="relative flex items-center gap-1">
-      {marks.map((one) => (
-        <button
-          key={one.emoji}
-          type="button"
-          onClick={() => put(one.emoji)}
-          aria-pressed={one.mine}
-          className={`flex min-h-6 cursor-pointer items-center gap-1 rounded-full border px-1.5 text-[12px] leading-none tabular-nums ${
-            one.mine
-              ? "border-primary bg-primary-soft text-fg"
-              : "border-line bg-surface text-fg-muted hover:bg-sunken"
-          }`}
-        >
-          <span aria-hidden className="emoji text-[14px]">{one.emoji}</span>
-          {one.count > 1 ? one.count : null}
-        </button>
-      ))}
-
-      {/* Shown on hover on a pointer, and always where there is no hover. */}
-      <button
-        type="button"
-        aria-label={t("inbox.react")}
-        aria-expanded={open}
-        onClick={() => setOpen((was) => !was)}
-        className="grid size-6 cursor-pointer place-items-center rounded-full text-fg-subtle opacity-0 transition-opacity hover:bg-sunken hover:text-fg focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-[14px]"
-      >
-        <SmilePlus aria-hidden />
-      </button>
-
-      {open ? (
-        <>
-          <span className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div
-            className="absolute bottom-7 left-0 z-40 flex gap-0.5 rounded-full border border-line bg-surface p-1 shadow-lg"
+    <span className={`absolute -bottom-3 z-10 ${mine ? "left-2" : "right-2"}`}>
+      <span className="relative flex items-center">
+        {total > 0 ? (
+          <button
+            type="button"
+            disabled={mine}
+            aria-label={plural("inbox.reactions", total)}
+            onClick={() => setOpen((was) => !was)}
+            className={`flex min-h-[22px] items-center gap-0.5 rounded-full border bg-surface px-1.5 shadow-sm ${
+              theirs ? "border-primary" : "border-line"
+            } ${mine ? "cursor-default" : "cursor-pointer hover:bg-sunken"}`}
           >
-            {MARKS.map((one) => (
-              <button
-                key={one}
-                type="button"
-                onClick={() => put(one)}
-                aria-label={one}
-                className="emoji grid size-8 cursor-pointer place-items-center rounded-full text-[19px] hover:bg-sunken"
-              >
-                {one}
-              </button>
+            {shown.map((one) => (
+              <span key={one.emoji} aria-hidden className="emoji text-[13px]">
+                {one.emoji}
+              </span>
             ))}
-          </div>
-        </>
-      ) : null}
-    </div>
+            {total > 1 ? (
+              <span className="pl-0.5 text-[11px] font-medium text-fg-muted tabular-nums">
+                {tally(total)}
+              </span>
+            ) : null}
+          </button>
+        ) : (
+          /* Nothing on it yet: the way to put the first one, on hover with a
+             pointer and always where there is none. */
+          <button
+            type="button"
+            aria-label={t("inbox.react")}
+            aria-expanded={open}
+            onClick={() => setOpen((was) => !was)}
+            className="grid size-[22px] cursor-pointer place-items-center rounded-full border border-line bg-surface text-fg-subtle opacity-0 shadow-sm transition-opacity hover:bg-sunken hover:text-fg focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-[13px]"
+          >
+            <SmilePlus aria-hidden />
+          </button>
+        )}
+
+        {open && !mine ? (
+          <>
+            <span className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+            <span
+              className={`absolute bottom-7 z-40 flex gap-0.5 rounded-full border border-line bg-surface p-1 shadow-lg ${
+                mine ? "left-0" : "right-0"
+              }`}
+            >
+              {MARKS.map((one) => {
+                const held = marks.find((each) => each.emoji === one);
+                return (
+                  <button
+                    key={one}
+                    type="button"
+                    onClick={() => put(one)}
+                    aria-label={one}
+                    aria-pressed={held?.mine ?? false}
+                    className={`emoji grid size-8 cursor-pointer place-items-center rounded-full text-[19px] hover:bg-sunken ${
+                      held?.mine ? "bg-primary-soft" : ""
+                    }`}
+                  >
+                    {one}
+                  </button>
+                );
+              })}
+            </span>
+          </>
+        ) : null}
+      </span>
+    </span>
   );
 }
 

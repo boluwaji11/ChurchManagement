@@ -329,6 +329,8 @@ export const en = {
   "inbox.error.mark": "That is not a mark this product knows",
   "inbox.error.ownMark": "You cannot react to your own message",
   "inbox.react": "React",
+  "inbox.reactions.one": "{count} reaction",
+  "inbox.reactions.other": "{count} reactions",
   "inbox.emoji": "Emoji",
   "inbox.error.thread": "That conversation could not be opened",
 
