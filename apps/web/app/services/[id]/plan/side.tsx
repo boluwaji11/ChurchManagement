@@ -39,24 +39,36 @@ export function PlanSide({
       {teams.length > 0 ? (
         <section className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface p-5">
           <div className="text-[13px] font-medium text-fg-subtle">{t("order.serving")}</div>
-          {teams.map((team) => {
-            const needed = team.positions.reduce((n, p) => n + p.needed, 0);
-            const filled = needed - team.positions.reduce((n, p) => n + p.short, 0);
-            const short = filled < needed;
 
-            return (
-              <div key={team.id} className="flex items-center gap-2.5 text-[13px]">
-                <span className="min-w-0 flex-1 truncate text-fg">{team.name}</span>
-                <span
-                  data-numeric
-                  className="font-medium"
-                  style={{ color: short ? "var(--color-danger-text)" : "var(--hue-fern-key)" }}
-                >
-                  {filled} / {needed}
-                </span>
-              </div>
-            );
-          })}
+          {/* R24.6. The rail the product uses wherever a few things belong to
+              one thing: a dot a row and a line running between them. */}
+          <ol className="m-0 flex list-none flex-col p-0">
+            {teams.map((team) => {
+              const needed = team.positions.reduce((n, p) => n + p.needed, 0);
+              const filled = needed - team.positions.reduce((n, p) => n + p.short, 0);
+              const short = filled < needed;
+
+              return (
+                <li key={team.id} className="flex gap-2.5">
+                  <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                    <span className="mt-3 size-2.5 shrink-0 rounded-full bg-primary" />
+                    <span className="my-1 w-px flex-1 bg-primary/35" />
+                  </span>
+
+                  <span className="flex min-w-0 flex-1 items-center gap-2.5 py-1.5 text-[13px]">
+                    <span className="min-w-0 flex-1 truncate text-fg">{team.name}</span>
+                    <span
+                      data-numeric
+                      className="font-medium"
+                      style={{ color: short ? "var(--color-danger-text)" : "var(--hue-fern-key)" }}
+                    >
+                      {filled} / {needed}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
         </section>
       ) : null}
 

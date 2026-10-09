@@ -14,7 +14,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate, Tooltip
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { UPLOAD_RULES } from "@connectapp/db";
+import { UPLOAD_RULES } from "@connectapp/db/rules";
 import type { ItemKind, ShapeItem } from "@connectapp/db";
 import { kindLabel, type KindOption } from "@/lib/kind-label";
 import { useFormError } from "@/lib/form-error";
