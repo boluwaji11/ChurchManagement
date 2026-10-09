@@ -93,6 +93,16 @@ so a group of thirty does not carry thirty rows nobody has used.
 
 Its address is the group's own: `/messages/group/tuesday-night`.
 
+A group's conversation belongs to the group rather than to the church, so it
+is not in the office's inbox. Thirty groups talking among themselves is not a
+church's post, and a church where the office reads every group's chatter is a
+church whose groups stop using it. The office can still write to any group,
+and from the line it writes the thread is in its inbox like any other.
+
+Where the office writes into a group it is not in, it writes as the church.
+Where it is in the group, it writes as itself: a leader who happens to be on
+staff is in their own group as themselves.
+
 ## What this is not, in this build
 
 No attachments, no read receipts beyond the unread mark, no typing indicator,

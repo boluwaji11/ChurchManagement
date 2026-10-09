@@ -175,8 +175,13 @@ export function Writer({
   const latest = React.useRef({ to, body: draft });
   latest.current = { to, body };
 
+  /* A send in flight stops the draft being written behind it: the save that
+     had been scheduled used to land after the send had thrown the draft away,
+     putting the words back in the box of a message already sent. */
+  const posting = React.useRef(false);
+
   React.useEffect(() => {
-    if (body === saved.current) return;
+    if (body === saved.current || posting.current) return;
     const timer = setTimeout(() => {
       saved.current = body;
       void keepDraft(to, body, church);
@@ -192,10 +197,12 @@ export function Writer({
   const go = () => {
     const words = body.trim();
     if (!words || busy) return;
+    posting.current = true;
     setWorking(true);
     setError(null);
     void send(to, words, church).then((back) => {
       setWorking(false);
+      posting.current = false;
       if (back.error) { setError(back.error); return; }
       saved.current = "";
       setBody("");

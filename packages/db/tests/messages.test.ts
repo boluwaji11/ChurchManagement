@@ -200,6 +200,21 @@ describe("a group's thread", () => {
     ).rejects.toBeInstanceOf(PermissionError);
   });
 
+  it("stays out of the office's inbox until the office writes into it", async () => {
+    const before = await run((tx) => inboxFor(tx, office));
+    expect(before.map((one) => one.key)).not.toContain(`group/${groupSlug}`);
+
+    /* The office may still reach it. */
+    await run((tx) =>
+      sendMessage(tx, office, {
+        to: { office: false, group: groupSlug }, body: "The hall is booked.",
+      }),
+    );
+
+    const after = await run((tx) => inboxFor(tx, office));
+    expect(after.map((one) => one.key)).toContain(`group/${groupSlug}`);
+  });
+
   it("reaches whoever joins afterwards", async () => {
     const group = await run((tx) => threadAt(tx, mine, `group/${groupSlug}`));
     expect(group).not.toBeNull();
@@ -212,6 +227,8 @@ describe("a group's thread", () => {
 
     const theirs = await run((tx) => inboxFor(tx, outsider));
     expect(theirs.map((one) => one.key)).toContain(`group/${groupSlug}`);
-    expect(theirs.find((one) => one.key === `group/${groupSlug}`)?.unread).toBe(1);
+    /* Everything said before they joined, which is what a group thread is
+       for: the history is the group's, not each member's. */
+    expect(theirs.find((one) => one.key === `group/${groupSlug}`)?.unread).toBe(2);
   });
 });

@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { conversations, conversationPeople, messages, messageDrafts } from "../schema/messages";
 import { members } from "../schema/members";
@@ -153,12 +153,16 @@ async function readThreads(
          p.id is not null
          /* R9.7. A group's thread belongs to whoever is in the group now,
             read here rather than copied into a roster that goes stale. */
-         or (c.group_id is not null and (${reader.office} or exists (
+         /* R9.7. A group's conversation belongs to the group, so it is not
+            in the office's inbox unless the office is in that group or has
+            written into it. Thirty groups talking among themselves is not a
+            church's post. */
+         or (c.group_id is not null and exists (
               select 1 from group_memberships gm
-               where gm.group_id = c.group_id and gm.member_id = ${me})))
-         or (c.team_id is not null and (${reader.office} or exists (
+               where gm.group_id = c.group_id and gm.member_id = ${me}))
+         or (c.team_id is not null and exists (
               select 1 from team_members tm
-               where tm.team_id = c.team_id and tm.member_id = ${me})))
+               where tm.team_id = c.team_id and tm.member_id = ${me}))
        )
        ${opts.sent
           ? sql`and exists (select 1 from messages m where m.conversation_id = c.id and ${MINE})`
@@ -266,12 +270,12 @@ export async function unreadFor(db: Tx, reader: Reader): Promise<number> {
        where c.archived_at is null
          and (
            p.id is not null
-           or (c.group_id is not null and (${reader.office} or exists (
+           or (c.group_id is not null and exists (
                 select 1 from group_memberships gm
-                 where gm.group_id = c.group_id and gm.member_id = ${me})))
-           or (c.team_id is not null and (${reader.office} or exists (
+                 where gm.group_id = c.group_id and gm.member_id = ${me}))
+           or (c.team_id is not null and exists (
                 select 1 from team_members tm
-                 where tm.team_id = c.team_id and tm.member_id = ${me})))
+                 where tm.team_id = c.team_id and tm.member_id = ${me}))
          )
          and exists (
            select 1 from messages m
@@ -419,9 +423,18 @@ export async function sendMessage(
    */
   if (toPerson && !reader.office) throw new PermissionError("member", "editPerson");
 
-  /* Writing as the church is what the office does, to a person. Inside a
-     group everybody writes as themselves, the office included. */
-  const asOffice = reader.office && Boolean(toPerson);
+  /*
+   * Writing as the church is what the office does.
+   *
+   * Inside a group it writes as itself where it is in the group: a leader who
+   * happens to be on staff is in their own group as themselves, and a line
+   * from "the church" in the middle of their own group would read as somebody
+   * else entirely. Where it is not in the group, it writes as the church.
+   */
+  const inside = toGroup || toTeam
+    ? await memberOf(db, reader, { group: toGroup ?? undefined, team: toTeam ?? undefined })
+    : false;
+  const asOffice = reader.office && (Boolean(toPerson) || ((Boolean(toGroup) || Boolean(toTeam)) && !inside));
   if (!asOffice && !reader.memberId) throw new InvalidInputError("member.error.noRecord");
 
   const them = toPerson ? await memberBySlug(db, toPerson) : null;
@@ -458,6 +471,20 @@ export async function sendMessage(
     .set({ lastMessageAt: now, updatedAt: now, archivedAt: null })
     .where(eq(conversations.id, threadId));
 
+  /* R9.7. Writing into something puts the writer in it, which is how a group
+     thread the office answered turns up in the office's own inbox while the
+     ones it has never touched stay out of it. */
+  await db
+    .insert(conversationPeople)
+    .values({
+      tenantId: reader.tenantId,
+      conversationId: threadId,
+      memberId: asOffice ? null : reader.memberId,
+      office: asOffice,
+      lastReadAt: now,
+    })
+    .onConflictDoNothing();
+
   await markThreadRead(db, reader, threadId);
 
   await dropDraft(
@@ -476,15 +503,12 @@ export async function sendMessage(
  * Nobody is written into it: who is in a group thread is whoever is in the
  * group at the moment they open it.
  */
-/** R9.7. Whether this reader is in the group or team at all. */
-async function inIt(
+/** R9.7. Whether this reader is in the group or team themselves. */
+async function memberOf(
   db: Tx,
   reader: Reader,
   whose: { group?: string; team?: string },
 ): Promise<boolean> {
-  /* R9.7. The office speaks for the church, so it can reach any group. A
-     member reaches the ones they are in. */
-  if (reader.office) return true;
   if (!reader.memberId) return false;
 
   const [row] = whose.group
@@ -508,6 +532,18 @@ async function inIt(
         .limit(1);
 
   return Boolean(row);
+}
+
+/** R9.7. Whether this reader may write into the group or team at all. */
+async function inIt(
+  db: Tx,
+  reader: Reader,
+  whose: { group?: string; team?: string },
+): Promise<boolean> {
+  /* The office speaks for the church, so it can reach any group. A member
+     reaches the ones they are in. */
+  if (reader.office) return true;
+  return memberOf(db, reader, whose);
 }
 
 async function openWhole(
