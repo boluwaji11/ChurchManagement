@@ -132,25 +132,35 @@ describe("a mark against a message", () => {
   it("goes on, counts once, and comes off again", async () => {
     const thread = await run((tx) => threadAt(tx, mine, "office"));
     const said = await run((tx) => messagesIn(tx, mine, thread!.id));
-    const first = said[0]!.id;
+    const first = said.find((one) => !one.mine)!.id;
     const yes = REACTIONS[0];
 
     await run((tx) => react(tx, mine, first, yes));
     await run((tx) => react(tx, mine, first, yes));
 
     const after = await run((tx) => messagesIn(tx, mine, thread!.id));
-    expect(after[0]?.reactions).toEqual([]);
+    expect(after.find((one) => one.id === first)?.reactions).toEqual([]);
 
     await run((tx) => react(tx, mine, first, yes));
     const again = await run((tx) => messagesIn(tx, mine, thread!.id));
-    expect(again[0]?.reactions).toEqual([{ emoji: yes, count: 1, mine: true }]);
+    expect(again.find((one) => one.id === first)?.reactions)
+      .toEqual([{ emoji: yes, count: 1, mine: true }]);
+  });
+
+  it("is refused against the reader's own line", async () => {
+    const thread = await run((tx) => threadAt(tx, mine, "office"));
+    const said = await run((tx) => messagesIn(tx, mine, thread!.id));
+    const own = said.find((one) => one.mine)!;
+    await expect(
+      run((tx) => react(tx, mine, own.id, REACTIONS[0])),
+    ).rejects.toBeInstanceOf(InvalidInputError);
   });
 
   it("is refused a mark this product does not know", async () => {
     const thread = await run((tx) => threadAt(tx, mine, "office"));
     const said = await run((tx) => messagesIn(tx, mine, thread!.id));
     await expect(
-      run((tx) => react(tx, mine, said[0]!.id, "<script>")),
+      run((tx) => react(tx, mine, said.find((one) => !one.mine)!.id, "<script>")),
     ).rejects.toBeInstanceOf(InvalidInputError);
   });
 });

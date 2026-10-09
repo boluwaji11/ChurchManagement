@@ -32,7 +32,7 @@ export function Marks({
   church: string;
   id: string;
   marks: Mark[];
-  /** Which side the message sits on, so the row follows it. */
+  /** Whether the reader wrote it: their own line is read rather than marked. */
   mine: boolean;
   onChanged: () => void;
 }) {
@@ -49,10 +49,27 @@ export function Marks({
     });
   };
 
+  if (mine) {
+    /* R16.9. What others put against it, with nothing to press: a mark is an
+       answer to somebody, and answering yourself is not one. */
+    if (marks.length === 0) return null;
+    return (
+      <span className="flex flex-row-reverse items-center gap-1">
+        {marks.map((one) => (
+          <span
+            key={one.emoji}
+            className="flex min-h-6 items-center gap-1 rounded-full border border-line bg-surface px-1.5 text-[12px] leading-none text-fg-muted tabular-nums"
+          >
+            <span aria-hidden className="text-[14px] leading-none">{one.emoji}</span>
+            {one.count > 1 ? one.count : null}
+          </span>
+        ))}
+      </span>
+    );
+  }
+
   return (
-    <div
-      className={`relative flex items-center gap-1 ${mine ? "flex-row-reverse" : ""}`}
-    >
+    <div className="relative flex items-center gap-1">
       {marks.map((one) => (
         <button
           key={one.emoji}
@@ -65,7 +82,7 @@ export function Marks({
               : "border-line bg-surface text-fg-muted hover:bg-sunken"
           }`}
         >
-          <span aria-hidden className="text-[13px]">{one.emoji}</span>
+          <span aria-hidden className="text-[14px] leading-none">{one.emoji}</span>
           {one.count > 1 ? one.count : null}
         </button>
       ))}
@@ -85,9 +102,7 @@ export function Marks({
         <>
           <span className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
           <div
-            className={`absolute bottom-7 z-40 flex gap-0.5 rounded-full border border-line bg-surface p-1 shadow-lg ${
-              mine ? "right-0" : "left-0"
-            }`}
+            className="absolute bottom-7 left-0 z-40 flex gap-0.5 rounded-full border border-line bg-surface p-1 shadow-lg"
           >
             {MARKS.map((one) => (
               <button
@@ -95,7 +110,7 @@ export function Marks({
                 type="button"
                 onClick={() => put(one)}
                 aria-label={one}
-                className="grid size-8 cursor-pointer place-items-center rounded-full text-[17px] hover:bg-sunken"
+                className="grid size-8 cursor-pointer place-items-center rounded-full text-[19px] leading-none hover:bg-sunken"
               >
                 {one}
               </button>
@@ -146,7 +161,7 @@ export function EmojiButton({ onPick }: { onPick: (emoji: string) => void }) {
                 type="button"
                 aria-label={one}
                 onClick={() => { onPick(one); setOpen(false); }}
-                className="grid size-9 cursor-pointer place-items-center rounded-lg text-[18px] hover:bg-sunken"
+                className="grid size-9 cursor-pointer place-items-center rounded-lg text-[20px] leading-none hover:bg-sunken"
               >
                 {one}
               </button>

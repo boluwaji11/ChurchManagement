@@ -327,6 +327,7 @@ export const en = {
   "inbox.archived.none": "No archived conversations",
   "inbox.error.empty": "Write something first",
   "inbox.error.mark": "That is not a mark this product knows",
+  "inbox.error.ownMark": "You cannot react to your own message",
   "inbox.react": "React",
   "inbox.emoji": "Emoji",
   "inbox.error.thread": "That conversation could not be opened",

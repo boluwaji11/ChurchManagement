@@ -46,7 +46,11 @@ export type Target =
   | { office: false; team: string };
 
 /** R16.9. The marks a church may put against a message. */
-export const REACTIONS = ["\u{1F44D}", "\u2764\uFE0F", "\u{1F64F}", "\u{1F602}", "\u{1F389}", "\u{1F622}"] as const;
+export const REACTIONS = [
+  "\u{1F44D}", "\u2764\uFE0F", "\u{1F602}", "\u{1F389}", "\u{1F64F}", "\u{1F62E}",
+  /* Kept so a mark already put against a line goes on reading. */
+  "\u{1F622}",
+] as const;
 
 export interface Reaction {
   emoji: string;
@@ -376,11 +380,21 @@ export async function react(
   }
 
   const [said] = await db
-    .select({ conversationId: messages.conversationId })
+    .select({
+      conversationId: messages.conversationId,
+      fromOffice: messages.fromOffice,
+      authorMemberId: messages.authorMemberId,
+    })
     .from(messages)
     .where(eq(messages.id, messageId))
     .limit(1);
   if (!said) throw new InvalidInputError("inbox.error.thread");
+
+  /* R16.9. A mark is an answer to somebody. Answering yourself is not one. */
+  const ownIt = said.fromOffice
+    ? reader.office
+    : said.authorMemberId !== null && said.authorMemberId === reader.memberId;
+  if (ownIt) throw new InvalidInputError("inbox.error.ownMark");
   if (!(await canRead(db, reader, said.conversationId))) {
     throw new PermissionError(reader.office ? "staff" : "member", "editPerson");
   }
