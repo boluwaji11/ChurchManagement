@@ -102,18 +102,29 @@ self.addEventListener("fetch", (event) => {
  * person reads.
  */
 self.addEventListener("push", (event) => {
-  if (!event.data) return;
-
-  let payload;
-  try {
-    payload = event.data.json();
-  } catch {
-    return;
+  /*
+   * A push that arrives in a shape we did not send still reaches the person.
+   *
+   * The browser requires a notification for every push it delivers, so a
+   * handler that gives up on a payload it cannot read has the browser show its
+   * own "this site was updated in the background" instead, or count it against
+   * the site. Anything unreadable is shown as the church's name with whatever
+   * text came with it.
+   */
+  let payload = {};
+  if (event.data) {
+    try {
+      payload = event.data.json();
+    } catch {
+      payload = { title: "ConnectApp", body: event.data.text() };
+    }
   }
+  if (!payload || typeof payload !== "object") payload = {};
+  if (!payload.title) payload.title = "ConnectApp";
 
   event.waitUntil(
     self.registration.showNotification(payload.title, {
-      body: payload.body,
+      body: payload.body || "",
       icon: "/icon.svg",
       badge: "/icon.svg",
       // Two of the same thing replace rather than stack, so somebody who left
