@@ -687,7 +687,7 @@ function Attachment({
         type="button"
         onClick={open}
         disabled={opening}
-        className="flex min-w-0 items-center gap-1.5 text-[12px] text-fg-muted underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+        className="flex min-w-0 cursor-pointer items-center gap-1.5 text-[12px] text-fg-muted underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
       >
         {opening ? (
           <Spinner className="size-3.5 shrink-0 [&>span]:size-3.5" label={t("order.file.open")} />
@@ -697,14 +697,21 @@ function Attachment({
         <span className="truncate">{name}</span>
       </button>
       </Tooltip>
-      <IconButton
-        label={t("order.file.remove")}
+      <Confirm
+        title={t("order.file.removeTitle", { name: full })}
+        confirmLabel={t("order.file.remove")}
         disabled={pending}
-        onClick={onRemove}
-        className="size-6"
-      >
-        {removing ? <Spinner label={t("order.file.remove")} /> : <X />}
-      </IconButton>
+        onConfirm={onRemove}
+        trigger={
+          <IconButton
+            label={t("order.file.remove")}
+            disabled={pending}
+            className="size-6"
+          >
+            {removing ? <Spinner label={t("order.file.remove")} /> : <X />}
+          </IconButton>
+        }
+      />
     </span>
   );
 }

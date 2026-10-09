@@ -49,13 +49,13 @@ export function PlanSide({
               const short = filled < needed;
 
               return (
-                <li key={team.id} className="flex gap-2.5">
-                  <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
-                    <span className="mt-3 size-2.5 shrink-0 rounded-full bg-primary" />
-                    <span className="my-1 w-px flex-1 bg-primary/35" />
+                <li key={team.id} className="flex gap-2.5 last:[&>span:first-child>span:last-child]:hidden">
+                  <span className="flex w-4 shrink-0 flex-col items-center" aria-hidden>
+                    <span className="mt-2.5 size-2 shrink-0 rounded-full bg-primary" />
+                    <span className="my-1 w-px flex-1 bg-primary/40" />
                   </span>
 
-                  <span className="flex min-w-0 flex-1 items-center gap-2.5 py-1.5 text-[13px]">
+                  <span className="flex min-w-0 flex-1 items-center gap-2.5 py-2 text-[13px]">
                     <span className="min-w-0 flex-1 truncate text-fg">{team.name}</span>
                     <span
                       data-numeric

@@ -2954,6 +2954,7 @@ export const en = {
   "order.files": "Files",
   "order.file.add": "Attach a file",
   "order.file.remove": "Remove the file",
+  "order.file.removeTitle": "Take {name} off this item?",
   "order.file.open": "Open",
   "serves.title": "Who serves",
   "serves.empty": "No teams with positions to fill",
