@@ -164,10 +164,27 @@ export function Writer({
    * opened.
    */
   const saved = React.useRef(draft);
+  /* Whether this reader has touched the box for this recipient. Once they
+     have, what the server says is a draft is older news than what is in
+     front of them, and must never be written back over it. */
+  const touched = React.useRef(false);
+
   React.useEffect(() => {
+    touched.current = false;
     saved.current = draft;
     setBody(draft);
-  }, [to, draft]);
+    // Only the recipient changing reloads the box; see below for the draft
+    // arriving a moment later.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [to]);
+
+  /* The draft often arrives a beat after the conversation opens, so it is
+     taken then too, while the box is still untouched. */
+  React.useEffect(() => {
+    if (touched.current || draft === saved.current) return;
+    saved.current = draft;
+    setBody(draft);
+  }, [draft]);
 
   /* Kept a beat behind the last keystroke, and again the moment the box goes
      away, because closing the panel used to cancel the save that had not
@@ -180,13 +197,15 @@ export function Writer({
      putting the words back in the box of a message already sent. */
   const posting = React.useRef(false);
 
+  const pending = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
   React.useEffect(() => {
     if (body === saved.current || posting.current) return;
-    const timer = setTimeout(() => {
+    pending.current = setTimeout(() => {
       saved.current = body;
       void keepDraft(to, body, church);
     }, 600);
-    return () => clearTimeout(timer);
+    return () => { if (pending.current) clearTimeout(pending.current); };
   }, [body, to, church]);
 
   React.useEffect(() => () => {
@@ -197,6 +216,9 @@ export function Writer({
   const go = () => {
     const words = body.trim();
     if (!words || busy) return;
+    /* The save that was already scheduled is dropped: it would land after
+       the send had thrown the draft away and write it back. */
+    if (pending.current) clearTimeout(pending.current);
     posting.current = true;
     setWorking(true);
     setError(null);
@@ -206,6 +228,9 @@ export function Writer({
       if (back.error) { setError(back.error); return; }
       saved.current = "";
       setBody("");
+      /* Said plainly rather than left to the send: whatever was written down
+         for this recipient has just been sent. */
+      void keepDraft(to, "", church);
       onSent();
     });
   };
@@ -217,7 +242,7 @@ export function Writer({
       <div className="flex items-end gap-2">
         <Textarea
           value={body}
-          onChange={(event) => setBody(event.target.value)}
+          onChange={(event) => { touched.current = true; setBody(event.target.value); }}
           onKeyDown={(event) => {
             /* Enter sends, because that is what everybody's hands already do.
                A new line is still there on the other key. */
