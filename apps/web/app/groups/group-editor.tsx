@@ -455,29 +455,36 @@ export function GroupEditor({
                 />
               </Searching>
 
-              {/* One box with a hairline between the rows, the same list the
-                  roster panel gathers names in. */}
+              {/* R24.6. The rail the product uses wherever a few things make up
+                  one thing: a dot a row and a line running between them. */}
               {leaders.length > 0 ? (
-                <ul className="flex flex-col divide-y divide-line rounded-[14px] border border-line bg-surface">
+                <ol className="m-0 flex list-none flex-col p-0">
                   {leaders.map((one) => (
-                    <li key={one.id} className="flex items-center gap-2 px-3 py-2">
-                      <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
-                        {one.name}
+                    <li key={one.id} className="flex gap-2.5">
+                      <span className="flex w-5 shrink-0 flex-col items-center" aria-hidden>
+                        <span className="mt-4 size-2.5 shrink-0 rounded-full bg-primary" />
+                        <span className="my-1 w-px flex-1 bg-primary/35" />
                       </span>
-                      <IconButton
-                        label={t("groups.remove")}
-                        variant="ghost"
-                        className="size-9 sm:size-8 [&_svg]:size-4"
-                        // R9.3. A group keeps at least one. The last one comes
-                        // off only once somebody else has been named.
-                        disabled={leaders.length === 1}
-                        onClick={() => setLeaders((was) => was.filter((x) => x.id !== one.id))}
-                      >
-                        <X />
-                      </IconButton>
+
+                      <span className="flex min-w-0 flex-1 items-center gap-2 py-2">
+                        <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
+                          {one.name}
+                        </span>
+                        <IconButton
+                          label={t("groups.remove")}
+                          variant="ghost"
+                          className="size-9 sm:size-8 [&_svg]:size-4"
+                          // R9.3. A group keeps at least one. The last one
+                          // comes off only once somebody else has been named.
+                          disabled={leaders.length === 1}
+                          onClick={() => setLeaders((was) => was.filter((x) => x.id !== one.id))}
+                        >
+                          <X />
+                        </IconButton>
+                      </span>
                     </li>
                   ))}
-                </ul>
+                </ol>
               ) : null}
             </div>
           </Side>

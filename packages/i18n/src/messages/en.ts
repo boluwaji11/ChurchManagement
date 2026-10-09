@@ -2005,6 +2005,7 @@ export const en = {
   "groups.roster": "Roster",
   "groups.addMembers": "Add members",
   "groups.findMember": "Find a member",
+  "groups.willJoin": "Joining",
   "groups.addDo": "Add",
   "groups.addCount.one": "Add {count} member",
   "groups.addCount.other": "Add {count} members",
