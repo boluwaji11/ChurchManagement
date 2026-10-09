@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Plus, Trash2, GripVertical, Pencil, MessageSquare, X, Paperclip,
+  Plus, Trash2, GripVertical, Pencil, StickyNote, X, Paperclip,
   Copy, LayoutList, ArrowUp, ArrowDown, ArrowLeft,
 } from "lucide-react";
 import {
@@ -331,7 +331,7 @@ export function Order({
                           <span
                             className="inline-flex min-w-0 items-center gap-0.5 rounded-full border border-line px-2 py-0.5"
                           >
-                            <MessageSquare className="size-3.5 shrink-0 text-fg-muted" aria-hidden />
+                            <StickyNote className="size-3.5 shrink-0 text-fg-muted" aria-hidden />
                             <span className="truncate text-[12px] text-fg-muted">{note.body}</span>
                             <IconButton
                               label={t("order.note.remove")}
@@ -615,7 +615,7 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
   return (
     <Dialog open={open} onOpenChange={close}>
       <DialogTrigger asChild>
-        <IconButton label={t("order.note.add")}><MessageSquare /></IconButton>
+        <IconButton label={t("order.note.add")}><StickyNote /></IconButton>
       </DialogTrigger>
       <DialogContent title={t("order.note.add")} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">
