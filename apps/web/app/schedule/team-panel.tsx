@@ -524,9 +524,29 @@ export function TeamPanel({
               team of fifteen would otherwise bury the positions above it. */}
           <div className="flex flex-col gap-2">
             <span className="text-label text-fg">{t("serving.roster")}</span>
-            <span className="text-[13px] text-fg-muted">
-              {plural("serving.volunteerCount", people.length)}
-            </span>
+            {/* R10.1. The names, rather than a tally. A leader opening a team
+                wants to see who is on it, and the rest are one press away. */}
+            {people.length === 0 ? (
+              <span className="text-[13px] text-fg-muted">
+                {t("serving.roster.empty")}
+              </span>
+            ) : (
+              <p className="m-0 text-[13px] text-fg-muted">
+                {people.slice(0, 3).map((one) => one.name).join(", ")}
+                {people.length > 3 ? (
+                  <>
+                    {", "}
+                    <button
+                      type="button"
+                      className="rounded-[4px] font-medium text-primary underline underline-offset-2 hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                      onClick={() => setStep("members")}
+                    >
+                      {plural("serving.rosterMore", people.length - 3)}
+                    </button>
+                  </>
+                ) : null}
+              </p>
+            )}
             <Button
               type="button"
               variant="secondary"
