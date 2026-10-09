@@ -69,6 +69,10 @@ export const messages = pgTable(
     authorMemberId: uuid("author_member_id").references(() => members.id, { onDelete: "set null" }),
     authorUserId: uuid("author_user_id").references(() => appUsers.id, { onDelete: "set null" }),
     body: text("body").notNull(),
+    /** R16.9. When it was last changed, so the line can say so. */
+    editedAt: timestamp("edited_at", { withTimezone: true }),
+    /** R2.13. Taken back: the row stays, the words go. */
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [

@@ -71,6 +71,10 @@ export interface Message {
   authorPhotoKey: string | null;
   /** Whether the reader wrote it. */
   mine: boolean;
+  /** R16.9. Changed after it was sent, so the line can say so. */
+  edited: boolean;
+  /** R2.13. Taken back: the row stays, the words are gone. */
+  deleted: boolean;
   /** R16.9. What has been put against it, most used first. */
   reactions: Reaction[];
 }
@@ -154,12 +158,13 @@ async function readThreads(
     select distinct on (c.id)
            c.id, c.kind, c.last_message_at, c.archived_at,
            coalesce(p.office, false) as i_am_office,
-           (select m.body from messages m
+           (select case when m.deleted_at is null then m.body else '' end from messages m
              where m.conversation_id = c.id order by m.created_at desc limit 1) as last_body,
            (select ${MINE} from messages m
              where m.conversation_id = c.id order by m.created_at desc limit 1) as last_mine,
            (select count(*)::int from messages m
              where m.conversation_id = c.id
+               and m.deleted_at is null
                and m.created_at > coalesce(p.last_read_at, timestamptz '-infinity')
                and not ${MINE}) as unread
       from conversations c
@@ -263,7 +268,10 @@ export const inboxFor = (
 ): Promise<Thread[]> => readThreads(db, reader, opts);
 
 /**
- * R16.9. How many conversations are waiting on this reader.
+ * R16.9. How many lines are waiting on this reader.
+ *
+ * Lines rather than conversations: the mark in the corner says how much there
+ * is to read, and a church that has been sent nine things should see nine.
  *
  * One statement, because every page in the product renders this number on its
  * way to the browser: the shell asks for it before anything else is drawn.
@@ -273,8 +281,13 @@ export async function unreadFor(db: Tx, reader: Reader): Promise<number> {
   const me = reader.memberId ?? null;
 
   const rows = (await db.execute(sql`
-    select count(*)::int as waiting from (
-      select distinct c.id
+    select coalesce(sum(waiting.lines), 0)::int as waiting from (
+      select distinct c.id,
+             (select count(*)::int from messages m
+               where m.conversation_id = c.id
+                 and m.deleted_at is null
+                 and m.created_at > coalesce(p.last_read_at, timestamptz '-infinity')
+                 and not ${MINE}) as lines
         from conversations c
         left join conversation_people p on p.conversation_id = c.id
          and ((p.office and ${reader.office}) or (p.member_id = ${me}))
@@ -310,6 +323,8 @@ export async function messagesIn(
       id: messages.id,
       body: messages.body,
       createdAt: messages.createdAt,
+      editedAt: messages.editedAt,
+      deletedAt: messages.deletedAt,
       fromOffice: messages.fromOffice,
       authorMemberId: messages.authorMemberId,
       first: members.firstName,
@@ -349,8 +364,10 @@ export async function messagesIn(
 
   return rows.map((one) => ({
     id: one.id,
-    body: one.body,
+    body: one.deletedAt ? "" : one.body,
     createdAt: one.createdAt,
+    edited: one.editedAt !== null,
+    deleted: one.deletedAt !== null,
     fromOffice: one.fromOffice,
     authorMemberId: one.authorMemberId,
     authorName: one.fromOffice ? "" : `${one.first ?? ""} ${one.last ?? ""}`.trim(),
@@ -358,8 +375,79 @@ export async function messagesIn(
     mine: one.fromOffice
       ? reader.office
       : one.authorMemberId !== null && one.authorMemberId === reader.memberId,
-    reactions: against(one.id),
+    reactions: one.deletedAt ? [] : against(one.id),
   }));
+}
+
+/** Whether this reader wrote a particular line. */
+async function wroteIt(
+  db: Tx,
+  reader: Reader,
+  messageId: string,
+): Promise<{ conversationId: string } | null> {
+  const [said] = await db
+    .select({
+      conversationId: messages.conversationId,
+      fromOffice: messages.fromOffice,
+      authorMemberId: messages.authorMemberId,
+      deletedAt: messages.deletedAt,
+    })
+    .from(messages)
+    .where(eq(messages.id, messageId))
+    .limit(1);
+
+  if (!said || said.deletedAt) return null;
+  const ownIt = said.fromOffice
+    ? reader.office
+    : said.authorMemberId !== null && said.authorMemberId === reader.memberId;
+  return ownIt ? { conversationId: said.conversationId } : null;
+}
+
+/**
+ * R16.9. Changing a line already sent.
+ *
+ * Only the person who wrote it, and the line says it was changed: a message
+ * somebody can quietly rewrite is a message nobody can rely on having read.
+ */
+export async function editMessage(
+  db: Tx,
+  reader: Reader,
+  messageId: string,
+  body: string,
+): Promise<void> {
+  const words = clean(body);
+  if (!words) throw new InvalidInputError("inbox.error.empty");
+  if (!(await wroteIt(db, reader, messageId))) {
+    throw new PermissionError(reader.office ? "staff" : "member", "editPerson");
+  }
+
+  await db
+    .update(messages)
+    .set({ body: words, editedAt: new Date() })
+    .where(eq(messages.id, messageId));
+}
+
+/**
+ * R16.9, R2.13. Taking a line back.
+ *
+ * The row stays and the words go, so the conversation still reads in order
+ * and the audit trail still holds what was said.
+ */
+export async function deleteMessage(
+  db: Tx,
+  reader: Reader,
+  messageId: string,
+): Promise<void> {
+  if (!(await wroteIt(db, reader, messageId))) {
+    throw new PermissionError(reader.office ? "staff" : "member", "editPerson");
+  }
+
+  await db
+    .update(messages)
+    .set({ body: "", deletedAt: new Date() })
+    .where(eq(messages.id, messageId));
+
+  await db.delete(messageReactions).where(eq(messageReactions.messageId, messageId));
 }
 
 /**

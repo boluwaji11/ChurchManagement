@@ -471,6 +471,7 @@ behind them were dropped in migration 0058.
 | HRT-271 | An inbox: who a message is for, drafts, and no reloading | R16.9, R17.1 | Resolved |
 | HRT-270 | Group and team threads, on the same tables | R16.9, R9.7 | Resolved |
 | HRT-272 | Reactions, and emoji in the message box | R16.9 | Resolved |
+| HRT-273 | Changing a line and taking one back | R16.9, R2.13 | Resolved |
 | HRT-147 | Birthday and anniversary sends | R16.13 | Deferred |
 
 ### F4. Forms

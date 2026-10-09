@@ -52,10 +52,10 @@ export async function readInbox(
          is about to be looking at. */
       const listed = await inboxFor(tx, me, { archivedOnly: opts.archived });
       const country = (await getChurch(tx, session.tenantId))?.country ?? null;
-      /* The inbox already knows what is waiting; only the other two views
-         have to ask. */
+      /* The inbox already knows what is waiting, line by line, so it is
+         added up here rather than asked for again. */
       const unread = !opts.archived
-        ? listed.reduce((sum, one) => sum + (one.unread > 0 ? 1 : 0), 0)
+        ? listed.reduce((sum, one) => sum + one.unread, 0)
         : await unreadFor(tx, me);
       return { unread, listed, drafts, open, said, country };
     },
@@ -105,6 +105,8 @@ export async function readInbox(
       name: one.authorName,
       photoUrl: face(one.authorPhotoKey),
       mine: one.mine,
+      edited: one.edited,
+      deleted: one.deleted,
       clock: one.createdAt.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" }),
       day: one.createdAt.toLocaleDateString(locale, {
         weekday: "long", day: "numeric", month: "long",

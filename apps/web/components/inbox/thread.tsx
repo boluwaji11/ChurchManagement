@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { ArrowUp } from "lucide-react";
-import { Avatar, Spinner, Textarea } from "@connectapp/ui";
+import { Avatar, Button, Spinner, Textarea } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
 import { EmojiButton, LIKE, Marks } from "./marks";
-import { markMessage } from "@/app/messages/actions";
+import { LineMenu } from "./line-menu";
+import { editLine, markMessage } from "@/app/messages/actions";
 import { keepDraft, send } from "@/app/messages/actions";
 import type { Said } from "./data";
 
@@ -75,6 +76,21 @@ export function Conversation({
    * on every browser.
    */
   const tapped = React.useRef<{ id: string; at: number } | null>(null);
+
+  /* R16.9. Which line is being changed, and the words as they stand. */
+  const [editing, setEditing] = React.useState<string | null>(null);
+  const [words, setWords] = React.useState("");
+  const [saving, setSaving] = React.useState(false);
+
+  const save = () => {
+    if (!editing || !words.trim() || saving) return;
+    setSaving(true);
+    void editLine(editing, words, church).then(() => {
+      setSaving(false);
+      setEditing(null);
+      (onChanged ?? onSent)();
+    });
+  };
 
   const like = (id: string, mine: boolean) => {
     if (mine) return;
@@ -175,7 +191,43 @@ export function Conversation({
                           } [&_p]:mb-2 [&_p:last-child]:mb-0`
                     }`}
                   >
-                    {alone ? one.body.trim() : <Markdown text={one.body} />}
+                    {one.deleted ? (
+                      <span className="text-fg-subtle italic">{t("inbox.deleted")}</span>
+                    ) : editing === one.id ? (
+                      <span className="flex flex-col gap-2">
+                        <Textarea
+                          value={words}
+                          onChange={(event) => setWords(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" && !event.shiftKey) {
+                              event.preventDefault();
+                              save();
+                            }
+                            if (event.key === "Escape") setEditing(null);
+                          }}
+                          rows={2}
+                          autoFocus
+                          aria-label={t("inbox.edit")}
+                          className="min-h-[44px] resize-none border-line bg-surface shadow-none"
+                        />
+                        <span className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            disabled={saving}
+                            onClick={() => setEditing(null)}
+                          >
+                            {t("action.cancel")}
+                          </Button>
+                          <Button loading={saving} disabled={saving || !words.trim()} onClick={save}>
+                            {t("action.save")}
+                          </Button>
+                        </span>
+                      </span>
+                    ) : alone ? (
+                      one.body.trim()
+                    ) : (
+                      <Markdown text={one.body} />
+                    )}
 
                     <Marks
                       church={church}
@@ -188,8 +240,23 @@ export function Conversation({
 
                   {/* The time sits on its own, so nothing put against the
                       message can move it. */}
-                  <span className="px-1 text-[11px] text-fg-subtle tabular-nums">
+                  <span
+                    className={`flex items-center gap-1 px-1 text-[11px] text-fg-subtle tabular-nums ${
+                      one.mine ? "flex-row-reverse" : ""
+                    }`}
+                  >
                     {one.clock}
+                    {one.edited && !one.deleted ? (
+                      <span className="text-fg-subtle">{t("inbox.edited")}</span>
+                    ) : null}
+                    {one.mine && !one.deleted && editing !== one.id ? (
+                      <LineMenu
+                        church={church}
+                        id={one.id}
+                        onEdit={() => { setEditing(one.id); setWords(one.body); }}
+                        onChanged={onChanged ?? onSent}
+                      />
+                    ) : null}
                   </span>
                 </div>
               </div>

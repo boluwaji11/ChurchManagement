@@ -42,6 +42,8 @@ export interface Said {
   name: string;
   photoUrl: string | null;
   mine: boolean;
+  edited: boolean;
+  deleted: boolean;
   clock: string;
   day: string;
   at: string;

@@ -3,7 +3,7 @@
 import {
   withTenant, sendMessage, setThreadArchived, threadAt,
   saveDraft, dropDraft, peopleNamed, writableGroups, writableTeams, react,
-  canAnswerMessages,
+  editMessage, deleteMessage, canAnswerMessages,
 } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -114,6 +114,41 @@ export interface WriteTo {
   through?: string | null;
   /** R9.7. Whether it reaches everybody in a group rather than one person. */
   whole?: boolean;
+}
+
+/** R16.9. Changing a line already sent. */
+export async function editLine(
+  id: string,
+  body: string,
+  church?: string,
+): Promise<{ error?: string }> {
+  try {
+    const { session, ctx } = await context(church);
+    await withTenant(ctx, async (tx) => {
+      const me = await readerFor(tx, session);
+      await editMessage(tx, me, id, body);
+    });
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R16.9, R2.13. Taking a line back: the words go, the line stays. */
+export async function deleteLine(
+  id: string,
+  church?: string,
+): Promise<{ error?: string }> {
+  try {
+    const { session, ctx } = await context(church);
+    await withTenant(ctx, async (tx) => {
+      const me = await readerFor(tx, session);
+      await deleteMessage(tx, me, id);
+    });
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
 }
 
 /** R16.9. A mark put against a message, or taken off it again. */

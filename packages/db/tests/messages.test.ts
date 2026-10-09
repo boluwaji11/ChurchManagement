@@ -10,6 +10,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import {
   sendMessage, messagesIn, inboxFor, unreadFor, threadAt, react, REACTIONS,
+  editMessage, deleteMessage,
   markThreadRead, setThreadArchived, saveDraft, draftsFor,
   type Reader,
 } from "../src/repo/messages";
@@ -81,7 +82,8 @@ describe("a thread with the office", () => {
   });
 
   it("counts what the office has not read, and nothing it wrote itself", async () => {
-    expect(await run((tx) => unreadFor(tx, office))).toBe(1);
+    /* Lines rather than conversations: two were written into this one. */
+    expect(await run((tx) => unreadFor(tx, office))).toBe(2);
 
     await run((tx) => sendMessage(tx, office, { to: { office: false, slug }, body: "It is." }));
     expect(await run((tx) => unreadFor(tx, office))).toBe(0);
@@ -162,6 +164,50 @@ describe("a mark against a message", () => {
     await expect(
       run((tx) => react(tx, mine, said.find((one) => !one.mine)!.id, "<script>")),
     ).rejects.toBeInstanceOf(InvalidInputError);
+  });
+});
+
+/**
+ * HRT-273. Changing a line and taking one back (R16.9, R2.13).
+ */
+describe("a line already sent", () => {
+  it("is changed only by whoever wrote it, and says so", async () => {
+    const thread = await run((tx) => threadAt(tx, mine, "office"));
+    const said = await run((tx) => messagesIn(tx, mine, thread!.id));
+    const own = said.find((one) => one.mine)!;
+
+    await expect(
+      run((tx) => editMessage(tx, office, own.id, "Not mine to change")),
+    ).rejects.toBeInstanceOf(PermissionError);
+
+    await run((tx) => editMessage(tx, mine, own.id, "Tuesday, I meant"));
+    const after = await run((tx) => messagesIn(tx, mine, thread!.id));
+    const now = after.find((one) => one.id === own.id);
+    expect(now?.body).toBe("Tuesday, I meant");
+    expect(now?.edited).toBe(true);
+  });
+
+  it("is taken back without leaving a hole in the conversation", async () => {
+    const thread = await run((tx) => threadAt(tx, mine, "office"));
+    const said = await run((tx) => messagesIn(tx, mine, thread!.id));
+    const own = said.find((one) => one.mine)!;
+
+    await run((tx) => deleteMessage(tx, mine, own.id));
+
+    const after = await run((tx) => messagesIn(tx, mine, thread!.id));
+    expect(after).toHaveLength(said.length);
+    const gone = after.find((one) => one.id === own.id);
+    expect(gone?.deleted).toBe(true);
+    expect(gone?.body).toBe("");
+  });
+
+  it("cannot be changed once it is taken back", async () => {
+    const thread = await run((tx) => threadAt(tx, mine, "office"));
+    const said = await run((tx) => messagesIn(tx, mine, thread!.id));
+    const gone = said.find((one) => one.deleted)!;
+    await expect(
+      run((tx) => editMessage(tx, mine, gone.id, "Back again")),
+    ).rejects.toBeInstanceOf(PermissionError);
   });
 });
 
