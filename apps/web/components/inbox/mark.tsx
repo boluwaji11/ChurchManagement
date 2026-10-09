@@ -83,6 +83,19 @@ export function InboxMark({
 
   const floating = place === "float";
 
+  /* R24.6. It moves when something lands in it, and then it stops. */
+  const [nudging, setNudging] = React.useState(false);
+  const seen = React.useRef(data.unread);
+  React.useEffect(() => {
+    if (data.unread > seen.current) {
+      setNudging(true);
+      const timer = setTimeout(() => setNudging(false), 1400);
+      seen.current = data.unread;
+      return () => clearTimeout(timer);
+    }
+    seen.current = data.unread;
+  }, [data.unread]);
+
   return (
     <div
       className={floating
@@ -103,8 +116,13 @@ export function InboxMark({
         aria-label={t("inbox.title")}
         aria-expanded={open}
         className={floating
-          ? "relative grid size-14 cursor-pointer place-items-center rounded-full bg-fg text-[var(--canvas)] shadow-lg hover:opacity-90"
+          ? "relative grid size-14 cursor-pointer place-items-center rounded-full bg-primary text-[var(--on-primary)] shadow-lg transition-transform duration-[var(--duration-fast)] hover:scale-105 active:scale-95"
           : "relative grid size-9 cursor-pointer place-items-center rounded-md border border-line-strong bg-surface hover:bg-sunken"}
+        style={
+          nudging && floating
+            ? { animation: "connectapp-nudge 700ms var(--ease-out) 2" }
+            : undefined
+        }
       >
         <MessageSquare className={floating ? "size-6" : "size-[17px]"} aria-hidden />
         {data.unread > 0 ? (
