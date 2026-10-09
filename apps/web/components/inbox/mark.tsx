@@ -235,7 +235,14 @@ export function InboxMark({
               </nav>
             ) : null}
 
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            {/* A conversation does its own scrolling, so the panel does not
+                scroll it as well: two scrolling boxes inside each other is why
+                opening one landed halfway up it. */}
+            <div
+              className={`flex min-h-0 flex-1 flex-col ${
+                key ? "overflow-hidden" : "overflow-y-auto"
+              }`}
+            >
               {key ? (
                 <Conversation
                   church={church}

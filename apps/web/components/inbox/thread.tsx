@@ -35,6 +35,21 @@ export function Conversation({
   onSent: () => void;
   sending?: boolean;
 }) {
+  /*
+   * R16.9. It opens at the bottom, where the newest line is.
+   *
+   * Without a jump on the first draw a conversation opened at whatever was
+   * said in August, and the thing somebody pressed it to read was below the
+   * fold.
+   */
+  const foot = React.useRef<HTMLDivElement>(null);
+  const was = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    const fresh = was.current !== to;
+    was.current = to;
+    foot.current?.scrollIntoView({ block: "end", behavior: fresh ? "auto" : "smooth" });
+  }, [to, said.length]);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-4 py-3">
@@ -102,6 +117,7 @@ export function Conversation({
             </React.Fragment>
           );
         })}
+        <div ref={foot} />
       </div>
 
       <Writer church={church} to={to} onSent={onSent} sending={sending} />
