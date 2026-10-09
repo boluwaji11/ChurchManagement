@@ -84,7 +84,7 @@ export function ServiceBoard({
               ))}
             </div>
           ) : (
-            <ul className="overflow-hidden rounded-lg border border-line bg-surface">
+            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
               {upcoming.slice(0, shown).map((one, i) => (
                 <li key={one.id}>
                   <Row service={one} next={i === 0} />
@@ -122,7 +122,7 @@ export function ServiceBoard({
           {past.length === 0 ? (
             <p className="text-[13px] text-fg-muted">{t("services.noPast")}</p>
           ) : view === "list" ? (
-            <ul className="overflow-hidden rounded-lg border border-line bg-sunken">
+            <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-sunken">
               {past.map((one) => (
                 <li key={one.id}>
                   <Row service={one} quiet />
@@ -230,7 +230,7 @@ function Row({
   return (
     <Link
       href={service.href}
-      className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 last:border-0 hover:bg-line"
+      className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-line"
     >
       <span
         className={`shrink-0 text-[13px] font-medium text-fg-subtle ${
