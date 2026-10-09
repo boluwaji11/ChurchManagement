@@ -495,13 +495,6 @@ export function Finder({
             </SheetContent>
           </Sheet>
 
-          {canManage && !putAway ? (
-            <Button asChild className="h-[34px] min-h-0 gap-1.5 px-3 text-[13px]">
-              <Link href={`/groups/new?church=${church}`}>
-                <Plus className="size-4" aria-hidden /> {t("groups.add")}
-              </Link>
-            </Button>
-          ) : null}
         </div>
       ) : null}
 

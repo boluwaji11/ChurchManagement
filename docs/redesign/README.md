@@ -139,26 +139,32 @@ catalogue was aligned to them in HRT-201, so a key's value is the design's strin
 | Dashboard | Dashboard | none | HRT-203 |
 | Pastor home | Home | Add care note | Needs the pastor persona (HRT-202) |
 | People | People | Add person | Built |
-| Person | Person | Add note | Title is the person's name. Action is still Edit, HRT-208 moves it |
+| Person | Person | Add note | The page names itself with the face and the name, so the bar carries none. Add note sits on the timeline it writes into |
 | Edit person | Edit person | none | Built |
-| Follow-ups | Follow-ups | Start follow-up | Title built, action HRT-208 |
-| Check-in | Check-in | Check in | Title built, action HRT-208 |
-| Labels | Labels | none | HRT-208 |
+| Follow-ups | Follow-ups | Start follow-up | Built. The press is at the head of each column, because which column somebody enters at is the information |
+| Check-in | Check-in | Check in | Built |
+| Labels | Labels | none | Built |
 | Room rosters | Room rosters | none | Built |
-| Incidents | Incidents | File report | Title built, action HRT-208 |
-| Services | Services | New service | Title built, action HRT-208 |
-| Service plan | Service plan | Add item | Title built, action HRT-208 |
+| Incidents | Incidents | File report | Built |
+| Services | Services | New service | Built |
+| Service plan | Service plan | Add item | Built. The press is at the foot of the order, because adding the twelfth item should not be a trip to the top of the page |
 | Live service | Live service | none | Built, always dark |
-| Serving | Serving | Send requests or New team | Title built, action HRT-208 |
+| Serving | Serving | Send requests or New team | Title built. New team moved to Settings in HRT-226, and sending requests in bulk is not built |
 | Schedule | Schedule | none | Built |
-| Groups | Groups | New group | Title built, action HRT-208 |
-| Group | Group, or My group for a leader | Add member | Title is the group's name, action HRT-208 |
+| Groups | Groups | New group | Built |
+| Group | Group, or My group for a leader | Add member | Title is the group's name. Adding somebody is the directory lookup at the head of the roster rather than a button above the page |
 | Forms | Forms | New form | Built |
-| Settings | Settings | Invite person | Title built, action HRT-208 |
+| Settings | Settings | Invite person | Title built. Settings is one frame over many sections, and inviting belongs to one of them, so the press is on that section |
 | Import | Import | none | Built |
 | Duplicates | Duplicates | none | Built |
 | Celebrations | Celebrations | none | Built |
 | Giving, Songs, Calendar, Reports, Churches | | | Excluded, see above |
+
+Where the table says the press is on the page rather than above it, the reason is the same
+every time: a control that adds to a list belongs with the list, and the design's own rule that a
+screen has one action is about there being one, not about where it is drawn. `AppShell` draws the
+action it is given in the same place on every screen, at the top of the content, which is the
+consistency the table is asking for.
 
 An entry's sidebar label is the same word as its title. The one difference is People, where the
 prototype's nav says People and the screen is also People; ours said Directory in both places and

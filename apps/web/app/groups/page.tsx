@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import {
   withTenant, findGroups, countArchivedGroups, listGroupTypes, pendingRequests, personForUser,
   canManageGroups,
 } from "@connectapp/db";
+import { Button } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
@@ -108,20 +109,34 @@ export default async function GroupsPage({
   ) : null;
 
   /*
+   * R24.6. The screen's one action, in the top bar.
+   *
+   * It used to sit over the list, which gave the screen two header rows: one
+   * with the name of the thing and one with the button that makes another.
+   */
+  const making = manage && !putAway ? (
+    <Button asChild>
+      <Link href={`/groups/new?church=${session.tenantSlug}`}>
+        <Plus /> {t("groups.add")}
+      </Link>
+    </Button>
+  ) : undefined;
+
+  /*
    * R9.5. The kinds lead, for everybody. A member arriving at the groups screen
    * and a leader arriving at it are choosing between the same three or four
    * things the church calls by name, so they meet the same screen.
    */
   if (!putAway && !type && kinds.length > 0) {
     const landing = (
-      <TypesLanding church={session.tenantSlug} types={kinds} canManage={manage} />
+      <TypesLanding church={session.tenantSlug} types={kinds} />
     );
     /* The kinds are the heading. A title over a list of names that are
        themselves titles says the word twice. */
     return portal ? (
       <PortalShell session={session} tab={t("nav.groups")}>{landing}</PortalShell>
     ) : (
-      <AppShell session={session} title={t("groups.title")}>
+      <AppShell session={session} title={t("groups.title")} action={making}>
         {landing}
         {archivedLink}
       </AppShell>
@@ -230,7 +245,7 @@ export default async function GroupsPage({
   }
 
   return (
-    <AppShell session={session} title={only?.name ?? t("groups.title")}>
+    <AppShell session={session} title={only?.name ?? t("groups.title")} action={making}>
       {back}
 
       {/* R9.5. The kind's own words head its list here as well. The top bar

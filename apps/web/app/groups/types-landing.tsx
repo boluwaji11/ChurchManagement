@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Plus } from "lucide-react";
-import { Button } from "@connectapp/ui";
+import { ArrowRight } from "lucide-react";
 import { t } from "@connectapp/i18n";
 import { plainFromMarkdown } from "@/lib/rich-text";
 
@@ -29,25 +28,12 @@ export interface TypeCard {
 export function TypesLanding({
   church,
   types,
-  canManage,
 }: {
   church: string;
   types: TypeCard[];
-  /** R9.1. Whoever writes the groups down gets the press that writes one. */
-  canManage: boolean;
 }) {
   return (
     <div className="flex flex-col">
-      {canManage ? (
-        <div className="flex justify-end pb-2">
-          <Button asChild>
-            <Link href={`/groups/new?church=${church}`}>
-              <Plus /> {t("groups.add")}
-            </Link>
-          </Button>
-        </div>
-      ) : null}
-
       <div className="flex flex-col divide-y divide-line">
       {types.map((one) => (
         <Link

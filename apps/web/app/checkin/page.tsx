@@ -174,9 +174,10 @@ export default async function CheckinPage({
   );
 
   return (
-    /* The action rides the service's own header row, with the other things
-       this screen can do, rather than taking a band of its own above it. */
-    <AppShell session={session} title={t("checkin.title")}>
+    /* R24.6. The screen's one action is in the top bar. The row under it keeps
+       the other things this screen can do, which are tools rather than the
+       errand somebody opened it for. */
+    <AppShell session={session} title={t("checkin.title")} action={action}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-[22px] leading-[28px] text-fg">
@@ -217,7 +218,6 @@ export default async function CheckinPage({
             <Printer /> {t("checkin.rosters")}
           </ToolLink>
 
-          {action}
         </div>
       </div>
 
