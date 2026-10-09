@@ -684,15 +684,46 @@ export async function markThreadRead(
   reader: Reader,
   conversationId: string,
 ): Promise<void> {
-  await db
-    .update(conversationPeople)
-    .set({ lastReadAt: new Date() })
+  const now = new Date();
+
+  /* The office row where this reader answers for the church and the thread
+     has one; otherwise their own. */
+  const [held] = await db
+    .select({ id: conversationPeople.id, office: conversationPeople.office })
+    .from(conversationPeople)
     .where(and(
       eq(conversationPeople.conversationId, conversationId),
-      reader.office
-        ? eq(conversationPeople.office, true)
-        : eq(conversationPeople.memberId, reader.memberId ?? ""),
-    ));
+      reader.office && reader.memberId
+        ? sql`(${conversationPeople.office}
+               or ${conversationPeople.memberId} = ${reader.memberId})`
+        : reader.office
+          ? eq(conversationPeople.office, true)
+          : eq(conversationPeople.memberId, reader.memberId ?? ""),
+    ))
+    .orderBy(desc(conversationPeople.office))
+    .limit(1);
+
+  if (held) {
+    await db
+      .update(conversationPeople)
+      .set({ lastReadAt: now })
+      .where(eq(conversationPeople.id, held.id));
+    return;
+  }
+
+  /* R9.7. In a group thread nobody is written down until they read it, so
+     the mark brings the row with it. */
+  if (!reader.memberId) return;
+  await db
+    .insert(conversationPeople)
+    .values({
+      tenantId: reader.tenantId,
+      conversationId,
+      memberId: reader.memberId,
+      office: false,
+      lastReadAt: now,
+    })
+    .onConflictDoNothing();
 }
 
 /** R2.13. Off the list, kept in the records. A reply brings it back. */

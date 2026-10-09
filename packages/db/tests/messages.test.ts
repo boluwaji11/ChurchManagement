@@ -215,6 +215,14 @@ describe("a group's thread", () => {
     expect(after.map((one) => one.key)).toContain(`group/${groupSlug}`);
   });
 
+  it("goes quiet for somebody who has read it", async () => {
+    const thread = await run((tx) => threadAt(tx, mine, `group/${groupSlug}`));
+    await run((tx) => markThreadRead(tx, mine, thread!.id));
+
+    const theirs = await run((tx) => inboxFor(tx, mine));
+    expect(theirs.find((one) => one.key === `group/${groupSlug}`)?.unread).toBe(0);
+  });
+
   it("reaches whoever joins afterwards", async () => {
     const group = await run((tx) => threadAt(tx, mine, `group/${groupSlug}`));
     expect(group).not.toBeNull();
