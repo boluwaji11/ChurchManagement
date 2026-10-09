@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { X, SlidersHorizontal, Plus, Undo2 } from "lucide-react";
+import { X, SlidersHorizontal, Undo2 } from "lucide-react";
 import {
   Avatar, Banner, Button, IconButton, Switch,
   Sheet, SheetContent, SheetTrigger, LIFT,
@@ -153,6 +153,7 @@ export function Finder({
   requests,
   canManage,
   putAway = false,
+  make,
 }: {
   church: string;
   /**
@@ -165,6 +166,13 @@ export function Finder({
   types: FinderType[];
   requests: FinderRequest[];
   canManage: boolean;
+  /**
+   * R24.17. The press that writes the first one.
+   *
+   * Given by the screen rather than built here, because it names the kind the
+   * church is reading: "Create a Committee" rather than "Create a Group".
+   */
+  make?: React.ReactNode;
   /** R9.2. The archived view: the same list, holding the groups put away. */
   putAway?: boolean;
 }) {
@@ -514,15 +522,7 @@ export function Finder({
             /* R9.5. The line tells whoever can make one to make one. A member
                reading an empty screen has already been told by the screen. */
             body={canManage ? t("groups.none.body") : undefined}
-            action={
-              canManage ? (
-                <Button asChild>
-                  <Link href={`/groups/new?church=${church}`}>
-                    <Plus /> {t("groups.add")}
-                  </Link>
-                </Button>
-              ) : undefined
-            }
+            action={canManage ? make : undefined}
           />
           )
         ) : (

@@ -160,12 +160,33 @@ export default async function GroupsPage({
   const here = new Set(shown.map((group) => group.id));
   const waiting = requests.filter((request) => here.has(request.groupId));
 
+  /*
+   * R9.1. It names the kind it writes one of.
+   *
+   * A church reading its Small groups and pressing "Create a Group" met a
+   * blank form asking what kind it was, having just said. The kind travels
+   * with the press, so the form opens on it and the way back out returns to
+   * the list it was started from.
+   */
+  const making = manage && !putAway ? (
+    <Button asChild>
+      <Link
+        href={`/groups/new?church=${session.tenantSlug}${
+          only ? `&type=${only.slug ?? only.id}` : ""
+        }`}
+      >
+        <Plus /> {only ? t("groups.addOf", { type: only.name }) : t("groups.add")}
+      </Link>
+    </Button>
+  ) : undefined;
+
   const finder = (
     <Finder
         church={session.tenantSlug}
         from={type ? `&type=${encodeURIComponent(type)}` : ""}
         canManage={manage}
         putAway={putAway}
+        make={making}
         types={types.map((type) => ({
           id: type.id,
           name: type.name,
@@ -218,26 +239,6 @@ export default async function GroupsPage({
    * It used to sit over the list, which gave the screen two header rows: one
    * with the name of the thing and one with the button that makes another.
    */
-  /*
-   * R9.1. It names the kind it writes one of.
-   *
-   * A church reading its Small groups and pressing "Create a Group" met a
-   * blank form asking what kind it was, having just said. The kind travels
-   * with the press, so the form opens on it and the way back out returns to
-   * the list it was started from.
-   */
-  const making = manage && !putAway ? (
-    <Button asChild>
-      <Link
-        href={`/groups/new?church=${session.tenantSlug}${
-          only ? `&type=${only.slug ?? only.id}` : ""
-        }`}
-      >
-        <Plus /> {only ? t("groups.addOf", { type: only.name }) : t("groups.add")}
-      </Link>
-    </Button>
-  ) : undefined;
-
   // R9.2. The way back out of the archived view, then the way back to the
   // kinds, which is offered wherever the kinds screen exists.
   /* R24.6. The way back rides the action's own row rather than sitting in a
@@ -276,7 +277,10 @@ export default async function GroupsPage({
     <AppShell
       session={session}
       title={only?.name ?? t("groups.title")}
-      action={making}
+      /* R24.17. An empty list offers the press in the middle of the screen,
+         where somebody with nothing is looking, so the top of the screen does
+         not offer it twice. */
+      action={shown.length === 0 ? undefined : making}
       back={back}
     >
       {/* R9.5. The kind's own words head its list here as well. The top bar
