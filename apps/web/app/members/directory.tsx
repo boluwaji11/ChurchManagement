@@ -271,6 +271,15 @@ export function Directory({
             directory is still looked up by name. */}
         {putAway ? null : (
         <div className="flex flex-wrap items-center gap-2">
+        {/* The box that narrows the list leads: it is what somebody reaches
+            for first, and the marks beside it are what they reach for after. */}
+        <SearchField
+          value={search}
+          onChange={setSearch}
+          placeholder={t("directory.searchPlaceholder")}
+          className="max-w-[260px] [&_input]:h-[34px] [&_input]:border-line [&_input]:shadow-none hover:[&_input]:border-line-strong"
+        />
+
         <DirectoryFilters
           tags={tags}
           params={params}
@@ -280,6 +289,7 @@ export function Directory({
           }
           narrowing={narrowing}
           busy={narrowingNow}
+          compact
         />
 
         {/* R1.14. The lists this church keeps, and the way to keep this one.
@@ -361,11 +371,15 @@ export function Directory({
         </div>
         )}
 
-        <SearchField
-          value={search}
-          onChange={setSearch}
-          placeholder={t("directory.searchPlaceholder")}
-        />
+        {/* An archived directory keeps the box and nothing else: the counts
+            and the tools are about the live one. */}
+        {putAway ? (
+          <SearchField
+            value={search}
+            onChange={setSearch}
+            placeholder={t("directory.searchPlaceholder")}
+          />
+        ) : null}
       </div>
 
       {result?.error ? <Banner tone="danger" title={t("import.failed")}>{result.error}</Banner> : null}
@@ -715,6 +729,7 @@ function DirectoryFilters({
   onClear,
   narrowing,
   busy,
+  compact,
 }: {
   tags: TagOption[];
   params: URLSearchParams;
@@ -723,6 +738,8 @@ function DirectoryFilters({
   narrowing: number;
   /** R24.6. Whether the rows behind the panel are still on their way. */
   busy: boolean;
+  /** R24.6. Drawn as a mark, for a row that already carries several. */
+  compact?: boolean;
 }) {
   /** What the address is asking for, as the panel's own fields. */
   const asFields = React.useCallback(
@@ -826,6 +843,7 @@ function DirectoryFilters({
       title={t("directory.filterTitle")}
       narrowing={narrowing}
       busy={busy}
+      compact={compact}
       onClear={() => {
         setDraft({
           status: "", tag: "", joined: "", group: "",

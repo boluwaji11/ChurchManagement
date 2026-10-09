@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { SlidersHorizontal, X } from "lucide-react";
-import { Button, IconButton, cn } from "@connectapp/ui";
+import { Button, IconButton, Tooltip, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /**
@@ -24,6 +24,7 @@ export function FilterDrawer({
   onApply,
   busy = false,
   done,
+  compact = false,
   children,
 }: {
   title: string;
@@ -50,6 +51,14 @@ export function FilterDrawer({
   busy?: boolean;
   /** What the foot's own button says, usually how much is left. */
   done: string;
+  /**
+   * R24.6. Drawn as a mark rather than a worded button.
+   *
+   * For a row that already carries several marks: one worded control among
+   * them reads as the only thing there, and the words are in the tooltip and
+   * in its name either way.
+   */
+  compact?: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -71,21 +80,53 @@ export function FilterDrawer({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => show(true)}
-        aria-expanded={open}
-        className={cn(
-          "flex h-[34px] cursor-pointer items-center gap-1.5 rounded-md border px-3",
-          "text-[13px] font-medium [&_svg]:size-4",
-          narrowing > 0
-            ? "border-primary bg-primary-soft text-primary"
-            : "border-line-strong bg-surface text-fg hover:bg-sunken",
-        )}
-      >
-        <SlidersHorizontal />
-        {narrowing > 0 ? t("directory.filterOn", { count: narrowing }) : t("directory.filter")}
-      </button>
+      {compact ? (
+        <Tooltip content={t("directory.filter")}>
+          <button
+            type="button"
+            onClick={() => show(true)}
+            aria-expanded={open}
+            aria-label={
+              narrowing > 0
+                ? t("directory.filterOn", { count: narrowing })
+                : t("directory.filter")
+            }
+            className={cn(
+              "relative grid size-[34px] cursor-pointer place-items-center rounded-md",
+              "[&_svg]:size-[18px]",
+              narrowing > 0
+                ? "bg-primary-soft text-primary"
+                : "text-fg-muted hover:bg-sunken hover:text-fg",
+            )}
+          >
+            <SlidersHorizontal />
+            {narrowing > 0 ? (
+              <span
+                aria-hidden
+                className="absolute -top-0.5 -right-0.5 grid h-[16px] min-w-[16px] place-items-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-fg tabular-nums"
+              >
+                {narrowing}
+              </span>
+            ) : null}
+          </button>
+        </Tooltip>
+      ) : (
+        <button
+          type="button"
+          onClick={() => show(true)}
+          aria-expanded={open}
+          className={cn(
+            "flex h-[34px] cursor-pointer items-center gap-1.5 rounded-md border px-3",
+            "text-[13px] font-medium [&_svg]:size-4",
+            narrowing > 0
+              ? "border-primary bg-primary-soft text-primary"
+              : "border-line-strong bg-surface text-fg hover:bg-sunken",
+          )}
+        >
+          <SlidersHorizontal />
+          {narrowing > 0 ? t("directory.filterOn", { count: narrowing }) : t("directory.filter")}
+        </button>
+      )}
 
       {open ? (
         <div
