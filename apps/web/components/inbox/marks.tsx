@@ -138,6 +138,9 @@ const FOR_WRITING = [
   "\u{1F60E}", "\u{1F914}", "\u{1F62E}", "\u{1F642}", "\u{1F614}", "\u{1F62D}",
   "\u{1F44D}", "\u{1F44F}", "\u{1F64C}", "\u{1F64F}", "\u{1F91D}", "\u{1F4AA}",
   "\u2764\uFE0F", "\u{1F525}", "\u{1F389}", "\u{1F973}", "\u2705", "\u{1F4AF}",
+  /* A church writes about its own week, so the handful of things that turn
+     up in those lines are here rather than two keyboards away. */
+  "\u26EA", "\u271D\uFE0F", "\u{1F54A}\uFE0F", "\u{1F3B6}", "\u2600\uFE0F", "\u2615",
 ];
 
 /** The mark that opens them, and the grid itself. */
