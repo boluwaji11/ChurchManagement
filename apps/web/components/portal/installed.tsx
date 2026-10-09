@@ -72,14 +72,45 @@ export function usePush(church: string): {
   const [on, setOn] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
 
+  /*
+   * R17.11. On is what the church can actually reach, rather than what this
+   * browser happens to hold.
+   *
+   * A browser keeps its subscription across sessions, so it can hold one the
+   * church has no row for: a save that failed, or a row dropped when a send
+   * came back 404. Reading the browser alone made the control say notifications
+   * were on while nothing could reach this machine. Where the two disagree the
+   * subscription is written again, which is the one thing that puts it right.
+   */
   React.useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
     setReady(true);
-    void navigator.serviceWorker.ready
-      .then((reg) => reg.pushManager.getSubscription())
-      .then((sub) => setOn(Boolean(sub)))
-      .catch(() => undefined);
-  }, []);
+    void (async () => {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (!sub) { setOn(false); return; }
+
+        const { known, subscribe } = await import("@/app/home/push-actions");
+        if (await known(sub.endpoint, church)) { setOn(true); return; }
+
+        const json = sub.toJSON() as { keys?: { p256dh?: string; auth?: string } };
+        if (!json.keys?.p256dh || !json.keys.auth) { setOn(false); return; }
+        const result = await subscribe(
+          {
+            endpoint: sub.endpoint,
+            p256dh: json.keys.p256dh,
+            auth: json.keys.auth,
+            userAgent: navigator.userAgent,
+          },
+          church,
+        );
+        setOn(!result.error);
+      } catch {
+        setOn(false);
+      }
+    })();
+  }, [church]);
 
   if (!ready) return null;
 
@@ -111,7 +142,10 @@ export function usePush(church: string): {
         const json = sub.toJSON() as { keys?: { p256dh?: string; auth?: string } };
         if (!json.keys?.p256dh || !json.keys.auth) return;
 
-        await subscribe(
+        /* R17.11. The church's answer decides, not the press. A control that
+           says it is on while the save was refused is a church waiting for
+           notifications that can never arrive. */
+        const result = await subscribe(
           {
             endpoint: sub.endpoint,
             p256dh: json.keys.p256dh,
@@ -120,7 +154,7 @@ export function usePush(church: string): {
           },
           church,
         );
-        setOn(true);
+        setOn(!result.error);
       } finally {
         setBusy(false);
       }

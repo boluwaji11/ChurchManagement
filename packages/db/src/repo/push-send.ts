@@ -52,8 +52,8 @@ export const pushPublicKey = (): string | null =>
 export async function sendPush(
   targets: PushTarget[],
   payload: PushPayload,
-): Promise<{ sent: number; gone: string[] }> {
-  if (!pushConfigured() || targets.length === 0) return { sent: 0, gone: [] };
+): Promise<{ sent: number; gone: string[]; refused: string[] }> {
+  if (!pushConfigured() || targets.length === 0) return { sent: 0, gone: [], refused: [] };
 
   webpush.setVapidDetails(
     process.env["VAPID_SUBJECT"]!,
@@ -63,6 +63,9 @@ export async function sendPush(
 
   const body = JSON.stringify(payload);
   const gone: string[] = [];
+  /* What the push service said no to, so a deployment with the wrong keys
+     says so somewhere rather than going quiet. */
+  const refused: string[] = [];
   let sent = 0;
 
   await Promise.all(
@@ -79,9 +82,10 @@ export async function sendPush(
         if (status === 404 || status === 410) gone.push(one.id);
         // Anything else is this push failing rather than this browser being
         // gone: a service with a bad minute keeps its row.
+        else refused.push(`${status ?? "no status"}: ${(error as Error).message}`);
       }
     }),
   );
 
-  return { sent, gone };
+  return { sent, gone, refused };
 }

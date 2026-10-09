@@ -32,9 +32,16 @@ export async function pushTo(
       subscriptionsFor(tx, scope.tenantId, userIds));
     if (targets.length === 0) return;
 
-    const { gone } = await sendPush(targets, payload);
+    const { gone, refused } = await sendPush(targets, payload);
     if (gone.length > 0) {
       await withTenant(inside, (tx) => dropSubscriptions(tx, gone));
+    }
+
+    /* R16.10. A push nobody receives is silent by design, which is right in a
+       church and wrong on a laptop: somebody setting the keys up needs to see
+       what the push service said. */
+    if (refused.length > 0 && process.env["NODE_ENV"] !== "production") {
+      console.warn("push refused:", refused.join(" | "));
     }
   } catch {
     // Nothing a church does should fail because a push did.
