@@ -127,9 +127,11 @@ export function TeamList({
                             leader picks its row out of a tile at a glance. */}
                         {team.positions.map(({ id, name, requiresCheck }) => {
                           const hue = hueForId(id ?? name);
-                          return (
+                          /* R10.10. The check is a fact about the position, so
+                             it is marked on the position rather than on the
+                             team above it, and the whole pill says why. */
+                          const pill = (
                             <span
-                              key={id ?? name}
                               className="flex h-[26px] items-center gap-1 rounded-full px-2.5 text-[12px] font-medium"
                               style={{
                                 background: `var(--hue-${hue}-tint)`,
@@ -137,20 +139,26 @@ export function TeamList({
                               }}
                             >
                               {name}
-                              {/* R10.10. The check is a fact about the
-                                  position, so it is marked on the position
-                                  rather than on the team above it. */}
                               {requiresCheck ? (
-                                <Tooltip content={t("serving.needsChecks")}>
-                                  <span className="flex items-center">
-                                    <ShieldCheck className="size-3.5" aria-hidden />
-                                    <span className="sr-only">
-                                      {t("serving.needsChecks")}
-                                    </span>
+                                <>
+                                  <ShieldCheck className="size-3.5" aria-hidden />
+                                  <span className="sr-only">
+                                    {t("serving.needsChecks")}
                                   </span>
-                                </Tooltip>
+                                </>
                               ) : null}
                             </span>
+                          );
+                          return (
+                            <React.Fragment key={id ?? name}>
+                              {requiresCheck ? (
+                                <Tooltip content={t("serving.needsChecks")}>
+                                  {pill}
+                                </Tooltip>
+                              ) : (
+                                pill
+                              )}
+                            </React.Fragment>
                           );
                         })}
                       </span>

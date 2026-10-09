@@ -6,6 +6,7 @@ import { requireSession } from "@/lib/session";
 import { shellData } from "@/lib/shell-data";
 import { SettingsHeading } from "../heading";
 import { Team } from "./team";
+import { InviteAction } from "../invite-action";
 import { longDate } from "@/lib/dates";
 import { Denied } from "@/components/denied";
 import { t } from "@connectapp/i18n";
@@ -57,7 +58,17 @@ export default async function TeamPage({
 
   return (
     <>
-      <SettingsHeading title="settings.tab.access" lede="settings.lede.access" />
+      {/* R1.7. Giving somebody an account, beside the heading of the section
+          that lists who already has one. */}
+      <SettingsHeading
+        title="settings.tab.access"
+        lede="settings.lede.access"
+        action={
+          standing.approved
+            ? <InviteAction church={session.tenantSlug} roles={roles} />
+            : undefined
+        }
+      />
       <Team
         approved={standing.approved}
         church={session.tenantSlug}

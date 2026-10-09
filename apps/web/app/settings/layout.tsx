@@ -1,7 +1,7 @@
 import {
   canManageChurch, canManageCustomFields, canEditPeople, canManageRooms,
   canArchivePeople, canManageHouseholds, canManageGroups, canManageTeams,
-  canManageServices, canManageGiving, listRoles, withTenant,
+  canManageServices, canManageGiving,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -9,8 +9,6 @@ import { AppShell } from "@/components/app-shell";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { readsAsMember } from "@/lib/reads-as-member";
 import { SettingsNav, type SettingsGroup } from "./nav";
-import { InviteAction } from "./invite-action";
-import { shellData } from "@/lib/shell-data";
 
 export const dynamic = "force-dynamic";
 
@@ -133,28 +131,8 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     );
   }
 
-  /*
-   * R1.7, R24.6. Settings' one action: giving somebody an account.
-   *
-   * Read here rather than in the Access section, because the action belongs to
-   * the screen and the screen is this frame. A church nobody has looked at yet
-   * cannot reach outside itself, so it is not offered one.
-   */
-  const invite = canManageChurch(session)
-    ? await (async () => {
-        const [roles, shell] = await Promise.all([
-          withTenant(session, (tx) =>
-            listRoles(tx, session.tenantId, { includeArchived: true })),
-          shellData(session),
-        ]);
-        return !shell.standing.approved
-          ? null
-          : <InviteAction church={session.tenantSlug} roles={roles} />;
-      })()
-    : null;
-
   return (
-    <AppShell session={session} title={t("nav.settings")} action={invite ?? undefined}>
+    <AppShell session={session} title={t("nav.settings")}>
       <div className="flex flex-col gap-6 -mt-4">
         <SettingsNav groups={groups} church={session.tenantSlug} />
 
