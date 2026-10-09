@@ -9,15 +9,17 @@ import { Reach } from "@/components/reach";
 /** Fewest shown, and the most, however wide the screen is. */
 const LEAST = 3;
 const MOST = 6;
+/** How many more arrive on each press. */
+const STEP = 4;
 
 /**
  * R11.1. The church's other services, so a leader planning three in a week
  * moves between them without going back to the list.
  *
- * As many as the row holds, worked out from its width. The rest arrive on
- * Show more, and from then on the row runs sideways under the arrows rather
- * than wrapping down the screen: a church meeting three times a week has a
- * hundred and fifty of these in a year.
+ * As many as the row holds, worked out from its width. Show more lengthens it
+ * four at a time, and the row runs sideways under the arrows rather than
+ * wrapping down the screen: a church meeting three times a week has a hundred
+ * and fifty of these in a year.
  */
 export function PlanTabs({
   church,
@@ -30,7 +32,7 @@ export function PlanTabs({
 }) {
   const row = React.useRef<HTMLDivElement>(null);
   const [fits, setFits] = React.useState(LEAST);
-  const [all, setAll] = React.useState(false);
+  const [more, setMore] = React.useState(0);
 
   React.useEffect(() => {
     const el = row.current;
@@ -59,15 +61,14 @@ export function PlanTabs({
   }, [tabs.length]);
 
   const here = Math.max(0, tabs.findIndex((one) => one.id === current));
-  const shown = all ? tabs.length : Math.max(fits, here + 1);
+  const fitted = Math.max(fits, here + 1);
+  const shown = Math.min(tabs.length, fitted + more);
 
   return (
     <div className="relative">
       <div
         ref={row}
-        className={`flex items-center gap-2 ${
-          all ? "overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""
-        }`}
+        className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map((one, i) => (
           <Link
@@ -91,20 +92,20 @@ export function PlanTabs({
         ))}
 
         {/* Beside the last one shown, so the two read as one list. */}
-        {!all && shown < tabs.length ? (
+        {shown < tabs.length ? (
           <button
             type="button"
-            onClick={() => setAll(true)}
+            onClick={() => setMore((n) => n + STEP)}
             className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-sm px-1 font-medium text-primary hover:underline"
           >
             <Plus className="size-4" aria-hidden /> {t("services.showMore")}
           </button>
         ) : null}
 
-        {all ? (
+        {more > 0 ? (
           <button
             type="button"
-            onClick={() => setAll(false)}
+            onClick={() => setMore(0)}
             className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-sm px-1 font-medium text-primary hover:underline"
           >
             <Minus className="size-4" aria-hidden /> {t("services.showLess")}
@@ -112,8 +113,8 @@ export function PlanTabs({
         ) : null}
       </div>
 
-      {/* The arrows belong to the long row, so they arrive with it. */}
-      {all ? <Reach to={row} /> : null}
+      {/* Each arrow shows itself only while there is something that way. */}
+      <Reach to={row} />
     </div>
   );
 }
