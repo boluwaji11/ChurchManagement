@@ -141,14 +141,6 @@ export default async function ServicesPage({
     <AppShell
       session={session}
       title={t("services.title")}
-      /* R24.6. The screen's one action, in the top bar. It rode the board's
-         own header row beside the view switch, which gave the screen two
-         places a press lived. */
-      action={
-        canEdit && (upcoming.length > 0 || past.length > 0) ? (
-          <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
-        ) : undefined
-      }
     >
       {upcoming.length === 0 && past.length === 0 ? (
         <Empty
@@ -166,6 +158,13 @@ export default async function ServicesPage({
           title={t("services.upcoming")}
           upcoming={upcoming.map(card)}
           past={over.map(card)}
+          /* R24.6. The screen's one press, at the end of the heading's row
+             where the view switch already lives. */
+          action={
+            canEdit ? (
+              <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
+            ) : undefined
+          }
         />
       )}
     </AppShell>

@@ -32,11 +32,14 @@ export function ServiceBoard({
   title,
   upcoming,
   past,
+  action,
 }: {
   /** The screen's heading, which shares a row with the view switch. */
   title: string;
   upcoming: ServiceCard[];
   past: ServiceCard[];
+  /** R24.6. The screen's one press, at the end of the heading's row. */
+  action?: React.ReactNode;
 }) {
   const [shown, setShown] = React.useState(PAGE);
   const [view, setView] = React.useState<View>("tiles");
@@ -67,6 +70,8 @@ export function ServiceBoard({
             </button>
           ))}
         </div>
+
+        {action}
         </div>
       </div>
 
