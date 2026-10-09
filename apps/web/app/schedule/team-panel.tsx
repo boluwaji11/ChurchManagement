@@ -510,7 +510,7 @@ export function TeamPanel({
             <Button
               type="button"
               variant="ghost"
-              className="self-start"
+              className="self-start text-primary hover:text-primary"
               onClick={() => {
                 setDirty(true);
                 setPositions((was) => [...was, EMPTY_POSITION]);
