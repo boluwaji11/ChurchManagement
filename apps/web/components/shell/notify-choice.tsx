@@ -23,7 +23,7 @@ export function NotifyChoice({ church }: { church: string }) {
 
   return (
     <div className="flex items-center justify-between gap-4">
-      <label htmlFor="notify" className="text-label text-fg">
+      <label htmlFor="notify" className="text-[12px] font-medium tracking-[0.02em] text-fg-subtle uppercase">
         {t("settings.pref.notifications")}
       </label>
       <Switch

@@ -141,7 +141,8 @@ export default async function ProfilePage({
       <SettingCard icon={<SunMoon />} title={t("settings.preferences")}>
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <span className="text-label text-fg">{t("settings.pref.appearance")}</span>
+            {/* The same label every other field on this screen carries. */}
+            <span className="text-[12px] font-medium tracking-[0.02em] text-fg-subtle uppercase">{t("settings.pref.appearance")}</span>
             <ThemeChoice current={theme} />
           </div>
 
