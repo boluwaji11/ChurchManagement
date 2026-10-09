@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { canEditPeople, canReadIncidents, withTenant, getChurch } from "@connectapp/db";
+import { withTenant, getChurch } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchLogoUrl } from "@/lib/church-logo";
@@ -8,7 +8,7 @@ import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
 import { windowOf } from "../frame";
-import { sheetFor, isBuiltIn, type SheetTable } from "../sheets";
+import { sheetFor, isBuiltIn, mayRead, type SheetTable } from "../sheets";
 
 export const dynamic = "force-dynamic";
 
@@ -41,15 +41,21 @@ export default async function PrintReportPage({
   const { church, report, days } = await searchParams;
   const session = await requireSession(church);
 
-  if (!canEditPeople(session) && !canReadIncidents(session)) {
+  if (!isBuiltIn(report)) notFound();
+
+  /* R1.5. The giving report asks for the permission to read amounts; the rest
+     ask to be allowed to read reports at all. */
+  if (!mayRead(report, session)) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
-        <Denied role={session.role} action="readReports" church={session.tenantSlug} />
+        <Denied
+          role={session.role}
+          action={report === "giving" ? "manageGiving" : "readReports"}
+          church={session.tenantSlug}
+        />
       </main>
     );
   }
-
-  if (!isBuiltIn(report)) notFound();
 
   const window = windowOf(days);
   const sheet = await sheetFor(report, session, window);

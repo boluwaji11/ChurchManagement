@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import PptxGenJS from "pptxgenjs";
-import { withTenant, getChurch, canEditPeople, canReadIncidents } from "@connectapp/db";
+import { withTenant, getChurch } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { churchLogoUrl } from "@/lib/church-logo";
@@ -8,7 +8,7 @@ import { hueHex } from "@/lib/hue-hex";
 import { refused } from "@/lib/refuse";
 import { logoData, SLIDE, MARGIN, TITLE_H, BODY, FOOT } from "@/lib/deck";
 import { windowOf } from "../frame";
-import { sheetFor, isBuiltIn, type SheetTable } from "../sheets";
+import { sheetFor, isBuiltIn, mayRead, type SheetTable } from "../sheets";
 
 export const dynamic = "force-dynamic";
 
@@ -29,12 +29,13 @@ const PER_SLIDE = 16;
 export async function GET(request: NextRequest) {
   const church = request.nextUrl.searchParams.get("church") ?? undefined;
   const session = await requireSession(church);
-  if (!canEditPeople(session) && !canReadIncidents(session)) {
-    return refused(session.role, "buildReports");
-  }
-
   const report = request.nextUrl.searchParams.get("report");
   if (!isBuiltIn(report)) return new Response("", { status: 404 });
+
+  /* R1.5. The giving report asks for the permission to read amounts. */
+  if (!mayRead(report, session)) {
+    return refused(session.role, report === "giving" ? "manageGiving" : "buildReports");
+  }
 
   const window = windowOf(request.nextUrl.searchParams.get("days") ?? undefined);
   const sheet = await sheetFor(report, session, window);

@@ -1,8 +1,7 @@
 import type { NextRequest } from "next/server";
-import { canEditPeople, canReadIncidents } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { windowOf } from "../../frame";
-import { sheetFor, csvFrom } from "../../sheets";
+import { sheetFor, csvFrom, mayRead } from "../../sheets";
 import { refused } from "@/lib/refuse";
 
 export const dynamic = "force-dynamic";
@@ -11,9 +10,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const church = request.nextUrl.searchParams.get("church") ?? undefined;
   const session = await requireSession(church);
-  if (!canEditPeople(session) && !canReadIncidents(session)) {
-    return refused(session.role, "buildReports");
-  }
+  if (!mayRead("attendance", session)) return refused(session.role, "buildReports");
 
   const window = windowOf(request.nextUrl.searchParams.get("days") ?? undefined);
   const sheet = await sheetFor("attendance", session, window);

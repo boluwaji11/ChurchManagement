@@ -91,10 +91,6 @@ export default async function GivingReport({
         title={t("reports.giving.title")}
         window={window}
         path="giving"
-        /* R18.10. Held with the rest of the money: this report has no file
-           behind it yet, and the press that pointed at one answered with a
-           missing page. */
-        files="none"
       >
         <Figures>
           <Figure

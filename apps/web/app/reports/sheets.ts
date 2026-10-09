@@ -3,10 +3,13 @@ import {
   withTenant, getChurch, toCsv,
   attendanceByService, attendanceByName, attendanceSummary, attendanceByWeekday,
   growthByMonth, growthSummary, visitorFunnel, visitorList, type VisitorRow,
+  givingTotals, givingByMonth, givingByFund, lapsedGivers, firstTimeGivers,
+  canEditPeople, canReadIncidents, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
+import { money } from "@/lib/money";
 import { backBy, type Window } from "./frame";
 import type { Session } from "@/lib/session";
 
@@ -33,11 +36,23 @@ export function standing(one: VisitorRow): "connected" | "returned" | "once" {
   return one.visits > 1 ? "returned" : "once";
 }
 
-export const BUILT_IN = ["attendance", "growth", "visitors"] as const;
+export const BUILT_IN = ["attendance", "growth", "visitors", "giving"] as const;
 export type BuiltIn = (typeof BUILT_IN)[number];
 
 export const isBuiltIn = (raw: string | null | undefined): raw is BuiltIn =>
   (BUILT_IN as readonly string[]).includes(raw ?? "");
+
+/**
+ * R18.10, R1.5. Who may take this report off the screen.
+ *
+ * The same answer the screen gives, asked in one place, because a file is the
+ * report: a giving report in a spreadsheet is every amount in it, and the
+ * route that writes one has to ask the question the page asked.
+ */
+export function mayRead(which: BuiltIn, session: Session): boolean {
+  if (which === "giving") return canReadGivingAmounts(session);
+  return canEditPeople(session) || canReadIncidents(session);
+}
 
 /** One of the numbers across the top of a report. */
 export interface SheetFigure {
@@ -101,8 +116,17 @@ export async function sheetFor(
 ): Promise<ReportSheet> {
   const windowLabel = t(`reports.window.${window}` as never);
 
+  /* R1.5. The permissions go with it: a giving read refuses without them,
+     and refusing is the point. */
+  const ctx = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
+
   return withTenant(
-    { tenantId: session.tenantId, role: session.role },
+    ctx,
     async (tx) => {
       const clock = churchNow(
         (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
@@ -251,6 +275,92 @@ export async function sheetFor(
             byMonth,
           ],
           csv: byMonth,
+        };
+      }
+
+      if (which === "giving") {
+        const [totals, months, byFund, lapsed, first] = await Promise.all([
+          givingTotals(tx, range),
+          givingByMonth(tx, range),
+          givingByFund(tx, range),
+          lapsedGivers(tx, ctx, range.from),
+          firstTimeGivers(tx, ctx, range),
+        ]);
+
+        /* R13.9. Everything given to a fund the giver's intent binds. */
+        const restricted = byFund
+          .filter((fund) => fund.restricted)
+          .reduce((sum, fund) => sum + fund.cents, 0);
+        const average = totals.givers > 0
+          ? Math.round(totals.cents / totals.givers)
+          : 0;
+
+        const funds = table(
+          t("reports.giving.byFund"),
+          [t("giving.col.fund"), t("giving.gift.amount"), t("giving.restricted")],
+          [false, true, false],
+          byFund.map((fund) => [
+            fund.name, money(fund.cents), fund.restricted ? t("common.yes") : t("common.no"),
+          ]),
+        );
+
+        return {
+          ...frame,
+          title: t("reports.giving.title"),
+          figures: [
+            figure(
+              t("reports.giving.total"),
+              money(totals.cents),
+              plural("giving.givers.sub", totals.gifts),
+            ),
+            figure(
+              t("reports.giving.givers"),
+              String(totals.givers),
+              t("reports.giving.average", { amount: money(average) }),
+            ),
+            figure(
+              t("reports.giving.lapsed"),
+              String(lapsed.length),
+              t("reports.giving.lapsed.sub"),
+            ),
+            /* R13.9. What the giver's intent binds, apart from what it does
+               not. A board asking what the church can spend is asking for the
+               first of these two. */
+            ...(restricted > 0
+              ? [
+                  figure(
+                    t("giving.funds.available"),
+                    money(totals.cents - restricted),
+                    t("giving.funds.availableWhy"),
+                  ),
+                ]
+              : []),
+          ],
+          blocks: [
+            {
+              kind: "series" as const,
+              title: t("reports.giving.overTime"),
+              name: t("giving.gift.amount"),
+              points: months.map((one) => ({
+                label: one.label,
+                value: Math.round(one.value / 100),
+              })),
+            },
+            funds,
+            table(
+              t("reports.giving.lapsed"),
+              [t("reports.name"), t("reports.giving.lastGift"), t("giving.gift.amount")],
+              [false, false, true],
+              lapsed.map((one) => [one.name, shortDate(one.lastOn), money(one.cents)]),
+            ),
+            table(
+              t("reports.giving.first"),
+              [t("reports.name"), t("reports.giving.firstGift"), t("giving.gift.amount")],
+              [false, false, true],
+              first.map((one) => [one.name, shortDate(one.firstOn), money(one.cents)]),
+            ),
+          ],
+          csv: funds,
         };
       }
 
