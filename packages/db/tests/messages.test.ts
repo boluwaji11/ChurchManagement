@@ -11,7 +11,7 @@ import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import {
   sendMessage, messagesIn, inboxFor, unreadFor, threadAt, react, REACTIONS,
   editMessage, deleteMessage,
-  markThreadRead, setThreadArchived, saveDraft, draftsFor,
+  markThreadRead, setThreadArchived, saveDraft, dropDraft, draftsFor,
   type Reader,
 } from "../src/repo/messages";
 import { createPerson, getPerson } from "../src/repo/members";
@@ -217,6 +217,30 @@ describe("a draft", () => {
     expect((await run((tx) => draftsFor(tx, mine)))[0]?.body).toBe("Half a thought");
 
     await run((tx) => sendMessage(tx, mine, { to: { office: true }, body: "The whole thought" }));
+    expect(await run((tx) => draftsFor(tx, mine))).toHaveLength(0);
+  });
+
+  it("is found by the address it was written at, however it was filed", async () => {
+    /* The office writes to a person by their address; the row is filed under
+       their id. Both have to find it, or a sent line comes back as a draft. */
+    await run((tx) => saveDraft(tx, office, slug, "To Mina"));
+    expect((await run((tx) => draftsFor(tx, office)))[0]?.target).toBe(slug);
+
+    await run((tx) => dropDraft(tx, office, slug));
+    expect(await run((tx) => draftsFor(tx, office))).toHaveLength(0);
+  });
+
+  it("goes when the message it was written for is sent", async () => {
+    await run((tx) => saveDraft(tx, office, slug, "Half an answer"));
+    await run((tx) =>
+      sendMessage(tx, office, { to: { office: false, slug }, body: "The answer" }),
+    );
+    expect(await run((tx) => draftsFor(tx, office))).toHaveLength(0);
+  });
+
+  it("is emptied rather than kept blank", async () => {
+    await run((tx) => saveDraft(tx, mine, "office", "Something"));
+    await run((tx) => saveDraft(tx, mine, "office", "   "));
     expect(await run((tx) => draftsFor(tx, mine))).toHaveLength(0);
   });
 });

@@ -99,7 +99,7 @@ export async function binDraft(to: string, church?: string): Promise<{ error?: s
     const { session, ctx } = await context(church);
     await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
-      await dropDraft(tx, me, to === "office" ? "office" : to);
+      await dropDraft(tx, me, to);
     });
     return {};
   } catch (error) {

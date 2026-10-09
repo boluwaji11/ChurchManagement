@@ -1176,6 +1176,19 @@ export async function draftsFor(db: Tx, reader: Reader): Promise<Draft[]> {
 }
 
 /** R16.9. A draft, kept as it is typed. */
+/**
+ * Where a draft is filed.
+ *
+ * A group keeps its address, because that is what it is called everywhere. A
+ * person keeps their id, because a slug moves when somebody is renamed and a
+ * half-written letter should not go missing because of it. An id handed in
+ * stays an id, so either form finds the same row.
+ */
+async function filedAt(db: Tx, key: string): Promise<string> {
+  if (key === "office" || key.includes("/")) return key;
+  return (await memberBySlug(db, key)) ?? key;
+}
+
 export async function saveDraft(
   db: Tx,
   reader: Reader,
@@ -1183,11 +1196,9 @@ export async function saveDraft(
   key: string,
   body: string,
 ): Promise<void> {
-  const target = key === "office" || key.includes("/")
-    ? key
-    : (await memberBySlug(db, key)) ?? key;
+  const target = await filedAt(db, key);
   if (!body.trim()) {
-    await dropDraft(db, reader, target);
+    await dropDraft(db, reader, key);
     return;
   }
   await db
@@ -1199,8 +1210,15 @@ export async function saveDraft(
     });
 }
 
-export async function dropDraft(db: Tx, reader: Reader, target: string): Promise<void> {
+export async function dropDraft(db: Tx, reader: Reader, key: string): Promise<void> {
+  const target = await filedAt(db, key);
   await db
     .delete(messageDrafts)
-    .where(and(eq(messageDrafts.userId, reader.userId), eq(messageDrafts.target, target)));
+    .where(and(
+      // RLS already holds this to one church. Named again because the same
+      // call on a connection without it would reach every church's drafts.
+      eq(messageDrafts.tenantId, reader.tenantId),
+      eq(messageDrafts.userId, reader.userId),
+      eq(messageDrafts.target, target),
+    ));
 }

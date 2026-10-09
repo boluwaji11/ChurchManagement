@@ -368,26 +368,47 @@ export function Writer({
     return () => { if (pending.current) clearTimeout(pending.current); };
   }, [body, to, church]);
 
+  /* The box going away keeps what is in it, because closing the panel used to
+     cancel the save that had not fired yet. A line on its way out is not a
+     draft, so a send in flight stops this too. */
   React.useEffect(() => () => {
     const held = latest.current;
-    if (held.body !== saved.current) void keepDraft(held.to, held.body, church);
+    if (posting.current || held.body === saved.current) return;
+    void keepDraft(held.to, held.body, church);
   }, [church]);
 
   const go = () => {
     const words = body.trim();
     if (!words || busy) return;
-    /* The save that was already scheduled is dropped: it would land after
-       the send had thrown the draft away and write it back. */
+
+    /*
+     * R16.9. The box empties on the press rather than on the answer.
+     *
+     * It is what every messenger does, and it closes the last way the words
+     * could come back: while the send was in flight the box still held them,
+     * so a save on a timer, a closing panel or an answer from the server a
+     * moment out of date could all put them back. Nothing holds them now
+     * except the failure path, which puts them back on purpose.
+     */
     if (pending.current) clearTimeout(pending.current);
     posting.current = true;
+    saved.current = "";
+    latest.current = { to, body: "" };
+    setBody("");
     setWorking(true);
     setError(null);
+
     void send(to, words, church).then((back) => {
       setWorking(false);
       posting.current = false;
-      if (back.error) { setError(back.error); return; }
-      saved.current = "";
-      setBody("");
+      if (back.error) {
+        /* Put them back where they were, with the reason. */
+        touched.current = true;
+        saved.current = "";
+        setBody(words);
+        setError(back.error);
+        return;
+      }
       /* Said plainly rather than left to the send: whatever was written down
          for this recipient has just been sent. */
       void keepDraft(to, "", church);
