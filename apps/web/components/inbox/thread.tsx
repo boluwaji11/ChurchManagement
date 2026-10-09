@@ -9,13 +9,15 @@ import { keepDraft, send } from "@/app/messages/actions";
 import type { Said } from "./data";
 
 /**
- * R16.9. A conversation, read the way a conversation is read.
+ * R16.9. A conversation, laid out the way everybody already reads one.
  *
- * Each message is a block with who wrote it, when, and the words: the shape
- * every mail client and every support inbox has settled on, because it stays
- * legible when a line runs to five sentences and it does not depend on colour
- * to say who is speaking. Two columns of coloured bubbles is a phone chat,
- * and this is a church writing to somebody about a hall booking.
+ * Theirs on the left with their face, yours on the right in the church's own
+ * tint. Side carries who is speaking before a name is read, which is why every
+ * messenger does it, and a church volunteer has read a thousand of these
+ * already.
+ *
+ * The tint is soft rather than solid: a column of filled blocks at full
+ * strength is a phone game, and these are lines about a hall booking.
  */
 export function Conversation({
   church,
@@ -35,43 +37,68 @@ export function Conversation({
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-4 py-3">
         {said.map((one, at) => {
-          const fresh = at === 0 || said[at - 1]!.day !== one.day;
+          const before = said[at - 1];
+          const fresh = at === 0 || before!.day !== one.day;
+          /* A run of lines from the same person carries its name once. */
+          const starts = fresh || !before || before.mine !== one.mine
+            || before.fromOffice !== one.fromOffice;
           const name = one.fromOffice ? churchName : one.mine ? t("inbox.you") : one.name;
 
           return (
             <React.Fragment key={one.id}>
               {fresh ? (
-                <div className="flex items-center gap-3 px-4 py-3">
+                <div className="flex items-center gap-3 py-3">
                   <span aria-hidden className="h-px flex-1 bg-line" />
                   <span className="text-caption font-medium text-fg-subtle">{one.day}</span>
                   <span aria-hidden className="h-px flex-1 bg-line" />
                 </div>
               ) : null}
 
-              <article className="flex gap-3 border-b border-line/70 px-4 py-3.5 last:border-0">
-                {one.fromOffice ? (
-                  <span
-                    aria-hidden
-                    className="grid size-9 shrink-0 place-items-center rounded-full bg-sunken text-[13px] font-semibold text-fg-muted"
-                  >
-                    {churchName.slice(0, 1).toUpperCase()}
-                  </span>
-                ) : (
-                  <Avatar name={name} src={one.photoUrl} id={one.id} size="md" />
-                )}
+              <div className={`flex items-end gap-2 ${one.mine ? "flex-row-reverse" : ""}`}>
+                {/* The face stays with the other side, the way every chat
+                    somebody already uses draws it. Their own line needs no
+                    avatar: they know who they are. */}
+                <span className="w-8 shrink-0">
+                  {!one.mine && starts ? (
+                    one.fromOffice ? (
+                      <span
+                        aria-hidden
+                        className="grid size-8 place-items-center rounded-full bg-sunken text-[12px] font-semibold text-fg-muted"
+                      >
+                        {churchName.slice(0, 1).toUpperCase()}
+                      </span>
+                    ) : (
+                      <Avatar name={name} src={one.photoUrl} id={one.id} size="sm" />
+                    )
+                  ) : null}
+                </span>
 
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="flex items-baseline gap-2">
-                    <span className="text-[14px] font-semibold text-fg">{name}</span>
-                    <span className="text-caption text-fg-subtle tabular-nums">{one.clock}</span>
-                  </span>
-                  <div className="text-[15px] leading-6 text-fg [&_p]:mb-2 [&_p:last-child]:mb-0">
+                <div
+                  className={`flex min-w-0 max-w-[min(540px,78%)] flex-col gap-0.5 ${
+                    one.mine ? "items-end" : "items-start"
+                  }`}
+                >
+                  {starts ? (
+                    <span className="px-1 text-caption font-medium text-fg-muted">{name}</span>
+                  ) : null}
+
+                  <div
+                    className={`rounded-2xl px-3.5 py-2 text-[15px] leading-6 ${
+                      one.mine
+                        ? "rounded-br-sm bg-primary-soft text-fg"
+                        : "rounded-bl-sm border border-line bg-surface text-fg"
+                    } [&_p]:mb-2 [&_p:last-child]:mb-0`}
+                  >
                     <Markdown text={one.body} />
                   </div>
+
+                  <span className="px-1 text-[11px] text-fg-subtle tabular-nums">
+                    {one.clock}
+                  </span>
                 </div>
-              </article>
+              </div>
             </React.Fragment>
           );
         })}
