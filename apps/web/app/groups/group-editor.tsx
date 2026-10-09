@@ -434,28 +434,9 @@ export function GroupEditor({
               group with two leaders is the common case. */}
           <Side label={t("group.leader")}>
             <div className="flex flex-col gap-2">
-              {leaders.map((one) => (
-                <span
-                  key={one.id}
-                  className="flex items-center gap-2 rounded-[var(--d-radius-control)] bg-sunken px-3 py-1.5"
-                >
-                  <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
-                    {one.name}
-                  </span>
-                  <IconButton
-                    label={t("groups.remove")}
-                    variant="ghost"
-                    className="size-9 sm:size-7"
-                    // R9.3. A group keeps at least one. The last one comes off
-                    // only once somebody else has been named.
-                    disabled={leaders.length === 1}
-                    onClick={() => setLeaders((was) => was.filter((x) => x.id !== one.id))}
-                  >
-                    <X />
-                  </IconButton>
-                </span>
-              ))}
-
+              {/* The way to name one leads, and whoever has been named gathers
+                  under it: a field that walks down the screen as the list
+                  grows is a field somebody loses. */}
               <Searching on={searching}>
                 <Combobox
                   options={hits
@@ -473,6 +454,31 @@ export function GroupEditor({
                   clearLabel={t("date.clear")}
                 />
               </Searching>
+
+              {/* One box with a hairline between the rows, the same list the
+                  roster panel gathers names in. */}
+              {leaders.length > 0 ? (
+                <ul className="flex flex-col divide-y divide-line rounded-[14px] border border-line bg-surface">
+                  {leaders.map((one) => (
+                    <li key={one.id} className="flex items-center gap-2 px-3 py-2">
+                      <span className="min-w-0 flex-1 truncate text-[length:var(--d-text-body)] text-fg">
+                        {one.name}
+                      </span>
+                      <IconButton
+                        label={t("groups.remove")}
+                        variant="ghost"
+                        className="size-9 sm:size-8 [&_svg]:size-4"
+                        // R9.3. A group keeps at least one. The last one comes
+                        // off only once somebody else has been named.
+                        disabled={leaders.length === 1}
+                        onClick={() => setLeaders((was) => was.filter((x) => x.id !== one.id))}
+                      >
+                        <X />
+                      </IconButton>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
           </Side>
 

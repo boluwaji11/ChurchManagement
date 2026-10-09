@@ -240,10 +240,6 @@ export default async function GroupPage({
     <Frame
       session={session}
       tab={group.name}
-      /* R24.6. The screen's one action. It was a lookup above the roster, in
-         the Members tab, which meant the press that fills a group was behind
-         a tab and in a different place from every other screen's. */
-      action={manage ? <AddMember church={session.tenantSlug} groupId={group.id} /> : undefined}
     >
       {/* The way back on the left, and what this church may do to the group on
           the right, as the icons every other record page carries. */}
@@ -251,6 +247,10 @@ export default async function GroupPage({
         <BackLink href={back.href} label={back.label} />
 
         <span className="flex-1" />
+
+        {/* R9.4. The press that fills the roster rides this row with the
+            marks rather than a band above it. */}
+        {manage ? <AddMember church={session.tenantSlug} groupId={group.id} /> : null}
 
         {/* R9.7, R16.9. The group's own thread, for whoever may write into it:
             the office speaks for the church, and a member writes to the groups
