@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUp } from "lucide-react";
-import { Avatar, Button, Spinner, Textarea } from "@connectapp/ui";
+import { ArrowUp, Check, X } from "lucide-react";
+import { Avatar, Spinner, Textarea } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
 import { EmojiButton, LIKE, Marks } from "./marks";
@@ -210,17 +210,34 @@ export function Conversation({
                           aria-label={t("inbox.edit")}
                           className="min-h-[44px] resize-none border-line bg-surface shadow-none"
                         />
-                        <span className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            disabled={saving}
+                        {/* R24.6. Two marks rather than two worded buttons:
+                            they sit inside a message, where a pair of filled
+                            buttons is the loudest thing in the thread. */}
+                        <span className="flex justify-end gap-1">
+                          <button
+                            type="button"
                             onClick={() => setEditing(null)}
+                            disabled={saving}
+                            aria-label={t("action.cancel")}
+                            title={t("action.cancel")}
+                            className="grid size-8 cursor-pointer place-items-center rounded-full text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-[17px]"
                           >
-                            {t("action.cancel")}
-                          </Button>
-                          <Button loading={saving} disabled={saving || !words.trim()} onClick={save}>
-                            {t("action.save")}
-                          </Button>
+                            <X aria-hidden />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={save}
+                            disabled={saving || !words.trim()}
+                            aria-label={t("action.save")}
+                            title={t("action.save")}
+                            className={`grid size-8 place-items-center rounded-full [&_svg]:size-[17px] ${
+                              words.trim() && !saving
+                                ? "cursor-pointer bg-primary text-primary-fg hover:opacity-90"
+                                : "cursor-default bg-sunken text-fg-subtle"
+                            }`}
+                          >
+                            {saving ? <Spinner /> : <Check aria-hidden />}
+                          </button>
                         </span>
                       </span>
                     ) : alone ? (
