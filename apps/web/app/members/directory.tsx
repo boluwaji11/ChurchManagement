@@ -277,11 +277,15 @@ export function Directory({
           value={search}
           onChange={setSearch}
           placeholder={t("directory.searchPlaceholder")}
-          className="max-w-[260px] [&_input]:h-[34px] [&_input]:border-line [&_input]:shadow-none hover:[&_input]:border-line-strong"
+          className="max-w-[260px] [&_input]:border-line [&_input]:shadow-none hover:[&_input]:border-line-strong"
         />
 
         {/* R2.14. The other question a long list raises, asked in the same
             panel and answered with the same press. It leads the marks. */}
+        {/* R1.14. The lists this church keeps, beside the box that searches
+            them: both are ways into the directory by name. */}
+        <OpenList church={church} lists={lists} />
+
         <SortDrawer
           value={params.get("sort") ?? "name"}
           dir={params.get("dir") === "desc" ? "desc" : "asc"}
@@ -306,11 +310,9 @@ export function Directory({
           compact
         />
 
-        {/* R1.14. The lists this church keeps, and the way to keep this one.
-            Saving is offered only while something is narrowing the list: the
-            whole directory saved under a name is the screen it is already on. */}
-        <OpenList church={church} lists={lists} />
-
+        {/* R1.14. The way to keep this one. Offered only while something is
+            narrowing the list: the whole directory saved under a name is the
+            screen it is already on. */}
         {canEdit && !viewing && (narrowing > 0 || q !== "") ? (
           <SaveView church={church} params={params} />
         ) : null}
@@ -722,7 +724,7 @@ const SORTS = [
 ];
 
 const TOOL_SHAPE =
-  "relative grid size-[34px] place-items-center rounded-md text-fg-muted"
+  "relative grid size-[var(--d-tap)] place-items-center rounded-md text-fg-muted"
   + " hover:bg-sunken hover:text-fg [&_svg]:size-[18px]";
 
 function ToolButton({

@@ -135,7 +135,7 @@ export function OpenList({
   if (lists.length === 0) return null;
 
   return (
-    <div className="w-[220px]">
+    <div className="w-[200px]">
       {/* Typing finds one. A church that keeps twenty of these should not
           have to read the list to reach the one it opens every Monday. */}
       <Combobox
@@ -150,7 +150,9 @@ export function OpenList({
         emptyLabel={t("lists.noneFound")}
         clearLabel={t("common.close")}
         aria-label={t("lists.which")}
-        className="h-[34px] min-h-0 text-[13px]"
+        /* The same hairline and the same height as the box beside it: the two
+           are one pair, a way in by name and a way in by list. */
+        className="min-h-[var(--d-tap)] border-line text-[13px] shadow-none hover:border-line-strong"
       />
     </div>
   );

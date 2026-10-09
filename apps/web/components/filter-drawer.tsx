@@ -92,7 +92,7 @@ export function FilterDrawer({
                 : t("directory.filter")
             }
             className={cn(
-              "relative grid size-[34px] cursor-pointer place-items-center rounded-md",
+              "relative grid size-[var(--d-tap)] cursor-pointer place-items-center rounded-md",
               "[&_svg]:size-[18px]",
               narrowing > 0
                 ? "bg-primary-soft text-primary"
@@ -315,7 +315,7 @@ export function SortDrawer({
           aria-expanded={open}
           aria-label={t("directory.sort")}
           className={cn(
-            "grid size-[34px] cursor-pointer place-items-center rounded-md [&_svg]:size-[18px]",
+            "grid size-[var(--d-tap)] cursor-pointer place-items-center rounded-md [&_svg]:size-[18px]",
             ordinary
               ? "text-fg-muted hover:bg-sunken hover:text-fg"
               : "bg-primary-soft text-primary",
