@@ -118,11 +118,10 @@ export default async function PlanPage({
       /* R24.6. The way back rides the action's own row. */
       back={{ href: `/services?church=${session.tenantSlug}`, label: t("order.allServices") }}
     >
-      {/* The heading block keeps to the column the plan is in, so the row of
-          other services ends where the plan's own card ends, and the sidebar
-          stays level with the first item. */}
+      {/* The heading block runs the width, and the sidebar starts level with
+          the first item rather than with the back link. */}
       <div className="grid gap-x-6 gap-y-6 [grid-template-columns:minmax(0,1fr)] lg:[grid-template-columns:minmax(0,1fr)_minmax(240px,280px)]">
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 lg:col-span-2">
 
           {tabs.length > 1 ? (
             <PlanTabs
@@ -179,7 +178,6 @@ export default async function PlanPage({
           />
         </div>
 
-        <div className="lg:[grid-column:2] lg:[grid-row:2]">
         <PlanSide
           church={session.tenantSlug}
           occurrenceId={occurrence.slug}
@@ -190,7 +188,6 @@ export default async function PlanPage({
           teams={roster}
           canPrint={plan.items.length > 0}
         />
-        </div>
       </div>
     </AppShell>
   );
