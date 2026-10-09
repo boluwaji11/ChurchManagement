@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Plus, Trash2, GripVertical, Pencil, MessageSquare, X, Paperclip,
-  Copy, LayoutList, ArrowUp, ArrowDown,
+  Copy, LayoutList, ArrowUp, ArrowDown, ArrowLeft,
 } from "lucide-react";
 import {
   Banner, Button, Field, IconButton, Input, Separator, Spinner, Textarea, cn,
@@ -852,6 +852,20 @@ function StartFrom({
       <DialogContent
         title={looking ? looking.label : t("order.start.title")}
         closeLabel={t("common.close")}
+        /* The way back out of one shape and into the list it came from, where
+           a reader already looks for it. */
+        lead={
+          looking ? (
+            <IconButton
+              label={t("order.start.back")}
+              variant="ghost"
+              className="size-8 min-h-0 [&_svg]:size-4"
+              onClick={() => setLooking(null)}
+            >
+              <ArrowLeft />
+            </IconButton>
+          ) : undefined
+        }
       >
         {failed ? (
           <Banner tone="danger" title={t("order.failed")} className="mb-4">{failed}</Banner>
@@ -879,9 +893,6 @@ function StartFrom({
             </ul>
 
             <DialogFooter>
-              <Button variant="ghost" onClick={() => setLooking(null)}>
-                {t("order.start.back")}
-              </Button>
               <Button onClick={use} loading={pending}>
                 {t("order.start.use")}
               </Button>

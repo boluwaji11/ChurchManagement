@@ -40,10 +40,15 @@ export const DialogContent = React.forwardRef<
     description?: string;
     /** Draws the X in the corner. Left out, there is no X. */
     closeLabel?: string;
+    /**
+     * A mark before the title, such as the way back out of a box that is
+     * showing one thing from a list it opened on.
+     */
+    lead?: React.ReactNode;
     /** A question that cannot be undone: no X, and the safe answer takes focus. */
     alert?: boolean;
   }
->(({ className, children, title, description, closeLabel, alert, hideTitle, ...props }, ref) => (
+>(({ className, children, title, description, closeLabel, lead, alert, hideTitle, ...props }, ref) => (
   <P.Portal>
     <P.Overlay
       className={cn(
@@ -107,6 +112,7 @@ export const DialogContent = React.forwardRef<
       {...props}
     >
       <div className={cn("flex items-start justify-between gap-4", hideTitle ? "" : "mb-4")}>
+        {lead ? <div className="shrink-0">{lead}</div> : null}
         {/* min-w-0 so a long title wraps rather than pushing the X off a
             phone's right edge. */}
         <div className={cn("flex min-w-0 flex-col gap-1", hideTitle && "sr-only")}>
