@@ -171,8 +171,10 @@ export default async function GroupsPage({
   const making = manage && !putAway ? (
     <Button asChild>
       <Link
+        /* R9.1. Whichever list this was started from travels with the press:
+           a kind, or the one that holds them all. */
         href={`/groups/new?church=${session.tenantSlug}${
-          only ? `&type=${only.slug ?? only.id}` : ""
+          type ? `&type=${only ? (only.slug ?? only.id) : type}` : ""
         }`}
       >
         <Plus /> {only ? t("groups.addOf", { type: only.name }) : t("groups.add")}

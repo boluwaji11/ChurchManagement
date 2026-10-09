@@ -43,19 +43,26 @@ export default async function NewGroupPage({
       )
     : [];
 
-  /* R9.1. The kind it was started from: the form opens on it, and the way
-     back out returns to that list rather than to all of them. */
-  const from = type ? types.find((one) => one.slug === type || one.id === type) : undefined;
+  /*
+   * R9.1. The list it was started from.
+   *
+   * A kind, and then the form opens on it; or the one that holds every group,
+   * and then it only decides where the way back out goes. Either way somebody
+   * lands back on the screen they pressed from rather than one above it.
+   */
+  const from = type && type !== "all"
+    ? types.find((one) => one.slug === type || one.id === type)
+    : undefined;
+  const backTo = type
+    ? `/groups?church=${session.tenantSlug}&type=${from ? (from.slug ?? from.id) : type}`
+    : `/groups?church=${session.tenantSlug}`;
 
   return (
     <AppShell
       session={session}
       tab={t("groups.newTitle")}
       max="max-w-[1080px]"
-      back={{
-        href: `/groups?church=${session.tenantSlug}${from ? `&type=${from.slug ?? from.id}` : ""}`,
-        label: from?.name ?? t("groups.title"),
-      }}
+      back={{ href: backTo, label: from?.name ?? t("groups.title") }}
       action={permitted ? <GroupFormActions editing={false} /> : undefined}
     >
       <h1 className="font-display text-[32px] leading-[38px] text-fg">
