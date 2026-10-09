@@ -2917,7 +2917,7 @@ export const en = {
   "order.allServices": "All services",
   "order.printRunSheet": "Print run sheet",
   "order.goLive": "Go live",
-  "order.add": "Add a service plan",
+  "order.add": "Add a service item",
   "order.remove": "Remove",
   "order.moveUp": "Move up",
   "order.moveDown": "Move down",
