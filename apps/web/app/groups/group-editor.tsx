@@ -384,7 +384,10 @@ export function GroupEditor({
               <Field label={t("groups.type")} required>
                 <Picker
                   name="typeId"
-                  defaultValue={group?.typeId ?? null}
+                  /* R9.1. The kind the press came from, where it came from
+                     one: a church reading its Small groups has already said
+                     what kind this is. */
+                  defaultValue={group?.typeId ?? ofType ?? null}
                   options={types.map((one) => ({ value: one.id, label: one.name }))}
                   label={t("groups.type")}
                   onChange={setTypeId}

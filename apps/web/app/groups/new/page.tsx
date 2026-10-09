@@ -58,7 +58,9 @@ export default async function NewGroupPage({
       }}
       action={permitted ? <GroupFormActions editing={false} /> : undefined}
     >
-      <h1 className="font-display text-[32px] leading-[38px] text-fg">{t("groups.newTitle")}</h1>
+      <h1 className="font-display text-[32px] leading-[38px] text-fg">
+        {from ? t("groups.newOf", { type: from.name }) : t("groups.newTitle")}
+      </h1>
 
       {permitted ? (
         <GroupEditor

@@ -1965,6 +1965,7 @@ export const en = {
   "groups.startsAt": "Start time",
   "groups.namePlaceholder": "e.g. Tuesday night",
   "groups.newTitle": "New group",
+  "groups.newOf": "New {type}",
   "groups.section.what": "What it is",
   "groups.section.when": "When it meets",
   "groups.section.where": "Where it meets",
