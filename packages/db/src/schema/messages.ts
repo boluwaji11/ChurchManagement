@@ -97,3 +97,29 @@ export const messageDrafts = pgTable(
   },
   (t) => [uniqueIndex("message_draft_once").on(t.tenantId, t.userId, t.target)],
 );
+
+/**
+ * R16.9. A mark against a message.
+ *
+ * The shortest answer there is. Eleven lines of "thanks" under a notice bury
+ * it; eleven marks against it say the same thing and leave it readable.
+ *
+ * One row a person a mark, so pressing it again takes it off.
+ */
+export const messageReactions = pgTable(
+  "message_reactions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    messageId: uuid("message_id").notNull()
+      .references(() => messages.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+    /** The mark itself, as the character it is. */
+    emoji: text("emoji").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("message_reaction_once").on(t.messageId, t.memberId, t.emoji),
+    index("message_reaction_message_idx").on(t.messageId),
+  ],
+);

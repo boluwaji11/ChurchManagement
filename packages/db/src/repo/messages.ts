@@ -1,6 +1,8 @@
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
-import { conversations, conversationPeople, messages, messageDrafts } from "../schema/messages";
+import {
+  conversations, conversationPeople, messages, messageDrafts, messageReactions,
+} from "../schema/messages";
 import { members } from "../schema/members";
 import { groupMemberships, groups } from "../schema/groups";
 import { teamMembers, teams } from "../schema/serving";
@@ -43,6 +45,16 @@ export type Target =
   | { office: false; group: string }
   | { office: false; team: string };
 
+/** R16.9. The marks a church may put against a message. */
+export const REACTIONS = ["\u{1F44D}", "\u2764\uFE0F", "\u{1F64F}", "\u{1F602}", "\u{1F389}", "\u{1F622}"] as const;
+
+export interface Reaction {
+  emoji: string;
+  count: number;
+  /** Whether this reader is one of them. */
+  mine: boolean;
+}
+
 export interface Message {
   id: string;
   body: string;
@@ -55,6 +67,8 @@ export interface Message {
   authorPhotoKey: string | null;
   /** Whether the reader wrote it. */
   mine: boolean;
+  /** R16.9. What has been put against it, most used first. */
+  reactions: Reaction[];
 }
 
 export interface Thread {
@@ -127,7 +141,7 @@ interface Row {
 async function readThreads(
   db: Tx,
   reader: Reader,
-  opts: { archivedOnly?: boolean; sent?: boolean; limit?: number } = {},
+  opts: { archivedOnly?: boolean; limit?: number } = {},
 ): Promise<Thread[]> {
   const MINE = mineFor(reader);
   const me = reader.memberId ?? null;
@@ -164,9 +178,6 @@ async function readThreads(
               select 1 from team_members tm
                where tm.team_id = c.team_id and tm.member_id = ${me}))
        )
-       ${opts.sent
-          ? sql`and exists (select 1 from messages m where m.conversation_id = c.id and ${MINE})`
-          : sql``}
      order by c.id, p.office desc nulls last
   `)) as unknown as Row[];
 
@@ -247,10 +258,6 @@ export const inboxFor = (
   opts: { archivedOnly?: boolean; limit?: number } = {},
 ): Promise<Thread[]> => readThreads(db, reader, opts);
 
-/** R16.9. The threads this reader has written into. */
-export const sentFor = (db: Tx, reader: Reader, limit = 50): Promise<Thread[]> =>
-  readThreads(db, reader, { sent: true, limit });
-
 /**
  * R16.9. How many conversations are waiting on this reader.
  *
@@ -310,6 +317,32 @@ export async function messagesIn(
     .where(eq(messages.conversationId, conversationId))
     .orderBy(asc(messages.createdAt));
 
+  const marks = rows.length === 0
+    ? []
+    : await db
+        .select({
+          messageId: messageReactions.messageId,
+          emoji: messageReactions.emoji,
+          memberId: messageReactions.memberId,
+        })
+        .from(messageReactions)
+        .where(inArray(messageReactions.messageId, rows.map((one) => one.id)));
+
+  const against = (id: string): Reaction[] => {
+    const here = marks.filter((one) => one.messageId === id);
+    const out: Reaction[] = [];
+    for (const one of here) {
+      const held = out.find((each) => each.emoji === one.emoji);
+      if (held) {
+        held.count += 1;
+        held.mine = held.mine || one.memberId === reader.memberId;
+      } else {
+        out.push({ emoji: one.emoji, count: 1, mine: one.memberId === reader.memberId });
+      }
+    }
+    return out.sort((a, b) => b.count - a.count || a.emoji.localeCompare(b.emoji));
+  };
+
   return rows.map((one) => ({
     id: one.id,
     body: one.body,
@@ -321,7 +354,61 @@ export async function messagesIn(
     mine: one.fromOffice
       ? reader.office
       : one.authorMemberId !== null && one.authorMemberId === reader.memberId,
+    reactions: against(one.id),
   }));
+}
+
+/**
+ * R16.9. A mark put against a message, or taken off it again.
+ *
+ * The same press both ways, because that is what everybody's hands already
+ * expect, and the row is theirs alone so nobody can take off somebody else's.
+ */
+export async function react(
+  db: Tx,
+  reader: Reader,
+  messageId: string,
+  emoji: string,
+): Promise<void> {
+  if (!reader.memberId) throw new InvalidInputError("member.error.noRecord");
+  if (!(REACTIONS as readonly string[]).includes(emoji)) {
+    throw new InvalidInputError("inbox.error.mark");
+  }
+
+  const [said] = await db
+    .select({ conversationId: messages.conversationId })
+    .from(messages)
+    .where(eq(messages.id, messageId))
+    .limit(1);
+  if (!said) throw new InvalidInputError("inbox.error.thread");
+  if (!(await canRead(db, reader, said.conversationId))) {
+    throw new PermissionError(reader.office ? "staff" : "member", "editPerson");
+  }
+
+  const [held] = await db
+    .select({ id: messageReactions.id })
+    .from(messageReactions)
+    .where(and(
+      eq(messageReactions.messageId, messageId),
+      eq(messageReactions.memberId, reader.memberId),
+      eq(messageReactions.emoji, emoji),
+    ))
+    .limit(1);
+
+  if (held) {
+    await db.delete(messageReactions).where(eq(messageReactions.id, held.id));
+    return;
+  }
+
+  await db
+    .insert(messageReactions)
+    .values({
+      tenantId: reader.tenantId,
+      messageId,
+      memberId: reader.memberId,
+      emoji,
+    })
+    .onConflictDoNothing();
 }
 
 /** Whether this reader is in a conversation at all. */

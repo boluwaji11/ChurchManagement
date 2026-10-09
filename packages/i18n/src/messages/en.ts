@@ -306,7 +306,6 @@ export const en = {
   "inbox.write": "Write a message",
   "inbox.send": "Send",
   "inbox.tab.inbox": "Inbox",
-  "inbox.tab.sent": "Sent",
   "inbox.tab.drafts": "Drafts",
   "inbox.new": "New message",
   "inbox.to": "To",
@@ -316,7 +315,6 @@ export const en = {
   "inbox.back": "Back",
   "inbox.openAll": "Open messages",
   "inbox.noDrafts": "No drafts",
-  "inbox.noneSent": "No messages",
   "inbox.findSomebody": "Type a name",
   "inbox.church": "The church",
   "inbox.find": "Search messages",
@@ -328,6 +326,9 @@ export const en = {
   "inbox.archived.title": "Archived conversations",
   "inbox.archived.none": "No archived conversations",
   "inbox.error.empty": "Write something first",
+  "inbox.error.mark": "That is not a mark this product knows",
+  "inbox.react": "React",
+  "inbox.emoji": "Emoji",
   "inbox.error.thread": "That conversation could not be opened",
 
   // HRT-146, R16.12. What a church posts, on the sheets it already owns.

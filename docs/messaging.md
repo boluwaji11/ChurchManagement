@@ -103,6 +103,17 @@ Where the office writes into a group it is not in, it writes as the church.
 Where it is in the group, it writes as itself: a leader who happens to be on
 staff is in their own group as themselves.
 
+## Marks against a message
+
+R16.9. Six of them: yes, thank you, praying, that made me laugh,
+congratulations, I am sorry. A group thread gets eleven lines of "thanks"
+under every notice and they bury it; eleven marks against it say the same
+thing and leave it readable.
+
+One row a person a mark, so the same press puts it on and takes it off, and
+nobody can stack one twice or remove somebody else's. The box has its own
+short grid of emoji, written in at the caret.
+
 ## What this is not, in this build
 
 No attachments, no read receipts beyond the unread mark, no typing indicator,

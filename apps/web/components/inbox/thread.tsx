@@ -5,6 +5,7 @@ import { ArrowUp } from "lucide-react";
 import { Avatar, Spinner, Textarea } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
+import { EmojiButton, Marks } from "./marks";
 import { keepDraft, send } from "@/app/messages/actions";
 import type { Said } from "./data";
 
@@ -25,6 +26,7 @@ export function Conversation({
   to,
   said,
   onSent,
+  onChanged,
   sending = false,
   draft = "",
 }: {
@@ -34,6 +36,8 @@ export function Conversation({
   to: string;
   said: Said[];
   onSent: () => void;
+  /** R16.9. Something other than a new line changed: a mark went on or off. */
+  onChanged?: () => void;
   sending?: boolean;
   /** R16.9. What was typed to this one and not sent. */
   draft?: string;
@@ -74,7 +78,9 @@ export function Conversation({
                 </div>
               ) : null}
 
-              <div className={`flex items-end gap-2 ${one.mine ? "flex-row-reverse" : ""}`}>
+              <div
+                className={`group flex items-end gap-2 ${one.mine ? "flex-row-reverse" : ""}`}
+              >
                 {/* The face stays with the other side, the way every chat
                     somebody already uses draws it. Their own line needs no
                     avatar: they know who they are. */}
@@ -112,8 +118,19 @@ export function Conversation({
                     <Markdown text={one.body} />
                   </div>
 
-                  <span className="px-1 text-[11px] text-fg-subtle tabular-nums">
-                    {one.clock}
+                  <span
+                    className={`flex items-center gap-2 px-1 ${
+                      one.mine ? "flex-row-reverse" : ""
+                    }`}
+                  >
+                    <span className="text-[11px] text-fg-subtle tabular-nums">{one.clock}</span>
+                    <Marks
+                      church={church}
+                      id={one.id}
+                      marks={one.reactions}
+                      mine={one.mine}
+                      onChanged={onChanged ?? onSent}
+                    />
                   </span>
                 </div>
               </div>
@@ -235,12 +252,30 @@ export function Writer({
     });
   };
 
+  const box = React.useRef<HTMLTextAreaElement>(null);
+
+  /* Written where the caret is, which is where somebody looking at the box
+     expects it to land. */
+  const put = (emoji: string) => {
+    touched.current = true;
+    const at = box.current?.selectionStart ?? body.length;
+    const to2 = box.current?.selectionEnd ?? at;
+    setBody(`${body.slice(0, at)}${emoji}${body.slice(to2)}`);
+    requestAnimationFrame(() => {
+      box.current?.focus();
+      box.current?.setSelectionRange(at + emoji.length, at + emoji.length);
+    });
+  };
+
   return (
     <div className="flex shrink-0 flex-col gap-1.5 border-t border-line bg-surface px-3 py-3">
       {error ? <p role="status" className="text-[13px] text-danger-text">{error}</p> : null}
 
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-1.5">
+        <EmojiButton onPick={put} />
+
         <Textarea
+          ref={box}
           value={body}
           onChange={(event) => { touched.current = true; setBody(event.target.value); }}
           onKeyDown={(event) => {

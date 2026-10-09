@@ -29,6 +29,12 @@ export interface DraftRow {
   at: string;
 }
 
+export interface Mark {
+  emoji: string;
+  count: number;
+  mine: boolean;
+}
+
 export interface Said {
   id: string;
   body: string;
@@ -39,6 +45,7 @@ export interface Said {
   clock: string;
   day: string;
   at: string;
+  reactions: Mark[];
 }
 
 export interface InboxData {
@@ -64,7 +71,7 @@ const RESTING = 25000;
 export function useInbox(
   church: string,
   opts: {
-    view?: "inbox" | "sent" | "drafts";
+    view?: "inbox" | "drafts";
     key?: string | null;
     watching?: boolean;
     /** Whether the conversation named by `key` is on screen and being read. */

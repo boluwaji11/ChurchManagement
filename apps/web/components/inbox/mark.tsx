@@ -12,7 +12,7 @@ import { Drafts, Threads } from "./list";
 import { Conversation } from "./thread";
 import { Compose } from "./compose";
 
-type View = "inbox" | "sent" | "drafts";
+type View = "inbox" | "drafts";
 
 /**
  * R16.9. Messages, from wherever somebody is.
@@ -87,7 +87,6 @@ export function InboxMark({
 
   const TABS: { key: View; label: string }[] = [
     { key: "inbox", label: t("inbox.tab.inbox") },
-    { key: "sent", label: t("inbox.tab.sent") },
     { key: "drafts", label: t("inbox.tab.drafts") },
   ];
 
@@ -258,6 +257,7 @@ export function InboxMark({
                   said={here ? data.said : []}
                   draft={data.drafts.find((one) => one.key === key)?.body ?? ""}
                   onSent={refresh}
+                  onChanged={refresh}
                 />
               ) : writing ? (
                 <Compose
@@ -276,7 +276,7 @@ export function InboxMark({
               ) : data.threads.length === 0 ? (
                 <Empty
                   icon="inbox"
-                  title={view === "sent" ? t("inbox.noneSent") : t("inbox.noThreads")}
+                  title={t("inbox.noThreads")}
                   className="gap-3 px-4 py-10"
                 />
               ) : (

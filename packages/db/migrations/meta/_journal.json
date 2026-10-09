@@ -960,6 +960,13 @@
       "when": 1791423000014,
       "tag": "0137_group_threads",
       "breakpoints": true
+    },
+    {
+      "idx": 138,
+      "version": "7",
+      "when": 1791423000015,
+      "tag": "0138_message_reactions",
+      "breakpoints": true
     }
   ]
 }

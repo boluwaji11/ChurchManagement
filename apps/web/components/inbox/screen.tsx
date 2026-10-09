@@ -14,7 +14,7 @@ import { Drafts, Threads } from "./list";
 import { Conversation } from "./thread";
 import { Compose } from "./compose";
 
-type View = "inbox" | "sent" | "drafts";
+type View = "inbox" | "drafts";
 
 /**
  * R16.9. The whole inbox, on a screen of its own.
@@ -57,7 +57,7 @@ export function InboxScreen({
     reading: Boolean(open),
     // Only the view the server rendered starts filled; the others arrive on
     // their first ask, which is what pressing them is.
-    initial: view === "inbox" ? initial : undefined,
+    initial,
   });
 
   /*
@@ -84,7 +84,6 @@ export function InboxScreen({
 
   const TABS: { key: View; label: string }[] = [
     { key: "inbox", label: t("inbox.tab.inbox") },
-    { key: "sent", label: t("inbox.tab.sent") },
     { key: "drafts", label: t("inbox.tab.drafts") },
   ];
 
@@ -132,7 +131,7 @@ export function InboxScreen({
             )
           ) : shown.length === 0 ? (
             <p className="px-4 py-6 text-[13px] text-fg-muted">
-              {view === "sent" ? t("inbox.noneSent") : t("inbox.noThreads")}
+              {t("inbox.noThreads")}
             </p>
           ) : (
             <Threads rows={shown} churchName={churchName} onOpen={go} open={open} />
@@ -217,6 +216,7 @@ export function InboxScreen({
               said={here ? data.said : []}
               draft={data.drafts.find((one) => one.key === open)?.body ?? ""}
               onSent={refresh}
+              onChanged={refresh}
             />
           </>
         ) : (

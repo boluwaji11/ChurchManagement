@@ -16,7 +16,6 @@ export async function GET(request: Request) {
 
   return Response.json(
     await readInbox(session, {
-      view: url.searchParams.get("view") ?? "inbox",
       key: url.searchParams.get("key"),
       archived: url.searchParams.get("archived") === "1",
       reading: url.searchParams.get("reading") === "1",

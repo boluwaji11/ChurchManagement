@@ -2,7 +2,7 @@
 
 import {
   withTenant, sendMessage, setThreadArchived, threadAt,
-  saveDraft, dropDraft, peopleNamed, writableGroups, writableTeams,
+  saveDraft, dropDraft, peopleNamed, writableGroups, writableTeams, react,
   canAnswerMessages,
 } from "@connectapp/db";
 import { explain } from "@/lib/explain";
@@ -114,6 +114,24 @@ export interface WriteTo {
   through?: string | null;
   /** R9.7. Whether it reaches everybody in a group rather than one person. */
   whole?: boolean;
+}
+
+/** R16.9. A mark put against a message, or taken off it again. */
+export async function markMessage(
+  id: string,
+  emoji: string,
+  church?: string,
+): Promise<{ error?: string }> {
+  try {
+    const { session, ctx } = await context(church);
+    await withTenant(ctx, async (tx) => {
+      const me = await readerFor(tx, session);
+      await react(tx, me, id, emoji);
+    });
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
 }
 
 /** R16.9. The kinds of thing a message can be addressed to. */

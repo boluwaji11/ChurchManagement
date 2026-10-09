@@ -1,5 +1,5 @@
 import {
-  withTenant, inboxFor, sentFor, draftsFor, messagesIn, threadAt, markThreadRead,
+  withTenant, inboxFor, draftsFor, messagesIn, threadAt, markThreadRead,
   unreadFor, getChurch,
 } from "@connectapp/db";
 import { localeFor } from "@connectapp/i18n";
@@ -19,7 +19,6 @@ import type { InboxData } from "@/components/inbox/data";
 export async function readInbox(
   session: Session,
   opts: {
-    view?: string;
     key?: string | null;
     archived?: boolean;
     /**
@@ -32,7 +31,6 @@ export async function readInbox(
     reading?: boolean;
   } = {},
 ): Promise<InboxData> {
-  const view = opts.view ?? "inbox";
   const key = opts.key ?? null;
 
   const read = await withTenant(
@@ -52,13 +50,11 @@ export async function readInbox(
       const said = open ? await messagesIn(tx, me, open.id) : [];
       /* After the read mark, so the count in this answer is what the reader
          is about to be looking at. */
-      const listed = view === "sent"
-        ? await sentFor(tx, me)
-        : await inboxFor(tx, me, { archivedOnly: opts.archived });
+      const listed = await inboxFor(tx, me, { archivedOnly: opts.archived });
       const country = (await getChurch(tx, session.tenantId))?.country ?? null;
       /* The inbox already knows what is waiting; only the other two views
          have to ask. */
-      const unread = view === "inbox" && !opts.archived
+      const unread = !opts.archived
         ? listed.reduce((sum, one) => sum + (one.unread > 0 ? 1 : 0), 0)
         : await unreadFor(tx, me);
       return { unread, listed, drafts, open, said, country };
@@ -114,6 +110,7 @@ export async function readInbox(
         weekday: "long", day: "numeric", month: "long",
       }),
       at: one.createdAt.toISOString(),
+      reactions: one.reactions,
     })),
   };
 }

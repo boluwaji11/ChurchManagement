@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import {
-  sendMessage, messagesIn, inboxFor, sentFor, unreadFor, threadAt,
+  sendMessage, messagesIn, inboxFor, unreadFor, threadAt, react, REACTIONS,
   markThreadRead, setThreadArchived, saveDraft, draftsFor,
   type Reader,
 } from "../src/repo/messages";
@@ -100,11 +100,6 @@ describe("a thread with the office", () => {
     expect(said[0]?.mine).toBe(true);
   });
 
-  it("is in Sent for whoever wrote into it", async () => {
-    expect((await run((tx) => sentFor(tx, mine))).length).toBe(1);
-    expect((await run((tx) => sentFor(tx, office))).length).toBe(1);
-  });
-
   it("comes back to the list when somebody writes into it again", async () => {
     const thread = await run((tx) => threadAt(tx, office, slug));
     await run((tx) => setThreadArchived(tx, office, thread!.id, true));
@@ -123,6 +118,39 @@ describe("a thread with the office", () => {
   it("refuses a message of nothing", async () => {
     await expect(
       run((tx) => sendMessage(tx, mine, { to: { office: true }, body: "   " })),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+  });
+});
+
+/**
+ * HRT-272. A mark against a message (R16.9).
+ *
+ * The same press both ways, and one row a person a mark, so nobody can stack
+ * the same mark twice or take off somebody else's.
+ */
+describe("a mark against a message", () => {
+  it("goes on, counts once, and comes off again", async () => {
+    const thread = await run((tx) => threadAt(tx, mine, "office"));
+    const said = await run((tx) => messagesIn(tx, mine, thread!.id));
+    const first = said[0]!.id;
+    const yes = REACTIONS[0];
+
+    await run((tx) => react(tx, mine, first, yes));
+    await run((tx) => react(tx, mine, first, yes));
+
+    const after = await run((tx) => messagesIn(tx, mine, thread!.id));
+    expect(after[0]?.reactions).toEqual([]);
+
+    await run((tx) => react(tx, mine, first, yes));
+    const again = await run((tx) => messagesIn(tx, mine, thread!.id));
+    expect(again[0]?.reactions).toEqual([{ emoji: yes, count: 1, mine: true }]);
+  });
+
+  it("is refused a mark this product does not know", async () => {
+    const thread = await run((tx) => threadAt(tx, mine, "office"));
+    const said = await run((tx) => messagesIn(tx, mine, thread!.id));
+    await expect(
+      run((tx) => react(tx, mine, said[0]!.id, "<script>")),
     ).rejects.toBeInstanceOf(InvalidInputError);
   });
 });
