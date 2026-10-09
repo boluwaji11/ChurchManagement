@@ -30,10 +30,13 @@ export default async function MessageThreadPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ key: string }>;
+  params: Promise<{ key: string[] }>;
   searchParams: Promise<{ church?: string }>;
 }) {
-  const { key } = await params;
+  /* R16.9. The address is who it is with: a person's own, or a group's,
+     which carries a kind in front of it. */
+  const { key: parts } = await params;
+  const key = parts.join("/");
   const { church } = await searchParams;
   const session = await requireSession(church);
 

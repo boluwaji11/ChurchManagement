@@ -81,8 +81,20 @@ open, and on every return to the window, so a reply lands on the other side
 without anybody reloading. Realtime is not in this version and a church of 50
 to 500 does not need it.
 
+## A group's own thread
+
+R9.7. A group and a team each have one, named on the conversation rather than
+copied into a roster. Who is in it is whoever is in the group at the moment
+they open it, so a leader who adds somebody on Tuesday has added them to the
+conversation too, and somebody who leaves stops seeing it.
+
+A read mark is still per person, written the first time that person reads it,
+so a group of thirty does not carry thirty rows nobody has used.
+
+Its address is the group's own: `/messages/group/tuesday-night`.
+
 ## What this is not, in this build
 
 No attachments, no read receipts beyond the unread mark, no typing indicator,
-no group threads, no message to several members at once. Each of those is a
-line on the board rather than a thing left out quietly.
+and no message to several people who are not already a group. Each of those is
+a line on the board rather than a thing left out quietly.

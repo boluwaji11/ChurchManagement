@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Users } from "lucide-react";
 import { Avatar } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { when } from "@/lib/when";
@@ -45,6 +46,14 @@ export function Threads({
                 className="grid size-9 shrink-0 place-items-center rounded-full bg-sunken text-[13px] font-semibold text-fg-muted"
               >
                 {churchName.slice(0, 1).toUpperCase()}
+              </span>
+            ) : one.key.includes("/") ? (
+              /* R9.7. A whole group, which is not one face. */
+              <span
+                aria-hidden
+                className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary [&_svg]:size-4"
+              >
+                <Users />
               </span>
             ) : (
               <Avatar name={name} src={one.photoUrl} id={one.memberId ?? one.key} size="md" />
@@ -99,17 +108,37 @@ export function Drafts({
           key={one.key}
           type="button"
           onClick={() => onOpen(one.key, one.key === "office" ? churchName : one.name)}
-          className={`flex min-w-0 cursor-pointer flex-col gap-0.5 px-3.5 py-3 text-left hover:bg-sunken/60 ${
+          className={`flex min-w-0 cursor-pointer items-start gap-3 px-3.5 py-3 text-left hover:bg-sunken/60 ${
             at === 0 ? "" : "border-t border-line/70"
           }`}
         >
-          <span className="flex items-baseline gap-2">
-            <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-fg">
-              {one.key === "office" ? churchName : one.name}
+          {one.key === "office" ? (
+            <span
+              aria-hidden
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-sunken text-[13px] font-semibold text-fg-muted"
+            >
+              {churchName.slice(0, 1).toUpperCase()}
             </span>
-            <span className="shrink-0 text-caption text-fg-subtle">{when(one.at)}</span>
+          ) : one.key.includes("/") ? (
+            <span
+              aria-hidden
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary [&_svg]:size-4"
+            >
+              <Users />
+            </span>
+          ) : (
+            <Avatar name={one.name} src={one.photoUrl} id={one.key} size="md" />
+          )}
+
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="flex items-baseline gap-2">
+              <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-fg">
+                {one.key === "office" ? churchName : one.name}
+              </span>
+              <span className="shrink-0 text-caption text-fg-subtle">{when(one.at)}</span>
+            </span>
+            <span className="truncate text-caption text-fg-muted">{one.body}</span>
           </span>
-          <span className="truncate text-caption text-fg-muted">{one.body}</span>
         </button>
       ))}
     </div>

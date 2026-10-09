@@ -38,8 +38,15 @@ export async function send(
     const { session, ctx } = await context(church);
     return await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
+      const [kind, name] = to.includes("/") ? to.split("/") : [null, to];
       await sendMessage(tx, me, {
-        to: to === "office" ? { office: true } : { office: false, slug: to },
+        to: to === "office"
+          ? { office: true }
+          : kind === "group"
+            ? { office: false, group: name! }
+            : kind === "team"
+              ? { office: false, team: name! }
+              : { office: false, slug: to },
         body,
       });
       return { key: to };
@@ -105,6 +112,8 @@ export interface WriteTo {
   label: string;
   /** Why they are on the list: the group or team they lead. */
   through?: string | null;
+  /** R9.7. Whether it reaches everybody in a group rather than one person. */
+  whole?: boolean;
 }
 
 /**
@@ -124,7 +133,15 @@ export async function whoToWriteTo(
     return await withTenant(ctx, async (tx) => {
       if (canEditPeople(session)) {
         const found = await peopleNamed(tx, query);
-        return found.map((one) => ({ value: one.value, label: one.name, through: null }));
+        const mineToo = await recipientsFor(tx, await readerFor(tx, session));
+        return [
+          ...mineToo.filter((one) => one.whole).map((one) => ({
+            value: one.value, label: one.name, through: null, whole: true,
+          })),
+          ...found.map((one) => ({
+            value: one.value, label: one.name, through: null, whole: false,
+          })),
+        ];
       }
 
       const me = await readerFor(tx, session);
@@ -133,6 +150,7 @@ export async function whoToWriteTo(
         value: one.value,
         label: one.name,
         through: one.through,
+        whole: one.whole ?? false,
       }));
     });
   } catch {

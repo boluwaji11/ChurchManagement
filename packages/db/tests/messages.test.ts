@@ -14,7 +14,9 @@ import {
   type Reader,
 } from "../src/repo/messages";
 import { createPerson, getPerson } from "../src/repo/members";
+import { createGroup, addToGroup, seedGroupTypes, listGroupTypes } from "../src/repo/groups";
 import { InvalidInputError } from "../src/errors";
+import { PermissionError } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;
@@ -126,5 +128,84 @@ describe("a draft", () => {
 
     await run((tx) => sendMessage(tx, mine, { to: { office: true }, body: "The whole thought" }));
     expect(await run((tx) => draftsFor(tx, mine))).toHaveLength(0);
+  });
+});
+
+/**
+ * HRT-270. A group's own thread (R9.7).
+ *
+ * Who is in it is whoever is in the group now, which is the whole point of
+ * not copying the roster: a leader who adds somebody on Tuesday has added
+ * them to the conversation too.
+ */
+describe("a group's thread", () => {
+  let groupSlug: string;
+  let groupId: string;
+  let outsider: Reader;
+
+  beforeAll(async () => {
+    await run((tx) => seedGroupTypes(tx, { tenantId: tenant, role: "owner" }));
+    const kind = (await run((tx) => listGroupTypes(tx)))[0]!.id;
+    const group = await run((tx) =>
+      createGroup(tx, { tenantId: tenant, role: "owner" }, {
+        name: "Tuesday Night", typeId: kind,
+      } as never),
+    );
+    groupSlug = group.slug;
+    groupId = group.id;
+    await run((tx) =>
+      addToGroup(tx, { tenantId: tenant, role: "owner" }, {
+        groupId: group.id, memberId: member, role: "leader",
+      }),
+    );
+
+    const other = await run((tx) =>
+      createPerson(tx, { tenantId: tenant, role: "owner" }, {
+        firstName: "Otto", lastName: "Outside", lifecycleStatus: "member",
+      } as never),
+    );
+    outsider = { tenantId: tenant, userId: mine.userId, memberId: other.id, office: false };
+  });
+
+  it("is written into by somebody in the group", async () => {
+    await run((tx) =>
+      sendMessage(tx, mine, { to: { office: false, group: groupSlug }, body: "Tuesday is on." }),
+    );
+
+    const theirs = await run((tx) => inboxFor(tx, mine));
+    const row = theirs.find((one) => one.key === `group/${groupSlug}`);
+    expect(row?.withName).toBe("Tuesday Night");
+    expect(row?.lastLine).toBe("Tuesday is on.");
+  });
+
+  it("is not in the inbox of somebody who is not in the group", async () => {
+    const theirs = await run((tx) => inboxFor(tx, outsider));
+    expect(theirs.map((one) => one.key)).not.toContain(`group/${groupSlug}`);
+    expect(await run((tx) => threadAt(tx, outsider, `group/${groupSlug}`))).toBeNull();
+  });
+
+  it("is refused to somebody who is not in the group", async () => {
+    await expect(
+      run((tx) =>
+        sendMessage(tx, outsider, {
+          to: { office: false, group: groupSlug }, body: "Let me in",
+        }),
+      ),
+    ).rejects.toBeInstanceOf(PermissionError);
+  });
+
+  it("reaches whoever joins afterwards", async () => {
+    const group = await run((tx) => threadAt(tx, mine, `group/${groupSlug}`));
+    expect(group).not.toBeNull();
+
+    await run((tx) =>
+      addToGroup(tx, { tenantId: tenant, role: "owner" }, {
+        groupId, memberId: outsider.memberId!,
+      }),
+    );
+
+    const theirs = await run((tx) => inboxFor(tx, outsider));
+    expect(theirs.map((one) => one.key)).toContain(`group/${groupSlug}`);
+    expect(theirs.find((one) => one.key === `group/${groupSlug}`)?.unread).toBe(1);
   });
 });

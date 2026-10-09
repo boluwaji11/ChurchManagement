@@ -469,7 +469,7 @@ behind them were dropped in migration 0058.
 | HRT-268 | A mailer is kept, and saves itself as it is written | R16.12 | Resolved |
 | HRT-269 | In-app messages, and an inbox in the portal and on the platform | R16.9, R17.1 | Resolved |
 | HRT-271 | An inbox: who a message is for, drafts, and no reloading | R16.9, R17.1 | Resolved |
-| HRT-270 | Group and team threads, on the same tables | R16.9, R9.7 | New |
+| HRT-270 | Group and team threads, on the same tables | R16.9, R9.7 | Resolved |
 | HRT-147 | Birthday and anniversary sends | R16.13 | Deferred |
 
 ### F4. Forms

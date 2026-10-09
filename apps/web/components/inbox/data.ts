@@ -24,6 +24,7 @@ export interface ThreadRow {
 export interface DraftRow {
   key: string;
   name: string;
+  photoUrl: string | null;
   body: string;
   at: string;
 }

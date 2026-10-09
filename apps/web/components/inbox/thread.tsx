@@ -26,6 +26,7 @@ export function Conversation({
   said,
   onSent,
   sending = false,
+  draft = "",
 }: {
   church: string;
   churchName: string;
@@ -34,6 +35,8 @@ export function Conversation({
   said: Said[];
   onSent: () => void;
   sending?: boolean;
+  /** R16.9. What was typed to this one and not sent. */
+  draft?: string;
 }) {
   /*
    * R16.9. It opens at the bottom, where the newest line is.
@@ -120,7 +123,7 @@ export function Conversation({
         <div ref={foot} />
       </div>
 
-      <Writer church={church} to={to} onSent={onSent} sending={sending} />
+      <Writer church={church} to={to} onSent={onSent} sending={sending} draft={draft} />
     </div>
   );
 }
@@ -137,26 +140,54 @@ export function Writer({
   onSent,
   sending = false,
   autoFocus,
+  draft = "",
 }: {
   church: string;
   to: string;
   onSent: () => void;
   sending?: boolean;
   autoFocus?: boolean;
+  /** R16.9. What was typed to this one and not sent. */
+  draft?: string;
 }) {
-  const [body, setBody] = React.useState("");
+  const [body, setBody] = React.useState(draft);
   const [working, setWorking] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const busy = working || sending;
 
-  /* Kept a beat behind the last keystroke, the way every other box in this
-     product that saves itself is. */
-  const first = React.useRef(true);
+  /*
+   * R16.9. What is already written down for this recipient.
+   *
+   * The box stays where it is while somebody moves between conversations, so
+   * without this the empty box that arrived with the next one was saved over
+   * whatever had been typed to them: a draft that vanished the moment it was
+   * opened.
+   */
+  const saved = React.useRef(draft);
   React.useEffect(() => {
-    if (first.current) { first.current = false; return; }
-    const timer = setTimeout(() => { void keepDraft(to, body, church); }, 900);
+    saved.current = draft;
+    setBody(draft);
+  }, [to, draft]);
+
+  /* Kept a beat behind the last keystroke, and again the moment the box goes
+     away, because closing the panel used to cancel the save that had not
+     fired yet. */
+  const latest = React.useRef({ to, body: draft });
+  latest.current = { to, body };
+
+  React.useEffect(() => {
+    if (body === saved.current) return;
+    const timer = setTimeout(() => {
+      saved.current = body;
+      void keepDraft(to, body, church);
+    }, 600);
     return () => clearTimeout(timer);
   }, [body, to, church]);
+
+  React.useEffect(() => () => {
+    const held = latest.current;
+    if (held.body !== saved.current) void keepDraft(held.to, held.body, church);
+  }, [church]);
 
   const go = () => {
     const words = body.trim();
@@ -166,8 +197,8 @@ export function Writer({
     void send(to, words, church).then((back) => {
       setWorking(false);
       if (back.error) { setError(back.error); return; }
+      saved.current = "";
       setBody("");
-      first.current = true;
       onSent();
     });
   };

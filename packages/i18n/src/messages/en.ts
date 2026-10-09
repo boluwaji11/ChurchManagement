@@ -310,6 +310,7 @@ export const en = {
   "inbox.tab.drafts": "Drafts",
   "inbox.new": "New message",
   "inbox.to": "To",
+  "inbox.everyone": "Everyone in {name}",
   "inbox.back": "Back",
   "inbox.openAll": "Open messages",
   "inbox.noDrafts": "No drafts",

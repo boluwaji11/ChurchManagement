@@ -3,6 +3,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { tenants, appUsers } from "./tenancy";
 import { members } from "./members";
+import { groups } from "./groups";
+import { teams } from "./serving";
 
 /**
  * R16.9, R17.1. A conversation, and who is in it.
@@ -20,8 +22,14 @@ export const conversations = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
-    /** "church" for a thread with the office, "direct" between two people. */
+    /**
+     * "church" with the office, "direct" between two people, "group" or
+     * "team" with everybody in one.
+     */
     kind: text("kind").notNull().default("church"),
+    /** R9.7. Whose it is, where it belongs to a group or a team. */
+    groupId: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
+    teamId: uuid("team_id").references(() => teams.id, { onDelete: "cascade" }),
     lastMessageAt: timestamp("last_message_at", { withTimezone: true }).defaultNow().notNull(),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

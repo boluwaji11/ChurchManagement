@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import { conversations, conversationPeople, messages, messageDrafts } from "../schema/messages";
 import { members } from "../schema/members";
@@ -37,7 +37,11 @@ export interface Reader {
  * link in this product, and a conversation is found by who it is with rather
  * than by which row holds it.
  */
-export type Target = { office: true } | { office: false; slug: string };
+export type Target =
+  | { office: true }
+  | { office: false; slug: string }
+  | { office: false; group: string }
+  | { office: false; team: string };
 
 export interface Message {
   id: string;
@@ -71,17 +75,20 @@ export interface Thread {
 }
 
 export interface Recipient {
-  /** "office", or a member's own readable address. */
+  /** "office", a group or team address, or a member's own. */
   value: string;
   name: string;
   photoKey: string | null;
   /** Why they are on the list: the group or team they lead. */
   through: string | null;
+  /** Whether it reaches everybody in a group rather than one person. */
+  whole?: boolean;
 }
 
 export interface Draft {
   target: string;
   name: string;
+  photoKey: string | null;
   body: string;
   updatedAt: Date;
 }
@@ -101,9 +108,9 @@ const opening = (body: string): string => {
  * the office row is preferred: answering for the church is the errand they
  * opened the inbox for.
  */
-const MINE = sql`coalesce(
-  (p.office and m.from_office)
-  or (not p.office and p.member_id is not null and m.author_member_id = p.member_id)
+const mineFor = (reader: Reader) => sql`coalesce(
+  (${reader.office} and m.from_office)
+  or (m.author_member_id = ${reader.memberId ?? null})
 , false)`;
 
 interface Row {
@@ -122,10 +129,13 @@ async function readThreads(
   reader: Reader,
   opts: { archivedOnly?: boolean; sent?: boolean; limit?: number } = {},
 ): Promise<Thread[]> {
+  const MINE = mineFor(reader);
+  const me = reader.memberId ?? null;
+
   const rows = (await db.execute(sql`
     select distinct on (c.id)
            c.id, c.kind, c.last_message_at, c.archived_at,
-           p.office as i_am_office,
+           coalesce(p.office, false) as i_am_office,
            (select m.body from messages m
              where m.conversation_id = c.id order by m.created_at desc limit 1) as last_body,
            (select ${MINE} from messages m
@@ -135,19 +145,31 @@ async function readThreads(
                and m.created_at > coalesce(p.last_read_at, timestamptz '-infinity')
                and not ${MINE}) as unread
       from conversations c
-      join conversation_people p on p.conversation_id = c.id
-       and ((p.office and ${reader.office}) or (p.member_id = ${reader.memberId ?? null}))
+      left join conversation_people p on p.conversation_id = c.id
+       and ((p.office and ${reader.office}) or (p.member_id = ${me}))
      where ${opts.archivedOnly ? sql`c.archived_at is not null` : sql`c.archived_at is null`}
        and exists (select 1 from messages m where m.conversation_id = c.id)
+       and (
+         p.id is not null
+         /* R9.7. A group's thread belongs to whoever is in the group now,
+            read here rather than copied into a roster that goes stale. */
+         or (c.group_id is not null and exists (
+              select 1 from group_memberships gm
+               where gm.group_id = c.group_id and gm.member_id = ${me}))
+         or (c.team_id is not null and exists (
+              select 1 from team_members tm
+               where tm.team_id = c.team_id and tm.member_id = ${me}))
+       )
        ${opts.sent
           ? sql`and exists (select 1 from messages m where m.conversation_id = c.id and ${MINE})`
           : sql``}
-     order by c.id, p.office desc
+     order by c.id, p.office desc nulls last
   `)) as unknown as Row[];
 
   if (rows.length === 0) return [];
 
   const ids = rows.map((one) => one.id);
+
   const people = await db
     .select({
       conversationId: conversationPeople.conversationId,
@@ -162,19 +184,46 @@ async function readThreads(
     .leftJoin(members, eq(members.id, conversationPeople.memberId))
     .where(inArray(conversationPeople.conversationId, ids));
 
+  /* What a group thread is called is the group's own name. */
+  const named = await db
+    .select({
+      id: conversations.id,
+      groupName: groups.name,
+      groupSlug: groups.slug,
+      teamName: teams.name,
+      teamSlug: teams.slug,
+    })
+    .from(conversations)
+    .leftJoin(groups, eq(groups.id, conversations.groupId))
+    .leftJoin(teams, eq(teams.id, conversations.teamId))
+    .where(inArray(conversations.id, ids));
+
   const out = rows.map((row) => {
     const here = people.filter((one) => one.conversationId === row.id);
-    /* Who it is with is whoever in it is not the reader. */
+    const whose = named.find((one) => one.id === row.id);
+
     const other = here.find((one) =>
       row.i_am_office ? !one.office : one.memberId !== reader.memberId);
+
+    const key = whose?.groupSlug
+      ? `group/${whose.groupSlug}`
+      : whose?.teamSlug
+        ? `team/${whose.teamSlug}`
+        : other && !other.office
+          ? other.slug ?? ""
+          : "office";
+
+    const name = whose?.groupName
+      ?? whose?.teamName
+      ?? (other && !other.office ? `${other.first} ${other.last}`.trim() : "");
 
     return {
       id: row.id,
       kind: row.kind,
-      key: other && !other.office ? other.slug ?? "" : "office",
-      withMemberId: other?.memberId ?? null,
-      withName: other && !other.office ? `${other.first} ${other.last}`.trim() : "",
-      withPhotoKey: other?.photoKey ?? null,
+      key,
+      withMemberId: whose?.groupSlug || whose?.teamSlug ? null : other?.memberId ?? null,
+      withName: name,
+      withPhotoKey: whose?.groupSlug || whose?.teamSlug ? null : other?.photoKey ?? null,
       lastLine: opening(row.last_body ?? ""),
       lastAt: new Date(row.last_message_at),
       lastMine: Boolean(row.last_mine),
@@ -205,13 +254,25 @@ export const sentFor = (db: Tx, reader: Reader, limit = 50): Promise<Thread[]> =
  * way to the browser: the shell asks for it before anything else is drawn.
  */
 export async function unreadFor(db: Tx, reader: Reader): Promise<number> {
+  const MINE = mineFor(reader);
+  const me = reader.memberId ?? null;
+
   const rows = (await db.execute(sql`
     select count(*)::int as waiting from (
       select distinct c.id
         from conversations c
-        join conversation_people p on p.conversation_id = c.id
-         and ((p.office and ${reader.office}) or (p.member_id = ${reader.memberId ?? null}))
+        left join conversation_people p on p.conversation_id = c.id
+         and ((p.office and ${reader.office}) or (p.member_id = ${me}))
        where c.archived_at is null
+         and (
+           p.id is not null
+           or (c.group_id is not null and exists (
+                select 1 from group_memberships gm
+                 where gm.group_id = c.group_id and gm.member_id = ${me}))
+           or (c.team_id is not null and exists (
+                select 1 from team_members tm
+                 where tm.team_id = c.team_id and tm.member_id = ${me}))
+         )
          and exists (
            select 1 from messages m
             where m.conversation_id = c.id
@@ -345,25 +406,30 @@ export async function sendMessage(
   const body = clean(input.body);
   if (!body) throw new InvalidInputError("inbox.error.empty");
 
-  /* Writing as the church is what the office does; writing to it is what
-     everybody else does. */
-  const asOffice = reader.office && !input.to.office;
+  const toGroup = !input.to.office && "group" in input.to ? input.to.group : null;
+  const toTeam = !input.to.office && "team" in input.to ? input.to.team : null;
+  const toPerson = !input.to.office && "slug" in input.to ? input.to.slug : null;
+
+  /* Writing as the church is what the office does, to a person. Inside a
+     group everybody writes as themselves, the office included. */
+  const asOffice = reader.office && Boolean(toPerson);
   if (!asOffice && !reader.memberId) throw new InvalidInputError("member.error.noRecord");
-  if (input.to.office && reader.office && !reader.memberId) {
-    throw new InvalidInputError("member.error.noRecord");
-  }
 
-  const them = input.to.office ? null : await memberBySlug(db, input.to.slug);
-  if (!input.to.office && !them) throw new InvalidInputError("member.error.noRecord");
+  const them = toPerson ? await memberBySlug(db, toPerson) : null;
+  if (toPerson && !them) throw new InvalidInputError("member.error.noRecord");
 
-  const threadId = input.to.office
-    ? await openThread(db, reader.tenantId, { office: true, memberIds: [reader.memberId!] })
-    : asOffice
-      ? await openThread(db, reader.tenantId, { office: true, memberIds: [them!] })
-      : await openThread(db, reader.tenantId, {
-          office: false,
-          memberIds: [reader.memberId!, them!],
-        });
+  const threadId = toGroup
+    ? await openWhole(db, reader, { group: toGroup })
+    : toTeam
+      ? await openWhole(db, reader, { team: toTeam })
+      : input.to.office
+        ? await openThread(db, reader.tenantId, { office: true, memberIds: [reader.memberId!] })
+        : asOffice
+          ? await openThread(db, reader.tenantId, { office: true, memberIds: [them!] })
+          : await openThread(db, reader.tenantId, {
+              office: false,
+              memberIds: [reader.memberId!, them!],
+            });
 
   const [made] = await db
     .insert(messages)
@@ -383,19 +449,94 @@ export async function sendMessage(
     .set({ lastMessageAt: now, updatedAt: now, archivedAt: null })
     .where(eq(conversations.id, threadId));
 
-  await db
-    .update(conversationPeople)
-    .set({ lastReadAt: now })
-    .where(and(
-      eq(conversationPeople.conversationId, threadId),
-      asOffice
-        ? eq(conversationPeople.office, true)
-        : eq(conversationPeople.memberId, reader.memberId!),
-    ));
+  await markThreadRead(db, reader, threadId);
 
-  await dropDraft(db, reader, input.to.office ? "office" : them!);
+  await dropDraft(
+    db,
+    reader,
+    input.to.office ? "office" : toGroup ? `group/${toGroup}` : toTeam ? `team/${toTeam}` : them!,
+  );
 
   return { threadId, id: made!.id };
+}
+
+/**
+ * R9.7. The thread a group or a team has, started the first time somebody
+ * writes into it.
+ *
+ * Nobody is written into it: who is in a group thread is whoever is in the
+ * group at the moment they open it.
+ */
+/** R9.7. Whether this reader is in the group or team at all. */
+async function inIt(
+  db: Tx,
+  reader: Reader,
+  whose: { group?: string; team?: string },
+): Promise<boolean> {
+  if (!reader.memberId) return false;
+
+  const [row] = whose.group
+    ? await db
+        .select({ id: groupMemberships.id })
+        .from(groupMemberships)
+        .innerJoin(groups, eq(groups.id, groupMemberships.groupId))
+        .where(and(
+          eq(groups.slug, whose.group),
+          eq(groupMemberships.memberId, reader.memberId),
+        ))
+        .limit(1)
+    : await db
+        .select({ id: teamMembers.id })
+        .from(teamMembers)
+        .innerJoin(teams, eq(teams.id, teamMembers.teamId))
+        .where(and(
+          eq(teams.slug, whose.team!),
+          eq(teamMembers.memberId, reader.memberId),
+        ))
+        .limit(1);
+
+  return Boolean(row);
+}
+
+async function openWhole(
+  db: Tx,
+  reader: Reader,
+  whose: { group?: string; team?: string },
+): Promise<string> {
+  const standing = await inIt(db, reader, whose);
+  if (!standing) throw new PermissionError(reader.office ? "staff" : "member", "editPerson");
+
+  const [held] = whose.group
+    ? await db
+        .select({ id: conversations.id })
+        .from(conversations)
+        .innerJoin(groups, eq(groups.id, conversations.groupId))
+        .where(eq(groups.slug, whose.group))
+        .limit(1)
+    : await db
+        .select({ id: conversations.id })
+        .from(conversations)
+        .innerJoin(teams, eq(teams.id, conversations.teamId))
+        .where(eq(teams.slug, whose.team!))
+        .limit(1);
+
+  if (held) return held.id;
+
+  const [whom] = whose.group
+    ? await db.select({ id: groups.id }).from(groups).where(eq(groups.slug, whose.group)).limit(1)
+    : await db.select({ id: teams.id }).from(teams).where(eq(teams.slug, whose.team!)).limit(1);
+  if (!whom) throw new InvalidInputError("inbox.error.thread");
+
+  const [made] = await db
+    .insert(conversations)
+    .values({
+      tenantId: reader.tenantId,
+      kind: whose.group ? "group" : "team",
+      ...(whose.group ? { groupId: whom.id } : { teamId: whom.id }),
+    })
+    .returning({ id: conversations.id });
+
+  return made!.id;
 }
 
 /** The person behind an address, where there is one. */
@@ -423,18 +564,30 @@ export async function threadAt(
   reader: Reader,
   key: string,
 ): Promise<Thread | null> {
+  const me = reader.memberId ?? null;
+  const [kind, name] = key.includes("/") ? key.split("/") : [null, key];
+
   const rows = (await db.execute(sql`
-    select c.id, c.kind, c.last_message_at, c.archived_at, p.office as i_am_office
+    select c.id, c.kind, c.last_message_at, c.archived_at,
+           coalesce(p.office, false) as i_am_office
       from conversations c
-      join conversation_people p on p.conversation_id = c.id
-       and ((p.office and ${reader.office}) or (p.member_id = ${reader.memberId ?? null}))
-     where ${key === "office"
-        ? sql`exists (select 1 from conversation_people q
-                       where q.conversation_id = c.id and q.office)`
-        : sql`exists (select 1 from conversation_people q
-                        join members w on w.id = q.member_id
-                       where q.conversation_id = c.id and w.slug = ${key})`}
-     order by p.office desc, c.last_message_at desc
+      left join conversation_people p on p.conversation_id = c.id
+       and ((p.office and ${reader.office}) or (p.member_id = ${me}))
+     where ${kind === "group"
+        ? sql`c.group_id = (select g.id from groups g where g.slug = ${name!} limit 1)
+              and exists (select 1 from group_memberships gm
+                           where gm.group_id = c.group_id and gm.member_id = ${me})`
+        : kind === "team"
+          ? sql`c.team_id = (select tm.id from teams tm where tm.slug = ${name!} limit 1)
+                and exists (select 1 from team_members t
+                             where t.team_id = c.team_id and t.member_id = ${me})`
+          : key === "office"
+            ? sql`p.id is not null and exists (select 1 from conversation_people q
+                                                where q.conversation_id = c.id and q.office)`
+            : sql`p.id is not null and exists (select 1 from conversation_people q
+                                                 join members w on w.id = q.member_id
+                                                where q.conversation_id = c.id and w.slug = ${key})`}
+     order by p.office desc nulls last, c.last_message_at desc
      limit 1
   `)) as unknown as {
     id: string; kind: string; last_message_at: string | Date;
@@ -444,7 +597,13 @@ export async function threadAt(
   const row = rows[0];
   if (!row) return null;
 
-  const [other] = key === "office"
+  const named = kind === "group"
+    ? (await db.select({ name: groups.name }).from(groups).where(eq(groups.slug, name!)).limit(1))[0]
+    : kind === "team"
+      ? (await db.select({ name: teams.name }).from(teams).where(eq(teams.slug, name!)).limit(1))[0]
+      : null;
+
+  const [other] = kind || key === "office"
     ? []
     : await db
         .select({
@@ -460,7 +619,7 @@ export async function threadAt(
     kind: row.kind,
     key,
     withMemberId: other?.id ?? null,
-    withName: other ? `${other.first} ${other.last}`.trim() : "",
+    withName: named?.name ?? (other ? `${other.first} ${other.last}`.trim() : ""),
     withPhotoKey: other?.photoKey ?? null,
     /* The list carries these; an open conversation shows its own lines. */
     lastLine: "",
@@ -562,7 +721,42 @@ export async function recipientsFor(db: Tx, reader: Reader): Promise<Recipient[]
       sql`${members.id} <> ${reader.memberId}`,
     ));
 
-  const out: Recipient[] = [];
+  /* R9.7. The groups and teams themselves, which reach everybody in them. */
+  const myGroups = await db
+    .select({ name: groups.name, slug: groups.slug })
+    .from(groupMemberships)
+    .innerJoin(groups, eq(groups.id, groupMemberships.groupId))
+    .where(and(
+      eq(groupMemberships.memberId, reader.memberId),
+      isNull(groups.archivedAt),
+    ));
+
+  const myServing = await db
+    .select({ name: teams.name, slug: teams.slug })
+    .from(teamMembers)
+    .innerJoin(teams, eq(teams.id, teamMembers.teamId))
+    .where(and(
+      eq(teamMembers.memberId, reader.memberId),
+      isNull(teams.archivedAt),
+    ));
+
+  const out: Recipient[] = [
+    ...myGroups.map((one) => ({
+      value: `group/${one.slug}`,
+      name: one.name,
+      photoKey: null,
+      through: null,
+      whole: true,
+    })),
+    ...myServing.map((one) => ({
+      value: `team/${one.slug}`,
+      name: one.name,
+      photoKey: null,
+      through: null,
+      whole: true,
+    })),
+  ];
+
   for (const one of [...groupLeaders, ...teamLeaders]) {
     if (out.some((held) => held.value === one.slug)) continue;
     out.push({
@@ -572,7 +766,8 @@ export async function recipientsFor(db: Tx, reader: Reader): Promise<Recipient[]
       through: one.through,
     });
   }
-  out.sort((a, b) => a.name.localeCompare(b.name));
+  out.sort((a, b) =>
+    Number(Boolean(b.whole)) - Number(Boolean(a.whole)) || a.name.localeCompare(b.name));
   return out;
 }
 
@@ -629,16 +824,28 @@ export async function draftsFor(db: Tx, reader: Reader): Promise<Draft[]> {
       first: members.firstName,
       last: members.lastName,
       slug: members.slug,
+      photoKey: members.photoKey,
+      groupName: groups.name,
+      teamName: teams.name,
     })
     .from(messageDrafts)
     .leftJoin(members, sql`${members.id}::text = ${messageDrafts.target}`)
+    .leftJoin(groups, sql`'group/' || ${groups.slug} = ${messageDrafts.target}`)
+    .leftJoin(teams, sql`'team/' || ${teams.slug} = ${messageDrafts.target}`)
     .where(eq(messageDrafts.userId, reader.userId));
 
   return rows
     .filter((one) => one.body.trim().length > 0)
     .map((one) => ({
-      target: one.target === "office" ? "office" : one.slug ?? one.target,
-      name: one.target === "office" ? "" : `${one.first ?? ""} ${one.last ?? ""}`.trim(),
+      target: one.target === "office" || one.target.includes("/")
+        ? one.target
+        : one.slug ?? one.target,
+      photoKey: one.photoKey ?? null,
+      name: one.target === "office"
+        ? ""
+        : one.target.includes("/")
+          ? (one.groupName ?? one.teamName ?? "")
+          : `${one.first ?? ""} ${one.last ?? ""}`.trim(),
       body: one.body,
       updatedAt: one.updatedAt,
     }))
@@ -649,11 +856,13 @@ export async function draftsFor(db: Tx, reader: Reader): Promise<Draft[]> {
 export async function saveDraft(
   db: Tx,
   reader: Reader,
-  /** "office", or whoever it is addressed to. */
+  /** "office", a group or team address, or whoever it is addressed to. */
   key: string,
   body: string,
 ): Promise<void> {
-  const target = key === "office" ? "office" : (await memberBySlug(db, key)) ?? key;
+  const target = key === "office" || key.includes("/")
+    ? key
+    : (await memberBySlug(db, key)) ?? key;
   if (!body.trim()) {
     await dropDraft(db, reader, target);
     return;

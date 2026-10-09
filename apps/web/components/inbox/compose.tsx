@@ -65,7 +65,11 @@ export function Compose({
               ...(lookup ? [] : [{ value: "office", label: churchName }]),
               ...options.map((one) => ({
                 value: one.value,
-                label: one.through ? `${one.label} · ${one.through}` : one.label,
+                label: one.whole
+                  ? t("inbox.everyone", { name: one.label })
+                  : one.through
+                    ? `${one.label} · ${one.through}`
+                    : one.label,
               })),
             ]}
             value={to}

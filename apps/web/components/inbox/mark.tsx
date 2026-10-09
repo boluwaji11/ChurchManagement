@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Archive, MessageSquare, PenSquare } from "lucide-react";
+import { ArrowLeft, Archive, MessageSquare, PenSquare, Users } from "lucide-react";
 import { Avatar, IconButton } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
@@ -176,7 +176,14 @@ export function InboxMark({
                 </IconButton>
               ) : null}
 
-              {key && key !== "office" ? (
+              {key && key.includes("/") ? (
+                <span
+                  aria-hidden
+                  className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-soft text-primary [&_svg]:size-4"
+                >
+                  <Users />
+                </span>
+              ) : key && key !== "office" ? (
                 <Avatar
                   name={here?.name || opening?.name || ""}
                   src={here?.photoUrl ?? null}
@@ -249,6 +256,7 @@ export function InboxMark({
                   churchName={churchName}
                   to={key}
                   said={here ? data.said : []}
+                  draft={data.drafts.find((one) => one.key === key)?.body ?? ""}
                   onSent={refresh}
                 />
               ) : writing ? (

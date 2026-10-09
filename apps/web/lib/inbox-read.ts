@@ -44,7 +44,9 @@ export async function readInbox(
     },
     async (tx) => {
       const me = await readerFor(tx, session);
-      const drafts = view === "drafts" ? await draftsFor(tx, me) : [];
+      /* Always, rather than only on their own tab: what was typed and not
+         sent belongs in the box the moment that conversation is opened. */
+      const drafts = await draftsFor(tx, me);
       const open = key ? await threadAt(tx, me, key) : null;
       if (open && opts.reading) await markThreadRead(tx, me, open.id);
       const said = open ? await messagesIn(tx, me, open.id) : [];
@@ -67,6 +69,7 @@ export async function readInbox(
   const faces = await heldPhotoUrls([
     ...read.listed.map((one) => one.withPhotoKey),
     ...read.said.map((one) => one.authorPhotoKey),
+    ...read.drafts.map((one) => one.photoKey),
     read.open?.withPhotoKey ?? null,
   ]);
   const face = (held: string | null) => (held ? faces[held] ?? null : null);
@@ -86,6 +89,7 @@ export async function readInbox(
     drafts: read.drafts.map((one) => ({
       key: one.target,
       name: one.name,
+      photoUrl: face(one.photoKey),
       body: one.body,
       at: one.updatedAt.toISOString(),
     })),

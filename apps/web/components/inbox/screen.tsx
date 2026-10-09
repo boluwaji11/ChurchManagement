@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Archive, ArchiveRestore, PenSquare } from "lucide-react";
+import { Archive, ArchiveRestore, PenSquare, Users } from "lucide-react";
 import { Avatar, IconButton } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
@@ -167,6 +167,13 @@ export function InboxScreen({
                 >
                   {churchName.slice(0, 1).toUpperCase()}
                 </span>
+              ) : open.includes("/") ? (
+                <span
+                  aria-hidden
+                  className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary [&_svg]:size-[18px]"
+                >
+                  <Users />
+                </span>
               ) : (
                 <Avatar
                   name={name}
@@ -176,7 +183,7 @@ export function InboxScreen({
                 />
               )}
 
-              {office && open !== "office" ? (
+              {office && open !== "office" && !open.includes("/") ? (
                 <Link
                   href={`/members/${open}?church=${church}`}
                   className="min-w-0 flex-1 truncate font-semibold text-fg hover:underline"
@@ -209,6 +216,7 @@ export function InboxScreen({
               churchName={churchName}
               to={open}
               said={here ? data.said : []}
+              draft={data.drafts.find((one) => one.key === open)?.body ?? ""}
               onSent={refresh}
             />
           </>
