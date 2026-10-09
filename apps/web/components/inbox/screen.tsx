@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Archive, ArchiveRestore, PenSquare } from "lucide-react";
-import { Avatar, Button, IconButton } from "@connectapp/ui";
+import { Avatar, IconButton } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
@@ -77,23 +77,29 @@ export function InboxScreen({
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex items-center gap-2">
           <SearchField value={find} onChange={setFind} placeholder={t("inbox.find")} />
-          <Button
+          <IconButton
+            label={t("inbox.new")}
             variant="secondary"
+            className="size-10 min-h-0 shrink-0 [&_svg]:size-[18px]"
             onClick={() => { setTo(office ? "" : "office"); setWriting(true); }}
           >
-            <PenSquare /> {t("inbox.new")}
-          </Button>
+            <PenSquare />
+          </IconButton>
         </div>
 
-        <nav className="flex gap-1">
+        {/* R24.6. A segmented control: the one in use is filled, so which
+            list this is can be read without comparing three greys. */}
+        <nav className="flex w-fit gap-1 rounded-full border border-line bg-sunken p-1">
           {TABS.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setView(tab.key)}
               aria-current={view === tab.key ? "true" : undefined}
-              className={`min-h-8 cursor-pointer rounded-full px-3 text-[13px] font-medium ${
-                view === tab.key ? "bg-sunken text-fg" : "text-fg-muted hover:text-fg"
+              className={`min-h-8 cursor-pointer rounded-full px-3.5 text-[13px] font-medium transition-colors ${
+                view === tab.key
+                  ? "bg-primary text-primary-fg"
+                  : "text-fg-muted hover:text-fg"
               }`}
             >
               {tab.label}

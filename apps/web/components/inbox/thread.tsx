@@ -166,7 +166,7 @@ export function Writer({
           title={t("inbox.send")}
           className={`grid size-10 shrink-0 place-items-center rounded-full [&_svg]:size-[18px] ${
             body.trim() && !busy
-              ? "cursor-pointer bg-fg text-[var(--canvas)] hover:opacity-90"
+              ? "cursor-pointer bg-primary text-primary-fg hover:opacity-90"
               : "cursor-default bg-sunken text-fg-subtle"
           }`}
         >

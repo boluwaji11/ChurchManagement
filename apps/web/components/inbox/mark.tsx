@@ -116,7 +116,7 @@ export function InboxMark({
         aria-label={t("inbox.title")}
         aria-expanded={open}
         className={floating
-          ? "relative grid size-14 cursor-pointer place-items-center rounded-full bg-primary text-[var(--on-primary)] shadow-lg transition-transform duration-[var(--duration-fast)] hover:scale-105 active:scale-95"
+          ? "relative grid size-14 cursor-pointer place-items-center rounded-full bg-primary text-primary-fg shadow-lg transition-transform duration-[var(--duration-fast)] hover:scale-105 active:scale-95"
           : "relative grid size-9 cursor-pointer place-items-center rounded-md border border-line-strong bg-surface hover:bg-sunken"}
         style={
           nudging && floating
@@ -192,17 +192,17 @@ export function InboxMark({
             </header>
 
             {!key && !writing ? (
-              <nav className="flex gap-1 border-b border-line px-2 py-1.5">
+              <nav className="flex gap-1 border-b border-line bg-canvas px-2 py-2">
                 {TABS.map((tab) => (
                   <button
                     key={tab.key}
                     type="button"
                     onClick={() => setView(tab.key)}
                     aria-current={view === tab.key ? "true" : undefined}
-                    className={`min-h-8 cursor-pointer rounded-full px-3 text-[13px] font-medium ${
+                    className={`min-h-8 cursor-pointer rounded-full px-3.5 text-[13px] font-medium transition-colors ${
                       view === tab.key
-                        ? "bg-sunken text-fg"
-                        : "text-fg-muted hover:text-fg"
+                        ? "bg-primary text-primary-fg"
+                        : "text-fg-muted hover:bg-sunken hover:text-fg"
                     }`}
                   >
                     {tab.label}
