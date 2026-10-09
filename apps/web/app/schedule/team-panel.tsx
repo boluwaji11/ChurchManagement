@@ -535,7 +535,7 @@ export function TeamPanel({
                 {people.slice(0, 3).map((one) => one.name).join(", ")}
                 {people.length > 3 ? (
                   <>
-                    {", "}
+                    {" "}
                     <button
                       type="button"
                       className="rounded-[4px] font-medium text-primary underline underline-offset-2 hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
