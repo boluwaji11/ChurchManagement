@@ -1,10 +1,8 @@
 import type { NextRequest } from "next/server";
-import {
-  withTenant, getChurch, toCsv, attendanceByService, canEditPeople, canReadIncidents,
-} from "@connectapp/db";
+import { canEditPeople, canReadIncidents } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
-import { churchNow } from "@/lib/church-now";
-import { backBy, windowOf } from "../../frame";
+import { windowOf } from "../../frame";
+import { sheetFor, csvFrom } from "../../sheets";
 import { refused } from "@/lib/refuse";
 
 export const dynamic = "force-dynamic";
@@ -18,21 +16,9 @@ export async function GET(request: NextRequest) {
   }
 
   const window = windowOf(request.nextUrl.searchParams.get("days") ?? undefined);
+  const sheet = await sheetFor("attendance", session, window);
 
-  const rows = await withTenant(
-    { tenantId: session.tenantId, role: session.role },
-    async (tx) => {
-      const clock = churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago");
-      return attendanceByService(tx, { from: backBy(clock.date, window), to: clock.date });
-    },
-  );
-
-  const csv = toCsv(
-    rows.map((one) => ({ Date: one.occursOn, Service: one.name, Present: one.present })),
-    ["Date", "Service", "Present"],
-  );
-
-  return new Response(csv, {
+  return new Response(csvFrom(sheet.csv), {
     headers: {
       "content-type": "text/csv; charset=utf-8",
       "content-disposition": `attachment; filename="${session.tenantSlug}-attendance.csv"`,

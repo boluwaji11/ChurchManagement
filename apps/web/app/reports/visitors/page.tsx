@@ -1,6 +1,6 @@
 import {
   withTenant, getChurch, canEditPeople, canReadIncidents,
-  visitorFunnel, visitorList, type VisitorRow,
+  visitorFunnel, visitorList,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
@@ -9,6 +9,7 @@ import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { ReportFrame, backBy, windowOf } from "../frame";
+import { standing } from "../sheets";
 import { Figure, Figures } from "../figure";
 import { Donut, Funnel, Line, type Slice } from "../charts";
 import { PagedTable, type Row } from "../paged-table";
@@ -24,12 +25,6 @@ export async function generateMetadata({
 }) {
   const { church } = await searchParams;
   return tabMetadata(t("reports.title"), church);
-}
-
-/** Where somebody has got to, which is what the ring splits them by. */
-function standing(one: VisitorRow): "connected" | "returned" | "once" {
-  if (one.inGroup || one.serving) return "connected";
-  return one.visits > 1 ? "returned" : "once";
 }
 
 const STANDING_HUE = { connected: "fern", returned: "sky", once: "clay" } as const;

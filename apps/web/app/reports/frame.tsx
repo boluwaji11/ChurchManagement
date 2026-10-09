@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { t } from "@connectapp/i18n";
-import { Tooltip } from "@connectapp/ui";
-import { Download as GetFile } from "@/components/download";
+import { DownloadMenu } from "./download";
 
 /** R18.x. How far back a report reads, in days. */
 export const WINDOWS = [90, 180, 365] as const;
@@ -30,6 +29,7 @@ export function ReportFrame({
   title,
   window: days,
   path,
+  files = "all",
   children,
 }: {
   church: string;
@@ -37,6 +37,15 @@ export function ReportFrame({
   window: Window;
   /** The report's own segment, for the links that change the window. */
   path: string;
+  /**
+   * R18.10. Which formats this report leaves in.
+   *
+   * The three a church gets without building one have a sheet behind them, so
+   * they offer all three. Giving is held with the rest of the money and has
+   * none of them yet, so it offers nothing rather than a press that answers
+   * with a missing page.
+   */
+  files?: "all" | "none";
   children: React.ReactNode;
 }) {
   return (
@@ -68,17 +77,16 @@ export function ReportFrame({
           ))}
         </div>
 
-        <Tooltip content={t("reports.export")}>
-        <GetFile
-          href={`/reports/${path}/export?church=${church}&days=${days}`}
-          file={`${path}-${church}.csv`}
-          label={t("download.building")}
-          title={t("reports.export")}
-          className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
-        >
-          <Download aria-label={t("reports.export")} />
-        </GetFile>
-        </Tooltip>
+        {/* R18.10. The same three formats a built report has, so a church
+            that has learned one report has learned all of them. Each carries
+            the window the report was read at. */}
+        {files === "all" ? (
+          <DownloadMenu
+            csv={`/reports/${path}/export?church=${church}&days=${days}`}
+            pptx={`/reports/pptx?church=${church}&report=${path}&days=${days}`}
+            print={`/reports/print?church=${church}&report=${path}&days=${days}`}
+          />
+        ) : null}
       </div>
 
       {children}

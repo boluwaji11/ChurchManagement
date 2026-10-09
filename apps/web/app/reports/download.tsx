@@ -11,15 +11,19 @@ import { t } from "@connectapp/i18n";
 /**
  * R18.10. A built report taken off the screen, in the format it is wanted in.
  *
- * CSV is the numbers for a spreadsheet, PDF is the report itself for a board
- * pack. Both run the report again as they are asked for.
+ * CSV is the numbers for a spreadsheet, PowerPoint is the charts for a board
+ * pack with the numbers still behind them, and PDF is the report on paper. Each
+ * runs the report again as it is asked for.
  */
 export function DownloadMenu({
-  slug,
-  church,
+  csv,
+  pptx,
+  print,
 }: {
-  slug: string;
-  church: string;
+  /** Where each format comes from, already carrying the church and the window. */
+  csv: string;
+  pptx: string;
+  print: string;
 }) {
   const [working, setWorking] = React.useState(false);
 
@@ -40,19 +44,15 @@ export function DownloadMenu({
         </IconButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onSelect={() => go(`/reports/custom/${slug}/export?church=${church}`, false)}
-        >
+        <DropdownMenuItem onSelect={() => go(csv, false)}>
           {t("export.csv")}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={() => go(`/reports/custom/${slug}/pptx?church=${church}`, false)}
-        >
+        <DropdownMenuItem onSelect={() => go(pptx, false)}>
           {t("export.pptx")}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={() => go(`/reports/custom/${slug}/print?church=${church}`, true)}
-        >
+        {/* The print view opens in its own tab and prints itself, which is
+            where the PDF comes from. */}
+        <DropdownMenuItem onSelect={() => go(print, true)}>
           {t("export.pdf")}
         </DropdownMenuItem>
       </DropdownMenuContent>

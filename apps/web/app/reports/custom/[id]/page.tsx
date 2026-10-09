@@ -10,7 +10,7 @@ import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { Answer } from "../../answer";
-import { DownloadMenu } from "./download";
+import { DownloadMenu } from "../../download";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -94,7 +94,11 @@ export default async function CustomReportPage({
           <Pencil />
         </Link>
 
-        <DownloadMenu slug={saved.slug} church={session.tenantSlug} />
+        <DownloadMenu
+          csv={`/reports/custom/${saved.slug}/export?church=${session.tenantSlug}`}
+          pptx={`/reports/custom/${saved.slug}/pptx?church=${session.tenantSlug}`}
+          print={`/reports/custom/${saved.slug}/print?church=${session.tenantSlug}`}
+        />
       </div>
 
       {/* Laid out on the grid it was arranged on. */}

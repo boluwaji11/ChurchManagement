@@ -11,6 +11,7 @@ import { churchNow } from "@/lib/church-now";
 import { churchLogoUrl } from "@/lib/church-logo";
 import { hueHex } from "@/lib/hue-hex";
 import { refused } from "@/lib/refuse";
+import { logoData, SLIDE, MARGIN, TITLE_H, BODY, FOOT } from "@/lib/deck";
 
 export const dynamic = "force-dynamic";
 
@@ -34,52 +35,6 @@ function palette(tile: ReportTile, many: number): string[] {
   const from = at < 0 ? 0 : at;
   return Array.from({ length: Math.max(1, many) }, (_, i) =>
     hueHex(tile.look.hues[i] ?? CHART_HUES[(from + i) % CHART_HUES.length]!));
-}
-
-/**
- * The slide, in inches, and everything else measured off it.
- *
- * Declared rather than taken from a named layout: pptxgenjs reads LAYOUT_16x9
- * as ten inches by five and five eighths, so a body sized for a widescreen deck
- * ran off the edge of it. Every box below comes out of these numbers, so the
- * chart fits whatever the slide is.
- */
-const SLIDE = { w: 13.333, h: 7.5 } as const;
-const MARGIN = 0.6;
-/** Where the visual's name sits, and how much room the footer keeps. */
-const TITLE_H = 0.7;
-const FOOT_H = 0.45;
-
-const BODY = {
-  x: MARGIN,
-  y: MARGIN + TITLE_H,
-  w: SLIDE.w - MARGIN * 2,
-  h: SLIDE.h - MARGIN * 2 - TITLE_H - FOOT_H,
-} as const;
-
-/** The line under the body, for a total or a row count. */
-const FOOT = {
-  x: MARGIN,
-  y: SLIDE.h - MARGIN - FOOT_H,
-  w: SLIDE.w - MARGIN * 2,
-  h: FOOT_H,
-} as const;
-
-/** The church's logo, fetched once and carried into the deck as bytes. */
-async function logoData(url: string | null): Promise<string | null> {
-  if (!url) return null;
-  try {
-    const answer = await fetch(url);
-    if (!answer.ok) return null;
-    const type = answer.headers.get("content-type") ?? "image/png";
-    const bytes = Buffer.from(await answer.arrayBuffer());
-    // A logo past this is a logo somebody uploaded at print resolution, and it
-    // would make the deck slower to send than it is to read.
-    if (bytes.byteLength > 2_000_000) return null;
-    return `data:${type};base64,${bytes.toString("base64")}`;
-  } catch {
-    return null;
-  }
 }
 
 /**

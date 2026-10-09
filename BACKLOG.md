@@ -603,7 +603,7 @@ church actually asks.
 | HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | New |
 | HRT-191 | Milestone and demographic lists | R18.8 | New |
 | HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | New |
-| HRT-193 | CSV and PDF on every report | R18.10 | Active |
+| HRT-193 | CSV and PDF on every report | R18.10 | Resolved |
 | HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
 | HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Resolved |
 | HRT-219 | Members, not people: the word on screen, in the address and in the schema | R2.x, R24.6 | Resolved |
@@ -612,8 +612,11 @@ church actually asks.
 **On HRT-193.** A built report exports to CSV, to PowerPoint and to PDF. The PDF is the print view
 the browser saves, which is how the directory, the run sheet and the room rosters already produce
 one. The deck is built with `pptxgenjs` and carries real PowerPoint charts rather than pictures of
-them, so the numbers are still numbers when a treasurer opens it. The three built-in reports still
-only write CSV, so the story stays Active until they have the same menu.
+them, so the numbers are still numbers when a treasurer opens it. The three built-in reports have the
+same menu now: `apps/web/app/reports/sheets.ts` is the one place each of them is read, and the
+spreadsheet, the sheet of paper and the deck are three renderings of it. Giving offers no file,
+because it has none and the press that pointed at one answered with a missing page; it comes back
+with the rest of the money.
 
 **On HRT-218 and the report builder.** A custom report builder is a non-goal in PRD section 18, and
 it is named there as one of the things that make Rock RMS unusable for a church with one volunteer.
