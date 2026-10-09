@@ -344,6 +344,20 @@ export function Directory({
             <Upload />
           </ToolButton>
         ) : null}
+
+        <span className="flex-1" />
+
+        {/* R24.6. The one thing this screen is for, at the far end of the row
+            where the eye finishes reading it. The tools beside it are marks
+            rather than worded buttons, which is what keeps the row to one
+            line and this press where it was left. */}
+        {canEdit ? (
+          <Button asChild className="shrink-0">
+            <Link href={`/members/new?church=${church}`}>
+              <Plus /> {t("members.add")}
+            </Link>
+          </Button>
+        ) : null}
         </div>
         )}
 

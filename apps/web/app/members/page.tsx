@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import {
   withTenant, listPeople, countPeople, countArchivedPeople, listTagsWithCounts, findDuplicatePairs,
   canEditPeople, canArchivePeople, canReadIncidents,
   listSavedLists, countArchivedSavedLists, resolveList, listGroups,
   PER_PAGE,
 } from "@connectapp/db";
-import { Banner, Button } from "@connectapp/ui";
+import { Banner } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { Flash } from "@/components/said";
 import { requireSession } from "@/lib/session";
@@ -143,20 +143,9 @@ export default async function PeoplePage({
     <AppShell
       session={session}
       title={t("members.title")}
-      /* R24.6. The screen's one action, in the same place every screen puts
-         it. It rode the end of the toolbar, where a row of eight tools pushed
-         it onto a second line on a narrow screen and moved it about as the
-         tools came and went. An empty directory still offers it in the middle
-         of the screen, which is where somebody with nothing is looking. */
-      action={
-        canEditPeople(session) && !putAway ? (
-          <Button asChild>
-            <Link href={`/members/new?church=${session.tenantSlug}`}>
-              <Plus /> {t("members.add")}
-            </Link>
-          </Button>
-        ) : undefined
-      }
+      /* The action rides the end of the directory's own toolbar, at the far
+         right, and an empty directory offers it in the middle of the screen
+         instead. */
     >
       {/* R22.1. Above everything, because it is about the church rather than
           about this screen. */}
