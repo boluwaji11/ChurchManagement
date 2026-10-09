@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { SlidersHorizontal, X } from "lucide-react";
-import { Button, IconButton, Tooltip, cn } from "@connectapp/ui";
+import { ArrowDownUp, SlidersHorizontal, X } from "lucide-react";
+import { Button, IconButton, RadioGroup, RadioItem, Tooltip, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /**
@@ -129,40 +129,12 @@ export function FilterDrawer({
       )}
 
       {open ? (
-        <div
-          className="fixed inset-0 z-40 flex justify-end bg-overlay"
-          onClick={() => show(false)}
-        >
-          <aside
-            onClick={(e) => e.stopPropagation()}
-            className="flex h-full w-[min(380px,100%)] flex-col bg-canvas shadow-[-8px_0_24px_oklch(0_0_0/0.12)]"
-          >
-            <div className="flex items-center gap-3 border-b border-line px-4 py-[18px] sm:px-6">
-              <span className="min-w-0 flex-1 truncate font-display text-[22px] text-fg">{title}</span>
-              <IconButton label={t("common.close")} onClick={() => show(false)}>
-                <X />
-              </IconButton>
-            </div>
-
-            <div
-              aria-busy={busy}
-              className={cn(
-                "flex flex-1 flex-col gap-6 overflow-auto px-4 py-5 sm:px-6",
-                busy && "pointer-events-none opacity-60",
-              )}
-            >
-              {children}
-            </div>
-
-            {/* R24.6. The panel runs to the glass on a phone, so the foot
-                clears the inset the home indicator sits in, and the pair
-                wraps rather than squashing one of them to half its words. */}
-            <div
-              className={cn(
-                "flex flex-wrap items-center gap-3 border-t border-line px-4 py-4 sm:px-6",
-                "pb-[calc(1rem+env(safe-area-inset-bottom))]",
-              )}
-            >
+        <SidePanel
+          title={title}
+          busy={busy}
+          onClose={() => show(false)}
+          footer={
+            <>
               <Button variant="secondary" disabled={busy} onClick={onClear}>
                 {t("directory.clear")}
               </Button>
@@ -176,9 +148,11 @@ export function FilterDrawer({
               >
                 {done}
               </Button>
-            </div>
-          </aside>
-        </div>
+            </>
+          }
+        >
+          {children}
+        </SidePanel>
       ) : null}
     </>
   );
@@ -226,5 +200,169 @@ export function ChipButton({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * R24.6. The panel every one of these opens from the right.
+ *
+ * Written once: a sheet that narrows a list and a sheet that reorders one are
+ * the same piece of furniture with different questions in it.
+ */
+function SidePanel({
+  title,
+  busy,
+  onClose,
+  footer,
+  children,
+}: {
+  title: string;
+  busy: boolean;
+  onClose: () => void;
+  footer: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="fixed inset-0 z-40 flex justify-end bg-overlay" onClick={onClose}>
+      <aside
+        onClick={(e) => e.stopPropagation()}
+        className="flex h-full w-[min(380px,100%)] flex-col bg-canvas shadow-[-8px_0_24px_oklch(0_0_0/0.12)]"
+      >
+        <div className="flex items-center gap-3 border-b border-line px-4 py-[18px] sm:px-6">
+          <span className="min-w-0 flex-1 truncate font-display text-[22px] text-fg">{title}</span>
+          <IconButton label={t("common.close")} onClick={onClose}>
+            <X />
+          </IconButton>
+        </div>
+
+        <div
+          aria-busy={busy}
+          className={cn(
+            "flex flex-1 flex-col gap-6 overflow-auto px-4 py-5 sm:px-6",
+            busy && "pointer-events-none opacity-60",
+          )}
+        >
+          {children}
+        </div>
+
+        {/* R24.6. The panel runs to the glass on a phone, so the foot clears
+            the inset the home indicator sits in, and the pair wraps rather
+            than squashing one of them to half its words. */}
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-3 border-t border-line px-4 py-4 sm:px-6",
+            "pb-[calc(1rem+env(safe-area-inset-bottom))]",
+          )}
+        >
+          {footer}
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+/**
+ * R2.14, R24.6. Putting the list in a different order.
+ *
+ * The same panel the filter opens, asking the other question a long list
+ * raises. A mark rather than a worded control, because it sits in a row of
+ * marks, and it carries the product's own colour while the order is anything
+ * other than the one the directory keeps by default.
+ */
+export function SortDrawer({
+  value,
+  dir,
+  options,
+  busy = false,
+  onApply,
+}: {
+  /** Which field the list is in the order of. */
+  value: string;
+  dir: "asc" | "desc";
+  /** What a church may sort by, in the order they are offered. */
+  options: { value: string; label: string; rising: string; falling: string }[];
+  busy?: boolean;
+  onApply: (next: { sort: string; dir: "asc" | "desc" }) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [field, setField] = React.useState(value);
+  const [way, setWay] = React.useState(dir);
+  const [leaving, setLeaving] = React.useState(false);
+
+  React.useEffect(() => {
+    if (leaving && !busy) {
+      setLeaving(false);
+      setOpen(false);
+    }
+  }, [leaving, busy]);
+
+  const show = (next: boolean) => {
+    if (next) { setField(value); setWay(dir); }
+    setLeaving(false);
+    setOpen(next);
+  };
+
+  const chosen = options.find((one) => one.value === field) ?? options[0]!;
+  /* The order a directory keeps unless somebody says otherwise. */
+  const ordinary = value === options[0]?.value && dir === "asc";
+
+  return (
+    <>
+      <Tooltip content={t("directory.sort")}>
+        <button
+          type="button"
+          onClick={() => show(true)}
+          aria-expanded={open}
+          aria-label={t("directory.sort")}
+          className={cn(
+            "grid size-[34px] cursor-pointer place-items-center rounded-md [&_svg]:size-[18px]",
+            ordinary
+              ? "text-fg-muted hover:bg-sunken hover:text-fg"
+              : "bg-primary-soft text-primary",
+          )}
+        >
+          <ArrowDownUp />
+        </button>
+      </Tooltip>
+
+      {open ? (
+        <SidePanel
+          title={t("directory.sort")}
+          busy={busy}
+          onClose={() => show(false)}
+          footer={
+            <Button
+              className="min-w-0 flex-1"
+              loading={busy}
+              onClick={() => {
+                onApply({ sort: field, dir: way });
+                setLeaving(true);
+              }}
+            >
+              {t("directory.sort.apply")}
+            </Button>
+          }
+        >
+          <div className="flex flex-col gap-1.5">
+            <span className="text-label text-fg">{t("directory.sort.by")}</span>
+            <RadioGroup value={field} onValueChange={setField}>
+              {options.map((one) => (
+                <RadioItem key={one.value} value={one.value}>{one.label}</RadioItem>
+              ))}
+            </RadioGroup>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-label text-fg">{t("directory.sort.order")}</span>
+            {/* The words follow the field: oldest and newest for a date, A and
+                Z for a name. "Ascending" is nobody's word for either. */}
+            <RadioGroup value={way} onValueChange={(next) => setWay(next as "asc" | "desc")}>
+              <RadioItem value="asc">{chosen.rising}</RadioItem>
+              <RadioItem value="desc">{chosen.falling}</RadioItem>
+            </RadioGroup>
+          </div>
+        </SidePanel>
+      ) : null}
+    </>
   );
 }

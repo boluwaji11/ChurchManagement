@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FilterDrawer } from "@/components/filter-drawer";
+import { FilterDrawer, SortDrawer } from "@/components/filter-drawer";
 import { MultiSelect } from "@/components/multi-select";
 import { ResizableTable } from "@/components/resizable-columns";
 import { Download as FileDownload } from "@/components/download";
@@ -278,6 +278,20 @@ export function Directory({
           onChange={setSearch}
           placeholder={t("directory.searchPlaceholder")}
           className="max-w-[260px] [&_input]:h-[34px] [&_input]:border-line [&_input]:shadow-none hover:[&_input]:border-line-strong"
+        />
+
+        {/* R2.14. The other question a long list raises, asked in the same
+            panel and answered with the same press. It leads the marks. */}
+        <SortDrawer
+          value={params.get("sort") ?? "name"}
+          dir={params.get("dir") === "desc" ? "desc" : "asc"}
+          busy={narrowingNow}
+          options={SORTS}
+          onApply={({ sort, dir }) =>
+            setParam({
+              sort: sort === "name" ? undefined : sort,
+              dir: dir === "asc" ? undefined : dir,
+            })}
         />
 
         <DirectoryFilters
@@ -667,6 +681,46 @@ export function Directory({
  * tooltip and as its accessible name, which is what `IconButton` does for a
  * row action everywhere else in the product.
  */
+/**
+ * R2.14. What a church may put its directory in the order of.
+ *
+ * Surname leads because that is how a church's own index is kept. The words
+ * for the direction follow the field: oldest and newest read right for a date
+ * and wrong for a name.
+ */
+const SORTS = [
+  {
+    value: "name",
+    label: t("directory.sort.surname"),
+    rising: t("directory.sort.aToZ"),
+    falling: t("directory.sort.zToA"),
+  },
+  {
+    value: "firstName",
+    label: t("directory.sort.firstName"),
+    rising: t("directory.sort.aToZ"),
+    falling: t("directory.sort.zToA"),
+  },
+  {
+    value: "household",
+    label: t("directory.sort.household"),
+    rising: t("directory.sort.aToZ"),
+    falling: t("directory.sort.zToA"),
+  },
+  {
+    value: "status",
+    label: t("directory.sort.status"),
+    rising: t("directory.sort.aToZ"),
+    falling: t("directory.sort.zToA"),
+  },
+  {
+    value: "added",
+    label: t("directory.sort.added"),
+    rising: t("directory.sort.oldest"),
+    falling: t("directory.sort.newest"),
+  },
+];
+
 const TOOL_SHAPE =
   "relative grid size-[34px] place-items-center rounded-md text-fg-muted"
   + " hover:bg-sunken hover:text-fg [&_svg]:size-[18px]";
