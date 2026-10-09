@@ -223,7 +223,13 @@ function SidePanel({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-overlay" onClick={onClose}>
+    <div
+      /* R24.6. Says there is an overlay over the page, so the floating marks
+         a screen carries stand down while it is open. */
+      data-overlay=""
+      className="fixed inset-0 z-40 flex justify-end bg-overlay"
+      onClick={onClose}
+    >
       <aside
         onClick={(e) => e.stopPropagation()}
         className="flex h-full w-[min(380px,100%)] flex-col bg-canvas shadow-[-8px_0_24px_oklch(0_0_0/0.12)]"

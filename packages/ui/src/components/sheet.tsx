@@ -38,6 +38,14 @@ export function SheetContent({
       <P.Overlay className="fixed inset-0 z-40 bg-overlay data-[state=open]:animate-[connectapp-fade_var(--duration-fast)_var(--ease-out)]" />
       <P.Content
         /*
+         * R24.6. Says there is an overlay over the page.
+         *
+         * The floating marks a screen carries, the message launcher above all,
+         * sit in the corner a panel's own footer lands in. Anything that
+         * covers the page carries this, and they stand down while it is open.
+         */
+        data-overlay=""
+        /*
          * R24.6. A list portalled to the body, such as the combobox's, is
          * inside this panel as far as the reader is concerned. Without this,
          * a press on one of its options reads as a press outside and shuts

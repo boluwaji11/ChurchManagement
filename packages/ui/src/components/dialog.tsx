@@ -53,6 +53,9 @@ export const DialogContent = React.forwardRef<
     />
     <P.Content
       ref={ref}
+      /* R24.6. Says there is an overlay over the page, so the floating marks
+         a screen carries stand down while it is open. */
+      data-overlay=""
       /*
        * R24.6. A list portalled to the body, such as the combobox's, is
        * inside this box as far as the reader is concerned. Without this, a

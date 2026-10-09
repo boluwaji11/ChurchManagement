@@ -8,6 +8,7 @@ import {
   Button, Dialog, DialogContent, DialogClose, DialogFooter, IconButton, cn,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { useOverlay } from "./shell/use-overlay";
 import { putAway } from "@/app/setup/actions";
 
 export interface DockStep {
@@ -81,6 +82,8 @@ export function SetupDock({
    */
   if (path === "/setup" || path === "/dashboard" || shut) return null;
 
+  const covered = useOverlay();
+
   const next = steps.find((step) => !step.done && !step.skipped);
   if (!next) return null;
 
@@ -89,6 +92,10 @@ export function SetupDock({
       aria-label={t("setup.dock.title")}
       className={cn(
         "fixed right-4 z-40 w-[310px] max-w-[calc(100vw-2rem)]",
+        /* R24.6. It stands down while something is covering the page: the
+           corner it sits in is the corner a panel's own footer lands in. */
+        covered && "pointer-events-none opacity-0",
+        "transition-opacity duration-fast",
         // Over the phone's tab bar and clear of the inset under it.
         "bottom-[calc(5rem+env(safe-area-inset-bottom))] sm:bottom-6",
         "flex flex-col gap-3 rounded-2xl border border-line p-4",

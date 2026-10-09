@@ -11,6 +11,7 @@ import { EMPTY, useInbox } from "./data";
 import { Drafts, Threads } from "./list";
 import { Conversation } from "./thread";
 import { Compose } from "./compose";
+import { useOverlay } from "../shell/use-overlay";
 import { OPEN_INBOX, type OpenInbox } from "./write-to";
 
 type View = "inbox" | "drafts";
@@ -122,6 +123,16 @@ export function InboxMark({
   const floating = place === "float";
 
   /*
+   * R24.6. It stands down while something is covering the page.
+   *
+   * The launcher sits in the corner a panel's own footer lands in, so a church
+   * pressing Filter met it sitting on top of Show. It comes back the moment
+   * the panel closes, and its own panel is not an overlay, so opening it does
+   * not put it away.
+   */
+  const covered = useOverlay() && !open;
+
+  /*
    * R24.11. Escape closes it, and the focus goes back to the mark that opened
    * it. A panel that can only be dismissed by clicking the page behind it is a
    * panel somebody on a keyboard is stuck inside.
@@ -160,7 +171,7 @@ export function InboxMark({
 
   return (
     <div
-      className={floating
+      className={`${covered ? "pointer-events-none opacity-0" : ""} transition-opacity duration-fast ${floating
         /* Clear of the home indicator on a phone, of the tab bar above it,
            and of the setup path while a church is still walking it. */
         ? `fixed right-[max(1rem,env(safe-area-inset-right))] z-40 ${
@@ -170,7 +181,7 @@ export function InboxMark({
                 ? "bottom-[calc(5.5rem+env(safe-area-inset-bottom))] sm:bottom-[calc(1rem+env(safe-area-inset-bottom))]"
                 : "bottom-[calc(1rem+env(safe-area-inset-bottom))]"
           }`
-        : "relative"}
+        : "relative"}`}
     >
       <button
         type="button"
