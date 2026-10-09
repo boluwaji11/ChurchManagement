@@ -93,7 +93,7 @@ export function TeamList({
                   the press reaches the conversation rather than the panel. */}
               {canMessage ? (
                 <span className="absolute right-2 top-2 z-10">
-                  <WriteTo church={church} at={`team/${team.slug}`} office />
+                  <WriteTo at={`team/${team.slug}`} name={team.name} />
                 </span>
               ) : null}
 

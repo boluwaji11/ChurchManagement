@@ -22,6 +22,7 @@ import type { Session } from "@/lib/session";
 import { shellData } from "@/lib/shell-data";
 import { photoUrls } from "@/lib/photos";
 import { TabTitle } from "./tab-title";
+import { BackLink } from "./back-link";
 import { Installed } from "./portal/installed";
 import { AskPush } from "./shell/ask-push";
 
@@ -63,6 +64,7 @@ export async function AppShell({
   title,
   tab,
   action,
+  back,
   wide,
   density,
   max,
@@ -78,6 +80,14 @@ export async function AppShell({
   tab?: string;
   /** The one filled button for this page. Some pages have none. */
   action?: React.ReactNode;
+  /**
+   * R24.6. The way back out of a record, which rides the action's own row.
+   *
+   * A record page draws a back link above everything else and the action sat
+   * in a band above that, so the top of the screen was two rows where one
+   * would do and the action floated clear of anything it belonged to.
+   */
+  back?: { href: string; label: string };
   /** A table-shaped screen that wants the room. */
   wide?: boolean;
   /**
@@ -204,7 +214,12 @@ export async function AppShell({
                   than in the bar, which belongs to the product. Beside the
                   notification bell it read as another piece of chrome, and the
                   thing this page is for should not. */}
-              {action ? <div className="flex justify-end">{action}</div> : null}
+              {action || back ? (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  {back ? <BackLink href={back.href} label={back.label} /> : <span />}
+                  {action}
+                </div>
+              ) : null}
               {children}
             </div>
             </SpellingProvider>

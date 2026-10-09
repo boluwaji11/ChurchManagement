@@ -1,7 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import {
   withTenant, getPerson, householdFor,
   personTimeline, servingForPerson, groupsForPerson,
@@ -203,6 +203,7 @@ export default async function PersonPage({
          A note sat on the timeline card, in the right-hand column, which put
          the thing this screen is most often opened to do further down the page
          than anything else on it. */
+      back={{ href: `/members?church=${session.tenantSlug}`, label: t("members.title") }}
       action={
         canEdit ? (
           <NoteForm
@@ -215,13 +216,6 @@ export default async function PersonPage({
         ) : undefined
       }
     >
-      <Link
-        href={`/members?church=${session.tenantSlug}`}
-        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
-      >
-        <ArrowLeft className="size-4" /> {t("members.title")}
-      </Link>
-
       {/* A 72px face, the name in Fraunces at 32, and under it the one line
           that places them: what they are to the church, whose household, and
           since when. */}
@@ -254,7 +248,7 @@ export default async function PersonPage({
             {/* R16.9. Only the office writes to a person by name, so the action
                 is here for whoever answers for the church. */}
             {canAnswerMessages(session) ? (
-              <WriteTo church={session.tenantSlug} at={person.slug} office />
+              <WriteTo at={person.slug} name={display} />
             ) : null}
             {/* Sized from the same token as the IconButton beside it, so the
                 two actions are one pair rather than two shapes. */}

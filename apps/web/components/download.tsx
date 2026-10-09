@@ -18,6 +18,7 @@ export function Download({
   file,
   label,
   title,
+  name,
   className,
   children,
 }: {
@@ -29,6 +30,8 @@ export function Download({
   label: string;
   /** What the banner is headed, where it fails. */
   title: string;
+  /** R24.11. What it is called, where the press carries a mark and no words. */
+  name?: string;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -71,6 +74,7 @@ export function Download({
       <button
         type="button"
         disabled={busy}
+        aria-label={name}
         onClick={() => void run()}
         className={cn("cursor-pointer disabled:opacity-45", className)}
       >

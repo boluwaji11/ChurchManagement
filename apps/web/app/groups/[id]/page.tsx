@@ -255,10 +255,8 @@ export default async function GroupPage({
         {/* R9.7, R16.9. The group's own thread, for whoever may write into it:
             the office speaks for the church, and a member writes to the groups
             they are in. */}
-        {canAnswerMessages(session) ? (
-          <WriteTo church={session.tenantSlug} at={`group/${group.slug}`} office />
-        ) : group.mine ? (
-          <WriteTo church={session.tenantSlug} at={`group/${group.slug}`} office={false} />
+        {canAnswerMessages(session) || group.mine ? (
+          <WriteTo at={`group/${group.slug}`} name={group.name} />
         ) : null}
 
         {manage ? (

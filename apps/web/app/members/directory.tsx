@@ -292,59 +292,57 @@ export function Directory({
         ) : null}
 
         {canArchive ? (
-          <ToolButton href={`/duplicates?church=${church}`}>
-            <Copy /> {t("merge.title")}
+          <ToolButton href={`/duplicates?church=${church}`} label={t("merge.title")}>
+            <Copy />
             {duplicates > 0 ? (
-              <span className="rounded-full bg-danger px-1.5 text-[12px] font-semibold text-white">
+              <span
+                aria-hidden
+                className="absolute -top-0.5 -right-0.5 grid h-[16px] min-w-[16px] place-items-center rounded-full bg-danger px-1 text-[10px] font-semibold leading-none text-white tabular-nums"
+              >
                 {duplicates}
               </span>
             ) : null}
           </ToolButton>
         ) : null}
 
-        <ToolButton href={`/members/celebrations?church=${church}`}>
-          <Cake /> {t("celebrations.open")}
+        <ToolButton href={`/members/celebrations?church=${church}`} label={t("celebrations.open")}>
+          <Cake />
         </ToolButton>
 
-        <ToolButton href={`/members/print?church=${church}`} target="_blank">
-          <Printer /> {t("members.printAll")}
+        <ToolButton
+          href={`/members/print?church=${church}`}
+          target="_blank"
+          label={t("members.printAll")}
+        >
+          <Printer />
         </ToolButton>
 
         {/* R16.12. The other half of communication: the half that needs no
             provider and sends nothing. */}
-        <ToolButton href={`/members/mailer?church=${church}`}>
-          <Mail /> {t("post.title")}
+        <ToolButton href={`/members/mailer?church=${church}`} label={t("post.title")}>
+          <Mail />
         </ToolButton>
 
         {/* R19.x, R24.6. The server builds this one, which takes a moment on
             a directory of any size, so it is asked for in the page and the
             Working panel holds the screen until the file lands. */}
-        <FileDownload
-          href={exportHref}
-          file="members.csv"
-          label={t("directory.exporting")}
-          title={t("directory.exportFailed")}
-          className={TOOL_SHAPE}
-        >
-          <Download /> {t("directory.exportView")}
-        </FileDownload>
+        <Tooltip content={t("directory.exportView")}>
+          <FileDownload
+            href={exportHref}
+            file="members.csv"
+            label={t("directory.exporting")}
+            title={t("directory.exportFailed")}
+            name={t("directory.exportView")}
+            className={TOOL_SHAPE}
+          >
+            <Download />
+          </FileDownload>
+        </Tooltip>
 
         {canEdit ? (
-          <ToolButton href={`/import?church=${church}`}>
-            <Upload /> {t("import.title")}
+          <ToolButton href={`/import?church=${church}`} label={t("import.title")}>
+            <Upload />
           </ToolButton>
-        ) : null}
-
-        <span className="flex-1" />
-
-        {/* R24.6. The one thing this screen is for, last on the row, where the
-            eye finishes reading it. */}
-        {canEdit ? (
-          <Button asChild>
-            <Link href={`/members/new?church=${church}`}>
-              <Plus /> {t("members.add")}
-            </Link>
-          </Button>
         ) : null}
         </div>
         )}
@@ -633,23 +631,36 @@ export function Directory({
 
 /** A 34px secondary control. The row of them above the list is all this shape. */
 /** The shape every mark on the tool row wears, link or button. */
+/*
+ * R24.6. A tool on this row is a mark, not a worded button.
+ *
+ * Eight of them with their words on ran the row onto a second line and pushed
+ * the thing the screen is for about with it. Each carries its words in a
+ * tooltip and as its accessible name, which is what `IconButton` does for a
+ * row action everywhere else in the product.
+ */
 const TOOL_SHAPE =
-  "flex h-[34px] items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3"
-  + " text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4";
+  "relative grid size-[34px] place-items-center rounded-md text-fg-muted"
+  + " hover:bg-sunken hover:text-fg [&_svg]:size-[18px]";
 
 function ToolButton({
   href,
   target,
+  label,
   children,
 }: {
   href: string;
   target?: string;
+  /** What it does, for the tooltip and for whoever is listening. */
+  label: string;
   children: React.ReactNode;
 }) {
   return (
-    <Link href={href} target={target} className={TOOL_SHAPE}>
-      {children}
-    </Link>
+    <Tooltip content={label}>
+      <Link href={href} target={target} aria-label={label} className={TOOL_SHAPE}>
+        {children}
+      </Link>
+    </Tooltip>
   );
 }
 

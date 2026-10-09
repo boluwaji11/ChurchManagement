@@ -11,6 +11,7 @@ import { EMPTY, useInbox } from "./data";
 import { Drafts, Threads } from "./list";
 import { Conversation } from "./thread";
 import { Compose } from "./compose";
+import { OPEN_INBOX, type OpenInbox } from "./write-to";
 
 type View = "inbox" | "drafts";
 
@@ -86,6 +87,25 @@ export function InboxMark({
   };
 
   const back = () => { setKey(null); setWriting(false); };
+
+  /*
+   * R16.9. A record's own press opens this panel on that conversation.
+   *
+   * The press is on a member's page, a group's or a team's, which are server
+   * screens with no handle on the launcher. They raise an event and the
+   * launcher answers it, so the errand happens where the reader already is.
+   */
+  React.useEffect(() => {
+    const open = (event: Event) => {
+      const { at, name } = (event as CustomEvent<OpenInbox>).detail;
+      setOpen(true);
+      setWriting(false);
+      setOpening({ key: at, name: name ?? "" });
+      setKey(at);
+    };
+    window.addEventListener(OPEN_INBOX, open);
+    return () => window.removeEventListener(OPEN_INBOX, open);
+  }, []);
 
   const TABS: { key: View; label: string }[] = [
     { key: "inbox", label: t("inbox.tab.inbox") },
