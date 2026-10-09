@@ -413,18 +413,62 @@ export async function memberBySlug(db: Tx, slug: string): Promise<string | null>
  *
  * The address is who it is with, so a link to a conversation is a link to a
  * person rather than to a row, and it survives whatever the row is called.
+ *
+ * Found in one statement rather than by reading the whole list and looking
+ * through it: this runs every time somebody opens a conversation, and a panel
+ * that takes a second to answer a press reads as broken.
  */
 export async function threadAt(
   db: Tx,
   reader: Reader,
   key: string,
 ): Promise<Thread | null> {
-  const all = await readThreads(db, reader);
-  const held = all.find((one) => one.key === key);
-  if (held) return held;
+  const rows = (await db.execute(sql`
+    select c.id, c.kind, c.last_message_at, c.archived_at, p.office as i_am_office
+      from conversations c
+      join conversation_people p on p.conversation_id = c.id
+       and ((p.office and ${reader.office}) or (p.member_id = ${reader.memberId ?? null}))
+     where ${key === "office"
+        ? sql`exists (select 1 from conversation_people q
+                       where q.conversation_id = c.id and q.office)`
+        : sql`exists (select 1 from conversation_people q
+                        join members w on w.id = q.member_id
+                       where q.conversation_id = c.id and w.slug = ${key})`}
+     order by p.office desc, c.last_message_at desc
+     limit 1
+  `)) as unknown as {
+    id: string; kind: string; last_message_at: string | Date;
+    archived_at: Date | null; i_am_office: boolean;
+  }[];
 
-  const away = await readThreads(db, reader, { archivedOnly: true });
-  return away.find((one) => one.key === key) ?? null;
+  const row = rows[0];
+  if (!row) return null;
+
+  const [other] = key === "office"
+    ? []
+    : await db
+        .select({
+          id: members.id, first: members.firstName, last: members.lastName,
+          photoKey: members.photoKey,
+        })
+        .from(members)
+        .where(eq(members.slug, key))
+        .limit(1);
+
+  return {
+    id: row.id,
+    kind: row.kind,
+    key,
+    withMemberId: other?.id ?? null,
+    withName: other ? `${other.first} ${other.last}`.trim() : "",
+    withPhotoKey: other?.photoKey ?? null,
+    /* The list carries these; an open conversation shows its own lines. */
+    lastLine: "",
+    lastAt: new Date(row.last_message_at),
+    lastMine: false,
+    unread: 0,
+    archived: row.archived_at !== null,
+  };
 }
 
 /** R16.9. The reader has seen everything in this thread up to now. */

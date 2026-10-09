@@ -30,7 +30,7 @@ export function InboxScreen({
   church,
   churchName,
   office,
-  here,
+  where,
   open,
   initial,
 }: {
@@ -38,7 +38,7 @@ export function InboxScreen({
   churchName: string;
   office: boolean;
   /** Where this screen lives, for the addresses it writes. */
-  here: string;
+  where: string;
   /** Which conversation the address names. */
   open: string | null;
   /** What the server already knew, so the screen never paints empty. */
@@ -59,15 +59,28 @@ export function InboxScreen({
     initial: view === "inbox" ? initial : undefined,
   });
 
+  /*
+   * R16.9. What this pane knows about the open conversation: the answer that
+   * names it, or the row in the list, which is already on screen. A header
+   * that empties while the lines travel reads as a broken screen.
+   */
+  const here = data.open?.key === open ? data.open : null;
+  const row = data.threads.find((one) => one.key === open) ?? null;
+  const name = open === "office"
+    ? churchName
+    : here?.name || row?.name || "";
+
   React.useEffect(() => {
-    if (open) void readThread(open, church).then(refresh);
+    /* Not waited on: it changes nothing on this screen, and waiting for it
+       put a round trip in front of the words. */
+    if (open) void readThread(open, church);
     // The address is the only thing that opens one.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, church]);
 
   const go = (key: string) => {
     setWriting(false);
-    router.push(`${here}/${key}?church=${church}`);
+    router.push(`${where}/${key}?church=${church}`);
   };
 
   const shown = React.useMemo(() => {
@@ -151,10 +164,10 @@ export function InboxScreen({
               onSent={(key) => go(key)}
             />
           </>
-        ) : open && data.open ? (
+        ) : open ? (
           <>
             <header className="flex items-center gap-3 border-b border-line px-4 py-3">
-              {data.open.key === "office" ? (
+              {open === "office" ? (
                 <span
                   aria-hidden
                   className="grid size-9 shrink-0 place-items-center rounded-full bg-sunken text-[13px] font-semibold text-fg-muted"
@@ -163,39 +176,37 @@ export function InboxScreen({
                 </span>
               ) : (
                 <Avatar
-                  name={data.open.name}
-                  src={data.open.photoUrl}
-                  id={data.open.memberId ?? data.open.key}
+                  name={name}
+                  src={here?.photoUrl ?? row?.photoUrl ?? null}
+                  id={open}
                   size="md"
                 />
               )}
 
-              {office && data.open.key !== "office" ? (
+              {office && open !== "office" ? (
                 <Link
-                  href={`/members/${data.open.key}?church=${church}`}
+                  href={`/members/${open}?church=${church}`}
                   className="min-w-0 flex-1 truncate font-semibold text-fg hover:underline"
                 >
-                  {data.open.name}
+                  {name}
                 </Link>
               ) : (
-                <span className="min-w-0 flex-1 truncate font-semibold text-fg">
-                  {data.open.key === "office" ? churchName : data.open.name}
-                </span>
+                <span className="min-w-0 flex-1 truncate font-semibold text-fg">{name}</span>
               )}
 
               {office ? (
                 <IconButton
-                  label={data.open.archived ? t("inbox.restore") : t("inbox.archiveDo")}
+                  label={here?.archived ? t("inbox.restore") : t("inbox.archiveDo")}
                   variant="ghost"
                   className="size-9 min-h-0 [&_svg]:size-4"
                   onClick={() => {
-                    void archiveThread(open, !data.open!.archived, church).then(() => {
-                      router.push(`${here}?church=${church}`);
+                    void archiveThread(open, !here?.archived, church).then(() => {
+                      router.push(`${where}?church=${church}`);
                       refresh();
                     });
                   }}
                 >
-                  {data.open.archived ? <ArchiveRestore /> : <Archive />}
+                  {here?.archived ? <ArchiveRestore /> : <Archive />}
                 </IconButton>
               ) : null}
             </header>
@@ -204,7 +215,7 @@ export function InboxScreen({
               church={church}
               churchName={churchName}
               to={open}
-              said={data.said}
+              said={here ? data.said : []}
               onSent={refresh}
             />
           </>

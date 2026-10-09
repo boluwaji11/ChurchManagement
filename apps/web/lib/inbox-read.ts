@@ -3,7 +3,7 @@ import {
 } from "@connectapp/db";
 import { localeFor } from "@connectapp/i18n";
 import { readerFor } from "@/lib/inbox";
-import { photoUrls } from "@/lib/photos";
+import { heldPhotoUrls } from "@/lib/photos";
 import type { Session } from "@/lib/session";
 import type { InboxData } from "@/components/inbox/data";
 
@@ -38,12 +38,17 @@ export async function readInbox(
       const open = key ? await threadAt(tx, me, key) : null;
       const said = open ? await messagesIn(tx, me, open.id) : [];
       const country = (await getChurch(tx, session.tenantId))?.country ?? null;
-      return { unread: await unreadFor(tx, me), listed, drafts, open, said, country };
+      /* The inbox already knows what is waiting; only the other two views
+         have to ask. */
+      const unread = view === "inbox" && !opts.archived
+        ? listed.reduce((sum, one) => sum + (one.unread > 0 ? 1 : 0), 0)
+        : await unreadFor(tx, me);
+      return { unread, listed, drafts, open, said, country };
     },
   );
 
   const locale = localeFor(read.country);
-  const faces = await photoUrls([
+  const faces = await heldPhotoUrls([
     ...read.listed.map((one) => one.withPhotoKey),
     ...read.said.map((one) => one.authorPhotoKey),
     read.open?.withPhotoKey ?? null,

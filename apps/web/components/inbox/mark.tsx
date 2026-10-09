@@ -69,10 +69,19 @@ export function InboxMark({
     initial: { ...EMPTY, unread },
   });
 
-  const go = (next: string) => {
+  /*
+   * R16.9. The conversation that was pressed, held while its lines are on
+   * their way, so the panel names it rather than going blank.
+   */
+  const [opening, setOpening] = React.useState<{ key: string; name: string } | null>(null);
+
+  const go = (next: string, name?: string) => {
     setWriting(false);
+    setOpening({ key: next, name: name ?? "" });
     setKey(next);
-    void readThread(next, church).then(refresh);
+    /* The read mark is not waited on: it changes nothing on this screen, and
+       waiting for it put a round trip in front of the words. */
+    void readThread(next, church);
   };
 
   const back = () => { setKey(null); setWriting(false); };
@@ -83,8 +92,9 @@ export function InboxMark({
     { key: "drafts", label: t("inbox.tab.drafts") },
   ];
 
+  const here = data.open?.key === key ? data.open : null;
   const title = key
-    ? (data.open?.key === "office" ? churchName : data.open?.name ?? "")
+    ? (key === "office" ? churchName : here?.name || opening?.name || "")
     : writing
       ? t("inbox.new")
       : t("inbox.title");
@@ -167,11 +177,11 @@ export function InboxMark({
                 </IconButton>
               ) : null}
 
-              {key && data.open && data.open.key !== "office" ? (
+              {key && key !== "office" ? (
                 <Avatar
-                  name={data.open.name}
-                  src={data.open.photoUrl}
-                  id={data.open.memberId ?? data.open.key}
+                  name={here?.name || opening?.name || ""}
+                  src={here?.photoUrl ?? null}
+                  id={key}
                   size="sm"
                 />
               ) : null}
@@ -180,11 +190,11 @@ export function InboxMark({
 
               {key && office ? (
                 <IconButton
-                  label={data.open?.archived ? t("inbox.restore") : t("inbox.archiveDo")}
+                  label={here?.archived ? t("inbox.restore") : t("inbox.archiveDo")}
                   variant="ghost"
                   className="size-8 min-h-0 [&_svg]:size-4"
                   onClick={() => {
-                    void archiveThread(key, !data.open?.archived, church).then(() => {
+                    void archiveThread(key, !here?.archived, church).then(() => {
                       back();
                       refresh();
                     });
@@ -232,7 +242,7 @@ export function InboxMark({
                   church={church}
                   churchName={churchName}
                   to={key}
-                  said={data.said}
+                  said={here ? data.said : []}
                   onSent={refresh}
                 />
               ) : writing ? (

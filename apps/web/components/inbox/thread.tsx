@@ -176,7 +176,9 @@ export function Writer({
           rows={2}
           autoFocus={autoFocus}
           disabled={busy}
-          className="min-h-[44px] resize-none"
+          /* A hairline rather than the field's own stronger edge: this box
+             sits under a conversation rather than in a form of its own. */
+          className="min-h-[44px] resize-none border-line shadow-none hover:border-line-strong"
         />
 
         {/* R24.6. One mark, no frame. The box beside it already says what this

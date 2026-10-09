@@ -50,7 +50,7 @@ export default async function MessagesPage({
         church={session.tenantSlug}
         churchName={session.tenantName}
         office
-        here="/messages"
+        where="/messages"
         open={null}
         initial={first}
       />

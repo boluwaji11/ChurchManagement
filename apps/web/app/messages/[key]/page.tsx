@@ -54,7 +54,7 @@ export default async function MessageThreadPage({
         church={session.tenantSlug}
         churchName={session.tenantName}
         office
-        here="/messages"
+        where="/messages"
         open={key}
         initial={first}
       />

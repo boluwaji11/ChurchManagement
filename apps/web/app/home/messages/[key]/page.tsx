@@ -44,7 +44,7 @@ export default async function MemberThreadPage({
         church={session.tenantSlug}
         churchName={session.tenantName}
         office={false}
-        here="/home/messages"
+        where="/home/messages"
         open={key}
         initial={first}
       />

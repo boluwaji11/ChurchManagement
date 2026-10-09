@@ -25,3 +25,38 @@ export const photoUrls = cache(
     return out;
   },
 );
+
+/**
+ * R16.9. The same faces, without asking storage again every few seconds.
+ *
+ * A signed link lasts an hour and the inbox asks for its faces on a timer, so
+ * each one is held for half that and handed back. Keys are written fresh on
+ * every upload, so a held link cannot point at a photo somebody replaced.
+ */
+const HELD = new Map<string, { url: string; until: number }>();
+const HOLD_FOR = 30 * 60 * 1000;
+
+export async function heldPhotoUrls(
+  keys: readonly (string | null | undefined)[],
+): Promise<Record<string, string>> {
+  const now = Date.now();
+  const wanted = [...new Set(keys.filter((one): one is string => Boolean(one)))];
+
+  const out: Record<string, string> = {};
+  const missing: string[] = [];
+  for (const key of wanted) {
+    const held = HELD.get(key);
+    if (held && held.until > now) out[key] = held.url;
+    else missing.push(key);
+  }
+
+  if (missing.length > 0) {
+    const fresh = await photoUrls(missing);
+    for (const [key, url] of Object.entries(fresh)) {
+      HELD.set(key, { url, until: now + HOLD_FOR });
+      out[key] = url;
+    }
+  }
+
+  return out;
+}

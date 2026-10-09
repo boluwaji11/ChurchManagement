@@ -21,7 +21,7 @@ export function Threads({
 }: {
   rows: ThreadRow[];
   churchName: string;
-  onOpen: (key: string) => void;
+  onOpen: (key: string, name: string) => void;
   /** Which one is being read, where the list sits beside it. */
   open?: string | null;
 }) {
@@ -33,7 +33,7 @@ export function Threads({
           <button
             key={one.key}
             type="button"
-            onClick={() => onOpen(one.key)}
+            onClick={() => onOpen(one.key, name)}
             aria-current={open === one.key ? "true" : undefined}
             className={`flex min-w-0 cursor-pointer items-start gap-3 px-3.5 py-3 text-left ${
               at === 0 ? "" : "border-t border-line/70"
@@ -90,7 +90,7 @@ export function Drafts({
 }: {
   rows: DraftRow[];
   churchName: string;
-  onOpen: (key: string) => void;
+  onOpen: (key: string, name: string) => void;
 }) {
   return (
     <div className="flex min-w-0 flex-col">
@@ -98,7 +98,7 @@ export function Drafts({
         <button
           key={one.key}
           type="button"
-          onClick={() => onOpen(one.key)}
+          onClick={() => onOpen(one.key, one.key === "office" ? churchName : one.name)}
           className={`flex min-w-0 cursor-pointer flex-col gap-0.5 px-3.5 py-3 text-left hover:bg-sunken/60 ${
             at === 0 ? "" : "border-t border-line/70"
           }`}

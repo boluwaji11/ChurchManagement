@@ -47,7 +47,7 @@ export default async function MemberMessagesPage({
         church={session.tenantSlug}
         churchName={session.tenantName}
         office={false}
-        here="/home/messages"
+        where="/home/messages"
         open={null}
         initial={first}
       />
