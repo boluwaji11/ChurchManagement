@@ -89,7 +89,9 @@ export function InboxScreen({
 
   return (
     <div className="grid min-h-[70vh] gap-4 lg:[grid-template-columns:minmax(280px,360px)_1fr]">
-      <div className="flex min-w-0 flex-col gap-3">
+      {/* R24.11. Named, so somebody moving by region can go from the list to
+          the conversation beside it without walking every row. */}
+      <div role="region" aria-label={t("inbox.threads")} className="flex min-w-0 flex-col gap-3">
         <div className="flex items-center gap-2">
           <SearchField value={find} onChange={setFind} placeholder={t("inbox.find")} />
           <IconButton

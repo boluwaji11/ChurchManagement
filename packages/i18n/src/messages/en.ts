@@ -340,6 +340,13 @@ export const en = {
   "inbox.reactions.other": "{count} reactions",
   "inbox.emoji": "Emoji",
   "inbox.error.thread": "That conversation could not be opened",
+  "inbox.conversation": "Conversation",
+  "inbox.lineBy": "{name}, {time}",
+  "inbox.unread.one": "Messages, {count} unread",
+  "inbox.unread.other": "Messages, {count} unread",
+  "inbox.threads": "Conversations",
+  "inbox.unreadLines.one": "{count} unread",
+  "inbox.unreadLines.other": "{count} unread",
 
   // HRT-146, R16.12. What a church posts, on the sheets it already owns.
   "post.title": "Mailer",

@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, Archive, MessageSquare, PenSquare, Users } from "lucide-react";
 import { Avatar, IconButton } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { archiveThread } from "@/app/messages/actions";
 import { EMPTY, useInbox } from "./data";
@@ -57,6 +57,8 @@ export function InboxMark({
   clear?: "none" | "tabs" | "dock";
 }) {
   const [open, setOpen] = React.useState(false);
+  const launcher = React.useRef<HTMLButtonElement>(null);
+  const panel = React.useRef<HTMLDivElement>(null);
   const [view, setView] = React.useState<View>("inbox");
   const [key, setKey] = React.useState<string | null>(null);
   const [writing, setWriting] = React.useState(false);
@@ -99,6 +101,30 @@ export function InboxMark({
 
   const floating = place === "float";
 
+  /*
+   * R24.11. Escape closes it, and the focus goes back to the mark that opened
+   * it. A panel that can only be dismissed by clicking the page behind it is a
+   * panel somebody on a keyboard is stuck inside.
+   */
+  const shut = React.useCallback(() => {
+    setOpen(false);
+    setKey(null);
+    setWriting(false);
+    launcher.current?.focus();
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const key = (event: KeyboardEvent) => {
+      if (event.key === "Escape") shut();
+    };
+    window.addEventListener("keydown", key);
+    /* The focus goes into the panel on the press, so the next Tab is a
+       conversation rather than whatever sits after the mark on the page. */
+    panel.current?.focus();
+    return () => window.removeEventListener("keydown", key);
+  }, [open, shut]);
+
   /* R24.6. It moves when something lands in it, and then it stops. */
   const [nudging, setNudging] = React.useState(false);
   const seen = React.useRef(data.unread);
@@ -128,8 +154,11 @@ export function InboxMark({
     >
       <button
         type="button"
+        ref={launcher}
         onClick={() => setOpen((was) => !was)}
-        aria-label={t("inbox.title")}
+        /* R24.11. The count is drawn on the mark, so the name carries it for
+           whoever is not looking at it. */
+        aria-label={data.unread > 0 ? plural("inbox.unread", data.unread) : t("inbox.title")}
         aria-expanded={open}
         className={floating
           ? "relative grid size-14 cursor-pointer place-items-center rounded-full bg-primary text-primary-fg shadow-lg transition-transform duration-[var(--duration-fast)] hover:scale-105 active:scale-95"
@@ -157,8 +186,12 @@ export function InboxMark({
 
       {open ? (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div aria-hidden className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
+            ref={panel}
+            tabIndex={-1}
+            role="dialog"
+            aria-label={t("inbox.title")}
             className={`absolute right-0 z-50 flex h-[min(560px,calc(100vh-120px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg ${
               floating ? "bottom-[68px]" : "top-11"
             }`}

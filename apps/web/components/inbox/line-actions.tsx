@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Pencil, Reply, Trash2 } from "lucide-react";
-import { Button, Dialog, DialogContent, DialogFooter } from "@connectapp/ui";
+import { Button, Dialog, DialogContent, DialogFooter, Tooltip } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { deleteLine } from "@/app/messages/actions";
 import { ReactButton } from "./marks";
@@ -66,24 +66,31 @@ export function LineActions({
         />
       )}
 
-      <button type="button" aria-label={t("inbox.reply")} title={t("inbox.reply")}
-        onClick={onReply} className={mark}
-      >
-        <Reply aria-hidden />
-      </button>
+      {/* The words behind each mark, drawn by this product rather than by
+          whatever operating system the volunteer is on. */}
+      <Tooltip content={t("inbox.reply")}>
+        <button type="button" aria-label={t("inbox.reply")} onClick={onReply} className={mark}>
+          <Reply aria-hidden />
+        </button>
+      </Tooltip>
 
       {mine ? (
         <>
-          <button type="button" aria-label={t("inbox.edit")} title={t("inbox.edit")}
-            onClick={onEdit} className={mark}
-          >
-            <Pencil aria-hidden />
-          </button>
-          <button type="button" aria-label={t("inbox.delete")} title={t("inbox.delete")}
-            onClick={() => setAsking(true)} className={mark}
-          >
-            <Trash2 aria-hidden />
-          </button>
+          <Tooltip content={t("inbox.edit")}>
+            <button type="button" aria-label={t("inbox.edit")} onClick={onEdit} className={mark}>
+              <Pencil aria-hidden />
+            </button>
+          </Tooltip>
+          <Tooltip content={t("inbox.delete")}>
+            <button
+              type="button"
+              aria-label={t("inbox.delete")}
+              onClick={() => setAsking(true)}
+              className={mark}
+            >
+              <Trash2 aria-hidden />
+            </button>
+          </Tooltip>
         </>
       ) : null}
 

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Users } from "lucide-react";
 import { Avatar } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { when } from "@/lib/when";
 import type { DraftRow, ThreadRow } from "./data";
 
@@ -80,7 +80,12 @@ export function Threads({
                   {one.lastMine ? `${t("inbox.you")}: ${one.lastLine}` : one.lastLine}
                 </span>
                 {one.unread > 0 ? (
-                  <span aria-hidden className="size-2 shrink-0 rounded-full bg-primary" />
+                  <>
+                    {/* R24.11. The dot is the eye's mark; the words are the
+                        same thing for whoever is listening to the row. */}
+                    <span className="sr-only">{plural("inbox.unreadLines", one.unread)}</span>
+                    <span aria-hidden className="size-2 shrink-0 rounded-full bg-primary" />
+                  </>
                 ) : null}
               </span>
             </span>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ArrowUp, Check, X } from "lucide-react";
-import { Avatar, Spinner, Textarea } from "@connectapp/ui";
+import { Avatar, Spinner, Textarea, Tooltip } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
 import { EmojiButton, LIKE, Marks } from "./marks";
@@ -131,7 +131,20 @@ export function Conversation({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-4 py-3">
+      {/*
+       * R24.11. A transcript, which is what a screen reader has a role for.
+       *
+       * "log" with additions announced is the one arrangement that reads a
+       * line out as it arrives without reading the whole conversation again
+       * every time the panel asks the server what is new.
+       */}
+      <div
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label={t("inbox.conversation")}
+        className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-4 py-3"
+      >
         {said.map((one, at) => {
           const before = said[at - 1];
           const fresh = at === 0 || before!.day !== one.day;
@@ -191,7 +204,10 @@ export function Conversation({
                       tap(one.id, one.mine);
                     }}
                     data-line={one.id}
-                    className={`relative scroll-mt-6 select-none ${
+                    /* Selection is off only where a double tap is the
+                       gesture: on a laptop it stopped somebody copying a
+                       message out of the thread. */
+                    className={`relative scroll-mt-6 [@media(hover:none)]:select-none ${
                       alone
                         ? `emoji px-1 pt-0.5 ${alone === 1 ? "text-[40px]" : "text-[30px]"} ${
                             room ? "pb-3" : "pb-0.5"
@@ -225,6 +241,17 @@ export function Conversation({
                         />
                       </span>
                     ) : null}
+
+                    {/*
+                      * R24.11. Who wrote it and when, for whoever cannot see
+                      * which side of the thread it is on. The name is drawn
+                      * once at the top of a run and the time sits under the
+                      * message, so on screen this says nothing twice, and read
+                      * aloud it is the only place either of them appears.
+                      */}
+                    <span className="sr-only">
+                      {t("inbox.lineBy", { name, time: one.clock })}
+                    </span>
 
                     {one.answering ? (
                       /* R16.9. What this answers, above the answer, where a
@@ -266,30 +293,32 @@ export function Conversation({
                             they sit inside a message, where a pair of filled
                             buttons is the loudest thing in the thread. */}
                         <span className="flex justify-end gap-1">
-                          <button
-                            type="button"
-                            onClick={() => setEditing(null)}
-                            disabled={saving}
-                            aria-label={t("action.cancel")}
-                            title={t("action.cancel")}
-                            className="grid size-8 cursor-pointer place-items-center rounded-full text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-[17px]"
-                          >
-                            <X aria-hidden />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={save}
-                            disabled={saving || !words.trim()}
-                            aria-label={t("action.save")}
-                            title={t("action.save")}
-                            className={`grid size-8 place-items-center rounded-full [&_svg]:size-[17px] ${
-                              words.trim() && !saving
-                                ? "cursor-pointer bg-primary text-primary-fg hover:opacity-90"
-                                : "cursor-default bg-sunken text-fg-subtle"
-                            }`}
-                          >
-                            {saving ? <Spinner /> : <Check aria-hidden />}
-                          </button>
+                          <Tooltip content={t("action.cancel")}>
+                            <button
+                              type="button"
+                              onClick={() => setEditing(null)}
+                              disabled={saving}
+                              aria-label={t("action.cancel")}
+                              className="grid size-8 cursor-pointer place-items-center rounded-full text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-[17px]"
+                            >
+                              <X aria-hidden />
+                            </button>
+                          </Tooltip>
+                          <Tooltip content={t("action.save")}>
+                            <button
+                              type="button"
+                              onClick={save}
+                              disabled={saving || !words.trim()}
+                              aria-label={t("action.save")}
+                              className={`grid size-8 place-items-center rounded-full [&_svg]:size-[17px] ${
+                                words.trim() && !saving
+                                  ? "cursor-pointer bg-primary text-primary-fg hover:opacity-90"
+                                  : "cursor-default bg-sunken text-fg-subtle"
+                              }`}
+                            >
+                              {saving ? <Spinner /> : <Check aria-hidden />}
+                            </button>
+                          </Tooltip>
                         </span>
                       </span>
                     ) : alone ? (
@@ -330,7 +359,7 @@ export function Conversation({
                         quiet
                       />
                     ) : null}
-                    {one.clock}
+                    <span aria-hidden>{one.clock}</span>
                     {one.edited && !one.deleted ? (
                       <span className="text-fg-subtle">{t("inbox.edited")}</span>
                     ) : null}
@@ -530,15 +559,16 @@ export function Writer({
               {answering.body || t("inbox.deleted")}
             </span>
           </span>
-          <button
-            type="button"
-            aria-label={t("inbox.stopReplying")}
-            title={t("inbox.stopReplying")}
-            onClick={onStopAnswering}
-            className="grid size-6 shrink-0 cursor-pointer place-items-center rounded-full text-fg-subtle hover:bg-sunken hover:text-fg [&_svg]:size-[14px]"
-          >
-            <X aria-hidden />
-          </button>
+          <Tooltip content={t("inbox.stopReplying")}>
+            <button
+              type="button"
+              aria-label={t("inbox.stopReplying")}
+              onClick={onStopAnswering}
+              className="grid size-6 shrink-0 cursor-pointer place-items-center rounded-full text-fg-subtle hover:bg-sunken hover:text-fg [&_svg]:size-[14px]"
+            >
+              <X aria-hidden />
+            </button>
+          </Tooltip>
         </div>
       ) : null}
 
@@ -569,20 +599,21 @@ export function Writer({
         {/* R24.6. One mark, no frame. The box beside it already says what this
             is, and a filled button with a word on it next to a text area is
             the only thing on the screen shouting. */}
-        <button
-          type="button"
-          onClick={go}
-          disabled={busy || !body.trim()}
-          aria-label={t("inbox.send")}
-          title={t("inbox.send")}
-          className={`grid size-10 shrink-0 place-items-center rounded-full [&_svg]:size-[18px] ${
-            body.trim() && !busy
-              ? "cursor-pointer bg-primary text-primary-fg hover:opacity-90"
-              : "cursor-default bg-sunken text-fg-subtle"
-          }`}
-        >
-          {busy ? <Spinner /> : <ArrowUp aria-hidden />}
-        </button>
+        <Tooltip content={t("inbox.send")}>
+          <button
+            type="button"
+            onClick={go}
+            disabled={busy || !body.trim()}
+            aria-label={t("inbox.send")}
+            className={`grid size-10 shrink-0 place-items-center rounded-full [&_svg]:size-[18px] ${
+              body.trim() && !busy
+                ? "cursor-pointer bg-primary text-primary-fg hover:opacity-90"
+                : "cursor-default bg-sunken text-fg-subtle"
+            }`}
+          >
+            {busy ? <Spinner /> : <ArrowUp aria-hidden />}
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { HUES, HueTag, Badge } from "@connectapp/ui";
+import { HUES, HueTag, Badge, Tooltip } from "@connectapp/ui";
 import { PageTitle, Section } from "@/components/section";
 
 /** The gallery is a tool for us, so it names itself plainly. */
@@ -40,10 +40,12 @@ export default function Colour() {
               <p className="text-label text-fg-muted">{name}</p>
               <div className="flex overflow-hidden rounded-lg border border-line">
                 {steps.map((s) => (
-                  <div key={s} className="flex-1" title={`--${name}-${s}`}>
-                    <div className="h-14" style={{ background: `var(--${name}-${s})` }} />
-                    <p className="bg-surface py-1 text-center text-caption text-fg-subtle">{s}</p>
-                  </div>
+                  <Tooltip key={s} content={`--${name}-${s}`}>
+                    <div className="flex-1">
+                      <div className="h-14" style={{ background: `var(--${name}-${s})` }} />
+                      <p className="bg-surface py-1 text-center text-caption text-fg-subtle">{s}</p>
+                    </div>
+                  </Tooltip>
                 ))}
               </div>
             </div>

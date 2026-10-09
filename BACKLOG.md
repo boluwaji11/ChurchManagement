@@ -475,7 +475,7 @@ behind them were dropped in migration 0058.
 | HRT-274 | Answering one line in particular | R16.9 | Resolved |
 | HRT-275 | A push when a line arrives | R16.9, R16.10 | Resolved |
 | HRT-276 | Writing to somebody from their own record, a group's or a team's | R16.9 | Resolved |
-| HRT-277 | The inbox in the gallery, on the keyboard and read aloud | R16.9, R24.11 | Active |
+| HRT-277 | The inbox in the gallery, on the keyboard and read aloud | R16.9, R24.11 | Resolved |
 | HRT-147 | Birthday and anniversary sends | R16.13 | Deferred |
 
 ### F4. Forms
