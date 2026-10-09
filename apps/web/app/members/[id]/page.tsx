@@ -196,6 +196,24 @@ export default async function PersonPage({
   return (
     <AppShell
       session={session}
+      /* R24.6. The screen's one action. The bar carries no name: this page
+         names itself with the face and the name under it, and a record page
+         that says whose it is twice says it once too often.
+
+         A note sat on the timeline card, in the right-hand column, which put
+         the thing this screen is most often opened to do further down the page
+         than anything else on it. */
+      action={
+        canEdit ? (
+          <NoteForm
+            church={session.tenantSlug}
+            memberId={person.id}
+            name={display}
+            canConfidential={canReadConfidentialNotes(session)}
+            trigger={<Button>{t("person.addNote")}</Button>}
+          />
+        ) : undefined
+      }
     >
       <Link
         href={`/members?church=${session.tenantSlug}`}
@@ -375,24 +393,7 @@ export default async function PersonPage({
         </div>
 
         <div className="flex min-w-0 flex-[2_1_320px] flex-col md:border-l md:border-line md:pl-6">
-          <InfoCard
-            title={t("person.timeline")}
-            action={
-              canEdit ? (
-                <NoteForm
-                  church={session.tenantSlug}
-                  memberId={person.id}
-                  name={display}
-                  canConfidential={canReadConfidentialNotes(session)}
-                  trigger={
-                    <Button variant="secondary" className="min-h-8 px-2.5 text-[13px]">
-                      {t("person.addNote")}
-                    </Button>
-                  }
-                />
-              ) : null
-            }
-          >
+          <InfoCard title={t("person.timeline")}>
             <Timeline entries={history} />
           </InfoCard>
         </div>

@@ -216,8 +216,9 @@ export function Order({
 
       <section className="overflow-hidden rounded-lg border border-line bg-surface">
         {timed.length === 0 ? (
-          /* A plain line rather than an illustration: the row under it is the
-             thing to press, and a picture between them only pushes it down. */
+          /* A plain line rather than an illustration: the press that fills it
+             is at the top of the screen, and a picture here would only push
+             the order further down. */
           <p className="px-4 py-6 text-center text-fg-muted">{t("order.empty")}</p>
         ) : (
           <ul className="flex flex-col">
@@ -405,22 +406,35 @@ export function Order({
           </ul>
         )}
 
-        <ItemDialog
-          church={church}
-          planId={planId}
-          kinds={kinds}
-          trigger={
-            <button
-              type="button"
-              className="flex w-full items-center gap-2 border-t border-line bg-sunken px-4 py-3 text-left font-medium text-primary hover:bg-line"
-            >
-              <Plus className="size-4" /> {t("order.add")}
-            </button>
-          }
-        />
       </section>
 
     </div>
+  );
+}
+
+/**
+ * R11.2, R24.6. Writing an item down, from the top of the screen.
+ *
+ * It sat at the foot of the order, which meant the screen had two places a
+ * press lived and no two screens agreed which. The order is still what it
+ * appends to: a new item goes on the end.
+ */
+export function AddItem({
+  church,
+  planId,
+  kinds,
+}: {
+  church: string;
+  planId: string;
+  kinds: KindOption[];
+}) {
+  return (
+    <ItemDialog
+      church={church}
+      planId={planId}
+      kinds={kinds}
+      trigger={<Button><Plus /> {t("order.add")}</Button>}
+    />
   );
 }
 

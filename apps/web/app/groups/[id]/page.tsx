@@ -23,6 +23,7 @@ import { LeaveButton } from "./leave-button";
 import { ManageGroup } from "./manage";
 import { GroupDetail, type DetailMeeting } from "./detail";
 import { WriteTo } from "@/components/inbox/write-to";
+import { AddMember } from "../add-member";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -236,7 +237,14 @@ export default async function GroupPage({
       };
 
   return (
-    <Frame session={session} tab={group.name}>
+    <Frame
+      session={session}
+      tab={group.name}
+      /* R24.6. The screen's one action. It was a lookup above the roster, in
+         the Members tab, which meant the press that fills a group was behind
+         a tab and in a different place from every other screen's. */
+      action={manage ? <AddMember church={session.tenantSlug} groupId={group.id} /> : undefined}
+    >
       {/* The way back on the left, and what this church may do to the group on
           the right, as the icons every other record page carries. */}
       <div className="flex items-center gap-3">

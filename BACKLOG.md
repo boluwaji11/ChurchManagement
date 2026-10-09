@@ -603,7 +603,7 @@ church actually asks.
 | HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | New |
 | HRT-191 | Milestone and demographic lists | R18.8 | New |
 | HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | New |
-| HRT-193 | CSV and PDF on every report | R18.10 | Resolved |
+| HRT-193 | CSV and PDF on every report | R18.10 | Active |
 | HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
 | HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Resolved |
 | HRT-219 | Members, not people: the word on screen, in the address and in the schema | R2.x, R24.6 | Resolved |

@@ -212,12 +212,10 @@ export function Team({
       </Dialog>
 
       {/* R1.1. A church nobody has looked at yet cannot reach outside itself,
-          so the button is not offered. The server refuses it as well. */}
-      {approved ? (
-        <div className="flex justify-end">
-          <InviteDialog church={church} roles={roles} pending={pending} onDone={() => router.refresh()} />
-        </div>
-      ) : (
+          so it is told why rather than left with a press that is refused. The
+          press itself is at the top of Settings, where every screen puts the
+          thing it is for. */}
+      {approved ? null : (
         <Banner tone="info" title={t("team.waiting")}>{t("team.waitingBody")}</Banner>
       )}
 
@@ -497,7 +495,7 @@ function RoleGuide({ roles }: { roles: ChurchRoleOption[] }) {
   );
 }
 
-function InviteDialog({
+export function InvitePerson({
   church,
   roles,
   pending,

@@ -11,7 +11,6 @@ import { t, plural } from "@connectapp/i18n";
 import type { Meeting, MeetingPerson } from "@connectapp/db";
 import { Markdown } from "@/components/markdown";
 import { decide, setOpenToJoin, leave, publishGroup } from "../actions";
-import { AddMember } from "../add-member";
 import { Picker } from "@/components/picker";
 import { record, open as openMeeting } from "./meeting-actions";
 import { useFormError } from "@/lib/form-error";
@@ -356,10 +355,6 @@ export function GroupDetail({
         {canRecord ? (
         <TabsContent value="members">
           <div className="flex max-w-[680px] flex-col gap-4">
-            {/* Adding somebody sits above the list, because that is the one
-                thing this tab is opened to do. */}
-            {canManage ? <AddMember church={church} groupId={groupId} /> : null}
-
             <section className="overflow-hidden rounded-lg border border-line bg-surface">
               {members.map((member) => (
                 <div

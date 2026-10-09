@@ -12,7 +12,7 @@ import { AppShell } from "@/components/app-shell";
 import { longDate, readableTime, shortDate } from "@/lib/dates";
 import { kindOptions } from "@/lib/kinds";
 import { churchNow } from "@/lib/church-now";
-import { Order } from "./order";
+import { Order, AddItem } from "./order";
 import { PlanSide } from "./side";
 import { PlanTabs } from "./tabs";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -109,7 +109,15 @@ export default async function PlanPage({
   ].sort((a, b) => a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt));
 
   return (
-    <AppShell session={session} title={t("order.title")} wide>
+    <AppShell
+      session={session}
+      title={t("order.title")}
+      wide
+      /* R24.6. The screen's one action, in the same place every screen puts
+         it. It sat at the foot of the order, which gave the screen two places
+         a press lived. */
+      action={<AddItem church={session.tenantSlug} planId={plan.id} kinds={kinds} />}
+    >
       {/* The heading block runs the width, and the sidebar starts level with
           the first item rather than with the back link. */}
       <div className="grid gap-x-6 gap-y-6 [grid-template-columns:minmax(0,1fr)] lg:[grid-template-columns:minmax(0,1fr)_minmax(240px,280px)]">

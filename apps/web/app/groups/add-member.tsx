@@ -1,25 +1,56 @@
 "use client";
 
 import * as React from "react";
-import { Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Banner, Combobox } from "@connectapp/ui";
+import {
+  Banner, Button, Combobox, Field,
+  Sheet, SheetTrigger, SheetContent,
+} from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Searching } from "@/components/searching";
 import { findPerson, join, type PersonHit } from "./actions";
 
 /**
- * R9.4. Putting somebody in a group.
+ * R9.4, R24.6. Putting somebody in a group, from a panel at the right.
  *
- * The same directory lookup every other person field uses, so a leader does not
- * have to learn a second way of finding members. The matches float over the page
- * rather than opening above the roster, which otherwise pushes the list down
- * while somebody is still typing.
+ * The screen's one action opens it, which is where every other screen in the
+ * product puts the thing it is for. A membership is a record the church keeps,
+ * so it is written in the panel rather than in a field above the roster.
+ *
+ * The same directory lookup every other person field uses, so a leader does
+ * not have to learn a second way of finding members. The panel stays open
+ * after each one: a leader typing up a roster is adding eight people, not one.
  *
  * Everybody joins as a member. Who leads it is set on the group itself, where
  * the question is asked once rather than on every row.
  */
 export function AddMember({ church, groupId }: { church: string; groupId: string }) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button>
+          <Plus /> {t("groups.addPerson")}
+        </Button>
+      </SheetTrigger>
+      <SheetContent
+        title={t("groups.addPerson")}
+        closeLabel={t("common.close")}
+        footer={
+          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            {t("common.close")}
+          </Button>
+        }
+      >
+        <Lookup church={church} groupId={groupId} />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function Lookup({ church, groupId }: { church: string; groupId: string }) {
   const router = useRouter();
   const [hits, setHits] = React.useState<PersonHit[]>([]);
   const [error, setError] = React.useState<string>();
@@ -58,6 +89,7 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
     <div className="flex flex-col gap-2" aria-busy={pending}>
       {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
 
+      <Field label={t("groups.addPerson")} required>
       <Searching on={searching}>
         <Combobox
           options={hits.map((one) => ({
@@ -74,6 +106,7 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
           clearLabel={t("date.clear")}
         />
       </Searching>
+      </Field>
     </div>
   );
 }

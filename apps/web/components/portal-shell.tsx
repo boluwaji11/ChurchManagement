@@ -36,12 +36,21 @@ export async function PortalShell({
   session,
   tab,
   tabs,
+  action,
   children,
 }: {
   session: Session;
   /** R17.1. The screen's own name, which the browser tab carries. */
   tab?: string;
   tabs?: PortalTab[];
+  /**
+   * R24.6. The screen's one action, drawn where the staff shell draws it.
+   *
+   * A group's leader may read their group here and still be the person who
+   * puts somebody in it, so the slot exists on both shells and a screen that
+   * serves both passes the same thing to either.
+   */
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const shell = await shellData(session);
@@ -140,7 +149,10 @@ export async function PortalShell({
         className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col gap-7 pb-16 pl-[max(1.5rem,env(safe-area-inset-left))] pr-[max(1.5rem,env(safe-area-inset-right))] pt-8"
       >
         <ChurchMarkProvider logoUrl={logoUrl}>
-          <SpellingProvider spelling={spelling} locale={locale}>{children}</SpellingProvider>
+          <SpellingProvider spelling={spelling} locale={locale}>
+            {action ? <div className="flex justify-end">{action}</div> : null}
+            {children}
+          </SpellingProvider>
         </ChurchMarkProvider>
       </main>
 
