@@ -2919,6 +2919,8 @@ export const en = {
   "order.goLive": "Go live",
   "order.add": "Add a service item",
   "order.remove": "Remove",
+  "order.remove.title": "Take {name} off this plan?",
+  "order.remove.body": "It comes off this service only. The template it came from keeps it.",
   "order.moveUp": "Move up",
   "order.moveDown": "Move down",
   "order.up": "Move up",

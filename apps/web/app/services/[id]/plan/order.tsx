@@ -17,6 +17,7 @@ import { t } from "@connectapp/i18n";
 import type { ItemKind, ShapeItem } from "@connectapp/db";
 import { kindLabel, type KindOption } from "@/lib/kind-label";
 import { useFormError } from "@/lib/form-error";
+import { Confirm } from "@/components/confirm";
 import {
   saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
   keepAsTemplate, renamePlanTemplate, dropTemplate, useTemplate, shapeOf,
@@ -386,17 +387,24 @@ export function Order({
                       </IconButton>
                       <AttachButton church={church} itemId={item.id} />
                       <NoteDialog church={church} itemId={item.id} />
-                      <IconButton
-                        label={t("order.remove")}
+                      {/* R24.x. The x takes the item off this plan, and it
+                          asks first: the template it came from keeps it. */}
+                      <Confirm
+                        title={t("order.remove.title", { name: item.title })}
+                        body={t("order.remove.body")}
+                        confirmLabel={t("order.remove")}
                         disabled={pending}
-                        onClick={() => run(`item:${item.id}`, () => dropItem(item.id, church))}
-                      >
-                        {doing === `item:${item.id}` ? (
-                          <Spinner label={t("order.remove")} />
-                        ) : (
-                          <Trash2 />
-                        )}
-                      </IconButton>
+                        onConfirm={() => run(`item:${item.id}`, () => dropItem(item.id, church))}
+                        trigger={
+                          <IconButton label={t("order.remove")} disabled={pending}>
+                            {doing === `item:${item.id}` ? (
+                              <Spinner label={t("order.remove")} />
+                            ) : (
+                              <X />
+                            )}
+                          </IconButton>
+                        }
+                      />
                     </span>
                   </div>
 
@@ -1093,19 +1101,23 @@ function TemplateDialog({
                         >
                           <Pencil />
                         </IconButton>
-                        <IconButton
-                          label={t("order.template.remove")}
+                        <Confirm
+                          title={t("order.template.removeTitle", { name: template.name })}
+                          confirmLabel={t("order.template.remove")}
                           disabled={pending}
-                          onClick={() =>
+                          onConfirm={() =>
                             run(`drop:${template.id}`, () => dropTemplate(template.id, church))
                           }
-                        >
-                          {doing === `drop:${template.id}` ? (
-                            <Spinner label={t("order.template.remove")} />
-                          ) : (
-                            <Trash2 />
-                          )}
-                        </IconButton>
+                          trigger={
+                            <IconButton label={t("order.template.remove")} disabled={pending}>
+                              {doing === `drop:${template.id}` ? (
+                                <Spinner label={t("order.template.remove")} />
+                              ) : (
+                                <Trash2 />
+                              )}
+                            </IconButton>
+                          }
+                        />
                       </>
                     )}
                   </li>
