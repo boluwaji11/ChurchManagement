@@ -291,6 +291,7 @@ export function Directory({
           dir={params.get("dir") === "desc" ? "desc" : "asc"}
           busy={narrowingNow}
           options={SORTS}
+          done={t("directory.showThem")}
           onApply={({ sort, dir }) =>
             setParam({
               sort: sort === "name" ? undefined : sort,

@@ -474,7 +474,6 @@ export const en = {
   "directory.sort": "Sort",
   "directory.sort.by": "In the order of",
   "directory.sort.order": "From",
-  "directory.sort.apply": "Show",
   "directory.sort.surname": "Surname",
   "directory.sort.firstName": "First name",
   "directory.sort.household": "Household",

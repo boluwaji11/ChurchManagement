@@ -274,6 +274,7 @@ export function SortDrawer({
   dir,
   options,
   busy = false,
+  done,
   onApply,
 }: {
   /** Which field the list is in the order of. */
@@ -282,6 +283,8 @@ export function SortDrawer({
   /** What a church may sort by, in the order they are offered. */
   options: { value: string; label: string; rising: string; falling: string }[];
   busy?: boolean;
+  /** What the foot's own button says, the same words the filter's carries. */
+  done: string;
   onApply: (next: { sort: string; dir: "asc" | "desc" }) => void;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -339,7 +342,7 @@ export function SortDrawer({
                 setLeaving(true);
               }}
             >
-              {t("directory.sort.apply")}
+              {done}
             </Button>
           }
         >
