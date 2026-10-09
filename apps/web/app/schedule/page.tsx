@@ -86,7 +86,7 @@ export default async function ServingPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    church?: string; team?: string; at?: string;
+    church?: string; team?: string; at?: string; service?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -221,6 +221,7 @@ export default async function ServingPage({
       <ServingViews
         church={session.tenantSlug}
         canManage={canManage}
+        focus={params.service}
         heading={
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>

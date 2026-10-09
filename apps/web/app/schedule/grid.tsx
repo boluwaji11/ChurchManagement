@@ -318,6 +318,7 @@ export function ScheduleGrid({
   volunteers,
   canManage,
   onTeam,
+  focus,
 }: {
   church: string;
   teams: GridTeam[];
@@ -329,6 +330,11 @@ export function ScheduleGrid({
   /** Whether this person may change the team itself. */
   canManage: boolean;
   onTeam: (slug: string) => void;
+  /**
+   * R10.3. The service somebody arrived here to fill, from a plan's own
+   * press. Its column is brought into view and the narrow screen opens on it.
+   */
+  focus?: string;
 }) {
   const router = useRouter();
   const [dragging, setDragging] = React.useState<GridVolunteer | null>(null);
@@ -382,11 +388,20 @@ export function ScheduleGrid({
    * can read, so a narrow screen fills one service at a time. Which one is
    * chosen at the top of the list.
    */
-  const [one, setOne] = React.useState(services[0]?.id ?? "");
+  const [one, setOne] = React.useState(
+    (focus && services.some((service) => service.id === focus) ? focus : services[0]?.id) ?? "",
+  );
   const ids = services.map((service) => service.id).join(",");
   React.useEffect(() => {
     setOne((was) => (ids.split(",").includes(was) ? was : (ids.split(",")[0] ?? "")));
   }, [ids]);
+
+  /* The column somebody was sent here to fill starts in view, however far
+     along the month it is. */
+  const column = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    column.current?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [focus]);
 
   const needed = positions.reduce((n, position) => n + position.needed, 0);
   /** R10.3. The box the month grid scrolls inside, which the arrows move. */
@@ -448,6 +463,7 @@ export function ScheduleGrid({
               return (
                 <div
                   key={service.id}
+                  ref={service.id === focus ? column : undefined}
                   className={cn(
                     "flex min-w-[150px] items-baseline justify-between gap-2 border-b border-line border-l px-3 py-2.5",
                     service.past ? "border-l-line bg-sunken" : "border-l-sunken",

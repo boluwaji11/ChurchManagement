@@ -18,6 +18,7 @@ export function PlanSide({
   endsAt,
   teams,
   canPrint,
+  scheduleHref,
 }: {
   church: string;
   occurrenceId: string;
@@ -25,6 +26,8 @@ export function PlanSide({
   endsAt: string;
   teams: ServingTeam[];
   canPrint: boolean;
+  /** R10.3. The board, opened on this service's own column. */
+  scheduleHref: string;
 }) {
   return (
     <aside className="flex flex-col gap-4 lg:sticky lg:top-[84px]">
@@ -38,7 +41,15 @@ export function PlanSide({
 
       {teams.length > 0 ? (
         <section className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface p-5">
-          <div className="text-[13px] font-medium text-fg-subtle">{t("order.serving")}</div>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="text-[13px] font-medium text-fg-subtle">{t("order.serving")}</span>
+            <Link
+              href={scheduleHref}
+              className="text-[13px] font-medium text-primary underline underline-offset-2 hover:text-primary/80"
+            >
+              {t("order.manageSchedule")}
+            </Link>
+          </div>
 
           {/* R24.6. The rail the product uses wherever a few things belong to
               one thing: a dot a row and a line running between them. */}

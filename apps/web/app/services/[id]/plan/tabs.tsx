@@ -65,33 +65,40 @@ export function PlanTabs({
   const shown = Math.min(tabs.length, fitted + more);
 
   return (
-    <div className="relative">
-      <div
-        ref={row}
-        className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {tabs.map((one, i) => (
-          <Link
-            key={one.id}
-            data-tab=""
-            href={`/services/${one.slug}/plan?church=${church}`}
-            aria-current={one.id === current ? "page" : undefined}
-            // Measured even when it is not shown, so the count is honest.
-            hidden={i >= shown}
-            className={`flex shrink-0 flex-col rounded-md border px-3.5 py-2 ${
-              one.id === current
-                ? "border-primary bg-primary-soft"
-                : "border-line bg-surface hover:bg-sunken"
-            }`}
-          >
-            <span className="whitespace-nowrap text-[12px] font-medium text-fg-subtle">
-              {one.when}
-            </span>
-            <span className="whitespace-nowrap font-semibold text-fg">{one.name}</span>
-          </Link>
-        ))}
+    <div className="flex items-center gap-3">
+      <div className="relative min-w-0 flex-1">
+        <div
+          ref={row}
+          className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {tabs.map((one, i) => (
+            <Link
+              key={one.id}
+              data-tab=""
+              href={`/services/${one.slug}/plan?church=${church}`}
+              aria-current={one.id === current ? "page" : undefined}
+              // Measured even when it is not shown, so the count is honest.
+              hidden={i >= shown}
+              className={`flex shrink-0 flex-col rounded-md border px-3.5 py-2 ${
+                one.id === current
+                  ? "border-primary bg-primary-soft"
+                  : "border-line bg-surface hover:bg-sunken"
+              }`}
+            >
+              <span className="whitespace-nowrap text-[12px] font-medium text-fg-subtle">
+                {one.when}
+              </span>
+              <span className="whitespace-nowrap font-semibold text-fg">{one.name}</span>
+            </Link>
+          ))}
+        </div>
 
-        {/* Beside the last one shown, so the two read as one list. */}
+        {/* Each arrow shows itself only while there is something that way. */}
+        <Reach to={row} watch={shown} />
+      </div>
+
+      {/* Outside the row, so a longer row never carries them off the screen. */}
+      <div className="flex shrink-0 items-center gap-2">
         {shown < tabs.length ? (
           <button
             type="button"
@@ -112,9 +119,6 @@ export function PlanTabs({
           </button>
         ) : null}
       </div>
-
-      {/* Each arrow shows itself only while there is something that way. */}
-      <Reach to={row} />
     </div>
   );
 }

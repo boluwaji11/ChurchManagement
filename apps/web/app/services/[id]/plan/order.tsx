@@ -661,16 +661,16 @@ function Attachment({
 }) {
   const [opening, setOpening] = React.useState(false);
 
+  const full = file.label ?? file.key.split("/").pop() ?? file.contentType;
+
   const open = () => {
     setOpening(true);
-    fileLink(file.key, church)
+    fileLink(file.key, church, full)
       .then((url) => {
         if (url) window.open(url, "_blank", "noopener");
       })
       .finally(() => setOpening(false));
   };
-
-  const full = file.label ?? file.key.split("/").pop() ?? file.contentType;
 
   /*
    * A key is a uuid and a label can be a sentence, so neither reads on a row.

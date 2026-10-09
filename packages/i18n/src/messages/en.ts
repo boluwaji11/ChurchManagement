@@ -2914,6 +2914,7 @@ export const en = {
   "order.runsMin": "{count} min",
   "order.dragHint": "Drag to reorder",
   "order.serving": "Schedule",
+  "order.manageSchedule": "Manage schedule",
   "order.allServices": "All services",
   "order.printRunSheet": "Print run sheet",
   "order.goLive": "Go live",

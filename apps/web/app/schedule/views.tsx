@@ -21,6 +21,7 @@ export function ServingViews({
   heading,
   schedule,
   canManage,
+  focus,
 }: {
   church: string;
   /** Null when the church has no team or nothing scheduled to fill. */
@@ -36,6 +37,8 @@ export function ServingViews({
   canManage: boolean;
   /** The month and its legend, above the grid. */
   heading: React.ReactNode;
+  /** R10.3. The service a plan sent this reader here to fill. */
+  focus?: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -96,6 +99,7 @@ export function ServingViews({
         slots={schedule.slots}
         volunteers={schedule.volunteers}
         canManage={canManage}
+        focus={focus}
         onTeam={(slug) => go({ team: slug })}
       />
     </div>

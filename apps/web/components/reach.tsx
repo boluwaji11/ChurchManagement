@@ -16,7 +16,14 @@ const COLUMN = 150;
  * are there to be pressed. Each one appears only while there is something
  * that way, so a month that fits shows neither.
  */
-export function Reach({ to }: { to: React.RefObject<HTMLDivElement | null> }) {
+export function Reach({
+  to,
+  watch: again,
+}: {
+  to: React.RefObject<HTMLDivElement | null>;
+  /** Changes whenever the row's contents do, so the reading is taken again. */
+  watch?: unknown;
+}) {
   const [canGo, setCanGo] = React.useState({ back: false, on: false });
 
   React.useEffect(() => {
@@ -40,7 +47,7 @@ export function Reach({ to }: { to: React.RefObject<HTMLDivElement | null> }) {
       window.removeEventListener("resize", read);
       watch.disconnect();
     };
-  }, [to]);
+  }, [to, again]);
 
   const go = (by: number) => to.current?.scrollBy({ left: by, behavior: "smooth" });
 
