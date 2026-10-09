@@ -167,7 +167,6 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
             whoever was found under a search since typed over. */}
         {picked.length > 0 ? (
           <>
-          <span className="text-label text-fg">{t("groups.willJoin")}</span>
           {/* R24.6. The rail the product uses wherever a few things are about
               to become one thing: a dot a row and a line running between
               them. */}
