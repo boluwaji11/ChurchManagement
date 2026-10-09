@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   withTenant, findGroups, countArchivedGroups, listGroupTypes, pendingRequests, personForUser,
   canManageGroups,
@@ -7,6 +7,7 @@ import {
 import { Button } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
+import { BackLink } from "@/components/back-link";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { readsAsMember } from "@/lib/reads-as-member";
 import { TypesLanding, type TypeCard } from "./types-landing";
@@ -109,20 +110,6 @@ export default async function GroupsPage({
   ) : null;
 
   /*
-   * R24.6. The screen's one action, in the top bar.
-   *
-   * It used to sit over the list, which gave the screen two header rows: one
-   * with the name of the thing and one with the button that makes another.
-   */
-  const making = manage && !putAway ? (
-    <Button asChild>
-      <Link href={`/groups/new?church=${session.tenantSlug}`}>
-        <Plus /> {t("groups.add")}
-      </Link>
-    </Button>
-  ) : undefined;
-
-  /*
    * R9.5. The kinds lead, for everybody. A member arriving at the groups screen
    * and a leader arriving at it are choosing between the same three or four
    * things the church calls by name, so they meet the same screen.
@@ -136,7 +123,20 @@ export default async function GroupsPage({
     return portal ? (
       <PortalShell session={session} tab={t("nav.groups")}>{landing}</PortalShell>
     ) : (
-      <AppShell session={session} title={t("groups.title")} action={making}>
+      <AppShell
+        session={session}
+        title={t("groups.title")}
+        /* Nothing is chosen here, so the press is the plain one. */
+        action={
+          manage ? (
+            <Button asChild>
+              <Link href={`/groups/new?church=${session.tenantSlug}`}>
+                <Plus /> {t("groups.add")}
+              </Link>
+            </Button>
+          ) : undefined
+        }
+      >
         {landing}
         {archivedLink}
       </AppShell>
@@ -202,28 +202,46 @@ export default async function GroupsPage({
     />
   );
 
+  /*
+   * R24.6. The screen's one action, in the top bar.
+   *
+   * It used to sit over the list, which gave the screen two header rows: one
+   * with the name of the thing and one with the button that makes another.
+   */
+  /*
+   * R9.1. It names the kind it writes one of.
+   *
+   * A church reading its Small groups and pressing "Create a Group" met a
+   * blank form asking what kind it was, having just said. The kind travels
+   * with the press, so the form opens on it and the way back out returns to
+   * the list it was started from.
+   */
+  const making = manage && !putAway ? (
+    <Button asChild>
+      <Link
+        href={`/groups/new?church=${session.tenantSlug}${
+          only ? `&type=${only.slug ?? only.id}` : ""
+        }`}
+      >
+        <Plus /> {only ? t("groups.addOf", { type: only.name }) : t("groups.add")}
+      </Link>
+    </Button>
+  ) : undefined;
+
   // R9.2. The way back out of the archived view, then the way back to the
   // kinds, which is offered wherever the kinds screen exists.
-  const back = putAway ? (
-    <Link
-      href={`/groups?church=${session.tenantSlug}`}
-      className="-mb-2 inline-flex items-center gap-1.5 self-start font-medium text-primary"
-    >
-      <ArrowLeft className="size-4" aria-hidden /> {t("groups.archived.back")}
-    </Link>
-  ) : kinds.length > 0 ? (
-    <Link
-      href={`/groups?church=${session.tenantSlug}`}
-      className="-mb-2 inline-flex items-center gap-1.5 self-start font-medium text-primary"
-    >
-      <ArrowLeft className="size-4" aria-hidden /> {t("groupType.back")}
-    </Link>
-  ) : null;
+  /* R24.6. The way back rides the action's own row rather than sitting in a
+     band above it. */
+  const back = putAway
+    ? { href: `/groups?church=${session.tenantSlug}`, label: t("groups.archived.back") }
+    : kinds.length > 0
+      ? { href: `/groups?church=${session.tenantSlug}`, label: t("groupType.back") }
+      : undefined;
 
   if (portal) {
     return (
-      <PortalShell session={session} tab={only?.name ?? t("nav.groups")}>
-        {back}
+      <PortalShell session={session} tab={only?.name ?? t("nav.groups")} action={making}>
+        {back ? <BackLink href={back.href} label={back.label} /> : null}
         <PortalTitle
           title={only?.name ?? t("find.title")}
           under={
@@ -245,9 +263,12 @@ export default async function GroupsPage({
   }
 
   return (
-    <AppShell session={session} title={only?.name ?? t("groups.title")} action={making}>
-      {back}
-
+    <AppShell
+      session={session}
+      title={only?.name ?? t("groups.title")}
+      action={making}
+      back={back}
+    >
       {/* R9.5. The kind's own words head its list here as well. The top bar
           carries the name and nothing else, so without this the church's
           description was readable in the member's portal and nowhere else. */}

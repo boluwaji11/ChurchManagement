@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { withTenant, listGroupTypes, canManageGroups } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -29,9 +27,9 @@ export async function generateMetadata({
 export default async function NewGroupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ church?: string; type?: string }>;
 }) {
-  const { church } = await searchParams;
+  const { church, type } = await searchParams;
   const session = await requireSession(church);
 
   // The form is hidden from a role that cannot use it. The refusal that matters
@@ -45,25 +43,28 @@ export default async function NewGroupPage({
       )
     : [];
 
-  return (
-    <AppShell session={session} tab={t("groups.newTitle")} max="max-w-[1080px]">
-      <div className="flex items-center gap-3">
-        <Link
-          href={`/groups?church=${session.tenantSlug}`}
-          className="inline-flex items-center gap-1.5 font-medium text-primary"
-        >
-          <ArrowLeft className="size-4" /> {t("groups.title")}
-        </Link>
-        <span className="flex-1" />
-        {permitted ? <GroupFormActions editing={false} /> : null}
-      </div>
+  /* R9.1. The kind it was started from: the form opens on it, and the way
+     back out returns to that list rather than to all of them. */
+  const from = type ? types.find((one) => one.slug === type || one.id === type) : undefined;
 
+  return (
+    <AppShell
+      session={session}
+      tab={t("groups.newTitle")}
+      max="max-w-[1080px]"
+      back={{
+        href: `/groups?church=${session.tenantSlug}${from ? `&type=${from.slug ?? from.id}` : ""}`,
+        label: from?.name ?? t("groups.title"),
+      }}
+      action={permitted ? <GroupFormActions editing={false} /> : undefined}
+    >
       <h1 className="font-display text-[32px] leading-[38px] text-fg">{t("groups.newTitle")}</h1>
 
       {permitted ? (
         <GroupEditor
           church={session.tenantSlug}
           types={types.map((one) => ({ id: one.id, name: one.name, hue: one.hue }))}
+          ofType={from?.id}
         />
       ) : (
         <Denied role={session.role} action="manageGroups" church={session.tenantSlug} />

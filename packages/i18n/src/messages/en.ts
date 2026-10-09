@@ -1959,6 +1959,7 @@ export const en = {
   "groups.failed": "That did not save. Try again.",
   "groups.title": "Groups",
   "groups.add": "Create a Group",
+  "groups.addOf": "Create a {type}",
   "groups.create": "Create group",
   "groups.saveChanges": "Save changes",
   "groups.startsAt": "Start time",

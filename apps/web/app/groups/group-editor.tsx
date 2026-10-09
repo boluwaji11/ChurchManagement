@@ -73,10 +73,18 @@ export function GroupEditor({
   church,
   types,
   group,
+  ofType,
   leaders: already = [],
 }: {
   church: string;
   types: GroupTypeOption[];
+  /**
+   * R9.1. The kind this one is being written under.
+   *
+   * A church reading its Small groups and pressing the press that makes
+   * another has already said what kind it is, so the form opens on it.
+   */
+  ofType?: string;
   /** Given when an existing group is being changed. */
   group?: GroupDraft;
   /** R9.3. Who already leads it, so the list opens with them in it. */
@@ -84,7 +92,7 @@ export function GroupEditor({
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
-  const [typeId, setTypeId] = React.useState(group?.typeId ?? "");
+  const [typeId, setTypeId] = React.useState(group?.typeId ?? ofType ?? "");
   const [online, setOnline] = React.useState(group?.online ?? false);
   const [childrenWelcome, setChildren] = React.useState(group?.childrenWelcome ?? false);
   const [openToJoin, setOpenToJoin] = React.useState(group?.openToJoin ?? true);
