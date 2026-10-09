@@ -4,10 +4,12 @@ import {
   conversations, conversationPeople, messages, messageDrafts, messageReactions,
 } from "../schema/messages";
 import { members } from "../schema/members";
+import { tenantMembers } from "../schema/tenancy";
 import { groupMemberships, groups } from "../schema/groups";
 import { teamMembers, teams } from "../schema/serving";
 import { InvalidInputError } from "../errors";
 import { PermissionError } from "../roles";
+import { can, rolesWith, type TenantRole } from "../permissions";
 
 /**
  * R16.9, R17.1. Messages written here and read here.
@@ -1275,4 +1277,252 @@ export async function dropDraft(db: Tx, reader: Reader, key: string): Promise<vo
       eq(messageDrafts.userId, reader.userId),
       eq(messageDrafts.target, target),
     ));
+}
+
+/**
+ * R16.9, R16.10. Who to tell that a line has arrived, and where it opens.
+ *
+ * A push goes to a browser rather than to a person, so this answers in
+ * accounts. Each one comes back with the address this conversation has from
+ * their side, because the same thread is "the office" to a member and "Jane
+ * Smith" to the office, and a notification that opens the wrong screen is a
+ * notification somebody presses once.
+ *
+ * Read after the write rather than inside it, so the HTTP to a browser's push
+ * service never happens in a transaction.
+ */
+export interface Listener {
+  userId: string;
+  /** The address this conversation has from their side. */
+  key: string;
+  /** Whether they read in the church's own inbox rather than the portal's. */
+  office: boolean;
+}
+
+export interface Telling {
+  to: Listener[];
+  /** What the notification is headed with: a group, the church, or a person. */
+  heading: string;
+  /** Who typed it, where the heading is a group's or a team's name. */
+  author: string | null;
+  /** The opening of what they wrote. */
+  line: string;
+}
+
+/** The name on a person's record, as a message carries it. */
+const nameOf = (row: { first: string | null; last: string | null }): string =>
+  `${row.first ?? ""} ${row.last ?? ""}`.trim();
+
+/** Whoever answers for the church, which is a role rather than a person. */
+async function officeAccounts(db: Tx, tenantId: string): Promise<string[]> {
+  const rows = await db
+    .select({ userId: tenantMembers.userId })
+    .from(tenantMembers)
+    .where(and(
+      // RLS already holds this to one church. Named again because the same
+      // call on a connection without it would reach every church's staff.
+      eq(tenantMembers.tenantId, tenantId),
+      inArray(tenantMembers.role, rolesWith("messages.office") as never[]),
+    ));
+  return rows.map((one) => one.userId);
+}
+
+/**
+ * Which inbox each of these accounts reads in.
+ *
+ * Taken from the role rather than from the seat in the conversation: a group
+ * leader who is also on staff reads their messages in the church's inbox, and
+ * the link has to land where they are rather than where the thread sits.
+ */
+async function readsInOffice(db: Tx, userIds: string[]): Promise<Set<string>> {
+  if (userIds.length === 0) return new Set();
+  const rows = await db
+    .select({ userId: tenantMembers.userId, role: tenantMembers.role })
+    .from(tenantMembers)
+    .where(inArray(tenantMembers.userId, userIds));
+  return new Set(
+    rows
+      .filter((one) => can(one.role as TenantRole, "messages.office"))
+      .map((one) => one.userId),
+  );
+}
+
+export async function tellAbout(
+  db: Tx,
+  writer: Reader,
+  what: { threadId: string; messageId: string },
+  churchName: string,
+): Promise<Telling | null> {
+  const [thread] = await db
+    .select({
+      kind: conversations.kind,
+      groupId: conversations.groupId,
+      teamId: conversations.teamId,
+    })
+    .from(conversations)
+    .where(eq(conversations.id, what.threadId))
+    .limit(1);
+  if (!thread) return null;
+
+  const [line] = await db
+    .select({
+      body: messages.body,
+      fromOffice: messages.fromOffice,
+      authorMemberId: messages.authorMemberId,
+      first: members.firstName,
+      last: members.lastName,
+    })
+    .from(messages)
+    .leftJoin(members, eq(members.id, messages.authorMemberId))
+    .where(eq(messages.id, what.messageId))
+    .limit(1);
+  if (!line) return null;
+
+  const wrote = line.fromOffice ? churchName : nameOf(line);
+  const said = opening(line.body);
+  const to: Listener[] = [];
+  let heading = wrote;
+  let author: string | null = null;
+
+  if (thread.kind === "group" || thread.kind === "team") {
+    const [whose] = thread.groupId
+      ? await db
+          .select({ slug: groups.slug, name: groups.name })
+          .from(groups)
+          .where(eq(groups.id, thread.groupId))
+          .limit(1)
+      : await db
+          .select({ slug: teams.slug, name: teams.name })
+          .from(teams)
+          .where(eq(teams.id, thread.teamId ?? ""))
+          .limit(1);
+    if (!whose) return null;
+
+    const key = `${thread.kind}/${whose.slug}`;
+
+    /* R9.7. Whoever is in it now, which is who a group thread is with: the
+       seats hold read marks rather than membership. */
+    const rows = thread.groupId
+      ? await db
+          .select({ userId: members.appUserId })
+          .from(groupMemberships)
+          .innerJoin(members, eq(members.id, groupMemberships.memberId))
+          .where(and(
+            eq(groupMemberships.groupId, thread.groupId),
+            isNull(groupMemberships.leftOn),
+            isNull(members.archivedAt),
+          ))
+      : await db
+          .select({ userId: members.appUserId })
+          .from(teamMembers)
+          .innerJoin(members, eq(members.id, teamMembers.memberId))
+          .where(and(
+            eq(teamMembers.teamId, thread.teamId ?? ""),
+            isNull(teamMembers.leftOn),
+            isNull(members.archivedAt),
+          ));
+
+    for (const row of rows) {
+      if (row.userId) to.push({ userId: row.userId, key, office: false });
+    }
+
+    /*
+     * R9.7. The office is told about a group's thread only once it is in it.
+     *
+     * A group of twelve arranging a lift is twelve lines nobody on staff asked
+     * for, and a church where every group's chatter reaches the office is a
+     * church where staff turn notifications off. Writing into a group puts the
+     * office in it, and from then on it is a conversation the office is part of.
+     */
+    if (!line.fromOffice) {
+      const [seat] = await db
+        .select({ id: conversationPeople.id })
+        .from(conversationPeople)
+        .where(and(
+          eq(conversationPeople.conversationId, what.threadId),
+          eq(conversationPeople.office, true),
+        ))
+        .limit(1);
+      if (seat) {
+        for (const userId of await officeAccounts(db, writer.tenantId)) {
+          to.push({ userId, key, office: true });
+        }
+      }
+    }
+
+    heading = whose.name;
+    author = wrote;
+  } else if (thread.kind === "direct") {
+    const rows = await db
+      .select({ memberId: conversationPeople.memberId, userId: members.appUserId })
+      .from(conversationPeople)
+      .innerJoin(members, eq(members.id, conversationPeople.memberId))
+      .where(and(
+        eq(conversationPeople.conversationId, what.threadId),
+        eq(conversationPeople.office, false),
+      ));
+
+    /* The thread is with whoever wrote, from the other side of it. */
+    const [mine] = writer.memberId
+      ? await db
+          .select({ slug: members.slug })
+          .from(members)
+          .where(eq(members.id, writer.memberId))
+          .limit(1)
+      : [];
+    if (!mine) return null;
+
+    for (const row of rows) {
+      if (row.userId && row.memberId !== writer.memberId) {
+        to.push({ userId: row.userId, key: mine.slug, office: false });
+      }
+    }
+  } else {
+    /* A church thread: the office on one side, one member on the other. */
+    const [seat] = await db
+      .select({
+        userId: members.appUserId,
+        slug: members.slug,
+        first: members.firstName,
+        last: members.lastName,
+      })
+      .from(conversationPeople)
+      .innerJoin(members, eq(members.id, conversationPeople.memberId))
+      .where(and(
+        eq(conversationPeople.conversationId, what.threadId),
+        eq(conversationPeople.office, false),
+      ))
+      .limit(1);
+    if (!seat) return null;
+
+    if (line.fromOffice) {
+      if (seat.userId) to.push({ userId: seat.userId, key: "office", office: false });
+      heading = churchName;
+    } else {
+      for (const userId of await officeAccounts(db, writer.tenantId)) {
+        to.push({ userId, key: seat.slug, office: true });
+      }
+      heading = nameOf(seat);
+    }
+  }
+
+  /* Nobody is told about their own line, and a reader with two seats in one
+     thread is told once. */
+  const seen = new Set<string>([writer.userId]);
+  const only = to.filter((one) => {
+    if (seen.has(one.userId)) return false;
+    seen.add(one.userId);
+    return true;
+  });
+  if (only.length === 0) return null;
+
+  /* The link lands in the inbox each of them actually reads in. The one
+     address that settles it on its own is "office": a reader whose side of a
+     thread is the church is reading as a member, whatever else they hold. */
+  const staff = await readsInOffice(db, only.map((one) => one.userId));
+  for (const one of only) {
+    if (one.key !== "office") one.office = staff.has(one.userId);
+  }
+
+  return { to: only, heading, author, line: said };
 }

@@ -3,11 +3,12 @@
 import {
   withTenant, sendMessage, setThreadArchived, threadAt,
   saveDraft, dropDraft, peopleNamed, writableGroups, writableTeams, react,
-  editMessage, deleteMessage, canAnswerMessages,
+  editMessage, deleteMessage, canAnswerMessages, tellAbout,
 } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { readerFor } from "@/lib/inbox";
+import { tellAboutMessage } from "@/lib/inbox-push";
 
 /**
  * R16.9. Writing, reading and keeping what has not been sent.
@@ -38,10 +39,10 @@ export async function send(
 ): Promise<{ key?: string; error?: string }> {
   try {
     const { session, ctx } = await context(church);
-    return await withTenant(ctx, async (tx) => {
+    const { sent, told } = await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
       const [kind, name] = to.includes("/") ? to.split("/") : [null, to];
-      await sendMessage(tx, me, {
+      const made = await sendMessage(tx, me, {
         to: to === "office"
           ? { office: true }
           : kind === "group"
@@ -52,8 +53,18 @@ export async function send(
         body,
         answering,
       });
-      return { key: to };
+      /* R16.10. Read in the same breath as the write, sent after it: who to
+         tell is a question about the church's records, and a push is three
+         seconds of somebody else's HTTP. */
+      return {
+        sent: made,
+        told: await tellAbout(tx, me, { threadId: made.threadId, messageId: made.id }, session.tenantName),
+      };
     });
+
+    if (told) await tellAboutMessage(ctx, told, sent.threadId);
+
+    return { key: to };
   } catch (error) {
     return { error: explain(error) };
   }
