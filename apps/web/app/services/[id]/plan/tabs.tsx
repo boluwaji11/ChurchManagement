@@ -2,15 +2,22 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { Plus, Minus } from "lucide-react";
+import { t } from "@connectapp/i18n";
 import { Reach } from "@/components/reach";
+
+/** Fewest shown, and the most, however wide the screen is. */
+const LEAST = 3;
+const MOST = 6;
 
 /**
  * R11.1. The church's other services, so a leader planning three in a week
  * moves between them without going back to the list.
  *
- * One row that keeps its height, with an arrow at each end. A church meeting
- * three times a week has a hundred and fifty of these in a year, and wrapping
- * them filled the screen with dates nobody asked for.
+ * As many as the row holds, worked out from its width. The rest arrive on
+ * Show more, and from then on the row runs sideways under the arrows rather
+ * than wrapping down the screen: a church meeting three times a week has a
+ * hundred and fifty of these in a year.
  */
 export function PlanTabs({
   church,
@@ -22,25 +29,54 @@ export function PlanTabs({
   tabs: { id: string; slug: string; when: string; name: string }[];
 }) {
   const row = React.useRef<HTMLDivElement>(null);
-  const here = React.useRef<HTMLAnchorElement>(null);
+  const [fits, setFits] = React.useState(LEAST);
+  const [all, setAll] = React.useState(false);
 
-  /* The one being read starts in view, however far down the year it is. */
   React.useEffect(() => {
-    here.current?.scrollIntoView({ block: "nearest", inline: "start" });
-  }, [current]);
+    const el = row.current;
+    if (!el) return;
+
+    /*
+     * Measured against a tab's own width rather than each one's, so the count
+     * does not jump about as the names change, and against four fifths of the
+     * row, so the last one is never jammed against the edge.
+     */
+    const measure = () => {
+      const widest = Math.max(
+        180,
+        ...([...el.children] as HTMLElement[])
+          .filter((child) => child.dataset.tab !== undefined)
+          .map((child) => child.offsetWidth),
+      );
+      const room = el.clientWidth * 0.8;
+      setFits(Math.min(MOST, Math.max(LEAST, Math.floor(room / (widest + 8)))));
+    };
+
+    measure();
+    const watch = new ResizeObserver(measure);
+    watch.observe(el);
+    return () => watch.disconnect();
+  }, [tabs.length]);
+
+  const here = Math.max(0, tabs.findIndex((one) => one.id === current));
+  const shown = all ? tabs.length : Math.max(fits, here + 1);
 
   return (
     <div className="relative">
       <div
         ref={row}
-        className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className={`flex items-center gap-2 ${
+          all ? "overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""
+        }`}
       >
-        {tabs.map((one) => (
+        {tabs.map((one, i) => (
           <Link
             key={one.id}
-            ref={one.id === current ? here : undefined}
+            data-tab=""
             href={`/services/${one.slug}/plan?church=${church}`}
             aria-current={one.id === current ? "page" : undefined}
+            // Measured even when it is not shown, so the count is honest.
+            hidden={i >= shown}
             className={`flex shrink-0 flex-col rounded-md border px-3.5 py-2 ${
               one.id === current
                 ? "border-primary bg-primary-soft"
@@ -53,9 +89,31 @@ export function PlanTabs({
             <span className="whitespace-nowrap font-semibold text-fg">{one.name}</span>
           </Link>
         ))}
+
+        {/* Beside the last one shown, so the two read as one list. */}
+        {!all && shown < tabs.length ? (
+          <button
+            type="button"
+            onClick={() => setAll(true)}
+            className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-sm px-1 font-medium text-primary hover:underline"
+          >
+            <Plus className="size-4" aria-hidden /> {t("services.showMore")}
+          </button>
+        ) : null}
+
+        {all ? (
+          <button
+            type="button"
+            onClick={() => setAll(false)}
+            className="flex min-h-9 shrink-0 items-center gap-1.5 rounded-sm px-1 font-medium text-primary hover:underline"
+          >
+            <Minus className="size-4" aria-hidden /> {t("services.showLess")}
+          </button>
+        ) : null}
       </div>
 
-      <Reach to={row} />
+      {/* The arrows belong to the long row, so they arrive with it. */}
+      {all ? <Reach to={row} /> : null}
     </div>
   );
 }
