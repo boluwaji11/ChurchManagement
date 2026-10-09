@@ -11,12 +11,14 @@ import type { Mark } from "./data";
 /**
  * R16.9, R2.13. What somebody may do with a line.
  *
- * Answer it, and where they wrote it, change it or take it back. Marks rather
- * than a menu behind a menu: three things, each of which is one press, and a
- * row of them reads at a glance where a row of dots reads as "something is
- * hidden here".
+ * React to it, answer it, and where they wrote it, change it or take it back.
+ * Marks rather than a menu behind a menu: four things, each of which is one
+ * press, and a row of them reads at a glance where a row of dots reads as
+ * "something is hidden here".
  *
- * They appear on hover with a pointer and stay put where there is none.
+ * The bar they sit in rides the top edge of the message, which is where every
+ * product that has one puts it, and it appears on hover with a pointer and
+ * stays put where there is none.
  */
 export function LineActions({
   church,
@@ -26,6 +28,7 @@ export function LineActions({
   onReply,
   onEdit,
   onChanged,
+  quiet = false,
 }: {
   church: string;
   id: string;
@@ -36,14 +39,18 @@ export function LineActions({
   onReply: () => void;
   onEdit: () => void;
   onChanged: () => void;
+  /** R16.9. Out in the open rather than in a bar, so they appear on hover. */
+  quiet?: boolean;
 }) {
   const [asking, setAsking] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
 
   const mark = "grid size-6 shrink-0 cursor-pointer place-items-center rounded-full"
-    + " text-fg-subtle opacity-0 transition-opacity hover:bg-sunken hover:text-fg"
-    + " focus-visible:opacity-100 group-hover:opacity-100"
-    + " [@media(hover:none)]:opacity-100 [&_svg]:size-[14px]";
+    + " text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-[14px]"
+    + (quiet
+      ? " opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+        + " [@media(hover:none)]:opacity-100"
+      : "");
 
   return (
     <>

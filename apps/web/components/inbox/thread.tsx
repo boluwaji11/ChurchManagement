@@ -205,6 +205,27 @@ export function Conversation({
                           } [&_p]:mb-2 [&_p:last-child]:mb-0`
                     }`}
                   >
+                    {one.mine && !one.deleted && editing !== one.id ? (
+                      /* R16.9. On the top edge of their own message, out of
+                         the way of the words and of the pill at its foot. */
+                      <span
+                        /* Clear above the message rather than on its top
+                           edge: resting on the edge it covered the first line
+                           of a short one. */
+                        className="absolute bottom-full left-2 z-20 mb-1 flex items-center gap-0.5 rounded-full border border-line bg-surface px-1 py-0.5 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100"
+                      >
+                        <LineActions
+                          church={church}
+                          id={one.id}
+                          mine={one.mine}
+                          marks={one.reactions}
+                          onReply={() => setAnswering(one)}
+                          onEdit={() => { setEditing(one.id); setWords(one.body); }}
+                          onChanged={onChanged ?? onSent}
+                        />
+                      </span>
+                    ) : null}
+
                     {one.answering ? (
                       /* R16.9. What this answers, above the answer, where a
                          press takes the reader back to it. */
@@ -293,18 +314,20 @@ export function Conversation({
                       one.mine ? "flex-row-reverse" : ""
                     }`}
                   >
-                    {/* R16.9. The marks lead and the time follows, away from
-                        the corner the pill rests on, so the two never sit on
-                        top of each other. */}
-                    {!one.deleted && editing !== one.id ? (
+                    {/* Somebody else's line carries its two marks here, where
+                        there is room beside the time. Their own carries four,
+                        which is a bar rather than a row, and that rides the
+                        top edge of the message instead. */}
+                    {!one.mine && !one.deleted ? (
                       <LineActions
                         church={church}
                         id={one.id}
-                        mine={one.mine}
+                        mine={false}
                         marks={one.reactions}
                         onReply={() => setAnswering(one)}
-                        onEdit={() => { setEditing(one.id); setWords(one.body); }}
+                        onEdit={() => undefined}
                         onChanged={onChanged ?? onSent}
+                        quiet
                       />
                     ) : null}
                     {one.clock}
