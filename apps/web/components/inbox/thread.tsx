@@ -120,14 +120,12 @@ export function Writer({
   to,
   onSent,
   sending = false,
-  placeholder,
   autoFocus,
 }: {
   church: string;
   to: string;
   onSent: () => void;
   sending?: boolean;
-  placeholder?: string;
   autoFocus?: boolean;
 }) {
   const [body, setBody] = React.useState("");
@@ -174,7 +172,6 @@ export function Writer({
               go();
             }
           }}
-          placeholder={placeholder ?? t("inbox.writePlaceholder")}
           aria-label={t("inbox.write")}
           rows={2}
           autoFocus={autoFocus}

@@ -66,23 +66,41 @@ export function useInbox(
 ): { data: InboxData; refresh: () => void } {
   const { view = "inbox", key = null, watching = false } = opts;
   const [data, setData] = React.useState<InboxData>(EMPTY);
-  const live = React.useRef(true);
+
+  /*
+   * R16.9. Only the newest answer is listened to.
+   *
+   * Opening a conversation asks for it while the answer to the last question
+   * is still on its way back. That older answer knows nothing about the
+   * conversation now open, so letting it land emptied the panel for a second
+   * and then filled it again. Each request takes a number and an answer that
+   * is no longer the newest is dropped.
+   */
+  const ticket = React.useRef(0);
 
   const read = React.useCallback(async () => {
+    const mine = ++ticket.current;
     const where = `/api/inbox?church=${encodeURIComponent(church)}&view=${view}`
       + (key ? `&key=${encodeURIComponent(key)}` : "");
     try {
       const answer = await fetch(where, { cache: "no-store" });
-      if (!answer.ok) return;
+      if (!answer.ok || mine !== ticket.current) return;
       const next = (await answer.json()) as InboxData;
-      if (live.current) setData(next);
+      if (mine === ticket.current) setData(next);
     } catch {
       // A dropped connection is the next poll's problem, not the reader's.
     }
   }, [church, view, key]);
 
+  /* What is on screen belongs to the conversation that was asked for. While a
+     different one is on its way, the old lines are held rather than cleared:
+     a panel that empties and fills reads as broken. */
+  const shown = React.useMemo(
+    () => (key && data.open && data.open.key !== key ? { ...data, said: data.said } : data),
+    [data, key],
+  );
+
   React.useEffect(() => {
-    live.current = true;
     void read();
 
     const every = setInterval(() => { void read(); }, watching ? WATCHING : RESTING);
@@ -91,12 +109,11 @@ export function useInbox(
     window.addEventListener("focus", back);
 
     return () => {
-      live.current = false;
       clearInterval(every);
       document.removeEventListener("visibilitychange", back);
       window.removeEventListener("focus", back);
     };
   }, [read, watching]);
 
-  return { data, refresh: () => { void read(); } };
+  return { data: shown, refresh: () => { void read(); } };
 }
