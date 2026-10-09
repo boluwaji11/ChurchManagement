@@ -319,7 +319,7 @@ export const en = {
   "inbox.church": "The church",
   "inbox.find": "Search messages",
   "inbox.noThreads": "No messages",
-  "inbox.pickOne": "No conversation open",
+  "inbox.pickOne": "Select a conversation",
   "inbox.archiveDo": "Archive",
   "inbox.restore": "Restore",
   "inbox.archived.title": "Archived conversations",
