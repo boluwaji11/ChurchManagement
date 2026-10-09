@@ -5,6 +5,7 @@ import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { requireSession } from "@/lib/session";
 import { tabMetadata } from "@/lib/page-metadata";
 import { InboxScreen } from "@/components/inbox/screen";
+import { readInbox } from "@/lib/inbox-read";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,8 @@ export default async function MemberMessagesPage({
     redirect(`/messages?church=${session.tenantSlug}`);
   }
 
+  const first = await readInbox(session, { key: null });
+
   return (
     <PortalShell session={session} tab={t("inbox.title")}>
       <PortalTitle title={t("inbox.title")} />
@@ -46,6 +49,7 @@ export default async function MemberMessagesPage({
         office={false}
         here="/home/messages"
         open={null}
+        initial={first}
       />
     </PortalShell>
   );

@@ -208,6 +208,7 @@ export async function AppShell({
         churchName={session.tenantName}
         office={canEditPeople(session)}
         full={`/messages?church=${session.tenantSlug}`}
+        unread={counts.waiting}
         place="float"
         clear={
           counts.setup && !counts.setup.complete && !counts.setup.dismissed

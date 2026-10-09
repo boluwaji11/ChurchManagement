@@ -9,7 +9,7 @@ import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
 import { archiveThread, readThread } from "@/app/messages/actions";
-import { useInbox } from "./data";
+import { useInbox, type InboxData } from "./data";
 import { Drafts, Threads } from "./list";
 import { Conversation } from "./thread";
 import { Compose } from "./compose";
@@ -32,6 +32,7 @@ export function InboxScreen({
   office,
   here,
   open,
+  initial,
 }: {
   church: string;
   churchName: string;
@@ -40,6 +41,8 @@ export function InboxScreen({
   here: string;
   /** Which conversation the address names. */
   open: string | null;
+  /** What the server already knew, so the screen never paints empty. */
+  initial: InboxData;
 }) {
   const router = useRouter();
   const [view, setView] = React.useState<View>("inbox");
@@ -47,7 +50,14 @@ export function InboxScreen({
   const [writing, setWriting] = React.useState(false);
   const [to, setTo] = React.useState("");
 
-  const { data, refresh } = useInbox(church, { view, key: open, watching: true });
+  const { data, refresh } = useInbox(church, {
+    view,
+    key: open,
+    watching: true,
+    // Only the view the server rendered starts filled; the others arrive on
+    // their first ask, which is what pressing them is.
+    initial: view === "inbox" ? initial : undefined,
+  });
 
   React.useEffect(() => {
     if (open) void readThread(open, church).then(refresh);

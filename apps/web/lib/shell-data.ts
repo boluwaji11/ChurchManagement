@@ -2,13 +2,16 @@ import "server-only";
 import { cache } from "react";
 import {
   withTenant, countUnread, listNotifications, getChurch, setupProgress,
-  churchStanding, personForUser, getPerson, canManageChurch, demoChurchInfo,
+  churchStanding, personForUser, getPerson, canManageChurch, canEditPeople,
+  demoChurchInfo, unreadFor,
   type Notification, type ChurchProfile, type SetupProgress, type ChurchStanding,
 } from "@connectapp/db";
 import type { Session } from "@/lib/session";
 
 export interface ShellData {
   unread: number;
+  /** R16.9. How many conversations are waiting, for the mark in the corner. */
+  waiting: number;
   notifications: Notification[];
   church: ChurchProfile | null;
   setup: SetupProgress | null;
@@ -65,7 +68,19 @@ export const shellData = cache(async (session: Session): Promise<ShellData> => {
         ? await getPerson(tx, self, { role: session.role, userId: session.userId })
         : null;
 
-      return { unread, notifications, church, setup, standing, photoKey: me?.photoKey ?? null };
+      /* R16.9. Counted here so the mark in the corner is right the moment the
+         page appears rather than a second afterwards. */
+      const waiting = await unreadFor(tx, {
+        tenantId: session.tenantId,
+        userId: session.userId,
+        memberId: self,
+        office: canEditPeople(session),
+      });
+
+      return {
+        unread, waiting, notifications, church, setup, standing,
+        photoKey: me?.photoKey ?? null,
+      };
     }),
     demoChurchInfo(session.tenantId),
   ]);

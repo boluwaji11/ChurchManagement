@@ -152,6 +152,7 @@ export async function PortalShell({
         churchName={session.tenantName}
         office={false}
         full={`/home/messages?church=${slug}`}
+        unread={shell.waiting}
         place="float"
       />
 

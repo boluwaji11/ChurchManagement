@@ -62,10 +62,16 @@ const RESTING = 25000;
 
 export function useInbox(
   church: string,
-  opts: { view?: "inbox" | "sent" | "drafts"; key?: string | null; watching?: boolean } = {},
+  opts: {
+    view?: "inbox" | "sent" | "drafts";
+    key?: string | null;
+    watching?: boolean;
+    /** What the server already put into the page, so nothing paints empty. */
+    initial?: InboxData;
+  } = {},
 ): { data: InboxData; refresh: () => void } {
-  const { view = "inbox", key = null, watching = false } = opts;
-  const [data, setData] = React.useState<InboxData>(EMPTY);
+  const { view = "inbox", key = null, watching = false, initial } = opts;
+  const [data, setData] = React.useState<InboxData>(initial ?? EMPTY);
 
   /*
    * R16.9. Only the newest answer is listened to.

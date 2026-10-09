@@ -5,6 +5,7 @@ import { Denied } from "@/components/denied";
 import { requireSession } from "@/lib/session";
 import { tabMetadata } from "@/lib/page-metadata";
 import { InboxScreen } from "@/components/inbox/screen";
+import { readInbox } from "@/lib/inbox-read";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,9 @@ export default async function MessagesPage({
     );
   }
 
+  /* R16.9. Read here, so the screen arrives filled. */
+  const first = await readInbox(session, { key: null });
+
   return (
     <AppShell session={session} title={t("inbox.title")} wide>
       <InboxScreen
@@ -48,6 +52,7 @@ export default async function MessagesPage({
         office
         here="/messages"
         open={null}
+        initial={first}
       />
     </AppShell>
   );

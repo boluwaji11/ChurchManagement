@@ -7,7 +7,7 @@ import { Avatar, IconButton } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { archiveThread, readThread } from "@/app/messages/actions";
-import { useInbox } from "./data";
+import { EMPTY, useInbox } from "./data";
 import { Drafts, Threads } from "./list";
 import { Conversation } from "./thread";
 import { Compose } from "./compose";
@@ -30,6 +30,7 @@ export function InboxMark({
   full,
   place = "bar",
   clear = "none",
+  unread = 0,
 }: {
   church: string;
   churchName: string;
@@ -45,6 +46,8 @@ export function InboxMark({
    * where every product that lets somebody write in has put it.
    */
   place?: "bar" | "float";
+  /** What the shell already counted, so the mark is right on first paint. */
+  unread?: number;
   /**
    * What else is already in that corner.
    *
@@ -59,7 +62,12 @@ export function InboxMark({
   const [writing, setWriting] = React.useState(false);
   const [to, setTo] = React.useState("");
 
-  const { data, refresh } = useInbox(church, { view, key, watching: open });
+  const { data, refresh } = useInbox(church, {
+    view,
+    key,
+    watching: open,
+    initial: { ...EMPTY, unread },
+  });
 
   const go = (next: string) => {
     setWriting(false);

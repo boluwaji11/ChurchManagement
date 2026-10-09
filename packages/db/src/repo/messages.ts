@@ -198,10 +198,29 @@ export const inboxFor = (
 export const sentFor = (db: Tx, reader: Reader, limit = 50): Promise<Thread[]> =>
   readThreads(db, reader, { sent: true, limit });
 
-/** R16.9. How many lines are waiting on this reader, for the mark on the bar. */
+/**
+ * R16.9. How many conversations are waiting on this reader.
+ *
+ * One statement, because every page in the product renders this number on its
+ * way to the browser: the shell asks for it before anything else is drawn.
+ */
 export async function unreadFor(db: Tx, reader: Reader): Promise<number> {
-  const threads = await readThreads(db, reader);
-  return threads.reduce((sum, one) => sum + (one.unread > 0 ? 1 : 0), 0);
+  const rows = (await db.execute(sql`
+    select count(*)::int as waiting from (
+      select distinct c.id
+        from conversations c
+        join conversation_people p on p.conversation_id = c.id
+         and ((p.office and ${reader.office}) or (p.member_id = ${reader.memberId ?? null}))
+       where c.archived_at is null
+         and exists (
+           select 1 from messages m
+            where m.conversation_id = c.id
+              and m.created_at > coalesce(p.last_read_at, timestamptz '-infinity')
+              and not ${MINE}
+         )
+    ) waiting
+  `)) as unknown as { waiting: number }[];
+  return rows[0]?.waiting ?? 0;
 }
 
 /** R16.9. Everything said in one thread, oldest first. */
