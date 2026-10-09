@@ -24,15 +24,106 @@ export const LIKE = MARKS[0]!;
 const tally = (n: number): string =>
   n < 1000 ? String(n) : `${(n / 1000).toFixed(n < 10000 ? 1 : 0).replace(/\.0$/, "")}k`;
 
+/** The six, with the reader's own held down so the same press takes it off. */
+function Choices({
+  marks,
+  onPick,
+  align,
+}: {
+  marks: Mark[];
+  onPick: (emoji: string) => void;
+  align: "left" | "right";
+}) {
+  return (
+    <span
+      className={`absolute bottom-7 z-40 flex gap-0.5 rounded-full border border-line bg-surface p-1 shadow-lg ${
+        align === "left" ? "left-0" : "right-0"
+      }`}
+    >
+      {MARKS.map((one) => {
+        const held = marks.find((each) => each.emoji === one);
+        return (
+          <button
+            key={one}
+            type="button"
+            onClick={() => onPick(one)}
+            aria-label={one}
+            aria-pressed={held?.mine ?? false}
+            className={`emoji grid size-8 cursor-pointer place-items-center rounded-full text-[19px] hover:bg-sunken ${
+              held?.mine ? "bg-primary-soft" : ""
+            }`}
+          >
+            {one}
+          </button>
+        );
+      })}
+    </span>
+  );
+}
+
 /**
- * R16.9. What has been put against one message, and the way to add one.
+ * R16.9. The way to put a mark against somebody's line.
  *
- * One pill holding at most two marks and the count, hung on the corner of the
- * message rather than placed in the line under it. Two reasons: a row of
- * chips grows with every new mark and shoves the time along with it, and a
- * group of forty would fill the width of the panel with a line of faces. The
- * pill is the shape Teams, iMessage and LinkedIn all settled on for the same
- * reason.
+ * It rides the row of actions under the message with answering and the rest,
+ * because they are the same kind of thing: what this reader may do about what
+ * was said.
+ */
+export function ReactButton({
+  church,
+  id,
+  marks,
+  onChanged,
+  className,
+}: {
+  church: string;
+  id: string;
+  marks: Mark[];
+  onChanged: () => void;
+  className?: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+
+  const put = (emoji: string) => {
+    if (busy) return;
+    setBusy(true);
+    setOpen(false);
+    void markMessage(id, emoji, church).then(() => {
+      setBusy(false);
+      onChanged();
+    });
+  };
+
+  return (
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        aria-label={t("inbox.react")}
+        aria-expanded={open}
+        onClick={() => setOpen((was) => !was)}
+        className={className}
+      >
+        <SmilePlus aria-hidden />
+      </button>
+
+      {open ? (
+        <>
+          <span className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <Choices marks={marks} onPick={put} align="left" />
+        </>
+      ) : null}
+    </span>
+  );
+}
+
+/**
+ * R16.9. What has been put against one message.
+ *
+ * One pill holding at most two marks and the count, resting on the corner of
+ * the message. A row of chips grows with every new mark and shoves the time
+ * along with it, and a group of forty would fill the panel with a line of
+ * faces. The pill is the shape Teams, iMessage and LinkedIn all settled on
+ * for the same reason.
  *
  * It sits on the far corner from the time, so the two can never collide and
  * the time never moves.
@@ -65,93 +156,42 @@ export function Marks({
   };
 
   const total = marks.reduce((sum, one) => sum + one.count, 0);
+  if (total === 0) return null;
+
   const shown = marks.slice(0, 2);
   const theirs = marks.some((one) => one.mine);
 
-  /* Nothing on it, and nothing this reader may put on it. */
-  if (total === 0 && mine) return null;
-
   return (
-    /*
-     * R16.9. What is against the message sits inside it, in the strip the
-     * message keeps clear for it: hung off the edge it covered the last line
-     * of the words.
-     *
-     * The way to put the first one sits beside the message instead, in the
-     * empty half of the row, because a message with nothing against it keeps
-     * no strip clear and a mark over its words is worse than a mark further
-     * out.
-     */
-    <span
-      className={total > 0
-        /* Half in the message and half out of it, on the corner. The message
-           keeps just enough room at its foot that the half inside lands on
-           nothing. */
-        ? `absolute -bottom-2.5 z-10 ${mine ? "left-2.5" : "right-2.5"}`
-        : `absolute top-1/2 z-10 -translate-y-1/2 ${mine ? "-left-9" : "-right-9"}`}
-    >
+    /* Half in the message and half out of it, on the corner. The message
+       keeps just enough room at its foot that the half inside lands on
+       nothing. */
+    <span className={`absolute -bottom-2.5 z-10 ${mine ? "left-2.5" : "right-2.5"}`}>
       <span className="relative flex items-center">
-        {total > 0 ? (
-          <button
-            type="button"
-            disabled={mine}
-            aria-label={plural("inbox.reactions", total)}
-            onClick={() => setOpen((was) => !was)}
-            className={`flex min-h-[20px] items-center gap-0.5 rounded-full border bg-surface px-1 shadow-sm ${
-              theirs ? "border-primary" : "border-line"
-            } ${mine ? "cursor-default" : "cursor-pointer hover:bg-sunken"}`}
-          >
-            {shown.map((one) => (
-              <span key={one.emoji} aria-hidden className="emoji text-[12px]">
-                {one.emoji}
-              </span>
-            ))}
-            {total > 1 ? (
-              <span className="pr-0.5 pl-px text-[10px] font-medium text-fg-muted tabular-nums">
-                {tally(total)}
-              </span>
-            ) : null}
-          </button>
-        ) : (
-          /* Nothing on it yet: the way to put the first one, on hover with a
-             pointer and always where there is none. */
-          <button
-            type="button"
-            aria-label={t("inbox.react")}
-            aria-expanded={open}
-            onClick={() => setOpen((was) => !was)}
-            className="grid size-[22px] cursor-pointer place-items-center rounded-full border border-line bg-surface text-fg-subtle opacity-0 shadow-sm transition-opacity hover:bg-sunken hover:text-fg focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100 [&_svg]:size-[13px]"
-          >
-            <SmilePlus aria-hidden />
-          </button>
-        )}
+        <button
+          type="button"
+          disabled={mine}
+          aria-label={plural("inbox.reactions", total)}
+          onClick={() => setOpen((was) => !was)}
+          className={`flex min-h-[20px] items-center gap-0.5 rounded-full border bg-surface px-1 shadow-sm ${
+            theirs ? "border-primary" : "border-line"
+          } ${mine ? "cursor-default" : "cursor-pointer hover:bg-sunken"}`}
+        >
+          {shown.map((one) => (
+            <span key={one.emoji} aria-hidden className="emoji text-[12px]">
+              {one.emoji}
+            </span>
+          ))}
+          {total > 1 ? (
+            <span className="pr-0.5 pl-px text-[10px] font-medium text-fg-muted tabular-nums">
+              {tally(total)}
+            </span>
+          ) : null}
+        </button>
 
         {open && !mine ? (
           <>
             <span className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-            <span
-              className={`absolute bottom-7 z-40 flex gap-0.5 rounded-full border border-line bg-surface p-1 shadow-lg ${
-                mine ? "left-0" : "right-0"
-              }`}
-            >
-              {MARKS.map((one) => {
-                const held = marks.find((each) => each.emoji === one);
-                return (
-                  <button
-                    key={one}
-                    type="button"
-                    onClick={() => put(one)}
-                    aria-label={one}
-                    aria-pressed={held?.mine ?? false}
-                    className={`emoji grid size-8 cursor-pointer place-items-center rounded-full text-[19px] hover:bg-sunken ${
-                      held?.mine ? "bg-primary-soft" : ""
-                    }`}
-                  >
-                    {one}
-                  </button>
-                );
-              })}
-            </span>
+            <Choices marks={marks} onPick={put} align={mine ? "left" : "right"} />
           </>
         ) : null}
       </span>

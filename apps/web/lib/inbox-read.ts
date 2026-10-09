@@ -107,6 +107,7 @@ export async function readInbox(
       mine: one.mine,
       edited: one.edited,
       deleted: one.deleted,
+      answering: one.answering,
       clock: one.createdAt.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" }),
       day: one.createdAt.toLocaleDateString(locale, {
         weekday: "long", day: "numeric", month: "long",

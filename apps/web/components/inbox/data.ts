@@ -44,6 +44,12 @@ export interface Said {
   mine: boolean;
   edited: boolean;
   deleted: boolean;
+  answering: {
+    id: string;
+    name: string;
+    fromOffice: boolean;
+    line: string;
+  } | null;
   clock: string;
   day: string;
   at: string;

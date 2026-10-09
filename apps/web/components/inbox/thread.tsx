@@ -6,7 +6,7 @@ import { Avatar, Spinner, Textarea } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
 import { EmojiButton, LIKE, Marks } from "./marks";
-import { LineMenu } from "./line-menu";
+import { LineActions } from "./line-actions";
 import { editLine, markMessage } from "@/app/messages/actions";
 import { keepDraft, send } from "@/app/messages/actions";
 import type { Said } from "./data";
@@ -76,6 +76,19 @@ export function Conversation({
    * on every browser.
    */
   const tapped = React.useRef<{ id: string; at: number } | null>(null);
+
+  /* R16.9. Which line is being answered, where one is. */
+  const [answering, setAnswering] = React.useState<Said | null>(null);
+  React.useEffect(() => { setAnswering(null); }, [to]);
+
+  /** R16.9. Takes the reader to the line an answer is answering. */
+  const show = (id: string) => {
+    const found = document.querySelector<HTMLElement>(`[data-line="${id}"]`);
+    if (!found) return;
+    found.scrollIntoView({ block: "center", behavior: "smooth" });
+    found.classList.add("ring-2", "ring-primary");
+    setTimeout(() => found.classList.remove("ring-2", "ring-primary"), 1200);
+  };
 
   /* R16.9. Which line is being changed, and the words as they stand. */
   const [editing, setEditing] = React.useState<string | null>(null);
@@ -177,7 +190,8 @@ export function Conversation({
                       if (event.pointerType === "mouse") return;
                       tap(one.id, one.mine);
                     }}
-                    className={`relative select-none ${
+                    data-line={one.id}
+                    className={`relative scroll-mt-6 select-none ${
                       alone
                         ? `emoji px-1 pt-0.5 ${alone === 1 ? "text-[40px]" : "text-[30px]"} ${
                             room ? "pb-3" : "pb-0.5"
@@ -191,6 +205,23 @@ export function Conversation({
                           } [&_p]:mb-2 [&_p:last-child]:mb-0`
                     }`}
                   >
+                    {one.answering ? (
+                      /* R16.9. What this answers, above the answer, where a
+                         press takes the reader back to it. */
+                      <button
+                        type="button"
+                        onClick={() => show(one.answering!.id)}
+                        className="mb-1.5 flex w-full cursor-pointer flex-col items-start gap-0.5 rounded-lg border-l-2 border-primary bg-fg/[0.04] px-2 py-1 text-left hover:bg-fg/[0.07]"
+                      >
+                        <span className="text-[11px] font-semibold text-fg-muted">
+                          {one.answering.fromOffice ? churchName : one.answering.name}
+                        </span>
+                        <span className="line-clamp-2 text-[12px] text-fg-muted">
+                          {one.answering.line || t("inbox.deleted")}
+                        </span>
+                      </button>
+                    ) : null}
+
                     {one.deleted ? (
                       <span className="text-fg-subtle italic">{t("inbox.deleted")}</span>
                     ) : editing === one.id ? (
@@ -262,17 +293,23 @@ export function Conversation({
                       one.mine ? "flex-row-reverse" : ""
                     }`}
                   >
-                    {one.clock}
-                    {one.edited && !one.deleted ? (
-                      <span className="text-fg-subtle">{t("inbox.edited")}</span>
-                    ) : null}
-                    {one.mine && !one.deleted && editing !== one.id ? (
-                      <LineMenu
+                    {/* R16.9. The marks lead and the time follows, away from
+                        the corner the pill rests on, so the two never sit on
+                        top of each other. */}
+                    {!one.deleted && editing !== one.id ? (
+                      <LineActions
                         church={church}
                         id={one.id}
+                        mine={one.mine}
+                        marks={one.reactions}
+                        onReply={() => setAnswering(one)}
                         onEdit={() => { setEditing(one.id); setWords(one.body); }}
                         onChanged={onChanged ?? onSent}
                       />
+                    ) : null}
+                    {one.clock}
+                    {one.edited && !one.deleted ? (
+                      <span className="text-fg-subtle">{t("inbox.edited")}</span>
                     ) : null}
                   </span>
                 </div>
@@ -283,7 +320,16 @@ export function Conversation({
         <div ref={foot} />
       </div>
 
-      <Writer church={church} to={to} onSent={onSent} sending={sending} draft={draft} />
+      <Writer
+        church={church}
+        to={to}
+        onSent={onSent}
+        sending={sending}
+        draft={draft}
+        churchName={churchName}
+        answering={answering}
+        onStopAnswering={() => setAnswering(null)}
+      />
     </div>
   );
 }
@@ -301,6 +347,9 @@ export function Writer({
   sending = false,
   autoFocus,
   draft = "",
+  churchName = "",
+  answering = null,
+  onStopAnswering,
 }: {
   church: string;
   to: string;
@@ -309,6 +358,10 @@ export function Writer({
   autoFocus?: boolean;
   /** R16.9. What was typed to this one and not sent. */
   draft?: string;
+  churchName?: string;
+  /** R16.9. The line this one will answer, where one was chosen. */
+  answering?: Said | null;
+  onStopAnswering?: () => void;
 }) {
   const [body, setBody] = React.useState(draft);
   const [working, setWorking] = React.useState(false);
@@ -398,7 +451,7 @@ export function Writer({
     setWorking(true);
     setError(null);
 
-    void send(to, words, church).then((back) => {
+    void send(to, words, church, answering?.id ?? null).then((back) => {
       setWorking(false);
       posting.current = false;
       if (back.error) {
@@ -412,6 +465,7 @@ export function Writer({
       /* Said plainly rather than left to the send: whatever was written down
          for this recipient has just been sent. */
       void keepDraft(to, "", church);
+      onStopAnswering?.();
       onSent();
     });
   };
@@ -434,6 +488,36 @@ export function Writer({
   return (
     <div className="flex shrink-0 flex-col gap-1.5 border-t border-line bg-surface px-3 py-3">
       {error ? <p role="status" className="text-[13px] text-danger-text">{error}</p> : null}
+
+      {answering ? (
+        /* R16.9. What is being answered, in front of the writer, with the way
+           to stop answering it. */
+        <div className="flex items-start gap-2 rounded-lg border-l-2 border-primary bg-fg/[0.04] px-2 py-1.5">
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="text-[11px] font-semibold text-fg-muted">
+              {t("inbox.replyingTo", {
+                name: answering.fromOffice
+                  ? churchName
+                  : answering.mine
+                    ? t("inbox.you")
+                    : answering.name,
+              })}
+            </span>
+            <span className="line-clamp-2 text-[12px] text-fg-muted">
+              {answering.body || t("inbox.deleted")}
+            </span>
+          </span>
+          <button
+            type="button"
+            aria-label={t("inbox.stopReplying")}
+            title={t("inbox.stopReplying")}
+            onClick={onStopAnswering}
+            className="grid size-6 shrink-0 cursor-pointer place-items-center rounded-full text-fg-subtle hover:bg-sunken hover:text-fg [&_svg]:size-[14px]"
+          >
+            <X aria-hidden />
+          </button>
+        </div>
+      ) : null}
 
       <div className="flex items-end gap-1.5">
         <EmojiButton onPick={put} />

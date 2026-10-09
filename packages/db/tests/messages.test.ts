@@ -15,6 +15,7 @@ import {
   type Reader,
 } from "../src/repo/messages";
 import { createPerson, getPerson } from "../src/repo/members";
+
 import { createGroup, addToGroup, seedGroupTypes, listGroupTypes } from "../src/repo/groups";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError } from "../src/roles";
@@ -208,6 +209,68 @@ describe("a line already sent", () => {
     await expect(
       run((tx) => editMessage(tx, mine, gone.id, "Back again")),
     ).rejects.toBeInstanceOf(PermissionError);
+  });
+});
+
+/**
+ * HRT-274. Answering one line in particular (R16.9).
+ */
+describe("an answer to a line", () => {
+  it("carries the line it answers", async () => {
+    const thread = await run((tx) => threadAt(tx, mine, "office"));
+    const said = await run((tx) => messagesIn(tx, mine, thread!.id));
+    const theirs = said.find((one) => !one.mine && !one.deleted)!;
+
+    await run((tx) =>
+      sendMessage(tx, mine, {
+        to: { office: true }, body: "About that", answering: theirs.id,
+      }),
+    );
+
+    const after = await run((tx) => messagesIn(tx, mine, thread!.id));
+    const answer = after.at(-1)!;
+    expect(answer.answering?.id).toBe(theirs.id);
+    expect(answer.answering?.line).toBe(theirs.body);
+  });
+
+  it("cannot answer a line in somebody else's conversation", async () => {
+    const other = await run((tx) =>
+      createPerson(tx, { tenantId: tenant, role: "owner" }, {
+        firstName: "Elsewhere", lastName: "Entirely", lifecycleStatus: "member",
+      } as never),
+    );
+    const them = await run((tx) => getPerson(tx, other.id));
+    const theirs = await run((tx) =>
+      sendMessage(tx, office, {
+        to: { office: false, slug: them!.slug },
+        body: "A line in another thread",
+      }),
+    );
+
+    const thread = await run((tx) => threadAt(tx, mine, "office"));
+    await run((tx) =>
+      sendMessage(tx, mine, {
+        to: { office: true }, body: "Answering across", answering: theirs.id,
+      }),
+    );
+
+    const after = await run((tx) => messagesIn(tx, mine, thread!.id));
+    /* The line it named is not in this conversation, so it answers nothing
+       rather than quoting something the reader cannot see. */
+    expect(after.at(-1)?.answering).toBeNull();
+  });
+
+  it("stands after the line it answers is taken back", async () => {
+    const thread = await run((tx) => threadAt(tx, mine, "office"));
+    const said = await run((tx) => messagesIn(tx, mine, thread!.id));
+    const answer = said.find((one) => one.answering)!;
+
+    await run((tx) => deleteMessage(tx, office, answer.answering!.id));
+
+    const after = await run((tx) => messagesIn(tx, mine, thread!.id));
+    const now = after.find((one) => one.id === answer.id);
+    expect(now?.answering?.id).toBe(answer.answering!.id);
+    expect(now?.answering?.line).toBe("");
   });
 });
 

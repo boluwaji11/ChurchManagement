@@ -114,6 +114,16 @@ One row a person a mark, so the same press puts it on and takes it off, and
 nobody can stack one twice or remove somebody else's. The box has its own
 short grid of emoji, written in at the caret.
 
+## Answering one line
+
+R16.9. A group thread of thirty lines is read out of order, and "yes, that
+one" is not an answer anybody can follow. A message may name the one it
+answers, carried in the line rather than pasted into the words, and pressing
+the quote takes the reader to it.
+
+The line a message answers is kept when that line is taken back, because the
+answer is still somebody's: the quote goes blank and the answer stands.
+
 ## What this is not, in this build
 
 No attachments, no read receipts beyond the unread mark, no typing indicator,

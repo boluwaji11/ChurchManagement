@@ -33,6 +33,8 @@ export async function send(
   to: string,
   body: string,
   church?: string,
+  /** R16.9. The line this one answers, where it answers one. */
+  answering?: string | null,
 ): Promise<{ key?: string; error?: string }> {
   try {
     const { session, ctx } = await context(church);
@@ -48,6 +50,7 @@ export async function send(
               ? { office: false, team: name! }
               : { office: false, slug: to },
         body,
+        answering,
       });
       return { key: to };
     });

@@ -75,6 +75,15 @@ export interface Message {
   edited: boolean;
   /** R2.13. Taken back: the row stays, the words are gone. */
   deleted: boolean;
+  /** R16.9. The line this one answers, where it answers one. */
+  answering: {
+    id: string;
+    /** Who wrote it, already resolved. Empty for the church. */
+    name: string;
+    fromOffice: boolean;
+    /** Its opening, short enough to sit above a line. */
+    line: string;
+  } | null;
   /** R16.9. What has been put against it, most used first. */
   reactions: Reaction[];
 }
@@ -325,6 +334,7 @@ export async function messagesIn(
       createdAt: messages.createdAt,
       editedAt: messages.editedAt,
       deletedAt: messages.deletedAt,
+      replyToId: messages.replyToId,
       fromOffice: messages.fromOffice,
       authorMemberId: messages.authorMemberId,
       first: members.firstName,
@@ -335,6 +345,23 @@ export async function messagesIn(
     .leftJoin(members, eq(members.id, messages.authorMemberId))
     .where(eq(messages.conversationId, conversationId))
     .orderBy(asc(messages.createdAt));
+
+  /* R16.9. What each answer is answering, read in one go. */
+  const answered = rows.map((one) => one.replyToId).filter((one): one is string => Boolean(one));
+  const quoted = answered.length === 0
+    ? []
+    : await db
+        .select({
+          id: messages.id,
+          body: messages.body,
+          deletedAt: messages.deletedAt,
+          fromOffice: messages.fromOffice,
+          first: members.firstName,
+          last: members.lastName,
+        })
+        .from(messages)
+        .leftJoin(members, eq(members.id, messages.authorMemberId))
+        .where(inArray(messages.id, answered));
 
   const marks = rows.length === 0
     ? []
@@ -376,6 +403,18 @@ export async function messagesIn(
       ? reader.office
       : one.authorMemberId !== null && one.authorMemberId === reader.memberId,
     reactions: one.deletedAt ? [] : against(one.id),
+    answering: (() => {
+      const held = one.replyToId
+        ? quoted.find((each) => each.id === one.replyToId)
+        : undefined;
+      if (!held) return null;
+      return {
+        id: held.id,
+        name: held.fromOffice ? "" : `${held.first ?? ""} ${held.last ?? ""}`.trim(),
+        fromOffice: held.fromOffice,
+        line: held.deletedAt ? "" : opening(held.body),
+      };
+    })(),
   }));
 }
 
@@ -594,7 +633,7 @@ export async function openThread(
 export async function sendMessage(
   db: Tx,
   reader: Reader,
-  input: { to: Target; body: string },
+  input: { to: Target; body: string; answering?: string | null },
 ): Promise<{ threadId: string; id: string }> {
   const body = clean(input.body);
   if (!body) throw new InvalidInputError("inbox.error.empty");
@@ -642,6 +681,20 @@ export async function sendMessage(
               memberIds: [reader.memberId!, them!],
             });
 
+  /* R16.9. A line may only answer one in the same conversation. */
+  let answering: string | null = null;
+  if (input.answering) {
+    const [held] = await db
+      .select({ id: messages.id })
+      .from(messages)
+      .where(and(
+        eq(messages.id, input.answering),
+        eq(messages.conversationId, threadId),
+      ))
+      .limit(1);
+    answering = held?.id ?? null;
+  }
+
   const [made] = await db
     .insert(messages)
     .values({
@@ -651,6 +704,7 @@ export async function sendMessage(
       authorMemberId: asOffice ? null : reader.memberId,
       authorUserId: reader.userId,
       body,
+      replyToId: answering,
     })
     .returning({ id: messages.id });
 
