@@ -204,6 +204,9 @@ function TemplatePanel({
     [taken.join("|")],
   );
   const [picking, setPicking] = React.useState(!template && library.length > 0);
+  /* R11.8. A shape taken off our list is added; one the church writes itself
+     is saved, and the press says which of the two is happening. */
+  const [fromLibrary, setFromLibrary] = React.useState(false);
   const [error, setError] = useFormError(open && !picking);
   const [name, setName] = React.useState(template?.name ?? "");
   const [lines, setLines] = React.useState<ShapeLine[]>(template?.lines ?? []);
@@ -220,6 +223,7 @@ function TemplatePanel({
     setOpen(next);
     if (!next) {
       setDirty(false);
+      setFromLibrary(false);
       setPicking(!template && library.length > 0);
     }
   };
@@ -284,7 +288,7 @@ function TemplatePanel({
                 loading={saving}
                 onClick={save}
               >
-                {t("action.save")}
+                {fromLibrary && !template ? t("action.add") : t("action.save")}
               </Button>
             </>
           )
@@ -299,6 +303,7 @@ function TemplatePanel({
             onOwn={() => {
               setName("");
               setLines([]);
+              setFromLibrary(false);
               setPicking(false);
             }}
             onPick={(item) => {
@@ -321,6 +326,7 @@ function TemplatePanel({
                 })),
               );
               setDirty(true);
+              setFromLibrary(true);
               setPicking(false);
             }}
           />
