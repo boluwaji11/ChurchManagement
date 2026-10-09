@@ -72,7 +72,21 @@ export function Marks({
   if (total === 0 && mine) return null;
 
   return (
-    <span className={`absolute -bottom-3 z-10 ${mine ? "left-2" : "right-2"}`}>
+    /*
+     * R16.9. What is against the message sits inside it, in the strip the
+     * message keeps clear for it: hung off the edge it covered the last line
+     * of the words.
+     *
+     * The way to put the first one sits beside the message instead, in the
+     * empty half of the row, because a message with nothing against it keeps
+     * no strip clear and a mark over its words is worse than a mark further
+     * out.
+     */
+    <span
+      className={total > 0
+        ? `absolute bottom-1.5 z-10 ${mine ? "left-2.5" : "right-2.5"}`
+        : `absolute top-1/2 z-10 -translate-y-1/2 ${mine ? "-left-9" : "-right-9"}`}
+    >
       <span className="relative flex items-center">
         {total > 0 ? (
           <button

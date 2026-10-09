@@ -111,6 +111,9 @@ export function Conversation({
             || before.fromOffice !== one.fromOffice;
           const name = one.fromOffice ? churchName : one.mine ? t("inbox.you") : one.name;
           const alone = marksAlone(one.body);
+          /* R16.9. Room at the foot of the message for what is against it, so
+             the pill never sits over the words. */
+          const room = one.reactions.length > 0;
 
           return (
             <React.Fragment key={one.id}>
@@ -160,8 +163,12 @@ export function Conversation({
                     }}
                     className={`relative select-none ${
                       alone
-                        ? `emoji px-1 py-0.5 ${alone === 1 ? "text-[40px]" : "text-[30px]"}`
-                        : `rounded-2xl px-3.5 py-2 text-[15px] leading-6 ${
+                        ? `emoji px-1 pt-0.5 ${alone === 1 ? "text-[40px]" : "text-[30px]"} ${
+                            room ? "pb-6" : "pb-0.5"
+                          }`
+                        : `rounded-2xl px-3.5 pt-2 text-[15px] leading-6 ${
+                            room ? "pb-8" : "pb-2"
+                          } ${
                             one.mine
                               ? "rounded-br-sm bg-primary-soft text-fg"
                               : "rounded-bl-sm border border-line bg-surface text-fg"
