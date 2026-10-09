@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, ShieldCheck, Undo2 } from "lucide-react";
-import { Banner, Button, IconButton, LIFT, hueForId } from "@connectapp/ui";
+import { Banner, Button, IconButton, LIFT, Tooltip, hueForId } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { TeamPanel, type PositionDraft, type MemberDraft } from "../../schedule/team-panel";
@@ -125,28 +125,34 @@ export function TeamList({
                       <span className="flex flex-wrap gap-1.5">
                         {/* R24.4. A position carries a hue of its own, so a
                             leader picks its row out of a tile at a glance. */}
-                        {team.positions.map(({ id, name }) => {
+                        {team.positions.map(({ id, name, requiresCheck }) => {
                           const hue = hueForId(id ?? name);
                           return (
                             <span
                               key={id ?? name}
-                              className="flex h-[26px] items-center rounded-full px-2.5 text-[12px] font-medium"
+                              className="flex h-[26px] items-center gap-1 rounded-full px-2.5 text-[12px] font-medium"
                               style={{
                                 background: `var(--hue-${hue}-tint)`,
                                 color: `var(--hue-${hue}-key)`,
                               }}
                             >
                               {name}
+                              {/* R10.10. The check is a fact about the
+                                  position, so it is marked on the position
+                                  rather than on the team above it. */}
+                              {requiresCheck ? (
+                                <Tooltip content={t("serving.needsChecks")}>
+                                  <span className="flex items-center">
+                                    <ShieldCheck className="size-3.5" aria-hidden />
+                                    <span className="sr-only">
+                                      {t("serving.needsChecks")}
+                                    </span>
+                                  </span>
+                                </Tooltip>
+                              ) : null}
                             </span>
                           );
                         })}
-                      </span>
-                    ) : null}
-
-                    {team.needsChecks ? (
-                      <span className="flex items-center gap-1.5 text-[13px] text-fg-muted">
-                        <ShieldCheck className="size-4" aria-hidden />
-                        {t("serving.needsChecks")}
                       </span>
                     ) : null}
 
