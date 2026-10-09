@@ -411,3 +411,39 @@ describe("a group's thread", () => {
     expect(theirs.find((one) => one.key === `group/${groupSlug}`)?.unread).toBe(2);
   });
 });
+
+describe("what a tick says", () => {
+  it("leaves a line unmarked until somebody else has opened it", async () => {
+    const made = await run((tx) =>
+      sendMessage(tx, office, { to: { office: false, slug }, body: "Have you a moment?" }));
+
+    const mine = await run((tx) => messagesIn(tx, office, made.threadId));
+    const line = mine.find((one) => one.id === made.id);
+    expect(line?.mine).toBe(true);
+    expect(line?.readByOthers).toBe(false);
+  });
+
+  it("marks it once the other side has read the thread", async () => {
+    const made = await run((tx) =>
+      sendMessage(tx, office, { to: { office: false, slug }, body: "Tuesday suits." }));
+
+    await run((tx) => markThreadRead(tx, mine, made.threadId));
+
+    const theirs = await run((tx) => messagesIn(tx, office, made.threadId));
+    expect(theirs.find((one) => one.id === made.id)?.readByOthers).toBe(true);
+  });
+
+  it("never counts the writer's own reading as somebody else's", async () => {
+    const made = await run((tx) =>
+      sendMessage(tx, mine, { to: { office: true }, body: "Thank you." }));
+
+    /* The member opens their own thread again, which is not the office
+       reading it. */
+    await run((tx) => markThreadRead(tx, mine, made.threadId));
+
+    const ours = await run((tx) => messagesIn(tx, mine, made.threadId));
+    const line = ours.find((one) => one.id === made.id);
+    expect(line?.mine).toBe(true);
+    expect(line?.readByOthers).toBe(false);
+  });
+});

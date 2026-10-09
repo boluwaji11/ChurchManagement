@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUp, Check, X } from "lucide-react";
+import { ArrowUp, Check, CheckCheck, X } from "lucide-react";
 import { Avatar, Spinner, Textarea, Tooltip } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
@@ -362,6 +362,30 @@ export function Conversation({
                     <span aria-hidden>{one.clock}</span>
                     {one.edited && !one.deleted ? (
                       <span className="text-fg-subtle">{t("inbox.edited")}</span>
+                    ) : null}
+
+                    {/*
+                      * R16.9. One tick for landed, two for read.
+                      *
+                      * Nothing is sent anywhere here, so a line is in the other
+                      * person's inbox the moment it is written down: the first
+                      * tick says that much. The second says at least one of
+                      * them has opened it, which is the thing a church actually
+                      * wants to know after writing to somebody.
+                      *
+                      * On their own lines only. Reading a mark against
+                      * somebody else's line would be reading it against
+                      * yourself.
+                      */}
+                    {one.mine && !one.deleted ? (
+                      <span
+                        aria-label={one.readByOthers ? t("inbox.seen") : t("inbox.landed")}
+                        className={one.readByOthers ? "text-primary" : "text-fg-subtle"}
+                      >
+                        {one.readByOthers
+                          ? <CheckCheck className="size-[13px]" aria-hidden />
+                          : <Check className="size-[13px]" aria-hidden />}
+                      </span>
                     ) : null}
                   </span>
                 </div>

@@ -37,6 +37,7 @@ const line = (one: Partial<Said> & { id: string; body: string }): Said => ({
   day: DAY,
   at: new Date().toISOString(),
   reactions: [],
+  readByOthers: false,
   ...one,
 });
 
@@ -50,6 +51,8 @@ const SAID: Said[] = [
     mine: true,
     clock: "9:21 AM",
     reactions: marks([["🙏", 1, false]]),
+    /* Read by the other side: two ticks. */
+    readByOthers: true,
   }),
   line({
     id: "3",
@@ -58,6 +61,8 @@ const SAID: Said[] = [
     answering: { id: "2", name: "", fromOffice: true, line: "It is. I have put you down from seven." },
   }),
   line({ id: "4", body: "🎉", clock: "9:25 AM" }),
+  /* Written down and waiting: one tick. */
+  line({ id: "4b", body: "Seven it is.", mine: true, name: "", fromOffice: true, clock: "9:26 AM" }),
   line({
     id: "5",
     body: "One more thing: is the kitchen included?",

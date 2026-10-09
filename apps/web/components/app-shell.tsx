@@ -23,6 +23,7 @@ import { shellData } from "@/lib/shell-data";
 import { photoUrls } from "@/lib/photos";
 import { TabTitle } from "./tab-title";
 import { Installed } from "./portal/installed";
+import { AskPush } from "./shell/ask-push";
 
 /**
  * R24.6. The frame every staff screen sits in.
@@ -128,6 +129,10 @@ export async function AppShell({
           screens as well as in the portal. Without one here, somebody who
           turned notifications on had nothing to deliver them. */}
       <Installed />
+
+      {/* R22.1. Asked once a browser, in the product's own words, before the
+          browser's own prompt appears beside the padlock. */}
+      <AskPush church={session.tenantSlug} />
 
       <Sidebar
         entries={entries}

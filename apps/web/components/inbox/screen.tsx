@@ -88,15 +88,36 @@ export function InboxScreen({
   ];
 
   return (
-    <div className="grid min-h-[70vh] gap-4 lg:[grid-template-columns:minmax(280px,360px)_1fr]">
+    /*
+     * R16.9. On a wide screen the two panes are as tall as the screen and no
+     * taller, and each does its own scrolling.
+     *
+     * Without a height to work against, the conversation grew with its lines
+     * and the whole page scrolled: the box somebody types in walked off the
+     * bottom, and a thread of forty lines put it a long way off. On a phone the
+     * panes stack and the page scrolls, which is how a phone reads.
+     */
+    <div className="grid min-h-[70vh] gap-4 lg:h-[calc(100dvh-13.5rem)] lg:min-h-[460px] lg:[grid-template-columns:minmax(280px,360px)_1fr]">
       {/* R24.11. Named, so somebody moving by region can go from the list to
           the conversation beside it without walking every row. */}
-      <div role="region" aria-label={t("inbox.threads")} className="flex min-w-0 flex-col gap-3">
+      <div
+        role="region"
+        aria-label={t("inbox.threads")}
+        className="flex min-w-0 flex-col gap-3 lg:min-h-0"
+      >
         <div className="flex items-center gap-2">
-          <SearchField value={find} onChange={setFind} placeholder={t("inbox.find")} />
+          {/* A hairline rather than the field's own stronger edge: this box
+              sits over a list rather than in a form, and the mark beside it
+              carries no frame at all. */}
+          <SearchField
+            value={find}
+            onChange={setFind}
+            placeholder={t("inbox.find")}
+            className="[&_input]:border-line [&_input]:shadow-none hover:[&_input]:border-line-strong"
+          />
           <IconButton
             label={t("inbox.new")}
-            variant="secondary"
+            variant="ghost"
             className="size-10 min-h-0 shrink-0 [&_svg]:size-[18px]"
             onClick={() => { setTo(office ? "" : "office"); setWriting(true); }}
           >
@@ -124,7 +145,9 @@ export function InboxScreen({
           ))}
         </nav>
 
-        <div className="flex min-w-0 flex-col overflow-hidden rounded-[14px] border border-line bg-surface">
+        {/* The list scrolls inside its own box rather than taking the page
+            with it. */}
+        <div className="flex min-w-0 flex-col overflow-hidden rounded-[14px] border border-line bg-surface lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
           {view === "drafts" ? (
             data.drafts.length === 0 ? (
               <p className="px-4 py-6 text-[13px] text-fg-muted">{t("inbox.noDrafts")}</p>
@@ -141,7 +164,7 @@ export function InboxScreen({
         </div>
       </div>
 
-      <div className="flex min-h-[60vh] min-w-0 flex-col overflow-hidden rounded-[14px] border border-line bg-surface">
+      <div className="flex min-h-[60vh] min-w-0 flex-col overflow-hidden rounded-[14px] border border-line bg-surface lg:min-h-0">
         {writing ? (
           <>
             <header className="flex items-center gap-3 border-b border-line px-4 py-3">

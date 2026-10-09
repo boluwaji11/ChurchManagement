@@ -54,6 +54,8 @@ export interface Said {
   day: string;
   at: string;
   reactions: Mark[];
+  /** R16.9. Whether anybody else in the conversation has opened it. */
+  readByOthers: boolean;
 }
 
 export interface InboxData {
@@ -72,8 +74,15 @@ export interface InboxData {
 
 export const EMPTY: InboxData = { unread: 0, threads: [], drafts: [], open: null, said: [] };
 
-/** How often it asks again: quickly while it is open, slowly while it is not. */
-const WATCHING = 4000;
+/**
+ * How often it asks again: quickly while it is open, slowly while it is not.
+ *
+ * Two of these go by before a mark turns: the other reader's poll fetches the
+ * line and marks it read in the same breath, and the writer's next poll sees
+ * that. At four seconds each that was eight before two ticks appeared, which
+ * reads as a screen that has not noticed.
+ */
+const WATCHING = 3000;
 const RESTING = 25000;
 
 export function useInbox(

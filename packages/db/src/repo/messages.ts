@@ -88,6 +88,14 @@ export interface Message {
   } | null;
   /** R16.9. What has been put against it, most used first. */
   reactions: Reaction[];
+  /**
+   * R16.9. Whether anybody else in the conversation has opened it.
+   *
+   * Only ever asked of the reader's own lines. Nothing is sent anywhere here,
+   * so a line is in the other person's inbox the moment it is written down;
+   * what a church actually wants to know is whether anybody has looked.
+   */
+  readByOthers: boolean;
 }
 
 export interface Thread {
@@ -365,6 +373,26 @@ export async function messagesIn(
         .leftJoin(members, eq(members.id, messages.authorMemberId))
         .where(inArray(messages.id, answered));
 
+  /*
+   * R16.9. The last moment anybody else in this conversation looked.
+   *
+   * One number for the whole thread rather than a lookup a line: a line
+   * written before somebody's last read is a line they have seen, and the
+   * mark says "at least one of them", not which. The office reads as the
+   * church, so its own seat is not somebody else.
+   */
+  const [seat] = (await db.execute(sql`
+    select max(p.last_read_at) as seen
+      from conversation_people p
+     where p.conversation_id = ${conversationId}
+       and not coalesce(
+         (${reader.office} and p.office)
+         or (p.member_id = ${reader.memberId ?? null})
+       , false)
+  `)) as unknown as { seen: string | Date | null }[];
+  /* Raw rows hand back a timestamp as text, and text does not compare. */
+  const seen = seat?.seen ? new Date(seat.seen) : null;
+
   const marks = rows.length === 0
     ? []
     : await db
@@ -405,6 +433,7 @@ export async function messagesIn(
       ? reader.office
       : one.authorMemberId !== null && one.authorMemberId === reader.memberId,
     reactions: one.deletedAt ? [] : against(one.id),
+    readByOthers: seen !== null && seen.getTime() >= one.createdAt.getTime(),
     answering: (() => {
       const held = one.replyToId
         ? quoted.find((each) => each.id === one.replyToId)

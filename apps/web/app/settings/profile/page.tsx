@@ -12,6 +12,7 @@ import { SettingCard, Details, Detail } from "../card";
 import { ProfileForm } from "./profile-form";
 import { toAddress } from "@/lib/address";
 import { ThemeChoice } from "../theme";
+import { NotifyChoice } from "@/components/shell/notify-choice";
 import type { Theme } from "../theme-actions";
 import { supabaseServer } from "@/lib/supabase/server";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -134,10 +135,18 @@ export default async function ProfilePage({
         </Details>
       </SettingCard>
 
-      {/* R24.x. Light, dark, or whatever this device is set to. It lived on a
-          menu item of its own for one row of three buttons. */}
-      <SettingCard icon={<SunMoon />} title={t("settings.tab.appearance")}>
-        <ThemeChoice current={theme} />
+      {/* R24.x, R16.10. What somebody settles once: how the product is drawn,
+          and whether this browser tells them when something arrives. Both were
+          elsewhere, one on a menu of its own and one in the sidebar. */}
+      <SettingCard icon={<SunMoon />} title={t("settings.preferences")}>
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <span className="text-label text-fg">{t("settings.pref.appearance")}</span>
+            <ThemeChoice current={theme} />
+          </div>
+
+          <NotifyChoice church={session.tenantSlug} />
+        </div>
       </SettingCard>
     </>
   );

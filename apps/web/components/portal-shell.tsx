@@ -8,6 +8,7 @@ import { DemoBanner } from "./demo-banner";
 import { PortalTabs, PortalAccount, type PortalTab } from "./portal/tabs";
 import { InboxMark } from "./inbox/mark";
 import { Installed } from "./portal/installed";
+import { AskPush } from "./shell/ask-push";
 import { PortalTitle, PortalSection, Panel } from "./portal/panel";
 import { PublicFooter } from "./public-footer";
 import { readsAs } from "@/lib/spelling";
@@ -100,6 +101,9 @@ export async function PortalShell({
       <link rel="manifest" href={`/manifest.webmanifest?church=${slug}`} />
       <meta name="theme-color" content="#faf8f5" />
       <Installed />
+
+      {/* R22.1. Asked once a browser, in the product's own words. */}
+      <AskPush church={slug} />
 
       <DemoBanner info={shell.demo} />
 
