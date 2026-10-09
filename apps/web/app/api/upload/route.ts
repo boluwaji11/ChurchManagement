@@ -18,13 +18,46 @@ const EXTENSION: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",
+  "image/gif": "gif",
+  "image/heic": "heic",
   "application/pdf": "pdf",
+  "application/msword": "doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+  "application/vnd.ms-powerpoint": "ppt",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+  "application/vnd.ms-excel": "xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+  "application/vnd.oasis.opendocument.text": "odt",
+  "application/vnd.oasis.opendocument.presentation": "odp",
+  "application/vnd.oasis.opendocument.spreadsheet": "ods",
+  "application/rtf": "rtf",
   "audio/mpeg": "mp3",
   "audio/mp4": "m4a",
+  "audio/x-m4a": "m4a",
+  "audio/aac": "aac",
+  "audio/flac": "flac",
   "audio/ogg": "ogg",
   "audio/wav": "wav",
   "text/plain": "txt",
+  "text/csv": "csv",
+  "text/markdown": "md",
 };
+
+/**
+ * The ending the stored object is filed under.
+ *
+ * A type we have no ending written down for still has to land somewhere a
+ * browser can serve, so the name falls back to the one the file arrived with,
+ * cut to letters and digits. A type nobody can name at all is stored without
+ * an ending rather than under the word "undefined".
+ */
+function endingFor(contentType: string, filename: string): string {
+  const known = EXTENSION[contentType];
+  if (known) return known;
+  const given = filename.split(".").pop() ?? "";
+  const clean = given.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8);
+  return clean && clean !== filename.toLowerCase() ? clean : "";
+}
 
 /**
  * R1.16. The one way bytes enter the platform.
@@ -106,7 +139,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: explain(error) }, { status: 400 });
   }
 
-  const key = `${session.tenantSlug}/${purpose}/${randomUUID()}.${EXTENSION[contentType]}`;
+  const ending = endingFor(contentType, file.name);
+  const key = `${session.tenantSlug}/${purpose}/${randomUUID()}${ending ? `.${ending}` : ""}`;
   const supabase = await supabaseServer();
   const upload = await supabase.storage
     .from("church")

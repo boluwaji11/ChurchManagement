@@ -727,6 +727,9 @@ function AttachButton({ church, itemId }: { church: string; itemId: string }) {
     form.set("purpose", "plan_item");
     form.set("itemId", itemId);
     form.set("file", file);
+    /* R11.7. Filed under the name it arrived with, so the row reads as the
+       document rather than as the id it is stored under. */
+    form.set("label", file.name);
     await fetch("/api/upload", { method: "POST", body: form });
     setBusy(false);
     router.refresh();
