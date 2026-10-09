@@ -35,7 +35,6 @@ export const en = {
   "bell.joinRequest": "{name} asked to join {group}",
   "bell.servingDeclined": "{name} cannot make {team} on {date}",
   "bell.servingAccepted": "{name} accepted {team} on {date}",
-  "bell.message": "{name} sent a message",
   "bell.incident": "An incident was filed in {room}",
   "bell.followupAssigned": "{name} was assigned to you",
   "bell.duplicate": "{name} may already be in your members",

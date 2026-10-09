@@ -150,15 +150,6 @@ export async function AppShell({
           logoUrl={logoUrl}
           churchName={session.tenantName}
           bell={
-            <>
-            {/* R16.9. Messages sit beside the bell: both are something
-                waiting, read where they are noticed. */}
-            <InboxMark
-              church={session.tenantSlug}
-              churchName={session.tenantName}
-              office={canEditPeople(session)}
-              full={`/messages?church=${session.tenantSlug}`}
-            />
             <NotificationBell
               church={session.tenantSlug}
               unread={counts.unread}
@@ -175,7 +166,6 @@ export async function AppShell({
                 more: one.more ?? false,
               }))}
             />
-            </>
           }
         />
 
@@ -210,6 +200,21 @@ export async function AppShell({
           </ChurchMarkProvider>
         </main>
       </div>
+
+      {/* R16.9. Messages in the corner, the same place a member finds them,
+          so the product has one answer to where writing to somebody lives. */}
+      <InboxMark
+        church={session.tenantSlug}
+        churchName={session.tenantName}
+        office={canEditPeople(session)}
+        full={`/messages?church=${session.tenantSlug}`}
+        place="float"
+        clear={
+          counts.setup && !counts.setup.complete && !counts.setup.dismissed
+            ? "dock"
+            : "tabs"
+        }
+      />
 
       <MobileTabs entries={entries} church={session.tenantSlug} />
 

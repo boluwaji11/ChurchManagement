@@ -29,7 +29,7 @@ export const NOTIFICATION_PAGE = 10;
 
 export const NOTIFICATION_KINDS = [
   "join_request", "serving_declined", "serving_accepted",
-  "incident", "followup_assigned", "duplicate", "form_response", "message",
+  "incident", "followup_assigned", "duplicate", "form_response",
 ] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 
@@ -42,7 +42,6 @@ export const NOTIFICATION_LOOK: Record<NotificationKind, { hue: string; icon: st
   followup_assigned: { hue: "sky", icon: "user-plus" },
   duplicate: { hue: "violet", icon: "copy" },
   form_response: { hue: "sky", icon: "clipboard-list" },
-  message: { hue: "indigo", icon: "message-square" },
 };
 
 export interface Notification {

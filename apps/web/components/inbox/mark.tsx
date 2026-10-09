@@ -29,6 +29,7 @@ export function InboxMark({
   office,
   full,
   place = "bar",
+  clear = "none",
 }: {
   church: string;
   churchName: string;
@@ -44,6 +45,13 @@ export function InboxMark({
    * where every product that lets somebody write in has put it.
    */
   place?: "bar" | "float";
+  /**
+   * What else is already in that corner.
+   *
+   * The tab bar a phone carries on the staff screens, and the setup path that
+   * follows a new church around until it is finished.
+   */
+  clear?: "none" | "tabs" | "dock";
 }) {
   const [open, setOpen] = React.useState(false);
   const [view, setView] = React.useState<View>("inbox");
@@ -78,9 +86,15 @@ export function InboxMark({
   return (
     <div
       className={floating
-        /* Clear of the home indicator on a phone, and above everything the
-           page itself draws. */
-        ? "fixed right-[max(1rem,env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40"
+        /* Clear of the home indicator on a phone, of the tab bar above it,
+           and of the setup path while a church is still walking it. */
+        ? `fixed right-[max(1rem,env(safe-area-inset-right))] z-40 ${
+            clear === "dock"
+              ? "bottom-[calc(10rem+env(safe-area-inset-bottom))] sm:bottom-[13.5rem]"
+              : clear === "tabs"
+                ? "bottom-[calc(5.5rem+env(safe-area-inset-bottom))] sm:bottom-[calc(1rem+env(safe-area-inset-bottom))]"
+                : "bottom-[calc(1rem+env(safe-area-inset-bottom))]"
+          }`
         : "relative"}
     >
       <button

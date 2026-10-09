@@ -946,6 +946,13 @@
       "when": 1791423000012,
       "tag": "0135_mailer_slug",
       "breakpoints": true
+    },
+    {
+      "idx": 136,
+      "version": "7",
+      "when": 1791423000013,
+      "tag": "0136_drop_message_bell",
+      "breakpoints": true
     }
   ]
 }

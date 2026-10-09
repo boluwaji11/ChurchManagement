@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell, UserPlus, CircleX, CircleCheck, TriangleAlert, Copy, ClipboardList,
-  ChevronRight, MessageSquare,
+  ChevronRight,
 } from "lucide-react";
 import { cn, Spinner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -34,7 +34,6 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "triangle-alert": TriangleAlert,
   copy: Copy,
   "clipboard-list": ClipboardList,
-  "message-square": MessageSquare,
 };
 
 /**

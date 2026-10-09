@@ -6,7 +6,6 @@ import { groupMemberships, groups } from "../schema/groups";
 import { teamMembers, teams } from "../schema/serving";
 import { InvalidInputError } from "../errors";
 import { PermissionError } from "../roles";
-import { notifyRoles } from "./notifications";
 
 /**
  * R16.9, R17.1. Messages written here and read here.
@@ -376,27 +375,6 @@ export async function sendMessage(
     ));
 
   await dropDraft(db, reader, input.to.office ? "office" : them!);
-
-  /*
-   * R24.6. A member writing to the office rings the bell, once per thread
-   * rather than once per message: four lines in a minute is one thing for the
-   * office to answer, not four. The line points at the conversation, which is
-   * addressed by who it is with.
-   */
-  if (input.to.office) {
-    const [who] = await db
-      .select({ first: members.firstName, last: members.lastName, slug: members.slug })
-      .from(members)
-      .where(eq(members.id, reader.memberId!))
-      .limit(1);
-
-    await notifyRoles(db, reader.tenantId, ["owner", "admin", "staff"], {
-      kind: "message",
-      messageKey: "bell.message",
-      params: { name: `${who?.first ?? ""} ${who?.last ?? ""}`.trim() },
-      href: `/messages/${who?.slug ?? ""}`,
-    }, { onlyIfUnread: true });
-  }
 
   return { threadId, id: made!.id };
 }
