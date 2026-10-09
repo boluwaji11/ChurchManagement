@@ -52,11 +52,29 @@ export const UPLOAD_RULES = {
     maxBytes: 10 * ONE_MIB,
   },
   plan_item: {
+    /*
+     * What a church actually hands a musician or a tech desk: a chord chart
+     * written in Word, slides as a deck, a running order as a spreadsheet, a
+     * reference track, a scan. The list was PDFs, pictures, audio and plain
+     * text, so the office's own documents were refused by the box they were
+     * dragged into.
+     */
     types: [
       "application/pdf",
-      "image/png", "image/jpeg", "image/webp",
-      "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav",
-      "text/plain",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.oasis.opendocument.text",
+      "application/vnd.oasis.opendocument.presentation",
+      "application/vnd.oasis.opendocument.spreadsheet",
+      "application/rtf",
+      "image/png", "image/jpeg", "image/webp", "image/gif", "image/heic",
+      "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav", "audio/aac",
+      "audio/x-m4a", "audio/flac",
+      "text/plain", "text/csv", "text/markdown",
     ],
     maxBytes: 10 * ONE_MIB,
   },

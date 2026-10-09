@@ -14,6 +14,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectCreate, Tooltip
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { UPLOAD_RULES } from "@connectapp/db";
 import type { ItemKind, ShapeItem } from "@connectapp/db";
 import { kindLabel, type KindOption } from "@/lib/kind-label";
 import { useFormError } from "@/lib/form-error";
@@ -387,11 +388,10 @@ export function Order({
                       </IconButton>
                       <AttachButton church={church} itemId={item.id} />
                       <NoteDialog church={church} itemId={item.id} />
-                      {/* R24.x. The x takes the item off this plan, and it
-                          asks first: the template it came from keeps it. */}
+                      {/* R24.x. The x takes the item off this plan, and asks
+                          first. */}
                       <Confirm
                         title={t("order.remove.title", { name: item.title })}
-                        body={t("order.remove.body")}
                         confirmLabel={t("order.remove")}
                         disabled={pending}
                         onConfirm={() => run(`item:${item.id}`, () => dropItem(item.id, church))}
@@ -738,7 +738,9 @@ function AttachButton({ church, itemId }: { church: string; itemId: string }) {
         ref={input}
         type="file"
         className="sr-only"
-        accept="application/pdf,image/png,image/jpeg,image/webp,audio/mpeg,audio/mp4,audio/ogg,audio/wav,text/plain"
+        /* Read off the same rule the server enforces, so the box cannot
+           offer a kind the upload then refuses. */
+        accept={UPLOAD_RULES.plan_item.types.join(",")}
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) void send(file);
