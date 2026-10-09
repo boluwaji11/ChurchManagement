@@ -209,10 +209,10 @@ export function Conversation({
                       /* R16.9. On the top edge of their own message, out of
                          the way of the words and of the pill at its foot. */
                       <span
-                        /* Clear above the message rather than on its top
-                           edge: resting on the edge it covered the first line
-                           of a short one. */
-                        className="absolute bottom-full left-2 z-20 mb-1 flex items-center gap-0.5 rounded-full border border-line bg-surface px-1 py-0.5 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100"
+                        /* Just clear of the message: on its top edge it
+                           covered the first line of a short one, and a whole
+                           row higher it read as belonging to the line above. */
+                        className="absolute bottom-full left-2 z-20 -mb-1.5 flex items-center gap-0.5 rounded-full border border-line bg-surface px-1 py-0.5 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100"
                       >
                         <LineActions
                           church={church}
