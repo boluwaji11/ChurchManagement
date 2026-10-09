@@ -281,12 +281,30 @@ export function useAnswered(form: string, open: boolean = true): boolean {
     // reading is taken again each time one is opened.
     if (!open) return;
 
-    const element = document.getElementById(form);
-    if (!(element instanceof HTMLFormElement)) return;
+    /*
+     * A panel's form arrives a frame or two after the press that opened it,
+     * because the content is drawn into a portal at the end of the body. A
+     * single lookup here found nothing and left the press enabled over an
+     * empty form, so the lookup keeps trying until the form is there.
+     */
+    let stop: (() => void) | undefined;
+    let frame = 0;
+    const find = () => {
+      const element = document.getElementById(form);
+      if (element instanceof HTMLFormElement) {
+        const read = () => setFull(answered(element));
+        read();
+        stop = watch(element, read);
+        return;
+      }
+      frame = requestAnimationFrame(find);
+    };
+    find();
 
-    const read = () => setFull(answered(element));
-    read();
-    return watch(element, read);
+    return () => {
+      cancelAnimationFrame(frame);
+      stop?.();
+    };
   }, [form, open]);
 
   return full;
