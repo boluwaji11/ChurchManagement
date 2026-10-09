@@ -644,6 +644,19 @@
     line-height: var(--d-leading-body);
   }
 
+  /*
+   * R16.9. A mark against a message, drawn the same way on every machine.
+   *
+   * The emoji face first and the body face after it, so a chip holding a
+   * mark and a number keeps the product's own digits.
+   */
+  .emoji {
+    font-family: var(--font-emoji), "Noto Color Emoji", "Apple Color Emoji",
+      "Segoe UI Emoji", sans-serif;
+    font-variant-emoji: emoji;
+    line-height: 1;
+  }
+
   /* Tabular figures everywhere a number is compared to another number. */
   table, [data-numeric] { font-variant-numeric: tabular-nums; }
 

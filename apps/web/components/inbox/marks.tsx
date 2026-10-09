@@ -13,7 +13,12 @@ import type { Mark } from "./data";
  * that made me laugh, congratulations, I am sorry. A grid of two thousand is
  * a decision nobody wants to make under a notice about the hall.
  */
-export const MARKS = ["\u{1F44D}", "❤️", "\u{1F64F}", "\u{1F602}", "\u{1F389}", "\u{1F622}"];
+export const MARKS = [
+  "\u{1F44D}", "\u2764\uFE0F", "\u{1F602}", "\u{1F389}", "\u{1F64F}", "\u{1F62E}",
+];
+
+/** R16.9. What two taps on a line puts against it. */
+export const LIKE = MARKS[0]!;
 
 /**
  * What has been put against one message, and the way to add one.
@@ -60,7 +65,7 @@ export function Marks({
             key={one.emoji}
             className="flex min-h-6 items-center gap-1 rounded-full border border-line bg-surface px-1.5 text-[12px] leading-none text-fg-muted tabular-nums"
           >
-            <span aria-hidden className="text-[14px] leading-none">{one.emoji}</span>
+            <span aria-hidden className="emoji text-[14px]">{one.emoji}</span>
             {one.count > 1 ? one.count : null}
           </span>
         ))}
@@ -82,7 +87,7 @@ export function Marks({
               : "border-line bg-surface text-fg-muted hover:bg-sunken"
           }`}
         >
-          <span aria-hidden className="text-[14px] leading-none">{one.emoji}</span>
+          <span aria-hidden className="emoji text-[14px]">{one.emoji}</span>
           {one.count > 1 ? one.count : null}
         </button>
       ))}
@@ -110,7 +115,7 @@ export function Marks({
                 type="button"
                 onClick={() => put(one)}
                 aria-label={one}
-                className="grid size-8 cursor-pointer place-items-center rounded-full text-[19px] leading-none hover:bg-sunken"
+                className="emoji grid size-8 cursor-pointer place-items-center rounded-full text-[19px] hover:bg-sunken"
               >
                 {one}
               </button>
@@ -129,10 +134,10 @@ export function Marks({
  * things that turn up in a line about a service.
  */
 const FOR_WRITING = [
-  "\u{1F642}", "\u{1F605}", "\u{1F614}", "\u{1F64C}", "\u{1F44D}", "\u{1F44F}",
-  "\u{1F64F}", "❤️", "\u{1F389}", "\u{1F970}", "\u{1F622}", "\u{1F62E}",
-  "✅", "❗", "\u{1F4C5}", "\u{1F552}", "\u{1F4CD}", "\u{1F4DE}",
-  "\u{1F3E0}", "⛪", "\u{1F3B5}", "\u{1F4D6}", "☕", "\u{1F382}",
+  "\u{1F600}", "\u{1F602}", "\u{1F972}", "\u{1F605}", "\u{1F60D}", "\u{1F929}",
+  "\u{1F60E}", "\u{1F914}", "\u{1F62E}", "\u{1F642}", "\u{1F614}", "\u{1F62D}",
+  "\u{1F44D}", "\u{1F44F}", "\u{1F64C}", "\u{1F64F}", "\u{1F91D}", "\u{1F4AA}",
+  "\u2764\uFE0F", "\u{1F525}", "\u{1F389}", "\u{1F973}", "\u2705", "\u{1F4AF}",
 ];
 
 /** The mark that opens them, and the grid itself. */
@@ -161,7 +166,7 @@ export function EmojiButton({ onPick }: { onPick: (emoji: string) => void }) {
                 type="button"
                 aria-label={one}
                 onClick={() => { onPick(one); setOpen(false); }}
-                className="grid size-9 cursor-pointer place-items-center rounded-lg text-[20px] leading-none hover:bg-sunken"
+                className="emoji grid size-9 cursor-pointer place-items-center rounded-lg text-[20px] hover:bg-sunken"
               >
                 {one}
               </button>

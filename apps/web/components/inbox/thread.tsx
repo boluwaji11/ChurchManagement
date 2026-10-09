@@ -5,7 +5,8 @@ import { ArrowUp } from "lucide-react";
 import { Avatar, Spinner, Textarea } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
-import { EmojiButton, Marks } from "./marks";
+import { EmojiButton, LIKE, Marks } from "./marks";
+import { markMessage } from "@/app/messages/actions";
 import { keepDraft, send } from "@/app/messages/actions";
 import type { Said } from "./data";
 
@@ -49,6 +50,30 @@ export function Conversation({
    * said in August, and the thing somebody pressed it to read was below the
    * fold.
    */
+  /*
+   * R16.9. Two taps on somebody's line is a thumbs up, and two more takes it
+   * off: the one gesture everybody already has in their hands. Double-click
+   * covers a mouse; the timer covers a thumb, where there is no such event
+   * on every browser.
+   */
+  const tapped = React.useRef<{ id: string; at: number } | null>(null);
+
+  const like = (id: string, mine: boolean) => {
+    if (mine) return;
+    void markMessage(id, LIKE, church).then(() => (onChanged ?? onSent)());
+  };
+
+  const tap = (id: string, mine: boolean) => {
+    const now = Date.now();
+    const held = tapped.current;
+    if (held && held.id === id && now - held.at < 400) {
+      tapped.current = null;
+      like(id, mine);
+      return;
+    }
+    tapped.current = { id, at: now };
+  };
+
   const foot = React.useRef<HTMLDivElement>(null);
   const was = React.useRef<string | null>(null);
   React.useEffect(() => {
@@ -109,7 +134,12 @@ export function Conversation({
                   ) : null}
 
                   <div
-                    className={`rounded-2xl px-3.5 py-2 text-[15px] leading-6 ${
+                    onDoubleClick={() => like(one.id, one.mine)}
+                    onPointerUp={(event) => {
+                      if (event.pointerType === "mouse") return;
+                      tap(one.id, one.mine);
+                    }}
+                    className={`rounded-2xl px-3.5 py-2 text-[15px] leading-6 select-none ${
                       one.mine
                         ? "rounded-br-sm bg-primary-soft text-fg"
                         : "rounded-bl-sm border border-line bg-surface text-fg"
@@ -123,7 +153,6 @@ export function Conversation({
                       one.mine ? "flex-row-reverse" : ""
                     }`}
                   >
-                    <span className="text-[11px] text-fg-subtle tabular-nums">{one.clock}</span>
                     <Marks
                       church={church}
                       id={one.id}
@@ -131,6 +160,7 @@ export function Conversation({
                       mine={one.mine}
                       onChanged={onChanged ?? onSent}
                     />
+                    <span className="text-[11px] text-fg-subtle tabular-nums">{one.clock}</span>
                   </span>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { documentTheme } from "@/lib/theme";
-import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Inter, JetBrains_Mono, Noto_Color_Emoji } from "next/font/google";
 import { TooltipProvider } from "@connectapp/ui";
 import "./globals.css";
 
@@ -13,6 +13,24 @@ const sans = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swa
 // Not used above the fold on most pages, so preloading it only earns a console
 // warning about an unused preload.
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap", preload: false });
+
+/**
+ * R16.9. One set of emoji, whoever is reading.
+ *
+ * Left to the machine, a mark against a message is drawn by Apple on one
+ * desk, by Microsoft on the next and by a 2010 clip-art set on an old Windows
+ * build, so the same thumbs up is three different pictures and two of them
+ * date the product. Noto is flat, current, and the same on every screen.
+ *
+ * Only the characters that need it use it: the body text keeps Inter.
+ */
+const emoji = Noto_Color_Emoji({
+  subsets: ["emoji"],
+  weight: "400",
+  variable: "--font-emoji",
+  display: "swap",
+  preload: false,
+});
 
 export const metadata: Metadata = {
   title: "ConnectApp",
@@ -53,7 +71,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       {...(attr ? { "data-theme": attr } : {})}
       suppressHydrationWarning
     >
-      <body className={`${display.variable} ${sans.variable} ${mono.variable} font-sans`}>
+      <body
+        className={`${display.variable} ${sans.variable} ${mono.variable} ${emoji.variable} font-sans`}
+      >
         <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
