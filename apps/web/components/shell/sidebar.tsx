@@ -11,6 +11,7 @@ import { activeHref, type NavTarget } from "./nav-active";
 import { useSectionMemory, forgetSection, clearSectionMemory } from "./section-memory";
 import { setSidebarCollapsed } from "./sidebar-actions";
 import { Opening } from "../opening";
+import { PushToggle } from "./push-toggle";
 
 /** A nav entry with its icon already drawn, so this file holds no database. */
 export interface ShellEntry extends NavTarget {
@@ -209,6 +210,10 @@ export function Sidebar({
             </span>
           )}
         </Link>
+
+        {/* R16.10. Saying yes to notifications, from the screens staff work in
+            all week rather than only from the portal. */}
+        <PushToggle church={church} collapsed={collapsed} />
 
         {/* R24.6. Signing out forgets where every section was left, so the
             next person at this keyboard opens People on the directory rather

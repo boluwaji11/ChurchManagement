@@ -9,8 +9,15 @@
  * week's rota. Cache second, so somebody on none is reading something. Only
  * GET requests: accepting a serving request is a POST, and a POST answered out
  * of a cache would be an answer the church never received.
+ *
+ * It keeps the portal and the files the app is built from, and nothing else.
+ * The worker is registered on the staff screens too, because that is where a
+ * push is taken, and a church office machine must not end up holding a cached
+ * copy of the directory or a giving report for whoever is next at the keyboard.
  */
-const CACHE = "connectapp-portal-v1";
+/* v2 throws away v1, which held whatever screen anybody had opened, staff
+   screens included. Activating drops every cache but this one. */
+const CACHE = "connectapp-portal-v2";
 
 /** The screen shown when there is nothing cached and nothing to fetch. */
 const OFFLINE = "/offline";
@@ -31,6 +38,21 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+/**
+ * What this worker is for: the member's own screens, and the files the
+ * installed app is built from. A staff screen is somebody else's data and is
+ * never put in this cache.
+ */
+function mine(url) {
+  const path = url.pathname;
+  return path === OFFLINE
+    || path === "/home"
+    || path.startsWith("/home/")
+    || path.startsWith("/_next/static/")
+    || path === "/manifest.webmanifest"
+    || path === "/icon.svg";
+}
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
@@ -40,6 +62,9 @@ self.addEventListener("fetch", (event) => {
 
   // The station runs its own worker over /checkin and keeps its own cache.
   if (url.pathname.startsWith("/checkin")) return;
+
+  // Everything else goes straight to the network, uncached and untouched.
+  if (!mine(url)) return;
 
   event.respondWith(
     fetch(request)

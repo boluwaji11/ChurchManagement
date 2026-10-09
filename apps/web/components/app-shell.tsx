@@ -22,6 +22,7 @@ import type { Session } from "@/lib/session";
 import { shellData } from "@/lib/shell-data";
 import { photoUrls } from "@/lib/photos";
 import { TabTitle } from "./tab-title";
+import { Installed } from "./portal/installed";
 
 /**
  * R24.6. The frame every staff screen sits in.
@@ -122,6 +123,11 @@ export async function AppShell({
       {/* R17.1. The screen and the church it belongs to, in the browser tab.
           React hoists it into the head. */}
       <TabTitle page={tab ?? title} church={session.tenantName} />
+
+      {/* R16.10, R17.11. The worker that takes a push, registered on the staff
+          screens as well as in the portal. Without one here, somebody who
+          turned notifications on had nothing to deliver them. */}
+      <Installed />
 
       <Sidebar
         entries={entries}
