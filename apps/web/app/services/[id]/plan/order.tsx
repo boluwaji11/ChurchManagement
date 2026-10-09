@@ -495,13 +495,30 @@ function ItemDialog({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
-      <SheetContent title={item ? item.title : t("order.add")} closeLabel={t("common.close")}>
+      <SheetContent
+        title={item ? item.title : t("order.add")}
+        closeLabel={t("common.close")}
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button
+              type="button"
+              loading={pending}
+              disabled={pending || !title.trim()}
+              onClick={submit}
+            >
+              {t("action.save")}
+            </Button>
+          </>
+        }
+      >
         <div className="flex flex-col gap-4">
           {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <span className="text-label text-fg">{t("order.kind")}</span>
+            <Field label={t("order.kind")}>
               <Select value={kind} onValueChange={setKind}>
                 <SelectTrigger aria-label={t("order.kind")}><SelectValue /></SelectTrigger>
                 <SelectContent
@@ -520,7 +537,7 @@ function ItemDialog({
                     ))}
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
 
             <Field label={t("order.minutes")}>
               <Input
@@ -550,12 +567,6 @@ function ItemDialog({
             />
           </Field>
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-              {t("action.cancel")}
-            </Button>
-              <Button type="button" loading={pending} disabled={!title.trim()} onClick={submit}>{t("action.save")}</Button>
-          </div>
         </div>
       </SheetContent>
     </Sheet>
