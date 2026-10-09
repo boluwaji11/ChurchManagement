@@ -5,7 +5,7 @@ import {
   addItemNote, removeItemNote, detachFromItem,
   templateItems, planItemsFor, type ShapeItem,
   saveAsTemplate, renameTemplate, removeTemplate, applyTemplate,
-  type ItemKind,
+  type ItemKind, holdsFile,
 } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -163,8 +163,11 @@ export async function dropFile(id: string, church?: string): Promise<PlanResult>
 }
 
 /** R11.7. A link to the file, signed, because the bucket is private. */
-export async function fileLink(key: string): Promise<string | null> {
-  await requireSession();
+export async function fileLink(key: string, church?: string): Promise<string | null> {
+  const { ctx } = await context(church);
+  // R21.1. Signed only for a key this church's own ledger holds.
+  const mine = await withTenant(ctx, (tx) => holdsFile(tx, key));
+  if (!mine) return null;
   const supabase = await supabaseServer();
   const signed = await supabase.storage.from("church").createSignedUrl(key, 3600);
   return signed.data?.signedUrl ?? null;

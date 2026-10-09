@@ -321,6 +321,7 @@ export function Order({
                         {item.files.map((file) => (
                           <Attachment
                             key={file.id}
+                            church={church}
                             file={file}
                             pending={pending}
                             removing={doing === `file:${file.id}`}
@@ -647,11 +648,13 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
 
 /** R11.7. One file on an item, with a signed link made when it is pressed. */
 function Attachment({
+  church,
   file,
   pending,
   removing,
   onRemove,
 }: {
+  church: string;
   file: OrderFile;
   pending: boolean;
   removing: boolean;
@@ -661,7 +664,7 @@ function Attachment({
 
   const open = () => {
     setOpening(true);
-    fileLink(file.key)
+    fileLink(file.key, church)
       .then((url) => {
         if (url) window.open(url, "_blank", "noopener");
       })

@@ -84,6 +84,23 @@ export async function listFiles(db: Tx, purpose?: UploadPurpose): Promise<Stored
     .orderBy(desc(storedFiles.createdAt));
 }
 
+/**
+ * R1.16, R21.1. Whether this church holds the file behind a key.
+ *
+ * A signed link is handed out by key, and a key read off one church's screen
+ * is a key another church could ask for, so the ledger is asked first. RLS
+ * answers from the church this transaction is set to, so a key belonging to
+ * anybody else reads as missing.
+ */
+export async function holdsFile(db: Tx, key: string): Promise<boolean> {
+  const [held] = await db
+    .select({ id: storedFiles.id })
+    .from(storedFiles)
+    .where(eq(storedFiles.key, key))
+    .limit(1);
+  return Boolean(held);
+}
+
 export interface UploadCheck {
   purpose: UploadPurpose;
   contentType: string;
