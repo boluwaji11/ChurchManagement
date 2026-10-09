@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, BellOff, Download, LogOut, Settings } from "lucide-react";
+import { Bell, BellOff, Download, LogOut, MessageSquare, Settings } from "lucide-react";
 import {
   Avatar,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -119,6 +119,13 @@ export function PortalAccount({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        {/* R16.9. The corner mark opens the panel; this is the screen it
+            belongs to, where somebody goes looking for it. */}
+        <DropdownMenuItem asChild>
+          <Link href={`/home/messages?church=${church}`}>
+            <MessageSquare /> {t("inbox.title")}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href={`/settings/profile?church=${church}`}>
             <Settings /> {t("settings.tab.profile")}

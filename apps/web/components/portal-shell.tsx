@@ -126,22 +126,12 @@ export async function PortalShell({
 
           <PortalTabs tabs={theTabs} church={slug} />
 
-          {/* R16.9. Messages ride the bar rather than the tabs: they are
-              something waiting, like a notification, rather than a place. */}
-          <span className="ml-auto flex items-center gap-2">
-            <InboxMark
-              church={slug}
-              churchName={session.tenantName}
-              office={false}
-              full={`/home/messages?church=${slug}`}
-            />
-            <PortalAccount
+          <PortalAccount
             name={session.displayName}
             userId={session.userId}
             church={slug}
             photoUrl={photoUrl}
           />
-          </span>
         </div>
       </header>
 
@@ -153,6 +143,17 @@ export async function PortalShell({
           <SpellingProvider spelling={spelling} locale={locale}>{children}</SpellingProvider>
         </ChurchMarkProvider>
       </main>
+
+      {/* R16.9. Messages in the corner, which is where a member's thumb
+          already is and where everything else that lets somebody write in
+          puts it. */}
+      <InboxMark
+        church={slug}
+        churchName={session.tenantName}
+        office={false}
+        full={`/home/messages?church=${slug}`}
+        place="float"
+      />
 
       {/* R1.1. Who to reach, the same line the church's public pages carry. */}
       <PublicFooter

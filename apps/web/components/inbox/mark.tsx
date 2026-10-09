@@ -28,6 +28,7 @@ export function InboxMark({
   churchName,
   office,
   full,
+  place = "bar",
 }: {
   church: string;
   churchName: string;
@@ -35,6 +36,14 @@ export function InboxMark({
   office: boolean;
   /** The whole screen, for the link at the foot of the panel. */
   full: string;
+  /**
+   * R17.1. Where it sits.
+   *
+   * In the bar beside the bell on the screens staff work in all week, and in
+   * the corner of the portal, which is where a member's thumb already is and
+   * where every product that lets somebody write in has put it.
+   */
+  place?: "bar" | "float";
 }) {
   const [open, setOpen] = React.useState(false);
   const [view, setView] = React.useState<View>("inbox");
@@ -64,16 +73,26 @@ export function InboxMark({
       ? t("inbox.new")
       : t("inbox.title");
 
+  const floating = place === "float";
+
   return (
-    <div className="relative">
+    <div
+      className={floating
+        /* Clear of the home indicator on a phone, and above everything the
+           page itself draws. */
+        ? "fixed right-[max(1rem,env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-40"
+        : "relative"}
+    >
       <button
         type="button"
         onClick={() => setOpen((was) => !was)}
         aria-label={t("inbox.title")}
         aria-expanded={open}
-        className="relative grid size-9 cursor-pointer place-items-center rounded-md border border-line-strong bg-surface hover:bg-sunken"
+        className={floating
+          ? "relative grid size-14 cursor-pointer place-items-center rounded-full bg-fg text-[var(--canvas)] shadow-lg hover:opacity-90"
+          : "relative grid size-9 cursor-pointer place-items-center rounded-md border border-line-strong bg-surface hover:bg-sunken"}
       >
-        <MessageSquare className="size-[17px]" aria-hidden />
+        <MessageSquare className={floating ? "size-6" : "size-[17px]"} aria-hidden />
         {data.unread > 0 ? (
           <span className="absolute -top-[5px] -right-[5px] grid h-[18px] min-w-[18px] place-items-center rounded-full bg-danger px-[5px] text-[11px] font-semibold text-white">
             {data.unread}
@@ -84,7 +103,11 @@ export function InboxMark({
       {open ? (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-11 right-0 z-50 flex h-[min(560px,calc(100vh-120px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg">
+          <div
+            className={`absolute right-0 z-50 flex h-[min(560px,calc(100vh-120px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg ${
+              floating ? "bottom-[68px]" : "top-11"
+            }`}
+          >
             <header className="flex items-center gap-2 border-b border-line px-3 py-2.5">
               {key || writing ? (
                 <IconButton
