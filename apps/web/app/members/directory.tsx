@@ -242,7 +242,9 @@ export function Directory({
     ["q", "status", "tag", "has", "joined", "group", "serving", "seen", "missing", "list"]
       .some((key) => params.get(key))
     || (!putAway && Boolean(params.get("show")));
-  const exportHref = `/api/export?${params.toString()}`;
+  /* R19.8. Named, so an unfiltered directory asks for its members rather
+     than falling through to the whole archive. */
+  const exportHref = `/api/export?view=members${params.toString() ? `&${params}` : ""}`;
 
   // What the Filter button counts, so "Filter · 2" says how much is narrowing
   // the list. Search sits outside it, in its own box. Status and tags each

@@ -24,10 +24,10 @@ export async function GET(request: NextRequest) {
   const params = Object.fromEntries(request.nextUrl.searchParams) as DirectoryParams;
   const session = await requireSession();
 
-  // A filtered directory exports what the filter says. The same URL that drew
-  // the screen draws the file, so the two cannot disagree about what "these
-  // members" meant.
-  if (isFiltered(params)) return exportView(session, params);
+  // The directory exports what the screen is showing, filtered or not. The
+  // same URL that drew the screen draws the file, so the two cannot disagree
+  // about what "these members" meant.
+  if (params.view === "members" || isFiltered(params)) return exportView(session, params);
 
   // R19.8. One file on its own, for a church that wants the members list in a
   // spreadsheet rather than the whole archive. Joined and named rather than a

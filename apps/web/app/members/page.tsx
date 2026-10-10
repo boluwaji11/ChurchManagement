@@ -93,7 +93,7 @@ export default async function PeoplePage({
       // saved with. A rule list is read as though somebody had typed them.
       const opened = params.list ? await resolveList(tx, params.list) : null;
       const query = opened?.kind === "rule"
-        ? queryFromParams({ ...paramsFromRule(opened.rule ?? {}), church: params.church })
+        ? queryFromParams(paramsFromRule(opened.rule ?? {}))
         : queryFromParams(params);
       if (opened?.kind === "static") query.ids = opened.ids ?? [];
 

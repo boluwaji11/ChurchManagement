@@ -3,7 +3,15 @@ import { LIFECYCLE_VALUES } from "./person-input";
 
 export interface DirectoryParams {
   page?: string;
-  church?: string;
+  /**
+   * R19.8. The directory asking for its own members as a file.
+   *
+   * Said out loud rather than guessed from whether a filter is on. An
+   * unfiltered directory asking for "these members" was reaching the branch
+   * that builds the whole archive, so the zip arrived named members.csv and a
+   * spreadsheet offered to repair it.
+   */
+  view?: string;
   q?: string;
   status?: string;
   tag?: string;
