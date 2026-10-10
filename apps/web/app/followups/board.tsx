@@ -103,7 +103,7 @@ export function Board({
             }}
             onDragLeave={() => setOver((was) => (was === stage.id ? null : was))}
             onDrop={() => drop(stage.id)}
-            className="rounded-lg border border-line p-2"
+            className="rounded-lg border border-line-strong p-2"
             style={{ background: over === stage.id ? "var(--color-line)" : "var(--color-sunken)" }}
           >
             <div
@@ -125,7 +125,7 @@ export function Board({
                   draggable
                   onDragStart={(e) => { dragShadow(e); setDragging(card.entryId); }}
                   onDragEnd={() => setDragging(null)}
-                  className="relative flex cursor-grab flex-col gap-0.5 rounded-md border border-line bg-surface p-3 hover:border-line-strong active:cursor-grabbing"
+                  className="relative flex cursor-grab flex-col gap-0.5 rounded-md border border-line-strong bg-surface p-3 shadow-sm hover:border-fg-subtle active:cursor-grabbing"
                 >
                   <span className="flex items-start justify-between gap-2">
                     <Link
