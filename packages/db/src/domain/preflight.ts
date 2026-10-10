@@ -54,6 +54,14 @@ export interface DomainFindings {
   dmarc: string | null;
   /** Whether something already answers at the selector we would use. */
   dkimTaken: boolean;
+  /**
+   * R1.1. Whether this name already points at us.
+   *
+   * The one question the church's own address screen has to answer: has the
+   * thing we asked them to do been done. Null when we were not told what to
+   * look for.
+   */
+  pointsHere: boolean | null;
   /** What we would add. */
   adding: PlannedRecord[];
   /** What we would leave exactly where it is. */
@@ -209,6 +217,21 @@ export interface Resolver {
   mx(host: string): Promise<{ exchange: string; priority: number }[]>;
   txt(host: string): Promise<string[][]>;
   ns(host: string): Promise<string[]>;
+  /** R1.1. Where this exact name is pointed, if anywhere. */
+  cname(host: string): Promise<string[]>;
+}
+
+/**
+ * R1.1. Whether this name is pointed at us.
+ *
+ * Compared on the host alone. A church's provider writes the target with a
+ * trailing dot, and the host we hand in can carry a port while we are working
+ * on a laptop, and neither of those is a different answer.
+ */
+export function aimedAt(targets: readonly string[], expect: string): boolean {
+  const want = expect.trim().toLowerCase().split(":")[0]!.replace(/\.$/, "");
+  if (!want) return false;
+  return targets.some((one) => one.trim().toLowerCase().replace(/\.$/, "") === want);
 }
 
 /** A hostname, lowercased, with any scheme, path or trailing dot taken off. */
@@ -235,6 +258,8 @@ export function bareDomain(raw: string): string | null {
 export async function readDomain(
   raw: string,
   resolver: Resolver,
+  /** Our own host, so the reading can say whether the name reaches us yet. */
+  expect?: string,
 ): Promise<DomainFindings | null> {
   const domain = bareDomain(raw);
   if (!domain) return null;
@@ -247,12 +272,13 @@ export async function readDomain(
     }
   };
 
-  const [mx, rootTxt, dmarcTxt, dkimTxt, ns] = await Promise.all([
+  const [mx, rootTxt, dmarcTxt, dkimTxt, ns, cname] = await Promise.all([
     quiet(resolver.mx(domain), []),
     quiet(resolver.txt(domain), []),
     quiet(resolver.txt(`_dmarc.${domain}`), []),
     quiet(resolver.txt(`resend._domainkey.${domain}`), []),
     quiet(resolver.ns(domain), []),
+    quiet(resolver.cname(domain), []),
   ]);
 
   // A TXT record arrives in pieces, because a record longer than 255
@@ -277,6 +303,7 @@ export async function readDomain(
     spf: spf[0] ?? null,
     dmarc,
     dkimTaken,
+    pointsHere: expect ? aimedAt(cname, expect) : null,
     adding: plannedRecords(domain),
     leaving: [
       ...(mailHosts.length > 0 ? ["mx"] : []),

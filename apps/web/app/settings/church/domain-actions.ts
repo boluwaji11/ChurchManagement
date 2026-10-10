@@ -62,12 +62,14 @@ export async function setSignup(open: boolean, church?: string): Promise<{ error
 export async function checkDomain(
   domain: string,
   church?: string,
+  /** Our own host, so the reading can say whether the name reaches us yet. */
+  expect?: string,
 ): Promise<{ found?: DomainFindings; error?: string }> {
   const session = await requireSession(church);
   if (!canManageChurch(session)) {
     return { error: t("domain.error.notAllowed") };
   }
 
-  const found = await readDomain(domain, dnsResolver());
+  const found = await readDomain(domain, dnsResolver(), expect);
   return found ? { found } : { error: t("domain.error.notADomain") };
 }

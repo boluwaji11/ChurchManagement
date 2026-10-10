@@ -23,5 +23,6 @@ export function dnsResolver(): Resolver {
     mx: (host) => node.resolveMx(host),
     txt: (host) => node.resolveTxt(host),
     ns: (host) => node.resolveNs(host),
+    cname: (host) => node.resolveCname(host),
   };
 }

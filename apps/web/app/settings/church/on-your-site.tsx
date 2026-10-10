@@ -217,7 +217,7 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
               startChecking(async () => {
                 setError(undefined);
                 setFound(null);
-                const back = await checkDomain(draft, slug);
+                const back = await checkDomain(draft, slug, appHost);
                 if (back.error || !back.found) {
                   setError(back.error);
                   return;
@@ -236,7 +236,38 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
           </Button>
         </div>
 
-        <p className="text-[13px] text-fg-muted">{t("domain.dns", { target: appHost })}</p>
+        {/*
+          R1.1. The one question this card has to answer: does the address
+          work. Until it has been looked at there is nothing to say, so
+          nothing is said.
+        */}
+        {found?.pointsHere === true ? (
+          <Banner tone="success" title={t("domain.live.title")}>
+            {t("domain.live.body")}
+          </Banner>
+        ) : null}
+
+        {found?.pointsHere === false ? (
+          <div className="flex flex-col gap-3">
+            <Banner tone="info" title={t("domain.waiting.title")}>
+              {t("domain.waiting.body")}
+            </Banner>
+
+            {/* The record itself, in the three boxes a provider's form asks
+                for, each one copyable because it has to be typed exactly. */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Field label={t("domain.record.type")}>
+                <Copyable label={t("domain.record.type")} value="CNAME" />
+              </Field>
+              <Field label={t("domain.record.name")}>
+                <Copyable label={t("domain.record.name")} value={found.domain} />
+              </Field>
+              <Field label={t("domain.record.target")}>
+                <Copyable label={t("domain.record.target")} value={appHost} />
+              </Field>
+            </div>
+          </div>
+        ) : null}
 
         {found ? <DomainReading found={found} /> : null}
       </Card>

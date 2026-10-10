@@ -9,7 +9,7 @@
 import { describe, it, expect } from "vitest";
 import {
   readDomain, bareDomain, mailProviderOf, registrarOf,
-  spfRecords, dmarcPolicy, plannedRecords, warningsFor,
+  spfRecords, dmarcPolicy, plannedRecords, warningsFor, aimedAt,
   type Resolver,
 } from "../src/domain/preflight";
 
@@ -18,6 +18,7 @@ const answering = (answers: {
   mx?: { exchange: string; priority: number }[];
   txt?: Record<string, string[][]>;
   ns?: string[];
+  cname?: string[];
 }): Resolver => ({
   async mx() {
     if (!answers.mx) throw new Error("ENODATA");
@@ -31,6 +32,10 @@ const answering = (answers: {
   async ns() {
     if (!answers.ns) throw new Error("ENODATA");
     return answers.ns;
+  },
+  async cname() {
+    if (!answers.cname) throw new Error("ENODATA");
+    return answers.cname;
   },
 });
 
@@ -204,5 +209,36 @@ describe("reading a whole domain", () => {
 
   it("refuses a name that is not a domain", async () => {
     expect(await readDomain("not a domain", answering({}))).toBeNull();
+  });
+});
+
+/*
+ * R1.1. The one question the church's own address screen has to answer: has
+ * the thing we asked them to do been done.
+ */
+describe("whether the name reaches us yet", () => {
+  it("matches however the provider wrote the target", () => {
+    expect(aimedAt(["connectapp.church."], "connectapp.church")).toBe(true);
+    expect(aimedAt(["ConnectApp.Church"], "connectapp.church")).toBe(true);
+    // A host carrying a port, which is what a laptop hands us.
+    expect(aimedAt(["localhost"], "localhost:4488")).toBe(true);
+  });
+
+  it("says no when it points somewhere else, or nowhere", () => {
+    expect(aimedAt(["ghs.googlehosted.com"], "connectapp.church")).toBe(false);
+    expect(aimedAt([], "connectapp.church")).toBe(false);
+    expect(aimedAt(["connectapp.church"], "   ")).toBe(false);
+  });
+
+  it("answers on a whole reading, and stays quiet when nothing was asked", async () => {
+    const pointed = answering({ cname: ["connectapp.church."] });
+    const live = await readDomain("members.grace.org", pointed, "connectapp.church");
+    expect(live!.pointsHere).toBe(true);
+
+    const elsewhere = await readDomain("members.grace.org", answering({}), "connectapp.church");
+    expect(elsewhere!.pointsHere).toBe(false);
+
+    const unasked = await readDomain("members.grace.org", pointed);
+    expect(unasked!.pointsHere).toBeNull();
   });
 });

@@ -2724,7 +2724,15 @@ export const en = {
   "domain.title": "Your own address",
   "domain.label": "Domain",
   "domain.hint": "e.g. members.yourchurch.org",
-  "domain.dns": "Point this name at {target}.",
+  // HRT-283, R1.1. Whether the address works yet, and the one thing a church
+  // has to do to make it.
+  "domain.live.title": "This address is working",
+  "domain.live.body": "Members can use it now.",
+  "domain.waiting.title": "One thing left",
+  "domain.waiting.body": "Sign in to whoever you bought this domain from and add the record below. It can take a few hours to start working after that.",
+  "domain.record.type": "Type",
+  "domain.record.name": "Name",
+  "domain.record.target": "Points to",
   "domain.error.shape": "That is not a domain. Write it without https:// and without a path.",
   "domain.error.taken": "{name} is already pointed at another church.",
   "site.title": "On your website",
