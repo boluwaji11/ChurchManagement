@@ -8,7 +8,9 @@
  */
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
-import { mergePeople, undoMerge, listMerges, findDuplicatePairs } from "../src/repo/merge";
+import {
+  mergePeople, undoMerge, listMerges, findDuplicatePairs, findDuplicateClusters, mergeCluster,
+} from "../src/repo/merge";
 import { createPerson, getPersonForEdit, listPeople, listTagsForPerson } from "../src/repo/members";
 import { createTag, setPersonTag } from "../src/repo/tags";
 import {
@@ -293,6 +295,62 @@ describe("the review queue (R2.8)", () => {
     );
 
     expect(await queue()).toHaveLength(0);
+  });
+
+  it("joins every copy of one person into a single group", async () => {
+    await make("Cass", { email: `cass.${SUR}@example.org` });
+    await make("Cass", { email: `cass.${SUR}@example.org` });
+    await make("Cass", { email: `cass.${SUR}@example.org` });
+    await make("Cass", { email: `cass.${SUR}@example.org` });
+
+    const pairs = (await run(riverside, "owner", (tx) => findDuplicatePairs(tx)))
+      .filter((p) => p.a.name.includes(SUR) && p.b.name.includes(SUR));
+    // Four records against each other is six pairs, and one decision.
+    expect(pairs).toHaveLength(6);
+
+    const clusters = (await run(riverside, "owner", (tx) => findDuplicateClusters(tx)))
+      .filter((c) => c.members.every((m) => m.name.includes(SUR)));
+    expect(clusters).toHaveLength(1);
+    expect(clusters[0]!.members).toHaveLength(4);
+  });
+
+  it("keeps two people who match nobody else in groups of their own", async () => {
+    await make("Dale", { email: `dale.${SUR}@example.org` });
+    await make("Dale", { email: `dale.${SUR}@example.org` });
+    await make("Erin", { email: `erin.${SUR}@example.org` });
+    await make("Erin", { email: `erin.${SUR}@example.org` });
+
+    const clusters = (await run(riverside, "owner", (tx) => findDuplicateClusters(tx)))
+      .filter((c) => c.members.every((m) => m.name.includes(SUR)));
+    expect(clusters).toHaveLength(2);
+    expect(clusters.every((c) => c.members.length === 2)).toBe(true);
+  });
+
+  it("merges a whole group in one go, and leaves one merge per record", async () => {
+    const keep = await make("Fay", { email: `fay.${SUR}@example.org` });
+    const one = await make("Fay", { email: `fay.${SUR}@example.org` });
+    const two = await make("Fay", { email: `fay.${SUR}@example.org` });
+
+    const { merges } = await run(riverside, "owner", (tx) =>
+      mergeCluster(tx, as(riverside), { winnerId: keep.id, loserIds: [one.id, two.id] }),
+    );
+    expect(merges).toHaveLength(2);
+
+    // Nothing left to review, and the survivor is still here.
+    expect(
+      (await run(riverside, "owner", (tx) => findDuplicateClusters(tx)))
+        .filter((c) => c.members.some((m) => m.name.includes(SUR))),
+    ).toHaveLength(0);
+
+    const kept = await run(riverside, "owner", (tx) => getPersonForEdit(tx, keep.id));
+    expect(kept!.archivedAt).toBeNull();
+
+    // Each one can be put back on its own.
+    await run(riverside, "owner", (tx) => undoMerge(tx, as(riverside), merges[0]!));
+    const back = await run(riverside, "owner", (tx) => getPersonForEdit(tx, one.id));
+    expect(back!.archivedAt).toBeNull();
+    const still = await run(riverside, "owner", (tx) => getPersonForEdit(tx, two.id));
+    expect(still!.archivedAt).not.toBeNull();
   });
 
   it("stops listing a pair once it has been merged", async () => {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import {
-  withTenant, listPeople, countPeople, countArchivedPeople, listTagsWithCounts, findDuplicatePairs,
+  withTenant, listPeople, countPeople, countArchivedPeople, listTagsWithCounts, findDuplicateClusters,
   canEditPeople, canArchivePeople, canReadIncidents,
   listSavedLists, countArchivedSavedLists, resolveList, listGroups,
   PER_PAGE,
@@ -103,7 +103,7 @@ export default async function PeoplePage({
        * apiece, and the round trip is the expensive part.
        */
       const [
-        lists, members, matching, tags, groups, pairs,
+        lists, members, matching, tags, groups, clusters,
         archivedPeople, archivedLists,
       ] = await Promise.all([
         canEditPeople(session) ? listSavedLists(tx) : [],
@@ -113,7 +113,7 @@ export default async function PeoplePage({
         countPeople(tx, { ...query, viewer }),
         listTagsWithCounts(tx),
         listGroups(tx),
-        canArchivePeople(session) ? findDuplicatePairs(tx) : [],
+        canArchivePeople(session) ? findDuplicateClusters(tx) : [],
         // R2.4, R1.14. What is behind each of the two links at the foot.
         canArchivePeople(session) ? countArchivedPeople(tx) : 0,
         canEditPeople(session) ? countArchivedSavedLists(tx) : 0,
@@ -126,7 +126,7 @@ export default async function PeoplePage({
         matching,
         tags,
         groups,
-        duplicates: pairs.length,
+        duplicates: clusters.length,
         archivedPeople,
         archivedLists,
       };

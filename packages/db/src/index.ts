@@ -66,8 +66,10 @@ export {
   type CustomFieldDef, type CustomFieldType, type CustomFieldEntity, type CustomValue,
 } from "./repo/custom-fields";
 export {
-  mergePeople, undoMerge, listMerges, findDuplicatePairs, MERGE_UNDO_WINDOW_DAYS,
-  type MergePlan, type MergeResult, type MergeSummary, type DuplicatePair,
+  mergePeople, mergeCluster, undoMerge, listMerges,
+  findDuplicatePairs, findDuplicateClusters, MERGE_UNDO_WINDOW_DAYS,
+  type MergePlan, type MergeResult, type MergeSummary,
+  type DuplicatePair, type DuplicateCluster,
 } from "./repo/merge";
 export * from "./repo/relationships";
 export * from "./repo/milestones";

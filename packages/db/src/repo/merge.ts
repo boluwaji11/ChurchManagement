@@ -425,3 +425,100 @@ export async function findDuplicatePairs(db: Tx): Promise<DuplicatePair[]> {
   const rank = { certain: 3, likely: 2, possible: 1 };
   return pairs.sort((x, y) => rank[y.confidence] - rank[x.confidence]);
 }
+
+export interface DuplicateCluster {
+  /** Every record that looks like the same person, strongest match first. */
+  members: { id: string; name: string }[];
+  confidence: Confidence;
+  reason: string;
+}
+
+/**
+ * The review queue as the work actually is (R2.8): one person, however many
+ * copies of them.
+ *
+ * A church that took the same family's connection card at five services has
+ * five records of one person, and five records make ten pairs. Ten decisions
+ * for what is one decision, and merging any of them takes four other pairs off
+ * the list, so the queue jumps about while somebody works through it.
+ *
+ * So the pairs are joined up first. Two records that match each other are the
+ * same person, and a third matching either of them belongs with both, which is
+ * what makes this a group rather than a list of pairs.
+ */
+export async function findDuplicateClusters(db: Tx): Promise<DuplicateCluster[]> {
+  const pairs = await findDuplicatePairs(db);
+
+  const parent = new Map<string, string>();
+  const find = (id: string): string => {
+    const up = parent.get(id);
+    if (!up || up === id) return id;
+    const root = find(up);
+    parent.set(id, root);
+    return root;
+  };
+  const join = (x: string, y: string) => {
+    const [a, b] = [find(x), find(y)];
+    if (a !== b) parent.set(a, b);
+  };
+
+  const rank: Record<Confidence, number> = { certain: 3, likely: 2, possible: 1 };
+  const names = new Map<string, string>();
+  const best = new Map<string, { confidence: Confidence; reason: string }>();
+
+  for (const pair of pairs) {
+    names.set(pair.a.id, pair.a.name);
+    names.set(pair.b.id, pair.b.name);
+    parent.set(pair.a.id, parent.get(pair.a.id) ?? pair.a.id);
+    parent.set(pair.b.id, parent.get(pair.b.id) ?? pair.b.id);
+    join(pair.a.id, pair.b.id);
+  }
+
+  // The strongest reason anywhere in a group is what the group is called, so a
+  // group holding one certain match is not described by its weakest pair.
+  for (const pair of pairs) {
+    const root = find(pair.a.id);
+    const held = best.get(root);
+    if (!held || rank[pair.confidence] > rank[held.confidence]) {
+      best.set(root, { confidence: pair.confidence, reason: pair.reason });
+    }
+  }
+
+  const grouped = new Map<string, string[]>();
+  for (const id of names.keys()) {
+    const root = find(id);
+    grouped.set(root, [...(grouped.get(root) ?? []), id]);
+  }
+
+  return [...grouped.entries()]
+    .map(([root, ids]) => ({
+      members: ids.map((id) => ({ id, name: names.get(id)! })),
+      confidence: best.get(root)?.confidence ?? "possible",
+      reason: best.get(root)?.reason ?? "merge.reason.name",
+    }))
+    .sort((x, y) =>
+      rank[y.confidence] - rank[x.confidence] || y.members.length - x.members.length);
+}
+
+/**
+ * R2.8. Every copy of one person, onto the one that survives.
+ *
+ * Each merge is written down on its own, so a church that changes its mind
+ * about one of the five can put that one back without unpicking the rest.
+ */
+export async function mergeCluster(
+  db: Tx,
+  actor: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
+  plan: { winnerId: string; loserIds: string[] },
+): Promise<{ merges: string[] }> {
+  if (!canArchivePeople(actor)) throw new PermissionError(actor.role, "mergePeople");
+  if (plan.loserIds.length === 0) throw new InvalidInputError("merge.error.nobody");
+  if (plan.loserIds.includes(plan.winnerId)) throw new InvalidInputError("merge.error.samePerson");
+
+  const merges: string[] = [];
+  for (const loserId of plan.loserIds) {
+    const done = await mergePeople(db, actor, { winnerId: plan.winnerId, loserId });
+    merges.push(done.mergeId);
+  }
+  return { merges };
+}

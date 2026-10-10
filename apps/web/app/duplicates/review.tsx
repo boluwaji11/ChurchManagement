@@ -3,10 +3,10 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
-import { Check, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { Badge, Button, Banner, Working, cn } from "@connectapp/ui";
+import { Check, ArrowRight, ChevronLeft, ChevronRight, X, Undo2 } from "lucide-react";
+import { Badge, Button, Banner, IconButton, Working, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { merge, undo, type MergeOutcome } from "./actions";
+import { merge, mergeAll, undo, type MergeOutcome } from "./actions";
 import { Step } from "@/components/pager";
 
 export interface PersonSide {
@@ -48,9 +48,16 @@ const FIELDS = [
 type FieldKey = (typeof FIELDS)[number];
 
 
+/** R2.8. One person and every record that looks like them. */
+export interface Group {
+  members: PersonSide[];
+  confidence: string;
+  reason: string;
+}
+
 export function Review({
   church,
-  pairs,
+  group,
   at,
   total,
   back,
@@ -58,31 +65,42 @@ export function Review({
   history,
 }: {
   church: string;
-  /** R2.8. The one pair on screen. */
-  pairs: Pair[];
-  /** Which pair, one-based, and how many there are. */
+  /** R2.8. The one group on screen. */
+  group: Group | null;
+  /** Which group, one-based, and how many there are. */
   at: number;
   total: number;
-  /** The pair before this one, and the one after. Null at either end. */
+  /** The group before this one, and the one after. Null at either end. */
   back: string | null;
   on: string | null;
   history: PastMerge[];
 }) {
-  const pair = pairs[0];
+  const two = group && group.members.length === 2
+    ? { a: group.members[0]!, b: group.members[1]!, confidence: group.confidence, reason: group.reason }
+    : null;
 
   return (
-    <div className="flex flex-col gap-8">
-      {!pair ? (
-        <div className="rounded-lg border border-line bg-surface p-7 text-center text-fg-muted">
+    <div className="flex flex-col items-center gap-8">
+      {!group || group.members.length < 2 ? (
+        <div className="w-full max-w-[620px] rounded-lg border border-line bg-surface p-7 text-center text-fg-muted">
           {t("merge.none.title")}
         </div>
       ) : (
         <Deck at={at} total={total} back={back} on={on}>
-          <PairCard key={`${pair.a.id}:${pair.b.id}`} church={church} pair={pair} />
+          {/* Two records still get the field-by-field read, because with two
+              there is a column each and a choice to make per row. More than
+              two is one decision: which record survives. */}
+          {two
+            ? <PairCard key={`${two.a.id}:${two.b.id}`} church={church} pair={two} />
+            : <ClusterCard key={group.members.map((m) => m.id).join(":")} church={church} group={group} />}
         </Deck>
       )}
 
-      {history.length > 0 ? <History church={church} history={history} /> : null}
+      {history.length > 0 ? (
+        <div className="w-full max-w-[880px]">
+          <History church={church} history={history} />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -312,6 +330,137 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
         </Button>
         <Button type="submit" loading={busy} disabled={busy}>
           {t("merge.mergeInto", { name: winner.name })}
+        </Button>
+      </form>
+    </section>
+  );
+}
+
+/**
+ * R2.8. One person and every copy of them, as one decision.
+ *
+ * Five records of one person make ten pairs, and walking ten pairs to fix one
+ * person is what leaves the duplicates in the directory. So the group is the
+ * card: choose which record survives, drop any that turn out to be somebody
+ * else, and the rest move onto it in one press.
+ */
+function ClusterCard({ church, group }: { church: string; group: Group }) {
+  const router = useRouter();
+  const [keep, setKeep] = React.useState(group.members[0]!.id);
+  const [out, setOut] = React.useState<string[]>([]);
+  const [outcome, setOutcome] = React.useState<MergeOutcome>();
+  const [sending, setSending] = React.useState(false);
+  const [redrawing, startRedraw] = React.useTransition();
+  const busy = sending || redrawing;
+  const formId = React.useId();
+
+  const winner = group.members.find((m) => m.id === keep)!;
+  const losers = group.members.filter((m) => m.id !== keep && !out.includes(m.id));
+
+  const submit = async (data: FormData) => {
+    setOutcome(await mergeAll(data));
+  };
+
+  React.useEffect(() => {
+    if (!outcome || outcome.error) return;
+    startRedraw(() => router.refresh());
+  }, [outcome, router]);
+
+  const drop = (id: string) =>
+    setOut((was) => (was.includes(id) ? was.filter((one) => one !== id) : [...was, id]));
+
+  return (
+    <section className="overflow-hidden rounded-lg border border-line bg-surface">
+      <Working open={busy} label={t("merge.working")} />
+
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3.5">
+        <span className="font-semibold text-fg">
+          {t("merge.cluster.title", { count: group.members.length, name: winner.name })}
+        </span>
+        <span
+          className="rounded-full px-2 py-0.5 text-[12px] font-medium"
+          style={{ background: "var(--hue-amber-tint)", color: "var(--hue-amber-key)" }}
+        >
+          {t(group.reason as never)}
+        </span>
+      </div>
+
+      {outcome?.error ? (
+        <Banner tone="danger" className="m-5">{t(outcome.error as never)}</Banner>
+      ) : null}
+
+      <ul
+        aria-busy={busy}
+        className={cn("m-0 list-none p-0", busy && "pointer-events-none opacity-60")}
+      >
+        {group.members.map((one) => {
+          const left = out.includes(one.id);
+          const kept = one.id === keep;
+
+          return (
+            <li
+              key={one.id}
+              className="flex items-center gap-3 border-b border-sunken px-3 py-2.5 last:border-0 sm:px-5"
+            >
+              <button
+                type="button"
+                disabled={left || busy}
+                onClick={() => setKeep(one.id)}
+                aria-pressed={kept}
+                className={cn(
+                  "flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-[var(--d-radius-control)] px-2 py-1.5 text-left",
+                  kept && !left && "bg-primary-soft",
+                  left && "cursor-default opacity-50 line-through",
+                )}
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "grid size-4 shrink-0 place-items-center rounded-full border",
+                    kept && !left ? "border-primary" : "border-line",
+                  )}
+                >
+                  {kept && !left ? <span className="size-2 rounded-full bg-primary" /> : null}
+                </span>
+
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate font-medium text-fg">{one.name}</span>
+                  <span className="truncate text-[12px] text-fg-subtle">
+                    {[show(one.email), show(one.phone), show(one.lifecycleStatus)].join(" \u00b7 ")}
+                  </span>
+                </span>
+
+                {kept && !left ? (
+                  <Check aria-hidden className="size-4 shrink-0 text-primary" />
+                ) : null}
+              </button>
+
+              {/* R2.8. A record that turns out to be somebody else leaves the
+                  group rather than the church. */}
+              <IconButton
+                type="button"
+                variant="ghost"
+                disabled={busy || (kept && !left)}
+                label={left ? t("merge.cluster.putBack") : t("merge.notSame")}
+                onClick={() => drop(one.id)}
+              >
+                {left ? <Undo2 /> : <X />}
+              </IconButton>
+            </li>
+          );
+        })}
+      </ul>
+
+      <form
+        id={formId}
+        action={submit}
+        className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-3.5"
+      >
+        <input type="hidden" name="winnerId" value={winner.id} />
+        <input type="hidden" name="loserIds" value={losers.map((one) => one.id).join(",")} />
+        <Submitting onChange={setSending} />
+        <Button type="submit" disabled={busy || losers.length === 0}>
+          {t("merge.cluster.action", { count: losers.length })}
         </Button>
       </form>
     </section>

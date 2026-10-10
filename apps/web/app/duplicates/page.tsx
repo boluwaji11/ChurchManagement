@@ -1,5 +1,5 @@
 import {
-  withTenant, findDuplicatePairs, listMerges, getPersonForEdit, canArchivePeople,
+  withTenant, findDuplicateClusters, listMerges, getPersonForEdit, canArchivePeople,
 } from "@connectapp/db";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -10,9 +10,8 @@ import { Review, type PersonSide } from "./review";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
 
-/* R2.8, R24.6. One pair to a screen. Deciding whether two records are one
-   person is one decision, and a column of them is a column of decisions
-   nobody made. */
+/* R2.8, R24.6. One person to a screen, however many copies of them there
+   are. Deciding whether some records are one person is one decision. */
 const PER_PAGE = 1;
 
 export const dynamic = "force-dynamic";
@@ -50,46 +49,42 @@ export default async function DuplicatesPage({
   const pageAt = (to: number) =>
     `/duplicates?${new URLSearchParams({ ...(a && b ? { a, b } : {}), page: String(to) })}`;
 
-  const { pairs, on, total, history } = await withTenant(
+  const { group, on, total, history } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
-      const found = await findDuplicatePairs(tx);
+      const found = await findDuplicateClusters(tx);
 
-      // A pair chosen by hand in the directory. The detector misses real
+      // Records chosen by hand in the directory. The detector misses real
       // duplicates that share no email, no phone and no spelling of a name.
-      const picked = a && b && a !== b ? { a, b } : null;
+      const picked = a && b && a !== b ? [a, b] : null;
 
       /*
-       * Which pairs, in order, before a single record is read.
-       *
-       * The page shows five, and reading both people of every pair a church
-       * has would be four hundred reads to draw ten records.
+       * Which groups, in order, before a single record is read. The screen
+       * shows one, and reading every person in every group a church has would
+       * be hundreds of reads to draw five records.
        */
       const ordered = [
-        ...(picked ? [{ a: picked.a, b: picked.b, confidence: "possible", reason: "merge.youPicked" }] : []),
-        ...found
-          // The picked pair is already at the top, in either order.
-          .filter((p) => !picked || ![p.a.id, p.b.id].every((id) => id === picked.a || id === picked.b))
-          .map((p) => ({
-            a: p.a.id, b: p.b.id,
-            confidence: p.confidence as string,
-            reason: p.reason as string,
-          })),
+        ...(picked && !found.some((c) => picked.every((id) => c.members.some((m) => m.id === id)))
+          ? [{ ids: picked, confidence: "possible", reason: "merge.youPicked" }]
+          : []),
+        ...found.map((c) => ({
+          ids: c.members.map((m) => m.id),
+          confidence: c.confidence as string,
+          reason: c.reason as string,
+        })),
       ];
 
       /*
-       * Merging the last pair on a page takes that page away. Without this,
-       * somebody who cleared page three lands on an empty screen saying the
-       * church has no duplicates while two pages of them sit behind it.
+       * Merging the group on screen takes that screen away. Without this,
+       * somebody who cleared the last one lands on an empty page saying the
+       * church has no duplicates while the rest of them sit behind it.
        */
       const last = Math.max(1, Math.ceil(ordered.length / PER_PAGE));
       const on = Math.min(at, last);
 
-      const here = ordered.slice((on - 1) * PER_PAGE, on * PER_PAGE);
+      const here = ordered[on - 1];
 
-      // One read per person rather than per pair, because the same record shows
-      // up in several pairs when a church has three copies of somebody.
-      const ids = [...new Set(here.flatMap((p) => [p.a, p.b]))];
+      const ids = here ? [...new Set(here.ids)] : [];
       const sides = new Map<string, PersonSide>();
       for (const id of ids) {
         const person = await getPersonForEdit(tx, id);
@@ -112,14 +107,13 @@ export default async function DuplicatesPage({
       return {
         on,
         total: ordered.length,
-        pairs: here
-          .filter((p) => sides.has(p.a) && sides.has(p.b))
-          .map((p) => ({
-            a: sides.get(p.a)!,
-            b: sides.get(p.b)!,
-            confidence: p.confidence,
-            reason: p.reason,
-          })),
+        group: here
+          ? {
+              members: here.ids.filter((id) => sides.has(id)).map((id) => sides.get(id)!),
+              confidence: here.confidence,
+              reason: here.reason,
+            }
+          : null,
         history: await listMerges(tx),
       };
     },
@@ -129,7 +123,7 @@ export default async function DuplicatesPage({
     <AppShell
       session={session}
       title={t("merge.title")}
-      max="max-w-[880px] mx-auto"
+      wide
     >
       <Link
         href={"/members"}
@@ -145,7 +139,7 @@ export default async function DuplicatesPage({
 
       <Review
         church={session.tenantSlug}
-        pairs={pairs}
+        group={group}
         at={on}
         total={total}
         back={on > 1 ? pageAt(on - 1) : null}

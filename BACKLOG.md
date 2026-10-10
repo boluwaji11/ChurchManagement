@@ -161,6 +161,7 @@ and a design file does not move it.
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | Closed |
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Closed |
 | HRT-117 | A merge moves group memberships, pipeline entries and follow-ups | R2.8 | Closed |
+| HRT-290 | The review queue is a person and every copy of them, not a list of pairs | R2.8 | Resolved |
 | HRT-118 | ~~Skills, interests and spiritual gifts as managed vocabularies~~ | R2.9 | **Cut** |
 | HRT-210 | The status engine: a nightly pass, the thresholds as settings, and nothing it writes over a human | R2.16 | New |
 | HRT-211 | Status history on a person, with who changed it and a one-press revert | R2.17 | New |
@@ -785,6 +786,23 @@ The church's own domain (R1.1 `custom_domain`) still resolves in the data
 layer and has no screen. It was on the Website page and was the cause of a long
 afternoon: two cards both saying where members sign in. It comes back when a
 church asks for it.
+
+## One person, however many copies of them, October 2026
+
+HRT-290. The review queue was pairs, and the work is not pairs. A church that
+took the same family's connection card at five services has five records of one
+person, and five records make ten pairs. Ten decisions for one decision, and
+merging any one of them took four other pairs off the list, so the count jumped
+about while somebody worked through it.
+
+The pairs are joined up before the screen sees them: two records that match are
+the same person, and a third matching either belongs with both. Two records
+still get the field-by-field read, because with two there is a column each and a
+choice to make per row. Three or more is one decision, which record survives,
+with any that turn out to be somebody else dropped out of the group first.
+
+Each merge is still written down on its own, so a church that changes its mind
+about one of the five puts that one back without unpicking the rest.
 
 ## Putting a piece of ConnectApp on a church's own site, October 2026
 
