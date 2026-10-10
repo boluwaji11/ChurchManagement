@@ -174,24 +174,11 @@ export function OnlineGiving({
             {face.name ? (
               <span className="truncate font-semibold text-fg">{face.name}</span>
             ) : null}
-            {account ? (
-              <span className="truncate text-[12px] text-fg-subtle">
-                {[
-                  /* R13.1. What Stripe holds about an account it has not
-                     approved is not yet true of the church: there is no bank
-                     being paid and no schedule it is paid on. Said before it
-                     is, it reads as money moving that is not moving. */
-                  account.payoutsEnabled && face.bank
-                    ? t("stripe.payingTo", { bank: face.bank })
-                    : null,
-                  account.payoutsEnabled && face.payouts
-                    ? t(`stripe.payouts.${face.payouts}` as never)
-                    : null,
-                  account.livemode ? null : t("stripe.test"),
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </span>
+            {/* R13.1. Which account, and nothing about the money. Where it
+                goes and how often is Stripe's screen to answer, and said
+                here it is a second copy to go out of date. */}
+            {account && !account.livemode ? (
+              <span className="truncate text-[12px] text-fg-subtle">{t("stripe.test")}</span>
             ) : null}
           </span>
 
