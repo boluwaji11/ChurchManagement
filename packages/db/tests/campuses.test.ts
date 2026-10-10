@@ -15,7 +15,7 @@ import {
 } from "../src/repo/campuses";
 import { createPerson } from "../src/repo/members";
 import { addSpecialService } from "../src/repo/services";
-import { createGroup } from "../src/repo/groups";
+import { createGroup, seedGroupTypes, listGroupTypes } from "../src/repo/groups";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError } from "../src/roles";
 import type { TenantRole } from "../src/roles";
@@ -74,8 +74,11 @@ describe("the campus every record belongs to", () => {
         name: "Morning", occursOn: "2031-01-05", startsAt: "10:00",
       }),
     );
+    /* R9.1. Every group is one of the kinds the church keeps. */
+    await run((tx) => seedGroupTypes(tx, as()));
+    const [kind] = await run((tx) => listGroupTypes(tx));
     const group = await run((tx) =>
-      createGroup(tx, as(), { name: "Tuesday group", typeId: null } as never),
+      createGroup(tx, as(), { name: "Tuesday group", typeId: kind!.id }),
     );
 
     for (const [table, id] of [

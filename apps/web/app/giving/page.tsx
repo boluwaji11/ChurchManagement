@@ -6,8 +6,8 @@ import {
   canManageGiving, canReadGivingAmounts,
 } from "@connectapp/db";
 import {
-  Archive, Banknote, CalendarCheck, CornerDownRight, FileText, Landmark, Plus, Printer,
-  Repeat, Target, TrendingUp, Users, Wallet,
+  Archive, Banknote, CalendarCheck, CornerDownRight, Download as DownloadIcon, FileText,
+  Landmark, Plus, Printer, Repeat, Target, TrendingUp, Users, Wallet,
 } from "lucide-react";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
@@ -478,16 +478,26 @@ export default async function GivingPage({
               action={
                 <>
                   {record}
-                  {/* R13.23. Everything recorded, as a spreadsheet. */}
-                  <Download
-                    href={`/api/giving?church=${session.tenantSlug}`}
-                    file={`giving-${session.tenantSlug}.csv`}
-                    label={t("download.building")}
-                    title={t("giving.export")}
-                    className={asLink}
-                  >
-                    {t("giving.export")}
-                  </Download>
+                  {/* R13.23, R24.6. Everything recorded, as a spreadsheet.
+                      A download is a mark everywhere else in the product, so
+                      it is one here too, with its words on the tooltip. */}
+                  {/* The press is a component of its own rather than a button
+                      element, so the tooltip is given something it can hold
+                      on to. */}
+                  <Tooltip content={t("giving.export")}>
+                    <span className="inline-flex">
+                    <Download
+                      href={`/api/giving?church=${session.tenantSlug}`}
+                      file={`giving-${session.tenantSlug}.csv`}
+                      label={t("download.building")}
+                      title={t("giving.export")}
+                      name={t("giving.export")}
+                      className="relative grid size-[var(--d-tap)] place-items-center rounded-md text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-[18px]"
+                    >
+                      <DownloadIcon />
+                    </Download>
+                    </span>
+                  </Tooltip>
                 </>
               }
             >

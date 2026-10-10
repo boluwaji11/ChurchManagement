@@ -9,7 +9,9 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { sql } from "drizzle-orm";
 import { withTenant, closeConnections, type Tx } from "../src/client";
 import { publicChurch, publicGroups, publicGroup } from "../src/repo/public-groups";
-import { createGroup, updateGroup, setGroupArchived, addToGroup } from "../src/repo/groups";
+import {
+  createGroup, updateGroup, setGroupArchived, addToGroup, seedGroupTypes, listGroupTypes,
+} from "../src/repo/groups";
 import { createPerson } from "../src/repo/members";
 import { approveChurch } from "../src/repo/provisional";
 import type { TenantRole } from "../src/roles";
@@ -27,9 +29,12 @@ const as = (role: TenantRole = "owner") => ({ tenantId: tenant, role });
 const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
   withTenant({ tenantId: tenant, role }, work);
 
+/** R9.1. The kind every group this file writes down is filed under. */
+let kind: string;
+
 const group = async (name: string, over: Record<string, unknown> = {}) => {
   const made = await run((tx) =>
-    createGroup(tx, as(), { name, typeId: null, ...over } as never),
+    createGroup(tx, as(), { name, typeId: kind, ...over } as never),
   );
   return made.id;
 };
@@ -37,6 +42,9 @@ const group = async (name: string, over: Record<string, unknown> = {}) => {
 beforeAll(async () => {
   tenant = await testTenant(SLUG, "Public Groups Church");
   provisional = await testTenant(WAITING, "Waiting Church", { approved: false });
+
+  await run((tx) => seedGroupTypes(tx, as()));
+  kind = (await run((tx) => listGroupTypes(tx)))[0]!.id;
 
   open = await group("Tuesday evening", {
     description: "Over a meal.",
@@ -61,11 +69,13 @@ beforeAll(async () => {
   await run((tx) => addToGroup(tx, as(), { groupId: open, memberId: ada }));
 
   // The waiting church has a listed group too, and should still publish nothing.
-  await withTenant({ tenantId: provisional, role: "owner" }, (tx) =>
-    createGroup(tx, { tenantId: provisional, role: "owner" }, {
-      name: "Should not show", typeId: null, listed: true,
-    } as never),
-  );
+  await withTenant({ tenantId: provisional, role: "owner" }, async (tx) => {
+    await seedGroupTypes(tx, { tenantId: provisional, role: "owner" });
+    const [theirs] = await listGroupTypes(tx);
+    await createGroup(tx, { tenantId: provisional, role: "owner" }, {
+      name: "Should not show", typeId: theirs!.id, listed: true,
+    } as never);
+  });
 });
 
 afterAll(async () => {

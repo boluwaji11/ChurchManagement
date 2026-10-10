@@ -354,6 +354,7 @@ export function Directory({
             a directory of any size, so it is asked for in the page and the
             Working panel holds the screen until the file lands. */}
         <Tooltip content={t("directory.exportView")}>
+          <span className="inline-flex">
           <FileDownload
             href={exportHref}
             file="members.csv"
@@ -364,6 +365,7 @@ export function Directory({
           >
             <Download />
           </FileDownload>
+          </span>
         </Tooltip>
 
         {canEdit ? (

@@ -208,6 +208,11 @@ describe("who may record it (R9.3, R9.7)", () => {
   });
 
   it("stops leading when they leave the group", async () => {
+    /* R9.3. A group keeps at least one leader, so somebody else takes it on
+       before this one walks away. */
+    await run((tx) => addToGroup(tx, as(), {
+      groupId: group, memberId: members[1]!, role: "leader",
+    }));
     await run((tx) => removeFromGroup(tx, as(), { groupId: group, memberId: leader }));
     const allowed = await run(
       (tx) => canRecordFor(tx, { role: "group_leader", userId: leaderUser }, group),
@@ -216,6 +221,9 @@ describe("who may record it (R9.3, R9.7)", () => {
     expect(allowed).toBe(false);
 
     await run((tx) => addToGroup(tx, as(), { groupId: group, memberId: leader, role: "leader" }));
+    await run((tx) => addToGroup(tx, as(), {
+      groupId: group, memberId: members[1]!, role: "member",
+    }));
   });
 });
 

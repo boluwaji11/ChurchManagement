@@ -8,7 +8,9 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { withTenant, closeConnections, type Tx } from "../src/client";
-import { createGroup, getGroup, setGroupPhoto } from "../src/repo/groups";
+import {
+  createGroup, getGroup, setGroupPhoto, seedGroupTypes, listGroupTypes,
+} from "../src/repo/groups";
 import { findGroups } from "../src/repo/group-finder";
 import {
   recordFile, listFiles, getStorageUsage, assertCanStore, UPLOAD_RULES, ONE_MIB,
@@ -37,8 +39,11 @@ const store = (n: string, bytes = 200_000) =>
 
 beforeAll(async () => {
   tenant = await testTenant(SLUG, "Group Photo Test Church");
+  /* R9.1. Every group is one of the kinds the church keeps. */
+  await run((tx) => seedGroupTypes(tx, as()));
+  const [kind] = await run((tx) => listGroupTypes(tx));
   group = (await run((tx) =>
-    createGroup(tx, as(), { name: "Tuesday group", typeId: null } as never),
+    createGroup(tx, as(), { name: "Tuesday group", typeId: kind!.id }),
   )).id;
 });
 
