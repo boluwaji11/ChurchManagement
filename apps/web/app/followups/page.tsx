@@ -3,7 +3,6 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { StartFollowUp } from "./start";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
@@ -121,14 +120,6 @@ export default async function FollowUpsPage({
     <AppShell
       session={session}
       title={t("queue.title")}
-      /* R24.6. The screen's one action, in the same place every screen puts
-         it. The press at the head of a column stays: that one says somebody is
-         already at that stage, and this one begins. */
-      action={
-        pipeline ? (
-          <StartFollowUp church={session.tenantSlug} pipelineId={pipeline.id} />
-        ) : undefined
-      }
     >
       {/* The pipeline names itself, so the board carries no heading of its
           own. The hint sits beside the picker. */}
