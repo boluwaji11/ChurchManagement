@@ -12,7 +12,9 @@ import { personTimeline } from "../src/repo/timeline";
 import { createPerson, setPersonArchived } from "../src/repo/members";
 import { createNote } from "../src/repo/notes";
 import { addMilestone } from "../src/repo/milestones";
-import { createGroup, addToGroup, removeFromGroup, seedGroupTypes } from "../src/repo/groups";
+import {
+  createGroup, addToGroup, removeFromGroup, seedGroupTypes, listGroupTypes,
+} from "../src/repo/groups";
 import { addSpecialService } from "../src/repo/services";
 import { setPresentMany } from "../src/repo/attendance";
 import { enterPipeline, listPipelines, seedPipelines } from "../src/repo/followups";
@@ -30,9 +32,14 @@ const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
 const timeline = (role: TenantRole = "owner") =>
   run((tx) => personTimeline(tx, { tenantId: tenant, role }, person), role);
 
+/** R9.1. A kind for the groups these tests write down. */
+let aKind: string;
+
 beforeAll(async () => {
   tenant = await testTenant(SLUG, "Timeline Test Church");
   await run((tx) => seedGroupTypes(tx, as()));
+  /* R9.1. Every group is one of the kinds the church keeps. */
+  aKind = (await run((tx) => listGroupTypes(tx)))[0]!.id;
   await run((tx) => seedPipelines(tx, as()));
 
   person = (await run((tx) =>

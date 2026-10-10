@@ -11,7 +11,9 @@ import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import {
   openMeeting, recordMeeting, meetingsFor, groupAttendanceFor, canRecordFor, lastMeetingDay,
 } from "../src/repo/group-attendance";
-import { createGroup, addToGroup, removeFromGroup, seedGroupTypes } from "../src/repo/groups";
+import {
+  createGroup, addToGroup, removeFromGroup, seedGroupTypes, listGroupTypes,
+} from "../src/repo/groups";
 import { linkPersonToUser } from "../src/repo/scope";
 import { createPerson } from "../src/repo/members";
 import { InvalidInputError } from "../src/errors";
@@ -31,9 +33,14 @@ const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
 
 const TUESDAY = "2026-09-29";
 
+/** R9.1. A kind for the groups these tests write down. */
+let aKind: string;
+
 beforeAll(async () => {
   tenant = await testTenant("meetingtest", "Meeting Test Church");
   await run((tx) => seedGroupTypes(tx, as()));
+  /* R9.1. Every group is one of the kinds the church keeps. */
+  aKind = (await run((tx) => listGroupTypes(tx)))[0]!.id;
 
   for (const id of [leaderUser, strangerUser]) {
     await owner()`

@@ -156,6 +156,21 @@ export function Conversation({
         aria-live="polite"
         aria-relevant="additions"
         aria-label={t("inbox.conversation")}
+        /*
+         * R24.x. A hand on the paper under the conversation.
+         *
+         * Two very pale washes of the ink and the ember, and a field of dots
+         * over them. It is drawn in CSS rather than fetched, so it costs
+         * nothing and it takes the palette with it into dark.
+         */
+        style={{
+          backgroundImage: [
+            "radial-gradient(circle at 18% 12%, color-mix(in oklch, var(--primary) 7%, transparent), transparent 55%)",
+            "radial-gradient(circle at 86% 88%, color-mix(in oklch, var(--accent) 6%, transparent), transparent 55%)",
+            "radial-gradient(color-mix(in oklch, var(--fg) 7%, transparent) 1px, transparent 1px)",
+          ].join(", "),
+          backgroundSize: "auto, auto, 18px 18px",
+        }}
         className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-4 py-3"
       >
         {said.map((one, at) => {
@@ -185,8 +200,9 @@ export function Conversation({
               >
                 {/* The face stays with the other side, the way every chat
                     somebody already uses draws it. Their own line needs no
-                    avatar: they know who they are. */}
-                <span className="w-8 shrink-0">
+                    avatar, and no gutter where one would have been: it sits
+                    against its own edge. */}
+                <span className={one.mine ? "hidden" : "w-8 shrink-0"}>
                   {!one.mine && starts ? (
                     one.fromOffice ? (
                       <span

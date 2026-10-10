@@ -9,7 +9,9 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { listPeople, countPeople, getPerson, createPerson } from "../src/repo/members";
-import { createGroup, addToGroup, removeFromGroup, seedGroupTypes } from "../src/repo/groups";
+import {
+  createGroup, addToGroup, removeFromGroup, seedGroupTypes, listGroupTypes,
+} from "../src/repo/groups";
 import { visiblePeople, personForUser, linkPersonToUser, canSeePerson } from "../src/repo/scope";
 import { canReadConfidentialNotes } from "../src/roles";
 import type { TenantRole } from "../src/roles";
@@ -28,9 +30,14 @@ const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
 
 const viewer = { role: "group_leader" as TenantRole, userId: leaderUser };
 
+/** R9.1. A kind for the groups these tests write down. */
+let aKind: string;
+
 beforeAll(async () => {
   tenant = await testTenant("scopetest", "Scope Test Church");
   await run((tx) => seedGroupTypes(tx, as()));
+  /* R9.1. Every group is one of the kinds the church keeps. */
+  aKind = (await run((tx) => listGroupTypes(tx)))[0]!.id;
 
   await owner()`
     insert into app_users (id, email, full_name)
