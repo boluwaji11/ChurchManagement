@@ -94,7 +94,7 @@ export function PortalAddress({
         {/* The name and the part we own, read as one address left to right.
             Capped, because a field the width of the card put the name a hand's
             width from the domain it belongs to. */}
-        <div className="flex max-w-[420px] items-center rounded-[var(--d-radius-control)] border border-line-strong bg-surface focus-within:border-fg-subtle">
+        <div className="flex w-fit max-w-full items-center rounded-[var(--d-radius-control)] border border-line-strong bg-surface focus-within:border-fg-subtle">
           <input
             value={draft}
             onChange={(e) => {
@@ -105,7 +105,10 @@ export function PortalAddress({
             placeholder={slug}
             disabled={!canEdit}
             aria-label={t("portal.label")}
-            className="w-0 min-w-0 flex-1 bg-transparent py-2.5 pl-3 text-right font-mono text-[13px] text-fg outline-none"
+            /* Sized to what is typed, so the name sits against the domain it
+               belongs to and the whole address reads from the left. */
+            size={Math.max((draft || slug).length + 1, 10)}
+            className="min-w-0 bg-transparent py-2.5 pl-3 font-mono text-[13px] text-fg outline-none"
           />
           <span className="shrink-0 py-2.5 pr-3 font-mono text-[13px] text-fg-subtle">
             .{host}
