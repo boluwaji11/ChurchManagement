@@ -97,6 +97,10 @@ export function PortalAddress({
 
       <Separator />
 
+      {took ? (
+        <Banner tone="success">{t("portal.free", { name: `${took}.${host}` })}</Banner>
+      ) : null}
+
       <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("portal.lede")}</p>
 
       {error ? <Banner tone="danger">{error}</Banner> : null}
@@ -128,10 +132,6 @@ export function PortalAddress({
           </span>
         </div>
       </Field>
-
-      {took ? (
-        <Banner tone="success">{t("portal.free", { name: `${took}.${host}` })}</Banner>
-      ) : null}
 
       <div className="flex flex-wrap items-center gap-2">
         <Button

@@ -48,8 +48,41 @@ const platformHost = (): string =>
  * A church whose slug was `www` would otherwise take the front door with it.
  */
 const RESERVED = new Set([
-  "www", "app", "api", "admin", "static", "assets", "cdn", "mail", "smtp",
-  "stage", "status", "help", "docs", "blog", "dashboard", "auth", "login",
+  // Ours. A church at connectapp.connectapp.church reads as the product
+  // rather than as the church.
+  "connectapp", "connect", "app", "apps", "www", "web", "portal", "go", "my",
+  "home", "main", "root",
+
+  // The routes and the infrastructure under them.
+  "api", "admin", "administrator", "dashboard", "auth", "login", "signin",
+  "signup", "register", "join", "account", "accounts", "settings", "static",
+  "assets", "cdn", "media", "files", "img", "images", "js", "css", "ws",
+  "socket", "graphql", "webhook", "webhooks", "callback", "oauth", "sso",
+  "health", "ping", "metrics", "internal",
+
+  // Mail. A church holding autodiscover or mx would answer for our own
+  // domain to somebody's mail client, which is the one kind of collision
+  // nobody would think to look for.
+  "mail", "email", "smtp", "imap", "pop", "pop3", "mx", "ns", "ns1", "ns2",
+  "dns", "autodiscover", "autoconfig", "mta-sts", "postmaster", "abuse",
+  "noreply", "no-reply", "bounce", "bounces", "dmarc", "spf", "dkim",
+
+  // Where the product is worked on, so these stay ours to use.
+  "test", "testing", "example", "demo", "dev", "development", "stage",
+  "staging", "sandbox", "preview", "beta", "alpha", "local", "localhost",
+  "tmp", "temp", "qa",
+
+  // Anything that would read as the company speaking.
+  "support", "help", "helpdesk", "status", "security", "billing", "payments",
+  "invoice", "invoices", "legal", "privacy", "terms", "press", "careers",
+  "jobs", "blog", "docs", "documentation", "news", "about", "contact",
+  "team", "staff", "official", "verify", "verified", "trust",
+
+  // Money. A church at give.connectapp.church looks like our giving page
+  // rather than theirs, and that is the one shape somebody could collect
+  // under our name with.
+  "give", "giving", "donate", "donation", "donations", "tithe", "tithes",
+  "offering", "offerings", "pay", "checkout",
 ]);
 
 /**

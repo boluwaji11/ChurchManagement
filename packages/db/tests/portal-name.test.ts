@@ -69,10 +69,31 @@ describe("what a church may call it", () => {
     }
   });
 
+  /*
+   * R17.1. The list is only what a church may not choose. We go on using any
+   * of these ourselves: it stops a church looking like the company, or like
+   * our own giving page, or answering for our mail.
+   */
   it("refuses the names that are the platform", () => {
-    for (const taken of ["www", "api", "admin", "mail", "status"]) {
+    for (const taken of [
+      "connectapp", "www", "api", "admin", "mail", "status",
+      // A mail client looking for these under our own domain.
+      "autodiscover", "mx", "ns1", "dmarc",
+      // Where the product is worked on.
+      "test", "example", "demo", "staging",
+      // Anything that would read as the company speaking.
+      "support", "security", "billing", "official",
+      // And the one somebody could collect money under our name with.
+      "give", "giving", "donate", "tithe",
+    ]) {
       expect(cleanPortalName(taken)).toBeNull();
     }
+  });
+
+  it("still takes a name that only contains one of them", () => {
+    expect(cleanPortalName("givechurch")).toBe("givechurch");
+    expect(cleanPortalName("thewell")).toBe("thewell");
+    expect(cleanPortalName("apple-valley")).toBe("apple-valley");
   });
 });
 
