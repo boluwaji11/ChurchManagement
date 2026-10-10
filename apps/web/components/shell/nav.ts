@@ -36,6 +36,16 @@ export interface NavEntry extends NavTarget {
  * R1.6. Takes whoever is asking rather than their role's name, so somebody on a
  * role their church wrote gets the screens that role was given.
  */
+/**
+ * HRT-202. What each volunteer persona came for, widest first.
+ *
+ * The first match is the row that moves up under their own screen. A team
+ * leader who also helps at check-in gets the desk, because the desk is the one
+ * with a queue in front of it, and a treasurer gets giving rather than the
+ * groups row everybody has.
+ */
+const OWN_WORK = ["/checkin", "/schedule", "/giving", "/groups"] as const;
+
 export function navFor(role: Who): NavEntry[] {
   const staff = canEditPeople(role) || canReadIncidents(role);
   const out: NavEntry[] = [];
@@ -49,8 +59,13 @@ export function navFor(role: Who): NavEntry[] {
    * frame, which is a row of tabs across the top rather than this list, and
    * the two would have drifted the moment one of them changed.
    */
-  const member = !staff && !canCheckIn(role) && !canFollowUp(role) && !canLeadTeams(role);
-  if (member) {
+  /*
+   * HRT-202. Everybody who is not staff has their own screen, including the
+   * volunteers. A team leader and a check-in volunteer used to be given the
+   * directory as their first row, which told them, wrongly, that four hundred
+   * households were their errand.
+   */
+  if (!staff) {
     out.push({ label: t("nav.home"), href: "/home", icon: Home });
   }
 
@@ -167,6 +182,23 @@ export function navFor(role: Who): NavEntry[] {
     owns: ["/settings", "/setup"],
     icon: Settings,
   });
+
+  /*
+   * HRT-202. A volunteer's own work comes before the church's records.
+   *
+   * Staff read the list in the design's order, because the whole of it is
+   * their job and the order was argued once. Somebody who came to run a
+   * check-in desk or a serving rota has one errand, and it belongs directly
+   * under their own screen rather than three rows down.
+   */
+  if (!staff) {
+    const own = OWN_WORK.find((href) => out.some((one) => one.href === href));
+    if (own) {
+      const at = out.findIndex((one) => one.href === own);
+      const [entry] = out.splice(at, 1);
+      out.splice(1, 0, entry!);
+    }
+  }
 
   return out;
 }

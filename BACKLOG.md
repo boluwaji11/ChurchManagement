@@ -62,7 +62,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.6, R24.18 | Closed |
 | HRT-200 | Land the redesign handoff, reconcile its tokens against ours | R24.1, R24.4 | Closed |
 | HRT-201 | The shell: collapsible sidebar, a top bar with one action, bottom tabs on a phone | R24.6, R24.14 | Closed |
-| HRT-202 | Navigation scoped to the role, one sidebar per persona | R1.3, R24.6 | New |
+| HRT-202 | Navigation scoped to the role, one sidebar per persona | R1.3, R24.6 | Resolved |
 | HRT-203 | The dashboard: setup checklist, reorderable tiles, attendance over time | R18.1, R22.1 | Closed |
 | HRT-204 | People: the filter drawer, inline search, CSV export, pagination | R2.14, R19.4 | Closed |
 | HRT-205 | The command palette on Cmd+K, and no search box in the top bar | R24.6 | New |
@@ -763,7 +763,7 @@ What it settles for now:
 
 | | |
 |---|---|
-| **Active** | **HRT-202** navigation scoped to the role (R1.3, R24.6) |
+| **Active** | **HRT-205** the command palette on Cmd+K (R24.6) |
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
