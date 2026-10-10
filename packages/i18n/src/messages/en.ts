@@ -2727,7 +2727,6 @@ export const en = {
   "portal.label": "Your address",
   "portal.free": "{name} is yours.",
   "portal.use": "Use this address",
-  "portal.current": "Members go here",
   "portal.open": "Access ConnectApp portal at this address",
   "portal.state.off": "Turned off",
   "portal.error.shape": "Use letters, numbers and hyphens, three characters or more.",

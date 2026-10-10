@@ -152,17 +152,15 @@ export function PortalAddress({
           carry a second link to the same place has gone. */}
       {/* R17.1. A link, because the one thing anybody does with it is open
           it. Copying the words off the screen still works. */}
-      <Field label={t("portal.current")}>
-        <a
-          href={`${origin}//${live}.${host}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="inline-flex w-fit max-w-full items-center gap-1.5 break-all font-mono text-[13px] font-medium text-primary no-underline hover:underline"
-        >
-          {live}.{host}
-          <ExternalLink className="size-3.5 shrink-0" aria-hidden />
-        </a>
-      </Field>
+      <a
+        href={`${origin}//${live}.${host}`}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="inline-flex w-fit max-w-full items-center gap-1.5 break-all font-mono text-[13px] font-medium text-primary no-underline hover:underline"
+      >
+        {live}.{host}
+        <ExternalLink className="size-3.5 shrink-0" aria-hidden />
+      </a>
 
       {/* R17.1. Whether the address answers at all. Off while a church is
           still getting ready, and staff still work at the main address. */}
