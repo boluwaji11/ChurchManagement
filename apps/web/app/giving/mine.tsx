@@ -105,7 +105,7 @@ export async function MyGiving({
     };
   });
 
-  if (!mine) redirect(`/home?church=${session.tenantSlug}`);
+  if (!mine) redirect("/home");
 
   /* R13.6. The church's own giving page, read for the funds it offers. */
   const page = mine.online ? await givingPage(session.tenantSlug) : null;
@@ -291,7 +291,7 @@ export async function MyGiving({
             page={at}
             size={PER_PAGE}
             total={mine.allGifts}
-            href={(to) => `/giving?church=${session.tenantSlug}&gifts=${to}`}
+            href={(to) => `/giving?gifts=${to}`}
             anchor="my-gifts"
           />
         </Block>

@@ -21,10 +21,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("reports.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("reports.title"));
 }
 
 /** The hue each band wears, nought parts to four. */
@@ -44,10 +44,10 @@ const BAND_HUE = ["rose", "clay", "amber", "sky", "fern"] as const;
 export default async function ConnectedReport({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; days?: string; score?: string }>;
+  searchParams: Promise<{ days?: string; score?: string }>;
 }) {
-  const { church, days, score } = await searchParams;
-  const session = await requireSession(church);
+  const { days, score } = await searchParams;
+  const session = await requireSession();
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return <Denied role={session.role} action="readReports" church={session.tenantSlug} />;
   }
@@ -69,7 +69,7 @@ export default async function ConnectedReport({
     },
   );
 
-  const here = `?church=${session.tenantSlug}&days=${window}`;
+  const here = `?days=${window}`;
 
   return (
     <AppShell session={session} title={t("reports.title")} wide>
@@ -176,7 +176,7 @@ export default async function ConnectedReport({
                     <tr key={one.memberId} className="border-b border-line last:border-b-0">
                       <td className="px-4 py-2.5">
                         <Link
-                          href={`/members/${one.slug}?church=${session.tenantSlug}`}
+                          href={`/members/${one.slug}`}
                           className="truncate font-medium text-fg no-underline hover:underline"
                         >
                           {one.name}

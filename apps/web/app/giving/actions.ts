@@ -19,7 +19,7 @@ export interface GivingResult {
 }
 
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const who = {
     tenantId: session.tenantId,
     role: session.role,
@@ -201,7 +201,7 @@ export interface GiverHit {
 
 /** R13.12. Who gave, looked up as the treasurer types the name. */
 export async function findGiver(query: string, church?: string): Promise<GiverHit[]> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const ctx = {
     tenantId: session.tenantId,
     role: session.role,
@@ -237,7 +237,7 @@ export async function findGiver(query: string, church?: string): Promise<GiverHi
 export async function stopRepeating(id: string, church?: string): Promise<GivingResult> {
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
-  const session = await requireSession(church);
+  const session = await requireSession();
   const ctx = {
     tenantId: session.tenantId,
     role: session.role,
@@ -288,7 +288,7 @@ export async function startCardChange(
 ): Promise<{ secret?: string; accountId?: string; error?: string }> {
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
-  const session = await requireSession(church);
+  const session = await requireSession();
   const ctx = {
     tenantId: session.tenantId,
     role: session.role,
@@ -321,7 +321,7 @@ export async function startCardChange(
         ui_mode: "embedded_page" as never,
         return_url:
           `${proto}://${host}/giving/card`
-          + `?church=${session.tenantSlug}&session={CHECKOUT_SESSION_ID}`,
+          + `?session={CHECKOUT_SESSION_ID}`,
       },
       asChurch(read.account.accountId),
     );

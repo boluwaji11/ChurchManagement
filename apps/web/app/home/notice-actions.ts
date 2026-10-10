@@ -16,7 +16,7 @@ export async function putNoticeAway(
   id: string,
   church?: string,
 ): Promise<{ error?: string }> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   try {
     await withTenant(
       { tenantId: session.tenantId, role: session.role, userId: session.userId },

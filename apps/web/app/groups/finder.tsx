@@ -387,7 +387,7 @@ export function Finder({
                   {/* The whole row opens the group, where the request sits
                       beside everything else about it. */}
                   <Link
-                    href={`/groups/${request.groupSlug}?church=${church}`}
+                    href={`/groups/${request.groupSlug}`}
                     className="truncate font-medium text-fg after:absolute after:inset-0 focus-visible:outline-none"
                   >
                     {request.personName}
@@ -651,7 +651,7 @@ function GroupCard({
         </div>
 
         <Link
-          href={`/groups/${group.slug}?church=${church}${from}`}
+          href={`/groups/${group.slug}${from}`}
           className="font-display text-[22px] leading-[28px] text-fg after:absolute after:inset-0 focus-visible:outline-none"
         >
           {group.name}
@@ -704,7 +704,7 @@ function GroupRow({
 
       <div className="flex min-w-0 flex-[2_1_220px] flex-col">
         <Link
-          href={`/groups/${group.slug}?church=${church}${from}`}
+          href={`/groups/${group.slug}${from}`}
           className="truncate font-medium text-fg after:absolute after:inset-0 focus-visible:outline-none"
         >
           {group.name}

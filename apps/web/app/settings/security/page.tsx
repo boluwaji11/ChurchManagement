@@ -10,10 +10,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.security"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.security"));
 }
 
 /** R1.8. How somebody gets in, and the two ways to change it. */

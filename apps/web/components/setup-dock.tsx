@@ -162,7 +162,7 @@ export function SetupDock({
               </span>
 
               <Link
-                href={`${step.href}?church=${church}&setup=1`}
+                href={`${step.href}?setup=1`}
                 className={cn(
                   "-mt-0.5 min-w-0 flex-1 truncate rounded-lg px-1.5 py-1 no-underline",
                   // Colour rather than a fill: a grey block behind one line of
@@ -180,7 +180,7 @@ export function SetupDock({
 
       {/* No button for the next step: every step is its own press. */}
       <Link
-        href={`/setup?church=${church}`}
+        href={"/setup"}
         className="text-[13px] font-medium text-primary underline underline-offset-4"
       >
         {t("setup.dock.all")}

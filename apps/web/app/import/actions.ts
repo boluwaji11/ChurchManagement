@@ -63,7 +63,7 @@ const read = (file: FilePayload): Promise<Sheet> =>
 
 /** Reads the file and guesses the mapping. Touches no data. */
 export async function inspectFile(input: { church?: string } & FilePayload): Promise<Inspection> {
-  const session = await requireSession(input.church);
+  const session = await requireSession();
   if (!canEditPeople(session)) return { error: t("forbidden.addPeople") };
 
   const sheet = await read(input);
@@ -213,7 +213,7 @@ export async function previewImport(input: {
   strategy: DuplicateStrategy;
   groups?: boolean;
 } & FilePayload): Promise<Preview> {
-  const session = await requireSession(input.church);
+  const session = await requireSession();
   if (input.groups) return previewGroups(session, input);
   if (!canEditPeople(session)) return { error: t("forbidden.addPeople") };
 
@@ -330,7 +330,7 @@ export async function runImport(input: {
   strategy: DuplicateStrategy;
   groups?: boolean;
 } & FilePayload): Promise<ImportResult> {
-  const session = await requireSession(input.church);
+  const session = await requireSession();
   const sheet = await read(input);
 
   if (input.groups) {

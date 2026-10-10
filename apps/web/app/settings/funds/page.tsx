@@ -14,10 +14,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.funds"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.funds"));
 }
 
 /**
@@ -33,10 +33,10 @@ export async function generateMetadata({
 export default async function FundsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
   const manage = canManageGiving(session);
   const putAway = archived === "1";
 
@@ -54,7 +54,7 @@ export default async function FundsPage({
     <div className="flex flex-col gap-5">
       {putAway ? (
         <Link
-          href={`/settings/funds?church=${session.tenantSlug}`}
+          href={"/settings/funds"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("fund.archived.back")}
@@ -74,7 +74,7 @@ export default async function FundsPage({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/settings/funds?church=${session.tenantSlug}&archived=1`}
+          href={"/settings/funds?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("fund.archived", archivedCount)}

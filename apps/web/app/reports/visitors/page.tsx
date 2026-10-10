@@ -22,10 +22,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("reports.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("reports.title"));
 }
 
 const STANDING_HUE = { connected: "fern", returned: "sky", once: "clay" } as const;
@@ -44,10 +44,10 @@ const STANDING_HUE = { connected: "fern", returned: "sky", once: "clay" } as con
 export default async function VisitorReport({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; days?: string }>;
+  searchParams: Promise<{ days?: string }>;
 }) {
-  const { church, days } = await searchParams;
-  const session = await requireSession(church);
+  const { days } = await searchParams;
+  const session = await requireSession();
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <Denied role={session.role} action="readReports" church={session.tenantSlug} />
@@ -106,7 +106,7 @@ export default async function VisitorReport({
     const where = standing(one);
     return {
       key: one.id,
-      href: `/members/${one.slug}?church=${session.tenantSlug}`,
+      href: `/members/${one.slug}`,
       cells: [
         { text: one.name },
         { text: shortDate(one.firstVisitOn), muted: true },

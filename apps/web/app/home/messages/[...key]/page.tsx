@@ -13,10 +13,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("inbox.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("inbox.title"));
 }
 
 /** R16.9, R17.1. One of a member's conversations, open at its own address. */
@@ -25,17 +25,17 @@ export default async function MemberThreadPage({
   searchParams,
 }: {
   params: Promise<{ key: string[] }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   /* R16.9. The address is who it is with: a person's own, or a group's,
      which carries a kind in front of it. */
   const { key: parts } = await params;
   const key = parts.join("/");
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   if (canAnswerMessages(session)) {
-    redirect(`/messages/${key}?church=${session.tenantSlug}`);
+    redirect(`/messages/${key}`);
   }
 
   const first = await readInbox(session, { key, reading: true });

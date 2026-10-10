@@ -14,10 +14,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("labels.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("labels.title"));
 }
 
 /**
@@ -29,10 +29,10 @@ export async function generateMetadata({
 export default async function LabelsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   if (!canManageStations(session)) {
     return (
@@ -49,7 +49,7 @@ export default async function LabelsPage({
   return (
     <AppShell session={session} title={t("labels.title")} max="max-w-[880px]">
       <Link
-        href={`/checkin?church=${session.tenantSlug}`}
+        href={"/checkin"}
         className="-my-2 inline-flex min-h-9 items-center gap-1.5 self-start py-2 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("checkin.title")}

@@ -128,7 +128,7 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
   });
 
   revalidatePath("/members");
-  redirect(`/members/${where}?church=${session.tenantSlug}&saved=1`);
+  redirect(`/members/${where}?saved=1`);
 }
 
 export async function setArchived(data: FormData): Promise<SaveResult> {
@@ -157,7 +157,7 @@ export async function setArchived(data: FormData): Promise<SaveResult> {
   revalidatePath("/members");
   redirect(
     archived
-      ? `/members?church=${session.tenantSlug}&show=archived&archived=1`
-      : `/members/${back}?church=${session.tenantSlug}&restored=1`,
+      ? "/members?show=archived&archived=1"
+      : `/members/${back}?restored=1`,
   );
 }

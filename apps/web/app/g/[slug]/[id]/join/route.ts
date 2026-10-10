@@ -66,7 +66,7 @@ export async function POST(
       ),
   );
 
-  redirect(`/home?church=${slug}`);
+  redirect("/home");
 }
 
 /**

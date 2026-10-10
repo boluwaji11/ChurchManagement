@@ -71,7 +71,7 @@ export function SchedulePlan({
   const choose = (id: string) => {
     const one = gatherings.find((gathering) => gathering.id === id);
     router.push(
-      `/schedule/${teamPath}/schedule?church=${church}&service=${one?.slug ?? id}`,
+      `/schedule/${teamPath}/schedule?service=${one?.slug ?? id}`,
     );
   };
 

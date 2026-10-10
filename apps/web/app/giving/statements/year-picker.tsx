@@ -39,7 +39,7 @@ export function YearPicker({
         disabled={busy}
         onValueChange={(next) =>
           startReading(() => {
-            router.push(`/giving/statements?church=${church}&year=${next}`);
+            router.push(`/giving/statements?year=${next}`);
           })
         }
       >

@@ -16,8 +16,8 @@ import { tabTitle } from "./tab-title";
  * The session is read per request and cached, so asking for it here costs
  * nothing the page was not paying already.
  */
-export async function tabMetadata(page: string, church?: string): Promise<Metadata> {
-  const session = await requireSession(church);
+export async function tabMetadata(page: string): Promise<Metadata> {
+  const session = await requireSession();
   return { title: tabTitle(page, session.tenantName) };
 }
 

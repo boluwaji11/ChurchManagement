@@ -16,19 +16,19 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("personForm.addTitle"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("personForm.addTitle"));
 }
 
 export default async function NewPersonPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   // The form is hidden from a role that cannot use it. The refusal that matters
   // is in the repository, which rejects the write even if this page is bypassed.
@@ -49,7 +49,7 @@ export default async function NewPersonPage({
       max="max-w-[1080px]"
     >
       <Link
-        href={`/members?church=${session.tenantSlug}`}
+        href={"/members"}
         className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("members.title")}

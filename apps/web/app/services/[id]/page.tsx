@@ -19,10 +19,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("services.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("services.title"));
 }
 
 const readable = (iso: string) =>
@@ -35,11 +35,11 @@ export default async function RosterPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
     const occurrence = await getOccurrence(tx, id);
@@ -67,7 +67,7 @@ export default async function RosterPage({
       title={occurrence.name}
     >
       <Link
-        href={`/services?church=${session.tenantSlug}`}
+        href={"/services"}
         className="mb-6 inline-flex min-h-9 items-center gap-1.5 self-start py-2 text-label text-fg-muted hover:text-fg"
       >
         <ArrowLeft className="size-4" /> {t("roster.back")}
@@ -87,7 +87,7 @@ export default async function RosterPage({
               cancelled={occurrence.status === "cancelled"}
             />
             <Button variant="secondary" asChild>
-              <Link href={`/services/${occurrence.slug}/plan?church=${session.tenantSlug}`}>
+              <Link href={`/services/${occurrence.slug}/plan`}>
                 <ListOrdered /> {t("order.open")}
               </Link>
             </Button>

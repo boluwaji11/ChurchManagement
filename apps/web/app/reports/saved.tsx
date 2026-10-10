@@ -93,7 +93,7 @@ export function SavedReports({
               {/* Stretched, so the whole tile opens it and the buttons beside
                   it stay buttons rather than links inside a link. */}
               <Link
-                href={`/reports/custom/${one.slug}?church=${church}`}
+                href={`/reports/custom/${one.slug}`}
                 className="font-semibold text-fg after:absolute after:inset-0 after:content-['']"
               >
                 {one.name}
@@ -156,7 +156,7 @@ export function SavedReports({
                             onSelect={() => {
                               setOnCard(one.id);
                               startRedraw(() => {
-                                router.push(`/reports/build?church=${church}&id=${one.slug}`);
+                                router.push(`/reports/build?id=${one.slug}`);
                               });
                             }}
                           >

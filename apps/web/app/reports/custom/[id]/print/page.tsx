@@ -20,10 +20,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("reports.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("reports.title"));
 }
 
 /** What a visual is called when nobody has named it. */
@@ -45,11 +45,11 @@ export default async function PrintReportPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (

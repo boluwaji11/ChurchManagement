@@ -20,10 +20,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("form.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("form.title"));
 }
 
 /** Twenty to a page, the same as the directory. */
@@ -40,11 +40,11 @@ export default async function FormPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string; view?: string; page?: string }>;
+  searchParams: Promise<{ view?: string; page?: string }>;
 }) {
   const { id } = await params;
-  const { church, view, page } = await searchParams;
-  const session = await requireSession(church);
+  const { view, page } = await searchParams;
+  const session = await requireSession();
 
   if (!canManageChurch(session)) {
     return (
@@ -92,7 +92,7 @@ export default async function FormPage({
        one is being written. */
     <AppShell session={session} tab={result.form.name}>
       <Link
-        href={`/forms?church=${session.tenantSlug}`}
+        href={"/forms"}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("form.title")}

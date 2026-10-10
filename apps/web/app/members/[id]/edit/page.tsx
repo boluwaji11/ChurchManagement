@@ -20,10 +20,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("members.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("members.title"));
 }
 
 export default async function EditPersonPage({
@@ -31,11 +31,11 @@ export default async function EditPersonPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
     // Found by their readable address or by their id, so everything after this
@@ -69,7 +69,7 @@ export default async function EditPersonPage({
       max="max-w-[1080px]"
     >
       <Link
-        href={`/members/${person.slug}?church=${session.tenantSlug}`}
+        href={`/members/${person.slug}`}
         className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {display}

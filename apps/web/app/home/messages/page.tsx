@@ -13,10 +13,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("inbox.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("inbox.title"));
 }
 
 /**
@@ -28,14 +28,14 @@ export async function generateMetadata({
 export default async function MemberMessagesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   // Staff have their own inbox, which is the other side of these threads.
   if (canAnswerMessages(session)) {
-    redirect(`/messages?church=${session.tenantSlug}`);
+    redirect("/messages");
   }
 
   const first = await readInbox(session, { key: null });

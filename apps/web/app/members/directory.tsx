@@ -244,7 +244,7 @@ export function Directory({
     ["q", "status", "tag", "has", "joined", "group", "serving", "seen", "missing", "list"]
       .some((key) => params.get(key))
     || (!putAway && Boolean(params.get("show")));
-  const exportHref = `/api/export?church=${church}&${params.toString()}`;
+  const exportHref = `/api/export?${params.toString()}`;
 
   // What the Filter button counts, so "Filter · 2" says how much is narrowing
   // the list. Search sits outside it, in its own box. Status and tags each
@@ -319,7 +319,7 @@ export function Directory({
         ) : null}
 
         {canArchive ? (
-          <ToolButton href={`/duplicates?church=${church}`} label={t("merge.title")}>
+          <ToolButton href={"/duplicates"} label={t("merge.title")}>
             <Copy />
             {duplicates > 0 ? (
               <span
@@ -332,12 +332,12 @@ export function Directory({
           </ToolButton>
         ) : null}
 
-        <ToolButton href={`/members/celebrations?church=${church}`} label={t("celebrations.open")}>
+        <ToolButton href={"/members/celebrations"} label={t("celebrations.open")}>
           <Cake />
         </ToolButton>
 
         <ToolButton
-          href={`/members/print?church=${church}`}
+          href={"/members/print"}
           target="_blank"
           label={t("members.printAll")}
         >
@@ -346,7 +346,7 @@ export function Directory({
 
         {/* R16.12. The other half of communication: the half that needs no
             provider and sends nothing. */}
-        <ToolButton href={`/members/mailer?church=${church}`} label={t("post.title")}>
+        <ToolButton href={"/members/mailer"} label={t("post.title")}>
           <Mail />
         </ToolButton>
 
@@ -369,7 +369,7 @@ export function Directory({
         </Tooltip>
 
         {canEdit ? (
-          <ToolButton href={`/import?church=${church}`} label={t("import.title")}>
+          <ToolButton href={"/import"} label={t("import.title")}>
             <Upload />
           </ToolButton>
         ) : null}
@@ -382,7 +382,7 @@ export function Directory({
             line and this press where it was left. */}
         {canEdit ? (
           <Button asChild className="shrink-0">
-            <Link href={`/members/new?church=${church}`}>
+            <Link href={"/members/new"}>
               <Plus /> {t("members.add")}
             </Link>
           </Button>
@@ -423,7 +423,7 @@ export function Directory({
           groups={groups}
           mergeHref={
             canArchive && selected.length === 2
-              ? `/duplicates?church=${church}&a=${selected[0]}&b=${selected[1]}`
+              ? `/duplicates?a=${selected[0]}&b=${selected[1]}`
               : null
           }
           pending={pending}
@@ -464,12 +464,12 @@ export function Directory({
             ) : canEdit && !putAway ? (
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <Button asChild>
-                  <Link href={`/members/new?church=${church}`}>
+                  <Link href={"/members/new"}>
                     <Plus /> {t("members.add")}
                   </Link>
                 </Button>
                 <Button variant="secondary" asChild>
-                  <Link href={`/import?church=${church}`}>
+                  <Link href={"/import"}>
                     <Upload /> {t("import.title")}
                   </Link>
                 </Button>
@@ -519,7 +519,7 @@ export function Directory({
               <span className="flex min-w-0 flex-1 flex-col gap-1">
                 {/* The whole card opens them. The name is the link under it. */}
                 <Link
-                  href={`/members/${p.slug}?church=${church}`}
+                  href={`/members/${p.slug}`}
                   className="truncate font-medium text-fg after:absolute after:inset-0 after:content-['']"
                 >
                   {p.displayName}
@@ -592,7 +592,7 @@ export function Directory({
                    and "copy link address" all still work. */
                 <tr
                   key={p.id}
-                  onClick={() => router.push(`/members/${p.slug}?church=${church}`)}
+                  onClick={() => router.push(`/members/${p.slug}`)}
                   // A picked row is tinted, so the selection is visible while
                   // the eye is on the names rather than on the checkboxes.
                   className="cursor-pointer hover:bg-canvas data-[selected]:bg-primary-soft"
@@ -612,7 +612,7 @@ export function Directory({
                   ) : null}
                   <td className="border-b border-sunken px-4 py-2.5">
                     <Link
-                      href={`/members/${p.slug}?church=${church}`}
+                      href={`/members/${p.slug}`}
                       className="flex items-center gap-2.5 font-medium text-fg"
                     >
                       <Avatar name={p.displayName} src={p.photoUrl} id={p.id} size="sm" className="size-7 text-[12px] font-semibold" />
@@ -1077,7 +1077,7 @@ function SelectionBar({
       {ids.length <= 40 ? (
         <Button asChild variant="ghost" className="min-h-9 rounded-full px-2.5 text-[13px]">
           <a
-            href={`/members/print/labels?church=${church}&ids=${ids.join(",")}`}
+            href={`/members/print/labels?ids=${ids.join(",")}`}
             target="_blank"
             rel="noreferrer"
           >
@@ -1098,7 +1098,7 @@ function SelectionBar({
       ) : null}
 
       <FileDownload
-        href={`/api/export?church=${church}&ids=${ids.join(",")}`}
+        href={`/api/export?ids=${ids.join(",")}`}
         file="members.csv"
         label={t("directory.exporting")}
         title={t("directory.exportFailed")}
@@ -1276,7 +1276,7 @@ function ListBar({
           ) : null}
           <Tooltip content={t("directory.clear")}>
             <Link
-              href={`/members?church=${church}`}
+              href={"/members"}
               aria-label={t("directory.clear")}
               className="inline-flex size-[var(--d-tap)] items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
             >
@@ -1331,7 +1331,7 @@ function ListBar({
                 startTransition(async () => {
                   const result = await archiveList(list.id, true, church);
                   setFailed(result.error);
-                  if (!result.error) router.push(`/members?church=${church}`);
+                  if (!result.error) router.push("/members");
                 });
               }}
             >

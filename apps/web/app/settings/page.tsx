@@ -10,10 +10,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("nav.settings"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("nav.settings"));
 }
 
 /**
@@ -26,7 +26,7 @@ export default async function SettingsPage() {
   const session = await requireSession();
   redirect(
     canManageChurch(session)
-      ? `/settings/church?church=${session.tenantSlug}`
-      : `/settings/profile?church=${session.tenantSlug}`,
+      ? "/settings/church"
+      : "/settings/profile",
   );
 }

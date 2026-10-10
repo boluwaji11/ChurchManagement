@@ -68,7 +68,7 @@ export function Shelf({
         return;
       }
       startGoing(() => {
-        router.push(`/members/mailer?church=${church}&open=${back.slug}`);
+        router.push(`/members/mailer?open=${back.slug}`);
         setOpen(false);
       });
     });
@@ -122,7 +122,7 @@ export function Shelf({
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 {/* Stretched, so the whole tile opens it. */}
                 <Link
-                  href={`/members/mailer?church=${church}&open=${one.slug}`}
+                  href={`/members/mailer?open=${one.slug}`}
                   className="font-semibold text-fg after:absolute after:inset-0 after:content-['']"
                 >
                   {one.name}
@@ -166,7 +166,7 @@ export function Shelf({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/members/mailer?church=${church}&archived=1`}
+          href={"/members/mailer?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("post.archived", archivedCount)}

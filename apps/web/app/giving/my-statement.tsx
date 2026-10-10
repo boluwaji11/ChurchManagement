@@ -38,7 +38,7 @@ export function MyStatement({
       </Select>
 
       <a
-        href={`/giving/statement?church=${church}&year=${year}`}
+        href={`/giving/statement?year=${year}`}
         target="_blank"
         rel="noreferrer noopener"
         className="inline-flex min-h-9 items-center gap-1.5 rounded-[var(--d-radius-control)] px-2 font-medium text-primary underline underline-offset-4 hover:bg-sunken [&_svg]:size-4"

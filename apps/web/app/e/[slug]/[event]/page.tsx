@@ -70,7 +70,7 @@ export default async function PublicEventPage({
 
   return (
     <PortalShell session={inPortal} tab={t("nav.events")}>
-      <BackLink href={`/events?church=${slug}`} label={t("nav.events")} />
+      <BackLink href={"/events"} label={t("nav.events")} />
       {page}
     </PortalShell>
   );

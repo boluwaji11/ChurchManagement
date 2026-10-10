@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createChurch } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { currentUser } from "@/lib/session";
+import { rememberChurch } from "@/lib/church-choice";
 
 export interface CreateResult {
   error?: string;
@@ -45,9 +46,15 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
   }
 
   /*
+   * R1.4. The church they just founded is the one they are looking at.
+   * Founding a second one would otherwise land on the chooser between them.
+   */
+  await rememberChurch(slug);
+
+  /*
    * R22.1. Step three. The rail on the two screens before this one promised a
    * setup step, and it used to drop somebody into the directory instead, where
    * the only row is themselves.
    */
-  redirect(`/setup?church=${slug}`);
+  redirect("/setup");
 }

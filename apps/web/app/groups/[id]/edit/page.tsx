@@ -15,10 +15,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("nav.groups"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("nav.groups"));
 }
 
 /** R9.2. Changing a group, on the same page that wrote it down. */
@@ -27,11 +27,11 @@ export default async function EditGroupPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   const permitted = canManageGroups(session);
 
   const data = await withTenant(
@@ -49,7 +49,7 @@ export default async function EditGroupPage({
     <AppShell session={session} tab={group.name} max="max-w-[1080px]">
       <div className="flex items-center gap-3">
         <Link
-          href={`/groups/${group.slug}?church=${session.tenantSlug}`}
+          href={`/groups/${group.slug}`}
           className="inline-flex items-center gap-1.5 font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {group.name}

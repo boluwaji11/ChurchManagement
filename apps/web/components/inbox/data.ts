@@ -124,7 +124,7 @@ export function useInbox(
 
   const read = React.useCallback(async () => {
     const mine = ++ticket.current;
-    const where = `/api/inbox?church=${encodeURIComponent(church)}&view=${view}`
+    const where = `/api/inbox?view=${view}`
       + (key ? `&key=${encodeURIComponent(key)}` : "")
       + (key && reading ? "&reading=1" : "");
     try {

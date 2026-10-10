@@ -225,7 +225,7 @@ export async function startGift(input: {
          */
         ui_mode: "embedded_page" as never,
         return_url: input.inside
-          ? `${back}/giving?church=${page.slug}&gift={CHECKOUT_SESSION_ID}`
+          ? `${back}/giving?gift={CHECKOUT_SESSION_ID}`
           : `${back}/give/${page.slug}/thanks?session={CHECKOUT_SESSION_ID}`,
       },
       asChurch(page.accountId),

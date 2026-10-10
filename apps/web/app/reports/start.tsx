@@ -42,7 +42,7 @@ export function StartReport({ church }: { church: string }) {
         return;
       }
       startGoing(() => {
-        router.push(`/reports/build?church=${church}&id=${back.slug}`);
+        router.push(`/reports/build?id=${back.slug}`);
         setOpen(false);
       });
     });

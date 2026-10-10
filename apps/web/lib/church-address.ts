@@ -33,5 +33,5 @@ export async function churchOrigin(name: string): Promise<string | null> {
 /** The whole way in: the church's address, and the screen they land on. */
 export async function churchLanding(name: string, path: string): Promise<string> {
   const origin = await churchOrigin(name);
-  return origin ? `${origin}${path}` : `${path}?church=${name}`;
+  return origin ? `${origin}${path}` : `${path}`;
 }

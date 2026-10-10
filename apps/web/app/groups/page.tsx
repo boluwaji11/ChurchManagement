@@ -23,10 +23,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("nav.groups"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("nav.groups"));
 }
 
 /**
@@ -40,10 +40,10 @@ export async function generateMetadata({
 export default async function GroupsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; type?: string; archived?: string }>;
+  searchParams: Promise<{ type?: string; archived?: string }>;
 }) {
-  const { church, type, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { type, archived } = await searchParams;
+  const session = await requireSession();
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
   const manage = canManageGroups(session);
   // R17.5. A member reads this screen in the portal's frame. Staff read the
@@ -102,7 +102,7 @@ export default async function GroupsPage({
      groups themselves. */
   const archivedLink = !putAway && manage && archivedCount > 0 ? (
     <Link
-      href={`/groups?church=${session.tenantSlug}&archived=1`}
+      href={"/groups?archived=1"}
       className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
     >
       {plural("groups.archived", archivedCount)}
@@ -130,7 +130,7 @@ export default async function GroupsPage({
         action={
           manage ? (
             <Button asChild>
-              <Link href={`/groups/new?church=${session.tenantSlug}`}>
+              <Link href={"/groups/new"}>
                 <Plus /> {t("groups.add")}
               </Link>
             </Button>
@@ -173,8 +173,8 @@ export default async function GroupsPage({
       <Link
         /* R9.1. Whichever list this was started from travels with the press:
            a kind, or the one that holds them all. */
-        href={`/groups/new?church=${session.tenantSlug}${
-          type ? `&type=${only ? (only.slug ?? only.id) : type}` : ""
+        href={`/groups/new${
+          type ? `?type=${only ? (only.slug ?? only.id) : type}` : ""
         }`}
       >
         <Plus /> {only ? t("groups.addOf", { type: only.name }) : t("groups.add")}
@@ -185,7 +185,7 @@ export default async function GroupsPage({
   const finder = (
     <Finder
         church={session.tenantSlug}
-        from={type ? `&type=${encodeURIComponent(type)}` : ""}
+        from={type ? `?type=${encodeURIComponent(type)}` : ""}
         canManage={manage}
         putAway={putAway}
         make={making}
@@ -246,9 +246,9 @@ export default async function GroupsPage({
   /* R24.6. The way back rides the action's own row rather than sitting in a
      band above it. */
   const back = putAway
-    ? { href: `/groups?church=${session.tenantSlug}`, label: t("groups.archived.back") }
+    ? { href: "/groups", label: t("groups.archived.back") }
     : kinds.length > 0
-      ? { href: `/groups?church=${session.tenantSlug}`, label: t("groupType.back") }
+      ? { href: "/groups", label: t("groupType.back") }
       : undefined;
 
   if (portal) {

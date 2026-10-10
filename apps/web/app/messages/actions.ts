@@ -18,7 +18,7 @@ import { supabaseServer } from "@/lib/supabase/server";
  * message is for. A link to a conversation is a link to somebody.
  */
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   return {
     session,
     ctx: {

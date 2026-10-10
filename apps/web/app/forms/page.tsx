@@ -17,10 +17,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("form.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("form.title"));
 }
 
 /**
@@ -36,10 +36,10 @@ export async function generateMetadata({
 export default async function FormsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
 
   if (!canManageChurch(session)) {
     return (
@@ -67,7 +67,7 @@ export default async function FormsPage({
     >
       {putAway ? (
         <Link
-          href={`/forms?church=${session.tenantSlug}`}
+          href={"/forms"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("form.archived.back")}
@@ -92,7 +92,7 @@ export default async function FormsPage({
             return (
               <li key={form.id} className="contents">
                 <Link
-                  href={`/forms/${form.slug}?church=${session.tenantSlug}`}
+                  href={`/forms/${form.slug}`}
                   className={`flex cursor-pointer flex-col gap-2.5 overflow-hidden rounded-[14px] border border-line bg-surface p-5 ${LIFT}`}
                 >
                   {/* R24.4. The form's own colour across the top of its tile,
@@ -134,7 +134,7 @@ export default async function FormsPage({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/forms?church=${session.tenantSlug}&archived=1`}
+          href={"/forms?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("form.archived", archivedCount)}

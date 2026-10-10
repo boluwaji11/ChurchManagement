@@ -127,15 +127,15 @@ export function Mailer({
   const who = (list === PEOPLE ? "&each=person" : "")
     + (whole ? "" : `&list=${list}`);
 
-  const labelsHref = `/members/print/labels?church=${church}&sheet=${paper}${who}`
+  const labelsHref = `/members/print/labels?sheet=${paper}${who}`
     + (used > 0 ? `&skip=${used}` : "");
 
-  const lettersHref = `/members/print/letters?church=${church}${who}`
-    + `&font=${font}&size=${size}&body=${encodeURIComponent(letter)}`;
+  const lettersHref = `/members/print/letters?font=${font}&size=${size}`
+    + `&body=${encodeURIComponent(letter)}${who}`;
 
-  const fileHref = `/api/letters?church=${church}${who}`
-    + `&font=${font}&size=${size}&name=${encodeURIComponent(name)}`
-    + `&body=${encodeURIComponent(letter)}`;
+  const fileHref = `/api/letters?font=${font}&size=${size}`
+    + `&name=${encodeURIComponent(name)}`
+    + `&body=${encodeURIComponent(letter)}${who}`;
 
   /* The file is named after the mailer, so a church with four of them can
      tell the carol service from the gift day in its downloads folder. */
@@ -287,7 +287,7 @@ export function Mailer({
                     setError(back.error);
                     return;
                   }
-                  startGoing(() => router.push(`/members/mailer?church=${church}`));
+                  startGoing(() => router.push("/members/mailer"));
                 });
               }}
             >

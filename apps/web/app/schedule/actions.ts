@@ -16,7 +16,7 @@ import { churchNow } from "@/lib/church-now";
 import { pushTo } from "@/lib/push";
 
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   return {
     session,
     // R10.1. The account goes to the repository, because a team leader may

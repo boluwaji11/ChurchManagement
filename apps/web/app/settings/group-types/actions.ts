@@ -15,7 +15,7 @@ export interface TypeResult {
 const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
 
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   return {
     actor: { tenantId: session.tenantId, role: session.role },
     ctx: {

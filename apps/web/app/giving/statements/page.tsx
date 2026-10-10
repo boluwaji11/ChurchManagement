@@ -24,10 +24,10 @@ const PER_PAGE = 25;
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("statement.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("statement.title"));
 }
 
 /**
@@ -40,10 +40,10 @@ export async function generateMetadata({
 export default async function StatementsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; year?: string; page?: string }>;
+  searchParams: Promise<{ year?: string; page?: string }>;
 }) {
-  const { church, year: asked, page: at } = await searchParams;
-  const session = await requireSession(church);
+  const { year: asked, page: at } = await searchParams;
+  const session = await requireSession();
 
   if (!canReadGivingAmounts(session)) {
     return (
@@ -83,7 +83,7 @@ export default async function StatementsPage({
       {/* Four short columns do not want the whole of a wide screen: the
           name and the total ended up a hand's width apart. */}
       <div className="flex max-w-3xl flex-col gap-5">
-        <BackLink href={`/giving?church=${session.tenantSlug}`} label={t("giving.count.back")} />
+        <BackLink href={"/giving"} label={t("giving.count.back")} />
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <YearPicker church={session.tenantSlug} year={read.year} years={read.years} />
@@ -93,7 +93,7 @@ export default async function StatementsPage({
             <StatementsBy church={session.tenantSlug} by={read.by} />
             {read.givers.length > 0 ? (
             <a
-              href={`/giving/statements/print?church=${session.tenantSlug}&year=${read.year}`}
+              href={`/giving/statements/print?year=${read.year}`}
               target="_blank"
               rel="noreferrer noopener"
               className="inline-flex min-h-[var(--d-tap)] items-center gap-1.5 rounded-[var(--d-radius-control)] px-3 font-medium text-primary no-underline hover:bg-sunken"
@@ -130,7 +130,7 @@ export default async function StatementsPage({
                     {money(giver.totalCents)}
                   </span>
                   <a
-                    href={`/giving/statements/print?church=${session.tenantSlug}&year=${read.year}&member=${giver.memberId}`}
+                    href={`/giving/statements/print?year=${read.year}&member=${giver.memberId}`}
                     target="_blank"
                     rel="noreferrer noopener"
                     className="w-[52px] shrink-0 text-right font-medium text-primary underline underline-offset-4"
@@ -146,7 +146,7 @@ export default async function StatementsPage({
               size={PER_PAGE}
               total={read.givers.length}
               href={(to) =>
-                `/giving/statements?church=${session.tenantSlug}&year=${read.year}&page=${to}`
+                `/giving/statements?year=${read.year}&page=${to}`
               }
               anchor="givers"
             />

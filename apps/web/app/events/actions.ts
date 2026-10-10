@@ -11,7 +11,7 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const actor = {
     tenantId: session.tenantId,
     role: session.role,
@@ -166,7 +166,7 @@ export async function findEventContact(
   query: string,
   church?: string,
 ): Promise<PersonHit[]> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const ctx = {
     tenantId: session.tenantId,
     role: session.role,

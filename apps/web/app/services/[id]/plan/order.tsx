@@ -533,7 +533,7 @@ function ItemDialog({
                 <SelectTrigger aria-label={t("order.kind")}><SelectValue /></SelectTrigger>
                 <SelectContent
                   create={
-                    <SelectCreate href={`/settings/service-type?church=${church}`}>
+                    <SelectCreate href={"/settings/service-type"}>
                       {t("itemKind.create")}
                     </SelectCreate>
                   }
@@ -959,7 +959,7 @@ function StartFrom({
 
             {/* Where the shapes themselves are written and changed. */}
             <Link
-              href={`/settings/service-template?church=${church}`}
+              href={"/settings/service-template"}
               className="mt-1 self-start font-medium text-primary"
             >
               {t("planTpl.manage")}

@@ -72,7 +72,7 @@ export default async function GivePage({
             started. */}
         {known ? (
           <Link
-            href={`/giving?church=${church.slug}`}
+            href={"/giving"}
             className="flex w-fit items-center gap-1.5 font-medium text-primary no-underline"
           >
             <ArrowLeft className="size-4" aria-hidden /> {t("give.back")}

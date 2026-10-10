@@ -14,8 +14,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const church = request.nextUrl.searchParams.get("church") ?? undefined;
-  const session = await requireSession(church);
+  const session = await requireSession();
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return refused(session.role, "buildReports");
   }

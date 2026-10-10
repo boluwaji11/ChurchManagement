@@ -41,7 +41,7 @@ export function ReportFrame({
   return (
     <>
       <Link
-        href={`/reports?church=${church}`}
+        href={"/reports"}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" aria-hidden /> {t("reports.title")}
@@ -54,7 +54,7 @@ export function ReportFrame({
           {WINDOWS.map((one) => (
             <Link
               key={one}
-              href={`/reports/${path}?church=${church}&days=${one}`}
+              href={`/reports/${path}?days=${one}`}
               aria-current={one === days ? "page" : undefined}
               className={
                 one === days
@@ -71,9 +71,9 @@ export function ReportFrame({
             that has learned one report has learned all of them. Each carries
             the window the report was read at. */}
         <DownloadMenu
-          csv={`/reports/${path}/export?church=${church}&days=${days}`}
-          pptx={`/reports/pptx?church=${church}&report=${path}&days=${days}`}
-          print={`/reports/print?church=${church}&report=${path}&days=${days}`}
+          csv={`/reports/${path}/export?days=${days}`}
+          pptx={`/reports/pptx?report=${path}&days=${days}`}
+          print={`/reports/print?report=${path}&days=${days}`}
         />
       </div>
 

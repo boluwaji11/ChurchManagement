@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("payouts.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("payouts.title"));
 }
 
 /**
@@ -34,10 +34,10 @@ export async function generateMetadata({
 export default async function PayoutsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   if (!canManageGiving(session)) {
     return (
@@ -55,7 +55,7 @@ export default async function PayoutsPage({
     <AppShell session={session} title={t("payouts.title")} wide>
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <BackLink href={`/giving?church=${session.tenantSlug}`} label={t("giving.count.back")} />
+          <BackLink href={"/giving"} label={t("giving.count.back")} />
 
           {account ? (
             <a
@@ -83,7 +83,7 @@ export default async function PayoutsPage({
             body={t("payouts.connect")}
             action={
               <Link
-                href={`/settings/online?church=${session.tenantSlug}`}
+                href={"/settings/online"}
                 className="font-medium text-primary"
               >
                 {t("stripe.connect")}

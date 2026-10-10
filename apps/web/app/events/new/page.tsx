@@ -15,20 +15,20 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("nav.events"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("nav.events"));
 }
 
 /** R14.1. A new event, on the page it will be read on. */
 export default async function NewEventPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   if (!canManageEvents(session)) {
     return (
       <Denied role={session.role} action="manageEvents" church={session.tenantSlug} />
@@ -54,7 +54,7 @@ export default async function NewEventPage({
   return (
     <AppShell session={session} tab={t("nav.events")}>
       <Link
-        href={`/events?church=${session.tenantSlug}`}
+        href={"/events"}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("event.title")}

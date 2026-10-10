@@ -26,7 +26,7 @@ export async function registerFromPreview(input: {
   errors?: { at: number; fieldId: string; message: string }[];
   error?: string;
 }> {
-  const session = await requireSession(input.church);
+  const session = await requireSession();
   if (!canManageEvents(session)) {
     return { ok: false, error: explain(new PermissionError(session.role, "manageEvents")) };
   }

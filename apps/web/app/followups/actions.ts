@@ -8,7 +8,7 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   return {
     session,
     ctx: {

@@ -17,7 +17,7 @@ export interface ListResult {
 const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
 
 async function allowed(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   // A PermissionError, so explain() writes the sentence rather than rethrowing.
   if (!canEditPeople(session)) throw new PermissionError(session.role, "editPerson");
   return session;

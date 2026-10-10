@@ -14,10 +14,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("labels.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("labels.title"));
 }
 
 /**
@@ -31,16 +31,16 @@ export default async function LabelsPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    church?: string; service?: string; members?: string;
+    service?: string; members?: string;
     local?: string; printer?: string; test?: string;
   }>;
 }) {
-  const { church, service, members, local, printer, test } = await searchParams;
+  const { service, members, local, printer, test } = await searchParams;
 
   // R8.24. A station with no network prints what it wrote down itself.
   if (local) return <LocalLabels printer={printer} />;
 
-  const session = await requireSession(church);
+  const session = await requireSession();
 
   /*
    * R8.6. A pair carries a child's name, their room, what they are allergic to

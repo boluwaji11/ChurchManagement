@@ -12,7 +12,7 @@ export interface KindResult {
 }
 
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const who = {
     tenantId: session.tenantId,
     role: session.role,

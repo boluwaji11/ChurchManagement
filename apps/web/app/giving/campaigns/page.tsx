@@ -23,10 +23,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("campaigns.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("campaigns.title"));
 }
 
 /**
@@ -39,10 +39,10 @@ export async function generateMetadata({
 export default async function CampaignsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
   const manage = canManageGiving(session);
 
   if (!manage && !canReadGivingAmounts(session)) {
@@ -81,13 +81,13 @@ export default async function CampaignsPage({
       <div className="flex flex-col gap-5">
         {putAway ? (
           <Link
-            href={`/giving/campaigns?church=${session.tenantSlug}`}
+            href={"/giving/campaigns"}
             className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
           >
             <ArrowLeft className="size-4" /> {t("campaigns.archived.back")}
           </Link>
         ) : (
-          <BackLink href={`/giving?church=${session.tenantSlug}`} label={t("giving.count.back")} />
+          <BackLink href={"/giving"} label={t("giving.count.back")} />
         )}
 
         {shown.length === 0 ? (
@@ -114,7 +114,7 @@ export default async function CampaignsPage({
                 return (
                 <Link
                   key={one.id}
-                  href={`/giving/campaigns/${one.slug}?church=${session.tenantSlug}`}
+                  href={`/giving/campaigns/${one.slug}`}
                   className="group flex flex-col gap-3.5 rounded-[14px] border border-line bg-surface p-5 no-underline shadow-sm transition-colors duration-instant hover:border-line-strong hover:bg-sunken"
                 >
                   <span className="flex items-start gap-3">
@@ -183,7 +183,7 @@ export default async function CampaignsPage({
 
         {!putAway && read.archivedCount > 0 ? (
           <Link
-            href={`/giving/campaigns?church=${session.tenantSlug}&archived=1`}
+            href={"/giving/campaigns?archived=1"}
             className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
           >
             {plural("campaigns.archived", read.archivedCount)}

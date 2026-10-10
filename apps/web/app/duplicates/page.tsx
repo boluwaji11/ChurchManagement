@@ -16,19 +16,19 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("merge.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("merge.title"));
 }
 
 export default async function DuplicatesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; a?: string; b?: string }>;
+  searchParams: Promise<{ a?: string; b?: string }>;
 }) {
-  const { church, a, b } = await searchParams;
-  const session = await requireSession(church);
+  const { a, b } = await searchParams;
+  const session = await requireSession();
 
   // Merging moves every note and every record off one person and onto another,
   // so the review queue is only shown to the roles that may do it.
@@ -106,7 +106,7 @@ export default async function DuplicatesPage({
       max="max-w-[880px]"
     >
       <Link
-        href={`/members?church=${session.tenantSlug}`}
+        href={"/members"}
         className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("members.title")}

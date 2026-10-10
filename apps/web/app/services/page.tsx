@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("services.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("services.title"));
 }
 
 /** How far ahead the screen reads. A church plans a few weeks, not a year. */
@@ -74,10 +74,10 @@ const hasBeen = (one: { occursOn: string; startsAt: string }, today: string, tim
 export default async function ServicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   const canEdit = canManageServices(session);
 
   const { rows, past, plans, now } = await withTenant(
@@ -127,8 +127,8 @@ export default async function ServicesPage({
     return {
       id: one.id,
       href: canEdit
-        ? `/services/${one.slug}/plan?church=${session.tenantSlug}`
-        : `/services/${one.slug}?church=${session.tenantSlug}`,
+        ? `/services/${one.slug}/plan`
+        : `/services/${one.slug}`,
       when: `${readableDay(one.occursOn)} · ${readableTime(one.startsAt)}`,
       name: plan?.title || one.name,
       theme: plan?.theme ?? null,

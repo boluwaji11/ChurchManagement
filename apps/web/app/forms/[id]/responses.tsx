@@ -61,7 +61,7 @@ function Files({ answer, church }: { answer: FormAnswer; church: string }) {
       {keys.map((key, at) => (
         <a
           key={key}
-          href={`/api/forms/file?church=${church}&key=${encodeURIComponent(key)}`}
+          href={`/api/forms/file?key=${encodeURIComponent(key)}`}
           target="_blank"
           rel="noreferrer"
           className="flex items-center gap-1.5 font-medium text-primary underline-offset-4 hover:underline"
@@ -348,7 +348,7 @@ function Response({
           <MatchTag state={row.matchState} />
           {row.matchState === "review" ? (
             <Link
-              href={`/duplicates?church=${church}`}
+              href={"/duplicates"}
               className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
             >
               {t("form.match.compare")}
@@ -356,7 +356,7 @@ function Response({
           ) : null}
           {row.memberId && row.personName ? (
             <Link
-              href={`/members/${row.personSlug}?church=${church}`}
+              href={`/members/${row.personSlug}`}
               className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
             >
               {row.personName}

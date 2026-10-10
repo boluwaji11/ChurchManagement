@@ -142,7 +142,7 @@ export function Sidebar({
           const row = (
             <Link
               // R24.6. Back to the screen this section was left on.
-              href={`${entry.href}?church=${church}`}
+              href={`${entry.href}`}
               // R24.6. Back to the screen this section was left on, decided on
               // the press so the rendered href is the same on both sides.
               onClick={(event) => {
@@ -197,7 +197,7 @@ export function Sidebar({
             Settings, which is its own row two inches above, and the chevrons
             promised a church switch it never made. */}
         <Link
-          href={`/settings/profile?church=${church}`}
+          href={"/settings/profile"}
           className={cn(
             "flex w-full items-center gap-2.5 rounded-md text-left hover:bg-shell-line",
             collapsed ? "justify-center p-1" : "px-1 py-2",
@@ -294,7 +294,7 @@ export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church:
         {shown.map((entry) => (
           <Tab
             key={entry.href}
-            href={`${entry.href}?church=${church}`}
+            href={`${entry.href}`}
             icon={entry.icon}
             label={entry.label}
             on={active === entry.href}
@@ -326,7 +326,7 @@ export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church:
             {entries.map((entry) => (
               <li key={entry.href}>
                 <Link
-                  href={`${entry.href}?church=${church}`}
+                  href={`${entry.href}`}
                   onClick={go(entry)}
                   aria-current={active === entry.href ? "page" : undefined}
                   className={cn(

@@ -186,7 +186,7 @@ export function StartCount({
               </SelectTrigger>
               <SelectContent
                 create={
-                  <SelectCreate href={`/settings/funds?church=${church}`}>
+                  <SelectCreate href={"/settings/funds"}>
                     {t("fund.add")}
                   </SelectCreate>
                 }

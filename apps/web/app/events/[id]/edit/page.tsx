@@ -17,10 +17,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("event.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("event.title"));
 }
 
 /** R14.1. Changing an event, on the same page it was written on. */
@@ -29,11 +29,11 @@ export default async function EditEventPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   if (!canManageEvents(session)) {
     return (
       <Denied role={session.role} action="manageEvents" church={session.tenantSlug} />
@@ -67,7 +67,7 @@ export default async function EditEventPage({
   return (
     <AppShell session={session} tab={event.name}>
       <Link
-        href={`/events/${event.slug}?church=${session.tenantSlug}`}
+        href={`/events/${event.slug}`}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {event.name}

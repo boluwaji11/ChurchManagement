@@ -72,7 +72,7 @@ export function EventCard({
         </div>
 
         <Link
-          href={`/events/${event.slug}?church=${church}`}
+          href={`/events/${event.slug}`}
           className="font-display text-[22px] leading-[28px] text-fg after:absolute after:inset-0 focus-visible:outline-none"
         >
           {event.name}
@@ -143,7 +143,7 @@ export function EventRow({
 
       <div className="flex min-w-0 flex-[2_1_220px] flex-col">
         <Link
-          href={`/events/${event.slug}?church=${church}`}
+          href={`/events/${event.slug}`}
           className="truncate font-medium text-fg after:absolute after:inset-0 focus-visible:outline-none"
         >
           {event.name}

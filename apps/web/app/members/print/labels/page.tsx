@@ -23,10 +23,10 @@ const PICKED_CAP = 40;
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("post.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("post.title"));
 }
 
 /**
@@ -46,17 +46,17 @@ export default async function PrintLabelsPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    church?: string; sheet?: string; list?: string; skip?: string; ids?: string;
+    sheet?: string; list?: string; skip?: string; ids?: string;
     each?: string;
   }>;
 }) {
   const params = await searchParams;
-  const session = await requireSession(params.church);
+  const session = await requireSession();
 
   /* A sheet with no shell around it, so a refusal has nowhere to sit. Back to
      the screen it was asked for from, which says why. */
   if (!canEditPeople(session)) {
-    redirect(`/members?church=${session.tenantSlug}`);
+    redirect("/members");
   }
 
   const sheet: PaperStock = (PAPERS as readonly string[]).includes(params.sheet ?? "")

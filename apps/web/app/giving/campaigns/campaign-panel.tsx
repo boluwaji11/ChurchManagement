@@ -159,7 +159,7 @@ export function CampaignPanel({
               <SelectTrigger aria-label={t("campaigns.fund")}><SelectValue /></SelectTrigger>
               <SelectContent
                 create={
-                  <SelectCreate href={`/settings/funds?church=${church}`}>
+                  <SelectCreate href={"/settings/funds"}>
                     {t("fund.add")}
                   </SelectCreate>
                 }

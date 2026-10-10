@@ -128,7 +128,7 @@ export function StationPicker({
         action={
           canManage ? (
             <Button asChild>
-              <Link href={`/settings/stations?church=${church}`}>{t("stations.add")}</Link>
+              <Link href={"/settings/stations"}>{t("stations.add")}</Link>
             </Button>
           ) : undefined
         }

@@ -19,10 +19,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("giving.statements"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("giving.statements"));
 }
 
 /**
@@ -36,15 +36,15 @@ export async function generateMetadata({
 export default async function StatementPrintPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; year?: string; member?: string }>;
+  searchParams: Promise<{ year?: string; member?: string }>;
 }) {
-  const { church, year: asked, member } = await searchParams;
-  const session = await requireSession(church);
+  const { year: asked, member } = await searchParams;
+  const session = await requireSession();
   /*
    * A sheet with no shell around it, so the refusal panel has nowhere to
    * sit. Back to the screen this sheet was asked for from, which says why.
    */
-  if (!canReadGivingAmounts(session)) redirect(`/giving/statements?church=${session.tenantSlug}`);
+  if (!canReadGivingAmounts(session)) redirect("/giving/statements");
 
   const ctx = {
     tenantId: session.tenantId,

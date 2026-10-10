@@ -72,7 +72,7 @@ export function PrintRoster({
             onClick={() => {
               setOpen(false);
               window.open(
-                `/events/${eventSlug}/roster?church=${church}&columns=${chosen.join(",")}`,
+                `/events/${eventSlug}/roster?columns=${chosen.join(",")}`,
                 "_blank",
                 "noreferrer",
               );

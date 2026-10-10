@@ -23,7 +23,7 @@ export function ThisWeek({ church, entries }: { church: string; entries: WeekEnt
   return (
     <Panel
       title={t("dashboard.thisWeek")}
-      link={{ label: t("nav.calendar"), href: `/calendar?church=${church}` }}
+      link={{ label: t("nav.calendar"), href: "/calendar" }}
     >
       {entries.length === 0 ? (
         <p className="text-[length:var(--d-text-body)] text-fg-muted">
@@ -53,7 +53,7 @@ export function ThisWeek({ church, entries }: { church: string; entries: WeekEnt
               <li key={one.id} className="border-t border-line first:border-t-0">
                 {one.href ? (
                   <Link
-                    href={`${one.href}?church=${church}`}
+                    href={`${one.href}`}
                     className="flex items-center gap-3 py-2.5 transition-colors hover:text-primary"
                   >
                     {body}

@@ -129,7 +129,7 @@ export function Board({
                 >
                   <span className="flex items-start justify-between gap-2">
                     <Link
-                      href={`/members/${card.personSlug}?church=${church}`}
+                      href={`/members/${card.personSlug}`}
                       className="font-medium text-fg after:absolute after:inset-0 after:content-['']"
                     >
                       {card.who}

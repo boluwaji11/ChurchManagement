@@ -18,7 +18,7 @@ export interface DomainResult {
 /** R1.1. The church's own address, set or cleared. */
 export async function saveDomain(domain: string, church?: string): Promise<DomainResult> {
   try {
-    const session = await requireSession(church);
+    const session = await requireSession();
     const saved = await withTenant(
       {
         tenantId: session.tenantId,
@@ -43,7 +43,7 @@ export async function saveDomain(domain: string, church?: string): Promise<Domai
 /** R1.7. Opening or shutting the church's own door to new accounts. */
 export async function setSignup(open: boolean, church?: string): Promise<{ error?: string }> {
   try {
-    const session = await requireSession(church);
+    const session = await requireSession();
     await setSelfSignup(session.tenantId, session.role, open);
     revalidatePath("/settings/church");
     return {};
@@ -66,7 +66,7 @@ export async function checkDomain(
   /** Our own host, so the reading can say whether the name reaches us yet. */
   expect?: string,
 ): Promise<{ found?: DomainFindings; error?: string }> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   if (!canManageChurch(session)) {
     return { error: t("domain.error.notAllowed") };
   }
@@ -86,7 +86,7 @@ export async function claimPortalName(
   name: string,
   church?: string,
 ): Promise<{ name?: string | null; free?: boolean; error?: string }> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   if (!canManageChurch(session)) return { error: t("domain.error.notAllowed") };
 
   try {
@@ -117,7 +117,7 @@ export async function openPortal(
   church?: string,
 ): Promise<{ error?: string }> {
   try {
-    const session = await requireSession(church);
+    const session = await requireSession();
     await withTenant(
       {
         tenantId: session.tenantId,

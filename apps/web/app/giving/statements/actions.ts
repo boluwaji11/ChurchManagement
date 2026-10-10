@@ -10,7 +10,7 @@ export async function chooseStatementsBy(
   by: "person" | "household",
   church?: string,
 ): Promise<{ error?: string }> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const who = {
     tenantId: session.tenantId,
     role: session.role,

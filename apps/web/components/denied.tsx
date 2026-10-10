@@ -42,7 +42,7 @@ export function Denied({
       : t("forbidden.body");
 
   const home = back ?? {
-    href: church ? `/home?church=${church}` : "/home",
+    href: church ? "/home" : "/home",
     label: t("forbidden.back"),
   };
 

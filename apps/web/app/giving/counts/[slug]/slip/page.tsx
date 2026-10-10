@@ -13,10 +13,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("giving.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("giving.title"));
 }
 
 /**
@@ -32,16 +32,16 @@ export default async function DepositSlipPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { slug } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   /*
    * A sheet with no shell around it, so the refusal panel has nowhere to
    * sit. Back to the screen this sheet was asked for from, which says why.
    */
-  if (!canManageGiving(session)) redirect(`/giving?church=${session.tenantSlug}`);
+  if (!canManageGiving(session)) redirect("/giving");
 
   const ctx = {
     tenantId: session.tenantId,

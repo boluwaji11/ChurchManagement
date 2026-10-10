@@ -18,10 +18,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.teams"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.teams"));
 }
 
 /**
@@ -34,10 +34,10 @@ export async function generateMetadata({
 export default async function TeamsSettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
 
   if (!canManageTeams(session)) {
     return <Denied role={session.role} action="manageTeams" church={session.tenantSlug} />;
@@ -72,7 +72,7 @@ export default async function TeamsSettingsPage({
     <>
       {putAway ? (
         <Link
-          href={`/settings/teams?church=${session.tenantSlug}`}
+          href={"/settings/teams"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("serving.archived.back")}
@@ -121,7 +121,7 @@ export default async function TeamsSettingsPage({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/settings/teams?church=${session.tenantSlug}&archived=1`}
+          href={"/settings/teams?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("serving.archived", archivedCount)}

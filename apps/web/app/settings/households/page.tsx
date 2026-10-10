@@ -18,20 +18,20 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.households"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.households"));
 }
 
 /** R2.1. The families a church keeps together, as things in their own right. */
 export default async function HouseholdsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
 
   if (!canManageHouseholds(session)) {
     return (
@@ -57,7 +57,7 @@ export default async function HouseholdsPage({
     <>
       {putAway ? (
         <Link
-          href={`/settings/households?church=${session.tenantSlug}`}
+          href={"/settings/households"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("households.archived.back")}
@@ -90,7 +90,7 @@ export default async function HouseholdsPage({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/settings/households?church=${session.tenantSlug}&archived=1`}
+          href={"/settings/households?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("households.archived", archivedCount)}

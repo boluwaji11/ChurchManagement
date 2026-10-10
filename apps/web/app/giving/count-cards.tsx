@@ -103,7 +103,7 @@ export function CountCards({
             <span className="relative z-10 shrink-0">
               <Tooltip content={t("giving.count.slip")}>
                 <a
-                  href={`/giving/counts/${count.slug}/slip?church=${church}`}
+                  href={`/giving/counts/${count.slug}/slip`}
                   target="_blank"
                   rel="noreferrer noopener"
                   aria-label={t("giving.count.slip")}

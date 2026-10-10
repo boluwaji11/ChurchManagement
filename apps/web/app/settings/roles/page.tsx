@@ -17,20 +17,20 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.roles"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.roles"));
 }
 
 /** R1.6. Every permission against every role, and the roles a church writes itself. */
 export default async function RolesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
   if (!canManageChurch(session)) {
     return <Denied role={session.role} action="editRoles" church={session.tenantSlug} />;
   }
@@ -86,7 +86,7 @@ export default async function RolesPage({
     <>
       {putAway ? (
         <Link
-          href={`/settings/roles?church=${session.tenantSlug}`}
+          href={"/settings/roles"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("roles.archived.back")}
@@ -128,7 +128,7 @@ export default async function RolesPage({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/settings/roles?church=${session.tenantSlug}&archived=1`}
+          href={"/settings/roles?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("roles.archived", archivedCount)}

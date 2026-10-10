@@ -28,7 +28,7 @@ function stepsFrom(data: FormData) {
 }
 
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   return { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 }
 

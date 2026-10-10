@@ -67,7 +67,7 @@ export function Steps({
         return;
       }
       setLeaving(true);
-      router.push(`/dashboard?church=${church}`);
+      router.push("/dashboard");
     });
 
   const next = steps.find((step) => !step.done && !step.skipped);
@@ -173,7 +173,7 @@ export function Steps({
                     </Button>
                   )}
                   <Button asChild variant={here ? "primary" : "secondary"}>
-                    <Link href={`${step.href}?church=${church}`}>
+                    <Link href={`${step.href}`}>
                       {step.done ? t("setup.change") : t("setup.do")}
                       {here ? <ArrowRight /> : null}
                     </Link>

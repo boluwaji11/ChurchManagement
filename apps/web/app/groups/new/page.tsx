@@ -12,10 +12,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("groups.newTitle"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("groups.newTitle"));
 }
 
 /**
@@ -27,10 +27,10 @@ export async function generateMetadata({
 export default async function NewGroupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; type?: string }>;
+  searchParams: Promise<{ type?: string }>;
 }) {
-  const { church, type } = await searchParams;
-  const session = await requireSession(church);
+  const { type } = await searchParams;
+  const session = await requireSession();
 
   // The form is hidden from a role that cannot use it. The refusal that matters
   // is in the repository, which rejects the write even if this page is bypassed.
@@ -54,8 +54,8 @@ export default async function NewGroupPage({
     ? types.find((one) => one.slug === type || one.id === type)
     : undefined;
   const backTo = type
-    ? `/groups?church=${session.tenantSlug}&type=${from ? (from.slug ?? from.id) : type}`
-    : `/groups?church=${session.tenantSlug}`;
+    ? `/groups?type=${from ? (from.slug ?? from.id) : type}`
+    : "/groups";
 
   return (
     <AppShell

@@ -20,10 +20,10 @@ const CAP = 500;
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("post.tab.letters"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("post.tab.letters"));
 }
 
 /**
@@ -41,16 +41,16 @@ export default async function PrintLettersPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    church?: string; list?: string; ids?: string; each?: string; body?: string;
+    list?: string; ids?: string; each?: string; body?: string;
     font?: string; size?: string;
   }>;
 }) {
   const params = await searchParams;
-  const session = await requireSession(params.church);
+  const session = await requireSession();
 
   /* A sheet with no shell around it, so a refusal has nowhere to sit. */
   if (!canEditPeople(session)) {
-    redirect(`/members?church=${session.tenantSlug}`);
+    redirect("/members");
   }
 
   const read = await withTenant(

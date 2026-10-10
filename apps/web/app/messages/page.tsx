@@ -13,10 +13,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("inbox.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("inbox.title"));
 }
 
 /**
@@ -28,10 +28,10 @@ export async function generateMetadata({
 export default async function MessagesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   if (!canAnswerMessages(session)) {
     return (

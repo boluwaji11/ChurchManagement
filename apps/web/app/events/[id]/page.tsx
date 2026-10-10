@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("event.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("event.title"));
 }
 
 /**
@@ -35,11 +35,11 @@ export default async function EventPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string; tab?: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
-  const { church, tab } = await searchParams;
-  const session = await requireSession(church);
+  const { tab } = await searchParams;
+  const session = await requireSession();
   if (!canManageEvents(session)) {
     return (
       <Denied role={session.role} action="manageEvents" church={session.tenantSlug} />

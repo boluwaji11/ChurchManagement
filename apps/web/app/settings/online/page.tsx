@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.online"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.online"));
 }
 
 /**
@@ -32,10 +32,10 @@ export async function generateMetadata({
 export default async function OnlineGivingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   const manage = canManageGiving(session);
 
   /*
@@ -54,7 +54,7 @@ export default async function OnlineGivingPage({
       { tenantId: session.tenantId, role: session.role },
       (tx) => getStripeAccount(tx),
     );
-    if (held && !held.chargesEnabled) await syncStripe(church);
+    if (held && !held.chargesEnabled) await syncStripe();
   }
 
   const read = manage
@@ -92,7 +92,7 @@ export default async function OnlineGivingPage({
    * public giving address.
    */
   // R13.1. What the church recognises: its own name and its own bank.
-  const face = read.account ? await accountFace(church) : { name: null, bank: null, payouts: null };
+  const face = read.account ? await accountFace() : { name: null, bank: null, payouts: null };
 
   const qr = read.account?.chargesEnabled
     ? await QRCode.toDataURL(address, { errorCorrectionLevel: "M", margin: 1, width: 512 })

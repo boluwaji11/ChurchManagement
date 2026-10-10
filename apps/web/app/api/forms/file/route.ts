@@ -15,9 +15,8 @@ export const dynamic = "force-dynamic";
  * whatever the caller typed.
  */
 export async function GET(request: NextRequest) {
-  const church = request.nextUrl.searchParams.get("church") ?? undefined;
   const key = request.nextUrl.searchParams.get("key") ?? "";
-  const session = await requireSession(church);
+  const session = await requireSession();
 
   /*
    * Whoever may read what came in. A form's responses are the church's, and an

@@ -83,7 +83,7 @@ export function PlanTabs({
             <Link
               key={one.id}
               data-tab=""
-              href={`/services/${one.slug}/plan?church=${church}`}
+              href={`/services/${one.slug}/plan`}
               aria-current={one.id === current ? "page" : undefined}
               // Measured even when it is not shown, so the count is honest.
               hidden={i >= shown}

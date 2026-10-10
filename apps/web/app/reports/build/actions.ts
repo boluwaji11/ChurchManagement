@@ -11,7 +11,7 @@ import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   // A PermissionError, so explain() writes the sentence rather than rethrowing.
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     throw new PermissionError(session.role, "buildReports");

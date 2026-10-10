@@ -18,10 +18,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("campaigns.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("campaigns.title"));
 }
 
 /**
@@ -32,11 +32,11 @@ export default async function CampaignPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { slug } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   if (!canReadGivingAmounts(session) && !canManageGiving(session)) {
     return (
@@ -66,7 +66,7 @@ export default async function CampaignPage({
   return (
     <AppShell session={session} title={read.campaign.name} wide>
       <div className="flex flex-col gap-5">
-        <BackLink href={`/giving/campaigns?church=${session.tenantSlug}`} label={t("campaigns.back")} />
+        <BackLink href={"/giving/campaigns"} label={t("campaigns.back")} />
 
         <CampaignScreen
           church={session.tenantSlug}

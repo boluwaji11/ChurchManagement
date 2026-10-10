@@ -9,7 +9,7 @@ import { t } from "@connectapp/i18n";
 export function NewEventButton({ church }: { church: string }) {
   return (
     <Button asChild>
-      <Link href={`/events/new?church=${church}`}>
+      <Link href={"/events/new"}>
         <Plus /> {t("event.new")}
       </Link>
     </Button>

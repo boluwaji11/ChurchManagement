@@ -16,20 +16,20 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.followups"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.followups"));
 }
 
 /** R5.2. The six, in the church's own words. */
 export default async function PipelineSettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
 
   if (!canManageChurch(session)) {
     return <Denied role={session.role} action="editChurch" church={session.tenantSlug} />;
@@ -50,7 +50,7 @@ export default async function PipelineSettingsPage({
     <>
       {putAway ? (
         <Link
-          href={`/settings/followups?church=${session.tenantSlug}`}
+          href={"/settings/followups"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("pipelines.archived.back")}
@@ -89,7 +89,7 @@ export default async function PipelineSettingsPage({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/settings/followups?church=${session.tenantSlug}&archived=1`}
+          href={"/settings/followups?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("pipelines.archived", archivedCount)}

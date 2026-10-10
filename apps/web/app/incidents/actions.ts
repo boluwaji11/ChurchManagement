@@ -6,7 +6,7 @@ import { requireSession } from "@/lib/session";
 
 /** R8.13. Recording that the guardian has now been told. */
 export async function told(id: string, church?: string): Promise<{ error?: string }> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const actor = { tenantId: session.tenantId, role: session.role };
 
   try {

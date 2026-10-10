@@ -32,5 +32,5 @@ export async function startDemo() {
     }
   });
 
-  redirect(`/dashboard?church=${demo.slug}`);
+  redirect("/dashboard");
 }

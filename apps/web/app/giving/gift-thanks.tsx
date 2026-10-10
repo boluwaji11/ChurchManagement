@@ -34,7 +34,7 @@ export function GiftThanks({ slug, church }: { slug: string; church: string }) {
 
   const close = () => {
     setSaid(undefined);
-    router.replace(`/giving?church=${slug}`);
+    router.replace("/giving");
     router.refresh();
   };
 

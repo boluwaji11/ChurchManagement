@@ -17,7 +17,7 @@ import { requireSession } from "@/lib/session";
  * write did.
  */
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   if (!canEditPeople(session)) throw new PermissionError(session.role, "editPerson");
   return {
     tenantId: session.tenantId,

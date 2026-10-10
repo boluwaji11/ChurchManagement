@@ -66,7 +66,7 @@ export function SaveView({
       setOpen(false);
       setName("");
       // Straight onto the list it just made, which is the thing asked for.
-      router.push(`/members?church=${church}&list=${result.id}`);
+      router.push(`/members?list=${result.id}`);
     });
   };
 
@@ -142,7 +142,7 @@ export function OpenList({
         options={lists.map((one) => ({ value: one.id, label: one.name }))}
         value=""
         onChange={(id) => {
-          if (id) router.push(`/members?church=${church}&list=${id}`);
+          if (id) router.push(`/members?list=${id}`);
         }}
         clearable={false}
         placeholder={t("lists.title")}

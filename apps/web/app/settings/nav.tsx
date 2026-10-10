@@ -84,7 +84,7 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
             {at === 0 ? null : <span aria-hidden className="my-2.5 w-px bg-line" />}
 
             <Link
-              href={`${first.href}?church=${church}`}
+              href={`${first.href}`}
               aria-current={open ? "page" : undefined}
               className={cn(
                 "flex items-center gap-1.5 px-6 py-3",
@@ -122,7 +122,7 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
               {group.items.map((item) => (
                 <Link
                   key={item.href}
-                  href={`${item.href}?church=${church}`}
+                  href={`${item.href}`}
                   aria-current={item.href === pathname ? "page" : undefined}
                   onClick={(event) => {
                     closeSoon(group.title);
@@ -206,7 +206,7 @@ function Pocket({
               {group.items.map((item) => (
                 <Link
                   key={item.href}
-                  href={`${item.href}?church=${church}`}
+                  href={`${item.href}`}
                   aria-current={item.href === pathname ? "page" : undefined}
                   onClick={() => setOpen(false)}
                   className={cn(
@@ -256,7 +256,7 @@ function Strip({
         <div key={item.href} className="flex shrink-0 items-stretch">
           {at === 0 ? null : <span aria-hidden className="my-2.5 w-px bg-line" />}
           <Link
-            href={`${item.href}?church=${church}`}
+            href={`${item.href}`}
             aria-current={item.href === pathname ? "page" : undefined}
             className={cn(
               "flex items-center whitespace-nowrap px-5 py-3",

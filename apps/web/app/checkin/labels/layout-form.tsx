@@ -143,7 +143,7 @@ export function LabelLayoutForm({
           <Button
             variant="secondary"
             className="self-start"
-            onClick={() => openLabels(`/checkin/labels/print?church=${church}&test=1`)}
+            onClick={() => openLabels("/checkin/labels/print?test=1")}
           >
             <Printer /> {t("labels.test")}
           </Button>

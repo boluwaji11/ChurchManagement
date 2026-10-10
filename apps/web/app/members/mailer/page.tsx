@@ -20,10 +20,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("post.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("post.title"));
 }
 
 /** When a mailer was last written to, in the church's own format. */
@@ -47,12 +47,12 @@ const stamp = (at: Date): string =>
 export default async function MailerPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; open?: string; archived?: string }>;
+  searchParams: Promise<{ open?: string; archived?: string }>;
 }) {
-  const { church, open: id, archived } = await searchParams;
+  const { open: id, archived } = await searchParams;
   /** R24.6. The ones put away, reached from the shelf they came off. */
   const putAway = archived === "1";
-  const session = await requireSession(church);
+  const session = await requireSession();
 
   if (!canEditPeople(session)) {
     return (
@@ -83,8 +83,8 @@ export default async function MailerPage({
     <Link
       href={
         id || putAway
-          ? `/members/mailer?church=${session.tenantSlug}`
-          : `/members?church=${session.tenantSlug}`
+          ? "/members/mailer"
+          : "/members"
       }
       className="flex min-h-[var(--d-tap)] items-center gap-1.5 self-start font-medium text-primary [&_svg]:size-4"
     >

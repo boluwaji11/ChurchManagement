@@ -66,7 +66,7 @@ export function PortalTabs({ tabs, church }: { tabs: PortalTab[]; church: string
       {tabs.map((tab) => (
         <Link
           key={tab.href}
-          href={`${tab.href}?church=${church}`}
+          href={`${tab.href}`}
           aria-current={on(tab) ? "page" : undefined}
           className={
             on(tab)
@@ -121,12 +121,12 @@ export function PortalAccount({
         {/* R16.9. The corner mark opens the panel; this is the screen it
             belongs to, where somebody goes looking for it. */}
         <DropdownMenuItem asChild>
-          <Link href={`/home/messages?church=${church}`}>
+          <Link href={"/home/messages"}>
             <MessageSquare /> {t("inbox.title")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href={`/settings/profile?church=${church}`}>
+          <Link href={"/settings/profile"}>
             <Settings /> {t("settings.tab.profile")}
           </Link>
         </DropdownMenuItem>

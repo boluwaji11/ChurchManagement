@@ -86,7 +86,7 @@ export function PlanSide({
       {canPrint ? (
         <Button variant="secondary" asChild className="justify-center">
           <Link
-            href={`/services/${occurrenceId}/plan/print?church=${church}`}
+            href={`/services/${occurrenceId}/plan/print`}
             target="_blank"
           >
             <Printer /> {t("order.printRunSheet")}

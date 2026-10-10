@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("mine.giving.statement"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("mine.giving.statement"));
 }
 
 /**
@@ -31,10 +31,10 @@ export async function generateMetadata({
 export default async function MyStatementPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; year?: string }>;
+  searchParams: Promise<{ year?: string }>;
 }) {
-  const { church, year: asked } = await searchParams;
-  const session = await requireSession(church);
+  const { year: asked } = await searchParams;
+  const session = await requireSession();
 
   const ctx = {
     tenantId: session.tenantId,
@@ -65,7 +65,7 @@ export default async function MyStatementPage({
     };
   });
 
-  if (!read?.statement) redirect(`/giving?church=${session.tenantSlug}`);
+  if (!read?.statement) redirect("/giving");
 
   const { statement } = read;
   const inKind = statement.lines.filter((line) => line.inKindDescription);

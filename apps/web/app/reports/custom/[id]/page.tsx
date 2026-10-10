@@ -19,10 +19,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("reports.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("reports.title"));
 }
 
 /** What a visual is called when nobody has named it. */
@@ -44,11 +44,11 @@ export default async function CustomReportPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <Denied role={session.role} action="readReports" church={session.tenantSlug} />
@@ -83,7 +83,7 @@ export default async function CustomReportPage({
   return (
     <AppShell session={session} title={t("reports.title")} wide>
       <Link
-        href={`/reports?church=${session.tenantSlug}`}
+        href={"/reports"}
         className="-mb-5 -mt-3 inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" aria-hidden /> {t("reports.title")}
@@ -96,7 +96,7 @@ export default async function CustomReportPage({
             offered the pencil. */}
         {saved.createdByUserId === session.userId ? (
           <Link
-            href={`/reports/build?church=${session.tenantSlug}&id=${saved.slug}`}
+            href={`/reports/build?id=${saved.slug}`}
             aria-label={t("report.edit")}
             className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
           >
@@ -105,9 +105,9 @@ export default async function CustomReportPage({
         ) : null}
 
         <DownloadMenu
-          csv={`/reports/custom/${saved.slug}/export?church=${session.tenantSlug}`}
-          pptx={`/reports/custom/${saved.slug}/pptx?church=${session.tenantSlug}`}
-          print={`/reports/custom/${saved.slug}/print?church=${session.tenantSlug}`}
+          csv={`/reports/custom/${saved.slug}/export`}
+          pptx={`/reports/custom/${saved.slug}/pptx`}
+          print={`/reports/custom/${saved.slug}/print`}
         />
       </div>
 

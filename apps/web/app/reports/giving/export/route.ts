@@ -13,8 +13,7 @@ export const dynamic = "force-dynamic";
  * spreadsheet is every amount in it.
  */
 export async function GET(request: NextRequest) {
-  const church = request.nextUrl.searchParams.get("church") ?? undefined;
-  const session = await requireSession(church);
+  const session = await requireSession();
   if (!mayRead("giving", session)) return refused(session.role, "manageGiving");
 
   const window = windowOf(request.nextUrl.searchParams.get("days") ?? undefined);

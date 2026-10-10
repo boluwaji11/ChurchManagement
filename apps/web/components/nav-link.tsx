@@ -26,7 +26,7 @@ export function NavLink({
 
   return (
     <Link
-      href={`${href}?church=${church}`}
+      href={`${href}`}
       aria-current={here ? "page" : undefined}
       className={cn(
         "inline-flex items-center rounded-md px-2.5 py-1 text-label transition-colors duration-instant",

@@ -13,10 +13,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("giving.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("giving.title"));
 }
 
 /**
@@ -29,15 +29,15 @@ export async function generateMetadata({
 export default async function GivingQrPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   /*
    * A sheet with no shell around it, so the refusal panel has nowhere to
    * sit. Back to the screen this sheet was asked for from, which says why.
    */
-  if (!canManageGiving(session)) redirect(`/settings/online?church=${session.tenantSlug}`);
+  if (!canManageGiving(session)) redirect("/settings/online");
 
   const read = await withTenant(
     { tenantId: session.tenantId, role: session.role },
@@ -47,7 +47,7 @@ export default async function GivingQrPage({
     }),
   );
 
-  if (!read.account?.chargesEnabled) redirect(`/settings/online?church=${session.tenantSlug}`);
+  if (!read.account?.chargesEnabled) redirect("/settings/online");
 
   const head = await headers();
   const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";

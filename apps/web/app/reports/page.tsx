@@ -23,10 +23,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("reports.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("reports.title"));
 }
 
 /**
@@ -45,11 +45,10 @@ export async function generateMetadata({
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
   const params = await searchParams;
-  const church = params.church;
-  const session = await requireSession(church);
+  const session = await requireSession();
 
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
@@ -58,7 +57,7 @@ export default async function ReportsPage({
     );
   }
 
-  const here = `?church=${session.tenantSlug}`;
+  const here = ``;
 
   /* R24.6. A report that was put away could be archived and then never seen
      again: nothing listed it and nothing brought it back. */
@@ -181,7 +180,7 @@ export default async function ReportsPage({
     <AppShell session={session} title={t("reports.title")}>
       {putAway ? (
         <Link
-          href={`/reports?church=${session.tenantSlug}`}
+          href={"/reports"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("report.archived.back")}
@@ -247,7 +246,7 @@ export default async function ReportsPage({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/reports?church=${session.tenantSlug}&archived=1`}
+          href={"/reports?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("report.archived", archivedCount)}

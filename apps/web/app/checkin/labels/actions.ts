@@ -9,7 +9,7 @@ export async function saveLayout(
   layout: LabelLayout,
   church?: string,
 ): Promise<{ error?: string }> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const actor = { tenantId: session.tenantId, role: session.role };
 
   try {

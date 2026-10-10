@@ -7,7 +7,7 @@ import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   return {
     actor: { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     ctx: { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },

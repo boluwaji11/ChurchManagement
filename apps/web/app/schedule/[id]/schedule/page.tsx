@@ -22,10 +22,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("plan.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("plan.title"));
 }
 
 /**
@@ -42,11 +42,11 @@ export default async function SchedulePlanPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string; service?: string }>;
+  searchParams: Promise<{ service?: string }>;
 }) {
   const { id } = await params;
-  const { church, service } = await searchParams;
-  const session = await requireSession(church);
+  const { service } = await searchParams;
+  const session = await requireSession();
 
   if (!canLeadTeams(session)) {
     return (
@@ -86,7 +86,7 @@ export default async function SchedulePlanPage({
   );
 
   if (!team) notFound();
-  if (!mine) redirect(`/schedule?church=${session.tenantSlug}`);
+  if (!mine) redirect("/schedule");
 
   return (
     <AppShell
@@ -94,7 +94,7 @@ export default async function SchedulePlanPage({
       title={t("plan.title")}
     >
       <Button variant="ghost" asChild className="mb-4">
-        <Link href={`/schedule?church=${session.tenantSlug}&team=${team.slug}`}>
+        <Link href={`/schedule?team=${team.slug}`}>
           <ChevronLeft aria-hidden /> {team.name}
         </Link>
       </Button>

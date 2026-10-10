@@ -16,19 +16,19 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.church"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.church"));
 }
 
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   const { profile, campus } = await withTenant(
     { tenantId: session.tenantId, role: session.role },

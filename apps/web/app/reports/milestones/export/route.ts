@@ -8,8 +8,7 @@ export const dynamic = "force-dynamic";
 
 /** R18.10. The milestone lists as a file, over the window they were read at. */
 export async function GET(request: NextRequest) {
-  const church = request.nextUrl.searchParams.get("church") ?? undefined;
-  const session = await requireSession(church);
+  const session = await requireSession();
   if (!mayRead("milestones", session)) return refused(session.role, "buildReports");
 
   const window = windowOf(request.nextUrl.searchParams.get("days") ?? undefined);

@@ -11,7 +11,7 @@ import { explain } from "@/lib/explain";
 
 /** R2.4. The three things a church does to a list of contacts. */
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   return {
     actor: {
       tenantId: session.tenantId,

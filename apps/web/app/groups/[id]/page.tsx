@@ -32,10 +32,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("nav.groups"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("nav.groups"));
 }
 
 const dayName = (day: number) =>
@@ -68,11 +68,11 @@ export default async function GroupPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string; type?: string }>;
+  searchParams: Promise<{ type?: string }>;
 }) {
   const { id } = await params;
-  const { church, type } = await searchParams;
-  const session = await requireSession(church);
+  const { type } = await searchParams;
+  const session = await requireSession();
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   const manage = canManageGroups(session);
@@ -224,7 +224,7 @@ export default async function GroupPage({
    */
   const back = type
     ? {
-        href: `/groups?church=${session.tenantSlug}&type=${encodeURIComponent(type)}`,
+        href: `/groups?type=${encodeURIComponent(type)}`,
         label: type === "all"
           ? t("groupType.everything")
           : (group.typeName ?? t("groups.title")),
@@ -232,7 +232,7 @@ export default async function GroupPage({
     : {
         // Reached from somewhere that is not a list of groups: the press opens
         // the groups screen, which is where this record lives.
-        href: `/groups?church=${session.tenantSlug}`,
+        href: "/groups",
         label: t("groups.title"),
       };
 

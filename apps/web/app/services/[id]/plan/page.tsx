@@ -21,10 +21,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("order.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("order.title"));
 }
 
 /**
@@ -38,11 +38,11 @@ export default async function PlanPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   if (!canManageServices(session)) {
     return (
@@ -51,7 +51,7 @@ export default async function PlanPage({
           role={session.role}
           action="manageServices"
           church={session.tenantSlug}
-          back={{ href: `/services?church=${session.tenantSlug}`, label: t("order.allServices") }}
+          back={{ href: "/services", label: t("order.allServices") }}
         />
       </AppShell>
     );
@@ -116,7 +116,7 @@ export default async function PlanPage({
          a press lived. */
       action={<AddItem church={session.tenantSlug} planId={plan.id} kinds={kinds} />}
       /* R24.6. The way back rides the action's own row. */
-      back={{ href: `/services?church=${session.tenantSlug}`, label: t("order.allServices") }}
+      back={{ href: "/services", label: t("order.allServices") }}
     >
       {/* The heading block runs the width, and the sidebar starts level with
           the first item rather than with the back link. */}
@@ -191,7 +191,7 @@ export default async function PlanPage({
           canPrint={plan.items.length > 0}
           /* R10.3. The board for the month this service falls in, opened on
              its own column. */
-          scheduleHref={`/schedule?church=${session.tenantSlug}&at=${occurrence.occursOn.slice(0, 7)}&service=${occurrence.slug}`}
+          scheduleHref={`/schedule?at=${occurrence.occursOn.slice(0, 7)}&service=${occurrence.slug}`}
         />
       </div>
     </AppShell>

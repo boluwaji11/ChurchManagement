@@ -17,7 +17,7 @@ export interface HouseholdResult {
 }
 
 async function actor(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   return {
     tenantId: session.tenantId,
     role: session.role,

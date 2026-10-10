@@ -37,7 +37,7 @@ export function PipelinePicker({
         disabled={busy}
         onChange={(key) =>
           startOpening(() => {
-            router.push(`/followups?church=${church}&pipeline=${key}`);
+            router.push(`/followups?pipeline=${key}`);
           })
         }
         emptyLabel={t("board.noPipeline")}

@@ -19,7 +19,7 @@ const ROLES: TenantRole[] = [
 ];
 
 async function allowed(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   /*
    * A PermissionError and not a plain Error: explain() rethrows anything it
    * does not know, so a plain one escaped the action's own catch and took

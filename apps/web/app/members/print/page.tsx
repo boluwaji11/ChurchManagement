@@ -11,10 +11,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("members.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("members.title"));
 }
 
 /**
@@ -26,17 +26,17 @@ export async function generateMetadata({
 export default async function PrintPeoplePage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   /*
    * A sheet with no shell around it, so the refusal panel has nowhere to
    * sit. Back to the screen this sheet was asked for from, which says why.
    */
   if (!canEditPeople(session)) {
-    redirect(`/members?church=${session.tenantSlug}`);
+    redirect("/members");
   }
 
   const rows = await withTenant(

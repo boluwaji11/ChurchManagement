@@ -14,10 +14,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.rooms"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.rooms"));
 }
 
 /**
@@ -29,10 +29,10 @@ export async function generateMetadata({
 export default async function RoomsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
   const putAway = archived === "1";
 
   const { rooms, archivedCount } = await withTenant(
@@ -51,7 +51,7 @@ export default async function RoomsPage({
     <>
       {putAway ? (
         <Link
-          href={`/settings/rooms?church=${session.tenantSlug}`}
+          href={"/settings/rooms"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("rooms.archived.back")}
@@ -83,7 +83,7 @@ export default async function RoomsPage({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/settings/rooms?church=${session.tenantSlug}&archived=1`}
+          href={"/settings/rooms?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("rooms.archived", archivedCount)}

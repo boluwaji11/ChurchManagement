@@ -23,10 +23,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.profile"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.profile"));
 }
 
 /**
@@ -39,10 +39,10 @@ export async function generateMetadata({
 export default async function ProfilePage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   /* R24.x. What they chose, from their account rather than from this
      browser, so the card answers the same on every device they sign in on. */
   const theme = ((await themeFor(session.userId)) ?? "system") as Theme;

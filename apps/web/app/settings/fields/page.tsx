@@ -13,19 +13,19 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.fields"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.fields"));
 }
 
 export default async function FieldsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   const fields = await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) =>
     listCustomFields(tx, "person"),

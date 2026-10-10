@@ -21,7 +21,7 @@ export interface BoardResult {
  * be walking to the room instead.
  */
 export async function board(occurrenceId: string, church?: string): Promise<BoardResult> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   try {
@@ -62,7 +62,7 @@ export async function report(
   },
   church?: string,
 ): Promise<ReportResult> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const actor = { tenantId: session.tenantId, role: session.role };
   const ctx = { ...actor, userId: session.userId };
 

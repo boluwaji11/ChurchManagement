@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("live.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("live.title"));
 }
 
 /**
@@ -34,11 +34,11 @@ export default async function LivePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   const live = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
@@ -52,7 +52,7 @@ export default async function LivePage({
       title={t("live.title")}
     >
       <Link
-        href={`/services/${live.slug}?church=${session.tenantSlug}`}
+        href={`/services/${live.slug}`}
         className="mb-6 inline-flex min-h-9 items-center gap-1.5 self-start py-2 text-label text-fg-muted hover:text-fg"
       >
         <ArrowLeft className="size-4" /> {live.serviceName}

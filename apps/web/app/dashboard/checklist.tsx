@@ -101,7 +101,7 @@ export function SetupChecklist({
 
               <li className="flex min-w-0 sm:flex-[0_1_140px] sm:justify-center">
                 <Link
-                  href={`${SETUP_LINKS[step.step]}?church=${church}`}
+                  href={`${SETUP_LINKS[step.step]}`}
                   className="flex min-w-0 flex-1 items-center gap-3 rounded-[10px] px-2 py-2 text-left transition-colors hover:bg-[color-mix(in_oklch,var(--hue-amber-500)_14%,transparent)] sm:flex-none sm:flex-col sm:gap-2 sm:py-1 sm:text-center"
                 >
                   <span

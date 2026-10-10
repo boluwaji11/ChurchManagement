@@ -22,7 +22,7 @@ export async function subscribe(
   church?: string,
 ): Promise<PushResult> {
   try {
-    const session = await requireSession(church);
+    const session = await requireSession();
     await withTenant(
       {
         tenantId: session.tenantId,
@@ -46,7 +46,7 @@ export async function subscribe(
 /** R17.11. And turning it off again. */
 export async function unsubscribe(endpoint: string, church?: string): Promise<PushResult> {
   try {
-    const session = await requireSession(church);
+    const session = await requireSession();
     await withTenant(
       {
         tenantId: session.tenantId,
@@ -72,7 +72,7 @@ export async function unsubscribe(endpoint: string, church?: string): Promise<Pu
  */
 export async function known(endpoint: string, church?: string): Promise<boolean> {
   try {
-    const session = await requireSession(church);
+    const session = await requireSession();
     return await withTenant(
       {
         tenantId: session.tenantId,

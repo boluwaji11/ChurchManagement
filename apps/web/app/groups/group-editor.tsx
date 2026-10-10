@@ -189,7 +189,7 @@ export function GroupEditor({
            * leaving it in the history put the reader back on a blank New group
            * the moment they pressed Back from the group they had just written.
            */
-          router.replace(id ? `/groups/${slug}?church=${church}` : `/groups?church=${church}`);
+          router.replace(id ? `/groups/${slug}` : "/groups");
         });
       }}
       className="flex flex-col gap-5"
@@ -392,7 +392,7 @@ export function GroupEditor({
                   label={t("groups.type")}
                   onChange={setTypeId}
                   create={{
-                    href: `/settings/group-types?church=${church}`,
+                    href: "/settings/group-types",
                     label: t("groupType.create"),
                   }}
                 />

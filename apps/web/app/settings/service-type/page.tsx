@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.kinds"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.kinds"));
 }
 
 /**
@@ -35,10 +35,10 @@ export async function generateMetadata({
 export default async function ItemKindsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
   const manage = canManageServices(session);
   const putAway = archived === "1";
 
@@ -61,7 +61,7 @@ export default async function ItemKindsPage({
     <div className="flex flex-col gap-5">
       {putAway ? (
         <Link
-          href={`/settings/service-type?church=${session.tenantSlug}`}
+          href={"/settings/service-type"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("itemKind.archived.back")}
@@ -91,7 +91,7 @@ export default async function ItemKindsPage({
 
       {!putAway && manage && read.archivedCount > 0 ? (
         <Link
-          href={`/settings/service-type?church=${session.tenantSlug}&archived=1`}
+          href={"/settings/service-type?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("itemKind.archived", read.archivedCount)}

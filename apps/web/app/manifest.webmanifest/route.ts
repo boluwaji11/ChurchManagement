@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get("church");
   const church = slug ? await resolveTenantBySlug(slug) : null;
 
-  const start = church && slug ? `/home?church=${slug}` : "/home";
+  const start = church && slug ? "/home" : "/home";
 
   return Response.json(
     {

@@ -33,10 +33,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("nav.home"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("nav.home"));
 }
 
 /**
@@ -53,14 +53,14 @@ export async function generateMetadata({
 export default async function MemberHomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   // Staff have their own screens, and this is not one of them.
   if (canEditPeople(session) || canReadIncidents(session)) {
-    redirect(`/dashboard?church=${session.tenantSlug}`);
+    redirect("/dashboard");
   }
 
   const mine = await withTenant(
@@ -151,7 +151,7 @@ export default async function MemberHomePage({
     when: `${onDay(one.startsOn)}${one.startsAt ? ` ${readableTime(one.startsAt)}` : ""}`,
     title: one.name,
     detail: one.location,
-    href: `/events/${one.slug}?church=${at}`,
+    href: `/events/${one.slug}`,
   }));
 
   const checkingIn = mine.service && mine.children.length > 0;
@@ -218,7 +218,7 @@ export default async function MemberHomePage({
           <Block
             icon={<CalendarDays />}
             title={t("home.coming")}
-            action={<Through href={`/events?church=${at}`}>{t("home.allEvents")}</Through>}
+            action={<Through href={"/events"}>{t("home.allEvents")}</Through>}
           >
             {stops.length > 0 ? (
               <Thread stops={stops} />
@@ -238,7 +238,7 @@ export default async function MemberHomePage({
             title={t("home.mySchedule")}
             action={
               ahead.length > 0
-                ? <Through href={`/home/schedule?church=${at}`}>{t("home.seeAll")}</Through>
+                ? <Through href={"/home/schedule"}>{t("home.seeAll")}</Through>
                 : undefined
             }
           >
@@ -260,7 +260,7 @@ export default async function MemberHomePage({
             icon={<Users />}
             title={t("home.myGroups")}
             action={
-              <Through href={`/groups?church=${at}`}>
+              <Through href={"/groups"}>
                 {mine.groups.length > 0 ? t("home.findAnother") : t("find.title")}
               </Through>
             }
@@ -274,7 +274,7 @@ export default async function MemberHomePage({
                   note: group.mine
                     ? (group.dayOfWeek !== null ? `${dayName(group.dayOfWeek)}s` : null)
                     : t("home.groupAsked"),
-                  href: `/groups/${group.slug}?church=${at}`,
+                  href: `/groups/${group.slug}`,
                 }))}
               />
             ) : (

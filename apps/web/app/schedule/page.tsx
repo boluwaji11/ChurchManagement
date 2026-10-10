@@ -22,10 +22,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("serving.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("serving.title"));
 }
 
 /** One of the three controls that move the schedule a month at a time. */
@@ -86,11 +86,11 @@ export default async function ServingPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    church?: string; team?: string; at?: string; service?: string;
+    team?: string; at?: string; service?: string;
   }>;
 }) {
   const params = await searchParams;
-  const session = await requireSession(params.church);
+  const session = await requireSession();
 
   if (!canLeadTeams(session)) {
     return (

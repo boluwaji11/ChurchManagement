@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: NextRequest) {
   const params = Object.fromEntries(request.nextUrl.searchParams) as DirectoryParams;
-  const session = await requireSession(params.church);
+  const session = await requireSession();
 
   // A filtered directory exports what the filter says. The same URL that drew
   // the screen draws the file, so the two cannot disagree about what "these

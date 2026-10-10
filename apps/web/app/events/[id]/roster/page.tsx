@@ -15,10 +15,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("event.roster"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("event.roster"));
 }
 
 /**
@@ -52,16 +52,16 @@ export default async function EventRosterPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string; columns?: string }>;
+  searchParams: Promise<{ columns?: string }>;
 }) {
   const { id } = await params;
-  const { church, columns } = await searchParams;
-  const session = await requireSession(church);
+  const { columns } = await searchParams;
+  const session = await requireSession();
   /*
    * A sheet with no shell around it, so the refusal panel has nowhere to
    * sit. Back to the screen this sheet was asked for from, which says why.
    */
-  if (!canManageEvents(session)) redirect(`/events/${id}?church=${session.tenantSlug}`);
+  if (!canManageEvents(session)) redirect(`/events/${id}`);
 
   const found = await withTenant(
     {

@@ -19,10 +19,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("report.build"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("report.build"));
 }
 
 /**
@@ -35,10 +35,10 @@ export async function generateMetadata({
 export default async function BuildReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; id?: string }>;
+  searchParams: Promise<{ id?: string }>;
 }) {
-  const { church, id } = await searchParams;
-  const session = await requireSession(church);
+  const { id } = await searchParams;
+  const session = await requireSession();
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <Denied role={session.role} action="buildReports" church={session.tenantSlug} />
@@ -73,7 +73,7 @@ export default async function BuildReportPage({
           title={t("report.notYours")}
           action={
             <Button asChild variant="secondary">
-              <Link href={`/reports/custom/${saved.slug}?church=${session.tenantSlug}`}>
+              <Link href={`/reports/custom/${saved.slug}`}>
                 {t("report.open")}
               </Link>
             </Button>
@@ -88,7 +88,7 @@ export default async function BuildReportPage({
        underneath. */
     <AppShell session={session} title={saved?.name ?? t("report.build")} wide>
       <Link
-        href={`/reports?church=${session.tenantSlug}`}
+        href={"/reports"}
         className="-mb-5 -mt-3 inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" aria-hidden /> {t("reports.title")}

@@ -33,10 +33,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("members.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("members.title"));
 }
 
 /**
@@ -109,11 +109,11 @@ export default async function PersonPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
     const person = await getPerson(tx, id, { role: session.role, userId: session.userId });
@@ -204,7 +204,7 @@ export default async function PersonPage({
 
          A note sits beside the two marks on the name's own row, with the
          other things a record is opened to do. */
-      back={{ href: `/members?church=${session.tenantSlug}`, label: t("members.title") }}
+      back={{ href: "/members", label: t("members.title") }}
     >
       {/* A 72px face, the name in Fraunces at 32, and under it the one line
           that places them: what they are to the church, whose household, and
@@ -259,7 +259,7 @@ export default async function PersonPage({
                 className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
               >
                 <Link
-                  href={`/members/${person.slug}/edit?church=${session.tenantSlug}`}
+                  href={`/members/${person.slug}/edit`}
                   aria-label={t("action.edit")}
                 >
                   <Pencil />

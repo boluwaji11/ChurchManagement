@@ -98,7 +98,7 @@ export async function PortalShell({
           home screen, and the worker that keeps it answering with no signal.
           React hoists both into the head. */}
       <TabTitle page={tab} church={session.tenantName} />
-      <link rel="manifest" href={`/manifest.webmanifest?church=${slug}`} />
+      <link rel="manifest" href={"/manifest.webmanifest"} />
       <meta name="theme-color" content="#faf8f5" />
       <Installed />
 
@@ -127,7 +127,7 @@ export async function PortalShell({
             </Tooltip>
           ) : (
             <Link
-              href={`/home?church=${slug}`}
+              href={"/home"}
               className="flex min-h-14 shrink-0 items-center gap-2.5"
             >
               <FlameMark size={32} logoUrl={logoUrl} churchName={session.tenantName} />
@@ -167,7 +167,7 @@ export async function PortalShell({
         church={slug}
         churchName={session.tenantName}
         office={false}
-        full={`/home/messages?church=${slug}`}
+        full={"/home/messages"}
         unread={shell.waiting}
         place="float"
       />

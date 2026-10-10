@@ -15,10 +15,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("rooms.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("rooms.title"));
 }
 
 /**
@@ -47,10 +47,10 @@ const clock = (hhmm: string) => {
 export default async function RosterPrintPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; service?: string; room?: string }>;
+  searchParams: Promise<{ service?: string; room?: string }>;
 }) {
-  const { church, service, room } = await searchParams;
-  const session = await requireSession(church);
+  const { service, room } = await searchParams;
+  const session = await requireSession();
 
   if (!canSupervise(session) || !service) {
     return (

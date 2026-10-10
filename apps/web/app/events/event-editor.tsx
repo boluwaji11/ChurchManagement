@@ -142,7 +142,7 @@ export function EventEditor({
       return;
     }
     if (forms.length === 0) {
-      router.push(`/forms?church=${church}`);
+      router.push("/forms");
       return;
     }
     ask();
@@ -219,7 +219,7 @@ export function EventEditor({
             router.refresh();
             return;
           }
-          router.push(id ? `/events/${slug}/edit?church=${church}` : `/events?church=${church}`);
+          router.push(id ? `/events/${slug}/edit` : "/events");
         });
       }}
       className="flex flex-col gap-5"
@@ -263,7 +263,7 @@ export function EventEditor({
               </span>
               <button
                 type="button"
-                onClick={() => router.push(`/forms?church=${church}`)}
+                onClick={() => router.push("/forms")}
                 className="cursor-pointer text-[length:var(--d-text-body)] font-semibold text-primary underline-offset-4 hover:underline"
               >
                 {t("form.newOne")}
@@ -301,7 +301,7 @@ export function EventEditor({
                   type="button"
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    router.push(`/forms?church=${church}`);
+                    router.push("/forms");
                   }}
                   className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-left text-[length:var(--d-text-body)] font-semibold text-primary hover:bg-sunken"
                 >

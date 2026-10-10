@@ -38,8 +38,8 @@ export interface ConnectResult {
   url?: string;
 }
 
-async function context(church?: string) {
-  const session = await requireSession(church);
+async function context() {
+  const session = await requireSession();
   const who = {
     tenantId: session.tenantId,
     role: session.role,
@@ -79,8 +79,8 @@ async function origin(): Promise<string> {
  * the church for its own details, its own bank account and its own tax status,
  * and the link below is where it answers.
  */
-export async function connectStripe(church?: string): Promise<ConnectResult> {
-  const { session, actor, ctx } = await context(church);
+export async function connectStripe(): Promise<ConnectResult> {
+  const { session, actor, ctx } = await context();
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
   try {
@@ -231,7 +231,7 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
       );
     }
 
-    const here = `${await origin()}/settings/online?church=${session.tenantSlug}`;
+    const here = `${await origin()}/settings/online`;
     /*
      * R13.1. Coming back says so, so the screen can ask Stripe what the
      * account looks like now rather than showing what it looked like before
@@ -241,7 +241,7 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
       account: accountId,
       type: "account_onboarding",
       refresh_url: here,
-      return_url: `${here}&from=stripe`,
+      return_url: `${here}?from=stripe`,
     });
 
     return { url: link.url };
@@ -256,8 +256,8 @@ export async function connectStripe(church?: string): Promise<ConnectResult> {
  * Separate from the action below because a screen rendering on the way back
  * from Stripe calls it too, and a render may not ask for a revalidation.
  */
-export async function syncStripe(church?: string): Promise<ConnectResult> {
-  const { actor, ctx } = await context(church);
+export async function syncStripe(): Promise<ConnectResult> {
+  const { actor, ctx } = await context();
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
   try {
@@ -284,8 +284,8 @@ export async function syncStripe(church?: string): Promise<ConnectResult> {
 }
 
 /** R13.1. The same, from a press, which puts the screens right afterwards. */
-export async function refreshStripe(church?: string): Promise<ConnectResult> {
-  const answer = await syncStripe(church);
+export async function refreshStripe(): Promise<ConnectResult> {
+  const answer = await syncStripe();
   if (!answer.error) {
     revalidatePath("/settings/online");
     revalidatePath("/giving");
@@ -294,8 +294,8 @@ export async function refreshStripe(church?: string): Promise<ConnectResult> {
 }
 
 /** R13.1. A one-off link into the church's own Stripe dashboard. */
-export async function stripeDashboard(church?: string): Promise<ConnectResult> {
-  const { ctx } = await context(church);
+export async function stripeDashboard(): Promise<ConnectResult> {
+  const { ctx } = await context();
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
   try {
@@ -325,8 +325,8 @@ export interface AccountFace {
  * the last four digits of the account the money lands in. One call, on a
  * settings screen that is opened rarely.
  */
-export async function accountFace(church?: string): Promise<AccountFace> {
-  const { ctx } = await context(church);
+export async function accountFace(): Promise<AccountFace> {
+  const { ctx } = await context();
   const nothing = { name: null, bank: null, payouts: null };
   if (!stripeConfigured()) return nothing;
 

@@ -32,7 +32,7 @@ export function DownloadRow({
     setError(undefined);
     try {
       const response = await fetch(
-        `/api/export?church=${church}${only ? `&only=${only}` : ""}`,
+        `/api/export${only ? `?only=${only}` : ""}`,
       );
       if (!response.ok) throw new Error(String(response.status));
 

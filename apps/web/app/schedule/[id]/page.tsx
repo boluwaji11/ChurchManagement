@@ -10,10 +10,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("serving.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("serving.title"));
 }
 
 /**
@@ -29,11 +29,11 @@ export default async function TeamPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   const team = await withTenant(
     { tenantId: session.tenantId, role: session.role },
@@ -42,7 +42,7 @@ export default async function TeamPage({
 
   redirect(
     team
-      ? `/schedule?church=${session.tenantSlug}&team=${team.slug}`
-      : `/settings/teams?church=${session.tenantSlug}`,
+      ? `/schedule?team=${team.slug}`
+      : "/settings/teams",
   );
 }

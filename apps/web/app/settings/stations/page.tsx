@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.stations"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.stations"));
 }
 
 /**
@@ -31,10 +31,10 @@ export async function generateMetadata({
 export default async function StationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
   const putAway = archived === "1";
 
   const { stations, archivedCount } = await withTenant(
@@ -53,7 +53,7 @@ export default async function StationsPage({
     <>
       {putAway ? (
         <Link
-          href={`/settings/stations?church=${session.tenantSlug}`}
+          href={"/settings/stations"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("stations.archived.back")}
@@ -78,7 +78,7 @@ export default async function StationsPage({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/settings/stations?church=${session.tenantSlug}&archived=1`}
+          href={"/settings/stations?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("stations.archived", archivedCount)}

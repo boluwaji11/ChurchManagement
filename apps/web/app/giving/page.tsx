@@ -48,12 +48,12 @@ const ASIDE_ROWS = 8;
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   const theirs = !canManageGiving(session) && !canReadGivingAmounts(session);
-  return tabMetadata(t(theirs ? "mine.giving.title" : "giving.title"), church);
+  return tabMetadata(t(theirs ? "mine.giving.title" : "giving.title"));
 }
 
 /** A page number out of the address, which may hold anything at all. */
@@ -75,12 +75,12 @@ export default async function GivingPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    church?: string; counts?: string; gifts?: string;
+    counts?: string; gifts?: string;
     period?: string; fund?: string; how?: string; state?: string; repeats?: string;
   }>;
 }) {
   const asked = await searchParams;
-  const session = await requireSession(asked.church);
+  const session = await requireSession();
   const manage = canManageGiving(session);
   const amounts = canReadGivingAmounts(session);
 
@@ -278,18 +278,18 @@ export default async function GivingPage({
             detail={
               read.stripe?.chargesEnabled ? t("stripe.state.ready") : t("stripe.state.none")
             }
-            href={`/giving/payouts?church=${session.tenantSlug}`}
+            href={"/giving/payouts"}
           />
           <Destination
             icon={<Target />}
             title={t("campaigns.title")}
             detail={plural("giving.campaigns.count", read.campaigns.length)}
-            href={`/giving/campaigns?church=${session.tenantSlug}`}
+            href={"/giving/campaigns"}
           />
           <Destination
             icon={<FileText />}
             title={t("giving.statements")}
-            href={`/giving/statements?church=${session.tenantSlug}`}
+            href={"/giving/statements"}
           />
         </div>
 
@@ -441,7 +441,7 @@ export default async function GivingPage({
                               <span className="flex justify-end">
                                 <Tooltip content={t("giving.count.slip")}>
                                   <a
-                                    href={`/giving/counts/${count.slug}/slip?church=${session.tenantSlug}`}
+                                    href={`/giving/counts/${count.slug}/slip`}
                                     target="_blank"
                                     rel="noreferrer noopener"
                                     aria-label={t("giving.count.slip")}
@@ -487,7 +487,7 @@ export default async function GivingPage({
                   <Tooltip content={t("giving.export")}>
                     <span className="inline-flex">
                     <Download
-                      href={`/api/giving?church=${session.tenantSlug}`}
+                      href={"/api/giving"}
                       file={`giving-${session.tenantSlug}.csv`}
                       label={t("download.building")}
                       title={t("giving.export")}
@@ -679,7 +679,7 @@ export default async function GivingPage({
             title={t("giving.funds")}
             action={
               <Link
-                href={`/settings/funds?church=${session.tenantSlug}`}
+                href={"/settings/funds"}
                 className="inline-flex min-h-9 items-center rounded-[var(--d-radius-control)] px-3 text-[13px] font-medium text-primary underline underline-offset-4 hover:bg-sunken"
               >
                 {t("giving.funds.manage")}
@@ -781,7 +781,7 @@ export default async function GivingPage({
 
                       {rest > 0 ? (
                         <Link
-                          href={`/settings/funds?church=${session.tenantSlug}`}
+                          href={"/settings/funds"}
                           className="mt-1 pl-[22px] text-[13px] font-medium text-primary no-underline"
                         >
                           {plural("giving.more", rest)}

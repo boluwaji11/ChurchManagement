@@ -16,11 +16,10 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
-  const church = params.get("church") ?? undefined;
-  const session = await requireSession(church);
-  const back = new URL(`/giving?church=${session.tenantSlug}`, request.nextUrl.origin);
+  const session = await requireSession();
+  const back = new URL("/giving", request.nextUrl.origin);
   const saved = new URL(
-    `/giving?church=${session.tenantSlug}&card=done`,
+    "/giving?card=done",
     request.nextUrl.origin,
   );
 

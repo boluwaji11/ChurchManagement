@@ -17,7 +17,7 @@ import { explain } from "@/lib/explain";
 export async function accountSession(
   church?: string,
 ): Promise<{ secret?: string; error?: string }> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   if (!canManageGiving(session)) {
     return { error: explain(new PermissionError(session.role, "manageGiving")) };
   }

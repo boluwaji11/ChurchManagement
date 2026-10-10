@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("checkin.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("checkin.title"));
 }
 
 /** "09:00" as a church says it. */
@@ -40,10 +40,10 @@ const readableTime = (hhmm: string) => {
 export default async function StationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   // R8.14. The desk belongs to whoever is running check-in.
   if (!canCheckIn(session)) {

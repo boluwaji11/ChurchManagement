@@ -233,7 +233,7 @@ export async function AppShell({
         church={session.tenantSlug}
         churchName={session.tenantName}
         office={canAnswerMessages(session)}
-        full={`/messages?church=${session.tenantSlug}`}
+        full={"/messages"}
         unread={counts.waiting}
         place="float"
         clear={

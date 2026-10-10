@@ -37,7 +37,7 @@ export function FollowUp({
   return (
     <Panel
       title={t("dashboard.followUp")}
-      link={{ label: t("dashboard.board"), href: `/followups?church=${church}` }}
+      link={{ label: t("dashboard.board"), href: "/followups" }}
     >
       {error ? (
         <p role="status" className="mb-2 text-[13px] text-danger-text">{error}</p>
@@ -56,7 +56,7 @@ export function FollowUp({
             >
               <span className="flex min-w-0 flex-1 flex-col leading-[18px]">
                 <Link
-                  href={`/members/${one.personSlug}?church=${church}`}
+                  href={`/members/${one.personSlug}`}
                   className="-my-2 inline-flex max-w-full items-center truncate py-2 font-medium text-fg hover:text-primary"
                 >
                   {one.personName}

@@ -18,10 +18,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.household"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.household"));
 }
 
 /**
@@ -39,12 +39,12 @@ export async function generateMetadata({
 export default async function MyHouseholdPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   if (canEditPeople(session) || canReadIncidents(session)) {
-    redirect(`/settings/households?church=${session.tenantSlug}`);
+    redirect("/settings/households");
   }
 
   const mine = await withTenant(

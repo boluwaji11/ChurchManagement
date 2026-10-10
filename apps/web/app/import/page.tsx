@@ -15,19 +15,19 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("import.heading"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("import.heading"));
 }
 
 export default async function ImportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   const batches = canEditPeople(session)
     ? await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) => listImports(tx))
@@ -40,7 +40,7 @@ export default async function ImportPage({
       max="max-w-[1180px]"
     >
       <Link
-        href={`/members?church=${session.tenantSlug}`}
+        href={"/members"}
         className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("members.title")}

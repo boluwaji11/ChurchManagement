@@ -20,10 +20,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("celebrations.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("celebrations.title"));
 }
 
 /**
@@ -64,7 +64,7 @@ export default async function CelebrationsPage({
   searchParams: Promise<Params>;
 }) {
   const params = await searchParams;
-  const session = await requireSession(params.church);
+  const session = await requireSession();
 
   if (!canEditPeople(session)) {
     return (
@@ -126,7 +126,7 @@ export default async function CelebrationsPage({
       max="max-w-[880px]"
     >
       <Link
-        href={`/members?church=${session.tenantSlug}`}
+        href={"/members"}
         className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("members.title")}
@@ -240,7 +240,7 @@ export default async function CelebrationsPage({
                     </td>
                     <td className="border-b border-sunken px-3 py-2.5 sm:px-4">
                       <Link
-                        href={`/members/${c.personSlug}?church=${session.tenantSlug}`}
+                        href={`/members/${c.personSlug}`}
                         className="-my-2 inline-flex items-center py-2 font-medium text-fg underline-offset-4 hover:underline"
                       >
                         {c.partnerName

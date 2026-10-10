@@ -206,7 +206,7 @@ export function HouseholdList({
                   {household.members.map((member) => (
                     <li key={member.id}>
                       <Link
-                        href={`/members/${member.slug}?church=${church}`}
+                        href={`/members/${member.slug}`}
                         className="flex items-center gap-2 rounded-full bg-sunken py-1 pr-3 pl-1 hover:brightness-95"
                       >
                         <Avatar

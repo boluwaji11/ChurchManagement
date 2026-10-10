@@ -27,8 +27,7 @@ export const dynamic = "force-dynamic";
 const PER_SLIDE = 16;
 
 export async function GET(request: NextRequest) {
-  const church = request.nextUrl.searchParams.get("church") ?? undefined;
-  const session = await requireSession(church);
+  const session = await requireSession();
   const report = request.nextUrl.searchParams.get("report");
   if (!isBuiltIn(report)) return new Response("", { status: 404 });
 

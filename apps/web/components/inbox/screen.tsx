@@ -73,7 +73,7 @@ export function InboxScreen({
 
   const go = (key: string) => {
     setWriting(false);
-    router.push(`${where}/${key}?church=${church}`);
+    router.push(`${where}/${key}`);
   };
 
   const shown = React.useMemo(() => {
@@ -208,7 +208,7 @@ export function InboxScreen({
 
               {office && open !== "office" && !open.includes("/") ? (
                 <Link
-                  href={`/members/${open}?church=${church}`}
+                  href={`/members/${open}`}
                   className="min-w-0 flex-1 truncate font-semibold text-fg hover:underline"
                 >
                   {name}
@@ -224,7 +224,7 @@ export function InboxScreen({
                   className="size-9 min-h-0 [&_svg]:size-4"
                   onClick={() => {
                     void archiveThread(open, !here?.archived, church).then(() => {
-                      router.push(`${where}?church=${church}`);
+                      router.push(`${where}`);
                       refresh();
                     });
                   }}

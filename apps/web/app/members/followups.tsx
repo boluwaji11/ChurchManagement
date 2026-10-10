@@ -347,7 +347,7 @@ function StartDialog({
               <SelectTrigger aria-label={t("followups.start")}><SelectValue /></SelectTrigger>
               <SelectContent
                 create={
-                  <SelectCreate href={`/settings/followups?church=${church}`}>
+                  <SelectCreate href={"/settings/followups"}>
                     {t("followups.create")}
                   </SelectCreate>
                 }

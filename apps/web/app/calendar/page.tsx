@@ -17,10 +17,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("calendar.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("calendar.title"));
 }
 
 /**
@@ -102,7 +102,7 @@ function EntryBlock({ entry, church }: { entry: Entry; church: string }) {
 
   return entry.href ? (
     <Link
-      href={`${entry.href}?church=${church}`}
+      href={`${entry.href}`}
       className="group block min-h-[var(--d-tap)] cursor-pointer rounded-sm px-2.5 py-2 outline-none transition-all hover:-translate-y-px hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary"
       style={style}
     >
@@ -118,10 +118,10 @@ function EntryBlock({ entry, church }: { entry: Entry; church: string }) {
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; at?: string }>;
+  searchParams: Promise<{ at?: string }>;
 }) {
   const params = await searchParams;
-  const session = await requireSession(params.church);
+  const session = await requireSession();
 
   if (!canManageServices(session)) {
     return (
@@ -195,7 +195,7 @@ export default async function CalendarPage({
   );
 
   const link = (at: string) =>
-    `/calendar?church=${session.tenantSlug}&at=${at}`;
+    `/calendar?at=${at}`;
 
   // The days the agenda has anything to show.
   const busy = days.filter((day) => day.entries.length > 0);

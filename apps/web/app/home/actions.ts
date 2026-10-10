@@ -14,7 +14,7 @@ export interface Done {
 
 /** The signed-in member themselves, and the actor every write here runs as. */
 async function asMember(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const scope = {
     tenantId: session.tenantId,
     role: session.role,

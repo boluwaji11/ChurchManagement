@@ -21,10 +21,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("reports.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("reports.title"));
 }
 
 /**
@@ -37,10 +37,10 @@ export async function generateMetadata({
 export default async function GroupsReport({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; days?: string }>;
+  searchParams: Promise<{ days?: string }>;
 }) {
-  const { church, days } = await searchParams;
-  const session = await requireSession(church);
+  const { days } = await searchParams;
+  const session = await requireSession();
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return <Denied role={session.role} action="readReports" church={session.tenantSlug} />;
   }
@@ -66,7 +66,7 @@ export default async function GroupsReport({
       month: "short", year: "numeric",
     });
 
-  const here = `?church=${session.tenantSlug}`;
+  const here = ``;
 
   const table: Row[] = rows.map((one) => ({
     key: one.id,

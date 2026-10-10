@@ -8,8 +8,7 @@ export const dynamic = "force-dynamic";
 
 /** R18.10. The indicator as a file, over the window it was read at. */
 export async function GET(request: NextRequest) {
-  const church = request.nextUrl.searchParams.get("church") ?? undefined;
-  const session = await requireSession(church);
+  const session = await requireSession();
   if (!mayRead("connected", session)) return refused(session.role, "buildReports");
 
   const window = windowOf(request.nextUrl.searchParams.get("days") ?? undefined);

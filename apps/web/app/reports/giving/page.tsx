@@ -21,10 +21,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("reports.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("reports.title"));
 }
 
 /**
@@ -37,10 +37,10 @@ export async function generateMetadata({
 export default async function GivingReport({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; days?: string }>;
+  searchParams: Promise<{ days?: string }>;
 }) {
-  const { church, days } = await searchParams;
-  const session = await requireSession(church);
+  const { days } = await searchParams;
+  const session = await requireSession();
   if (!canReadGivingAmounts(session)) {
     return (
       <AppShell session={session} title={t("reports.title")}>
@@ -48,7 +48,7 @@ export default async function GivingReport({
           role={session.role}
           action="manageGiving"
           church={session.tenantSlug}
-          back={{ href: `/reports?church=${session.tenantSlug}`, label: t("reports.back") }}
+          back={{ href: "/reports", label: t("reports.back") }}
         />
       </AppShell>
     );
@@ -159,7 +159,7 @@ export default async function GivingReport({
           columns={[t("reports.name"), t("reports.giving.lastGift"), t("giving.gift.amount")]}
           rows={read.lapsed.map((one) => ({
             key: one.id,
-            href: `/members/${one.id}?church=${session.tenantSlug}`,
+            href: `/members/${one.id}`,
             cells: [
               { text: one.name },
               { text: shortDate(one.lastOn) },
@@ -173,7 +173,7 @@ export default async function GivingReport({
           columns={[t("reports.name"), t("reports.giving.firstGift"), t("giving.gift.amount")]}
           rows={read.first.map((one) => ({
             key: one.id,
-            href: `/members/${one.id}?church=${session.tenantSlug}`,
+            href: `/members/${one.id}`,
             cells: [
               { text: one.name },
               { text: shortDate(one.firstOn) },

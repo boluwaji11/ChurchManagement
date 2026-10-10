@@ -101,7 +101,7 @@ export async function matchingIds(
   params: DirectoryParams,
   church?: string,
 ): Promise<{ ids: string[] }> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const viewer = { role: session.role, userId: session.userId };
 
   const rows = await withTenant(

@@ -65,7 +65,7 @@ export function ServingViews({
         action={
           canManage ? (
             <Button asChild>
-              <Link href={`/services?church=${church}`}>
+              <Link href={"/services"}>
                 <Plus /> {t("services.add")}
               </Link>
             </Button>

@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.grouptypes"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.grouptypes"));
 }
 
 /**
@@ -36,10 +36,10 @@ export async function generateMetadata({
 export default async function GroupTypesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
   const manage = canManageGroups(session);
   const putAway = archived === "1";
 
@@ -59,7 +59,7 @@ export default async function GroupTypesPage({
     <div className="flex flex-col gap-5">
       {putAway ? (
         <Link
-          href={`/settings/group-types?church=${session.tenantSlug}`}
+          href={"/settings/group-types"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("groupType.archived.back")}
@@ -91,7 +91,7 @@ export default async function GroupTypesPage({
 
       {!putAway && manage && archivedCount > 0 ? (
         <Link
-          href={`/settings/group-types?church=${session.tenantSlug}&archived=1`}
+          href={"/settings/group-types?archived=1"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("groupType.archived", archivedCount)}

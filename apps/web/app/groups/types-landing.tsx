@@ -38,7 +38,7 @@ export function TypesLanding({
       {types.map((one) => (
         <Link
           key={one.id}
-          href={`/groups?church=${church}&type=${one.slug ?? one.id}`}
+          href={`/groups?type=${one.slug ?? one.id}`}
           className="group flex items-start gap-4 py-6"
         >
           <span
@@ -72,7 +72,7 @@ export function TypesLanding({
 
       {/* Whatever has no kind on it, and the way to the whole list. */}
       <Link
-        href={`/groups?church=${church}&type=all`}
+        href={"/groups?type=all"}
         className="flex items-center gap-2 py-5 text-[length:var(--d-text-body)] font-medium text-primary"
       >
         {t("groupType.everything")} <ArrowRight className="size-4" aria-hidden />

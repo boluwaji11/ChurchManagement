@@ -14,10 +14,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("settings.tab.website"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("settings.tab.website"));
 }
 
 /**
@@ -31,10 +31,10 @@ export async function generateMetadata({
 export default async function WebsitePage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   if (!canManageChurch(session)) {
     return <Denied role={session.role} action="editChurch" church={session.tenantSlug} />;
   }

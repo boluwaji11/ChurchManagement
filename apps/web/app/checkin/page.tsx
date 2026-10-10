@@ -26,10 +26,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("checkin.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("checkin.title"));
 }
 
 /** "09:00" as a church says it. */
@@ -50,10 +50,10 @@ const readableTime = (hhmm: string) => {
 export default async function CheckinPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; service?: string }>;
+  searchParams: Promise<{ service?: string }>;
 }) {
   const params = await searchParams;
-  const session = await requireSession(params.church);
+  const session = await requireSession();
 
   // R1.5. Asked before anything is read, so a role that cannot run check-in
   // does not set the board's dozen queries going on its way to being refused.
@@ -181,7 +181,7 @@ export default async function CheckinPage({
       <div className="flex flex-col items-end gap-2">
         <div className="flex flex-wrap items-center justify-end gap-3.5">
           {canReadIncidents(session) ? (
-            <ToolLink href={`/incidents?church=${session.tenantSlug}`}>
+            <ToolLink href={"/incidents"}>
               <FileWarning /> {t("incident.title")}
               {data.openIncidents > 0 ? (
                 <span
@@ -195,12 +195,12 @@ export default async function CheckinPage({
             </ToolLink>
           ) : null}
 
-          <ToolLink href={`/checkin/labels?church=${session.tenantSlug}`}>
+          <ToolLink href={"/checkin/labels"}>
             <Tag /> {t("checkin.labels")}
           </ToolLink>
 
           <ToolLink
-            href={`/checkin/rooms/print?church=${session.tenantSlug}&service=${service?.slug ?? ""}`}
+            href={`/checkin/rooms/print?service=${service?.slug ?? ""}`}
             target="_blank"
           >
             <Printer /> {t("checkin.rosters")}
@@ -222,7 +222,7 @@ export default async function CheckinPage({
           {data.services.map((one) => (
             <Link
               key={one.id}
-              href={`/checkin?church=${session.tenantSlug}&service=${one.slug}`}
+              href={`/checkin?service=${one.slug}`}
               aria-current={one.id === data.chosen ? "page" : undefined}
               className={`flex h-9 items-center rounded-full px-3.5 text-[13px] font-medium ${
                 one.id === data.chosen

@@ -17,10 +17,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("setup.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("setup.title"));
 }
 
 /**
@@ -43,10 +43,10 @@ const ART: Piece[] = [
 export default async function SetupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   const user = await currentUser();
 
   // R1.3. Nobody else's business, and it is not their screen to put away.
@@ -63,7 +63,7 @@ export default async function SetupPage({
   );
 
   // Somebody who has already put this away is looking at nothing.
-  if (progress.dismissed) redirect(`/dashboard?church=${session.tenantSlug}`);
+  if (progress.dismissed) redirect("/dashboard");
 
   return (
     <div data-theme="light" className="site-wash flex min-h-dvh flex-col">

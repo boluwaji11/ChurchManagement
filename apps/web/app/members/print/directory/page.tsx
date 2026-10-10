@@ -15,10 +15,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("members.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("members.title"));
 }
 
 const birthday = (iso: string) =>
@@ -38,10 +38,10 @@ const birthday = (iso: string) =>
 export default async function PrintDirectoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (

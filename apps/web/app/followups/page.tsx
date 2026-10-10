@@ -17,10 +17,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("queue.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("queue.title"));
 }
 
 /**
@@ -37,10 +37,10 @@ export async function generateMetadata({
 export default async function FollowUpsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; pipeline?: string }>;
+  searchParams: Promise<{ pipeline?: string }>;
 }) {
   const params = await searchParams;
-  const session = await requireSession(params.church);
+  const session = await requireSession();
 
   if (!canFollowUp(session)) {
     return (

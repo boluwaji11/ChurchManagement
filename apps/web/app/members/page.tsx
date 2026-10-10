@@ -25,10 +25,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("members.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("members.title"));
 }
 
 export default async function PeoplePage({
@@ -37,7 +37,7 @@ export default async function PeoplePage({
   searchParams: Promise<DirectoryParams>;
 }) {
   const params = await searchParams;
-  const session = await requireSession(params.church);
+  const session = await requireSession();
 
   const page = pageFromParams(params);
 
@@ -70,7 +70,7 @@ export default async function PeoplePage({
     return (
       <AppShell session={session} title={t("members.title")}>
         <Link
-          href={`/members?church=${session.tenantSlug}`}
+          href={"/members"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("lists.archived.back")}
@@ -156,7 +156,7 @@ export default async function PeoplePage({
       {/* R2.4. The way back to the live directory, on the archived view. */}
       {putAway ? (
         <Link
-          href={`/members?church=${session.tenantSlug}`}
+          href={"/members"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("members.archived.back")}
@@ -192,7 +192,7 @@ export default async function PeoplePage({
 
       {!putAway && archivedPeople > 0 ? (
         <Link
-          href={`/members?church=${session.tenantSlug}&show=archived`}
+          href={"/members?show=archived"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("members.archived", archivedPeople)}
@@ -202,7 +202,7 @@ export default async function PeoplePage({
       {/* R1.14. A saved list could be put away and then reached by nothing. */}
       {!putAway && archivedLists > 0 ? (
         <Link
-          href={`/members?church=${session.tenantSlug}&lists=archived`}
+          href={"/members?lists=archived"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
         >
           {plural("lists.archived", archivedLists)}

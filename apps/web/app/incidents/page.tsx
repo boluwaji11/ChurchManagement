@@ -20,10 +20,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("incident.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("incident.title"));
 }
 
 const day = (iso: string) =>
@@ -41,10 +41,10 @@ const day = (iso: string) =>
 export default async function IncidentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   if (!canReadIncidents(session)) {
     return (
@@ -111,7 +111,7 @@ export default async function IncidentsPage({
       session={session}
       title={t("incident.title")}
       action={filing}
-      back={{ href: `/checkin?church=${session.tenantSlug}`, label: t("checkin.title") }}
+      back={{ href: "/checkin", label: t("checkin.title") }}
       max="max-w-[760px]"
     >
       <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("incident.reports")}</h2>

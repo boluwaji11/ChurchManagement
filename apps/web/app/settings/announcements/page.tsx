@@ -18,10 +18,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("announce.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("announce.title"));
 }
 
 /**
@@ -33,10 +33,10 @@ export async function generateMetadata({
 export default async function AnnouncementsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
   const putAway = archived === "1";
 
   if (!canManageChurch(session)) {
@@ -87,7 +87,7 @@ export default async function AnnouncementsPage({
 
       {putAway ? (
         <Link
-          href={`/settings/announcements?church=${session.tenantSlug}`}
+          href={"/settings/announcements"}
           className="flex min-h-[var(--d-tap)] items-center gap-1.5 self-start font-medium text-primary [&_svg]:size-4"
         >
           <ArrowLeft aria-hidden /> {t("announce.title")}
@@ -99,7 +99,7 @@ export default async function AnnouncementsPage({
       {/* R24.6. The same link every screen with archiving carries. */}
       {!putAway && read.putAwayCount > 0 ? (
         <Link
-          href={`/settings/announcements?church=${session.tenantSlug}&archived=1`}
+          href={"/settings/announcements?archived=1"}
           className="flex min-h-[var(--d-tap)] items-center self-start font-medium text-primary"
         >
           {t("announce.archived.link")}

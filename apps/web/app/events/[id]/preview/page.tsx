@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("nav.events"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("nav.events"));
 }
 
 /**
@@ -38,11 +38,11 @@ export default async function PreviewEventPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
   const { id } = await params;
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
   if (!canManageEvents(session)) {
     return (
       <main id="main" className="mx-auto min-h-dvh max-w-lg px-4 py-8">
@@ -124,7 +124,7 @@ export default async function PreviewEventPage({
       event={shown}
       coverUrl={await sign(event.coverKey)}
       logoUrl={await sign(profile?.logoKey ?? null)}
-      registerHref={`/events/${event.slug}/preview/register?church=${session.tenantSlug}`}
+      registerHref={`/events/${event.slug}/preview/register`}
       banner={
         <div
           className="px-4 py-2 text-center text-caption font-medium"

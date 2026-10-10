@@ -21,10 +21,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("event.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("event.title"));
 }
 
 /**
@@ -53,10 +53,10 @@ function backBy(iso: string, days: number): string {
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string; archived?: string }>;
+  searchParams: Promise<{ archived?: string }>;
 }) {
-  const { church, archived } = await searchParams;
-  const session = await requireSession(church);
+  const { archived } = await searchParams;
+  const session = await requireSession();
 
   /*
    * R14.2, R17.1. A member reads the same list from the other side: what the
@@ -140,7 +140,7 @@ export default async function EventsPage({
     >
       {putAway ? (
         <Link
-          href={`/events?church=${session.tenantSlug}`}
+          href={"/events"}
           className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("event.archived.back")}
@@ -187,7 +187,7 @@ export default async function EventsPage({
 
       {!putAway && archivedCount > 0 ? (
         <Link
-          href={`/events?church=${session.tenantSlug}&archived=1`}
+          href={"/events?archived=1"}
           className="self-start text-[13px] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
         >
           {plural("event.archived.link", archivedCount)}

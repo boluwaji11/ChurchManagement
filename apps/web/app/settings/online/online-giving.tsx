@@ -122,7 +122,7 @@ export function OnlineGiving({
 
     const timer = window.setInterval(async () => {
       if (stop) return;
-      const answer = await refreshStripe(church);
+      const answer = await refreshStripe();
       if (!answer.error) router.refresh();
     }, 2500);
     const give = window.setTimeout(() => {
@@ -139,7 +139,7 @@ export function OnlineGiving({
 
   const go = () =>
     startTransition(async () => {
-      const result = await connectStripe(church);
+      const result = await connectStripe();
       if (result.error) {
         setError(result.error === "stripe.unconfigured" ? t("stripe.unconfigured") : result.error);
         return;
@@ -149,7 +149,7 @@ export function OnlineGiving({
 
   const again = () =>
     startTransition(async () => {
-      const result = await refreshStripe(church);
+      const result = await refreshStripe();
       setError(result.error);
       if (!result.error) router.refresh();
     });
@@ -245,7 +245,7 @@ export function OnlineGiving({
                       ))}
                     </ul>
                     <Link
-                      href={`/settings/church?church=${church}`}
+                      href={"/settings/church"}
                       className="self-start font-medium text-primary"
                     >
                       {t("stripe.missing.go")}
@@ -297,7 +297,7 @@ export function OnlineGiving({
                     <Download className="size-4" aria-hidden /> {t("give.qr.download")}
                   </a>
                   <a
-                    href={`/giving/qr?church=${church}`}
+                    href={"/giving/qr"}
                     target="_blank"
                     rel="noreferrer noopener"
                     className="inline-flex w-fit items-center gap-1.5 font-medium text-primary no-underline"

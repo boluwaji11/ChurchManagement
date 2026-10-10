@@ -300,7 +300,7 @@ export function Builder({
                     startTransition(async () => {
                       const result = await archiveForm(form.id, true, church);
                       if (result.error) setError(result.error);
-                      else router.push(`/forms?church=${church}`);
+                      else router.push("/forms");
                     })}
                 >
                   {t("form.archive")}

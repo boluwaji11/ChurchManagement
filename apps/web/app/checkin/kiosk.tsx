@@ -169,7 +169,7 @@ export function Kiosk({
 
       if (wearing.length > 0) {
         const href =
-          `/checkin/labels/print?church=${church}&service=${service}&printer=${printer}` +
+          `/checkin/labels/print?service=${service}&printer=${printer}` +
           `&members=${wearing.join(",")}`;
         if (!openLabels(href)) setBlocked(href);
       }

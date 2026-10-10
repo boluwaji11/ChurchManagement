@@ -10,7 +10,7 @@ import { requireSession } from "@/lib/session";
  * asked about a church the caller does not belong to.
  */
 export async function stillWaiting(church?: string): Promise<boolean> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   const standing = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     (tx) => churchStanding(tx, session.tenantId),
@@ -27,6 +27,6 @@ export async function stillWaiting(church?: string): Promise<boolean> {
  * does not already have about themselves.
  */
 export async function accessNow(church?: string): Promise<string> {
-  const session = await requireSession(church);
+  const session = await requireSession();
   return [session.role, ...[...(session.permissions ?? [])].sort()].join("|");
 }

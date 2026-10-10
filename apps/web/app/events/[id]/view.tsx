@@ -41,7 +41,7 @@ function AnswerFiles({ answer, church }: { answer: unknown; church: string }) {
       {keys.map((key, at) => (
         <a
           key={key}
-          href={`/api/forms/file?church=${church}&key=${encodeURIComponent(key)}`}
+          href={`/api/forms/file?key=${encodeURIComponent(key)}`}
           target="_blank"
           rel="noreferrer"
           className="flex items-center gap-1.5 font-medium text-primary underline-offset-4 hover:underline"
@@ -147,7 +147,7 @@ export function EventView({
 
   const go = (next: Tab) => {
     const query = next === "overview" ? "" : `&tab=${next}`;
-    router.push(`/events/${event.slug}?church=${church}${query}`, { scroll: false });
+    router.push(`/events/${event.slug}${query}`, { scroll: false });
   };
 
   return (
@@ -157,7 +157,7 @@ export function EventView({
           it away. The bar below is about registrations. */}
       <div className="flex flex-wrap items-center gap-2">
         <Link
-          href={`/events?church=${church}`}
+          href={"/events"}
           className="inline-flex flex-1 items-center gap-1.5 font-medium text-primary"
         >
           <ArrowLeft className="size-4" /> {t("event.title")}
@@ -165,7 +165,7 @@ export function EventView({
 
         <Button variant="secondary" asChild>
           <a
-            href={`/events/${event.slug}/preview?church=${church}`}
+            href={`/events/${event.slug}/preview`}
             target="_blank"
             rel="noreferrer"
           >
@@ -179,7 +179,7 @@ export function EventView({
           className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
         >
           <Link
-            href={`/events/${event.slug}/edit?church=${church}`}
+            href={`/events/${event.slug}/edit`}
             aria-label={t("action.edit")}
             title={t("action.edit")}
           >
@@ -219,7 +219,7 @@ export function EventView({
                     startTransition(async () => {
                       const result = await archiveEvent(event.id, true, church);
                       if (result.error) setError(result.error);
-                      else router.push(`/events?church=${church}`);
+                      else router.push("/events");
                     });
                   }}
                 >
@@ -431,7 +431,7 @@ export function EventView({
                   the pair reads as one. */}
               <Tooltip content={t("event.export")}>
               <a
-                href={`/events/${event.slug}/export?church=${church}`}
+                href={`/events/${event.slug}/export`}
                 aria-label={t("event.export")}
                 className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
               >
@@ -454,7 +454,7 @@ export function EventView({
                   <span className="flex flex-wrap items-center gap-2">
                     {one.memberId ? (
                       <Link
-                        href={`/members/${one.personSlug}?church=${church}`}
+                        href={`/members/${one.personSlug}`}
                         className="font-medium text-fg underline-offset-4 hover:underline"
                       >
                         {one.name}
@@ -557,7 +557,7 @@ export function EventView({
                         <span className="flex items-center gap-2">
                           {one.memberId ? (
                             <Link
-                              href={`/members/${one.personSlug}?church=${church}`}
+                              href={`/members/${one.personSlug}`}
                               className="font-medium text-fg underline-offset-4 hover:underline"
                             >
                               {one.name}

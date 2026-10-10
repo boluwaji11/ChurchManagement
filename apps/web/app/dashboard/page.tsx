@@ -25,10 +25,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  return tabMetadata(t("dashboard.title"), church);
+  const {} = await searchParams;
+  return tabMetadata(t("dashboard.title"));
 }
 
 /** How far back the line of weeks reads. */
@@ -82,10 +82,10 @@ function partOfDay(time: string): "morning" | "afternoon" | "evening" {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ church?: string }>;
+  searchParams: Promise<{ }>;
 }) {
-  const { church } = await searchParams;
-  const session = await requireSession(church);
+  const {} = await searchParams;
+  const session = await requireSession();
 
   // Somebody who is not staff has their own screen, and this is not it.
   if (!canEditPeople(session) && !canReadIncidents(session)) {

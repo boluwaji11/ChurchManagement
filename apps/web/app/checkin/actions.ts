@@ -16,7 +16,7 @@ import { churchNow } from "@/lib/church-now";
 import { getChurch } from "@connectapp/db";
 
 async function context(church?: string) {
-  const session = await requireSession(church);
+  const session = await requireSession();
   return {
     session,
     actor: { tenantId: session.tenantId, role: session.role },
