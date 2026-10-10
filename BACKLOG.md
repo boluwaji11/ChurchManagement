@@ -765,9 +765,21 @@ and from the chooser's record where our own host serves it. The record is a
 cookie, which selects: the membership is still verified against `tenant_members`
 on every request, so a cookie somebody edits by hand opens the chooser.
 
-Signing in on our own host stays on our own host. It used to send the reader on
-to the church's own address, handing the session to a host the cookie had not
-been written for, and that host asks them to sign in again.
+Signing in sends the reader to the church's own address. The session cookie is
+written on the parent of every church's name, `AUTH_COOKIE_DOMAIN`, so it is
+already there when they arrive.
+
+On `localhost` it is not, and cannot be: a browser refuses a domain cookie on a
+single-label host, so a cookie on `localhost` is never sent to
+`riverside.localhost`. Signing in from `localhost:4488` therefore asks for a
+password again on the church's address. Decided October 2026 to leave it: sign
+in at the church's address when testing locally. Do not change the development
+hostname to work around this.
+
+It comes back when a church points its own domain at us (R1.1 `custom_domain`),
+because `members.onefamily.org` can never share a cookie with us whatever we
+set. That needs the session handed over explicitly rather than shared, and it
+is not built.
 
 The church's own domain (R1.1 `custom_domain`) still resolves in the data
 layer and has no screen. It was on the Website page and was the cause of a long
