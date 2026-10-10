@@ -1,10 +1,8 @@
-import { notFound } from "next/navigation";
-import { publicForm } from "@connectapp/db";
-import { BrandRuleFor } from "@/components/brand-rule";
-import { supabaseServer } from "@/lib/supabase/server";
-import { PublicForm } from "./public-form";
-import { publicTab } from "@/lib/page-metadata";
+import { redirect } from "next/navigation";
 import { t } from "@connectapp/i18n";
+import { publicTab } from "@/lib/page-metadata";
+import { publicPath } from "@/lib/church-address";
+import { FormScreen } from "../../form-screen";
 
 export const dynamic = "force-dynamic";
 
@@ -19,15 +17,11 @@ export async function generateMetadata({
 }
 
 /**
- * R4.3. The form behind the link a church puts on its own website.
+ * R4.3, R17.1. One form, with the church named in the path.
  *
- * Whoever follows it has no account and should not need one, which is the whole
- * point of a connection card: the person filling it in is the one the church
- * has no record of yet.
- *
- * The church's own mark and colour across the top, then the form on a card.
- * This is the one screen a church shows the open web, and it has to look like
- * something the church would be glad to link to.
+ * The address a church has put on its website and printed on a card, so it
+ * goes on working. A church with an address of its own is sent to it, where
+ * the host says the name and the path does not repeat it.
  */
 export default async function PublicFormPage({
   params,
@@ -37,75 +31,9 @@ export default async function PublicFormPage({
   searchParams: Promise<{ event?: string }>;
 }) {
   const { slug, form } = await params;
-  // R14.2. A church links one form from several events, so which event this
-  // was reached from rides the link rather than sitting on the form.
-  const { event } = await searchParams;
-  const found = await publicForm(slug, form);
-  if (!found) notFound();
 
-  // The bucket is private, so the mark and the cover come through signed links.
-  const supabase = await supabaseServer();
-  const sign = async (key: string | null) => {
-    if (!key) return null;
-    const signed = await supabase.storage.from("church").createSignedUrl(key, 3600);
-    return signed.data?.signedUrl ?? null;
-  };
-  const logoUrl = await sign(found.church.logoKey);
-  const coverUrl = await sign(found.coverKey);
+  const elsewhere = await publicPath(slug, `/f/${form}`);
+  if (elsewhere) redirect(elsewhere);
 
-  return (
-    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
-      <BrandRuleFor hue={found.church.brandHue} className="h-1.5 w-full" />
-
-      {/* The church's name across the top, so somebody who followed a link off
-          a bulletin can see whose form this is before they read a word of it. */}
-      <header className="sticky top-0 z-20 flex items-center justify-center gap-2.5 border-b border-line bg-[color-mix(in_oklch,var(--surface)_92%,transparent)] px-4 py-3.5 backdrop-blur-[10px]">
-        {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt=""
-            aria-hidden
-            className="size-7 rounded-lg border border-line bg-surface object-contain p-0.5"
-          />
-        ) : (
-          <span
-            aria-hidden
-            className="size-2.5 rounded-full"
-            style={{ background: `var(--hue-${found.church.brandHue}-500)` }}
-          />
-        )}
-        <span className="text-label font-semibold text-fg">{found.church.name}</span>
-      </header>
-
-      <main id="main" className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
-        <div className="overflow-hidden rounded-[14px] border border-line bg-surface shadow-sm">
-          {/* R24.4. The form's own picture, or its colour flat across the top
-              where there is none, which is the rule the group finder follows. */}
-          {coverUrl ? (
-            <img src={coverUrl} alt="" className="aspect-[6/1] w-full object-cover" />
-          ) : (
-            <span
-              aria-hidden
-              className="block h-2.5 w-full"
-              style={{ background: `var(--hue-${found.hue}-500)` }}
-            />
-          )}
-
-          <div className="p-6 sm:p-9">
-          <PublicForm
-            churchSlug={slug}
-            formSlug={form}
-            name={found.name}
-            intro={found.intro}
-            thanks={found.thanks}
-            state={found.state}
-            fields={found.fields}
-            eventSlug={event ?? null}
-          />
-          </div>
-        </div>
-
-      </main>
-    </div>
-  );
+  return <FormScreen slug={slug} form={form} searchParams={searchParams} />;
 }

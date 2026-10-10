@@ -1,8 +1,5 @@
-import { notFound } from "next/navigation";
-import { publicForm } from "@connectapp/db";
-import { supabaseServer } from "@/lib/supabase/server";
-import { PublicForm } from "../public-form";
 import { publicTab } from "@/lib/page-metadata";
+import { EmbeddedFormScreen } from "../../../embed-screen";
 import { t } from "@connectapp/i18n";
 
 export const dynamic = "force-dynamic";
@@ -31,30 +28,5 @@ export default async function EmbeddedFormPage({
   params: Promise<{ slug: string; form: string }>;
 }) {
   const { slug, form } = await params;
-  const found = await publicForm(slug, form);
-  if (!found) notFound();
-
-  let coverUrl: string | null = null;
-  if (found.coverKey) {
-    const supabase = await supabaseServer();
-    const signed = await supabase.storage.from("church").createSignedUrl(found.coverKey, 3600);
-    coverUrl = signed.data?.signedUrl ?? null;
-  }
-
-  return (
-    <main data-theme="light" id="main" className="w-full p-4">
-      {coverUrl ? (
-        <img src={coverUrl} alt="" className="mb-5 aspect-[6/1] w-full rounded-[14px] object-cover" />
-      ) : null}
-      <PublicForm
-        churchSlug={slug}
-        formSlug={form}
-        name={found.name}
-        intro={found.intro}
-        thanks={found.thanks}
-        state={found.state}
-        fields={found.fields}
-      />
-    </main>
-  );
+  return <EmbeddedFormScreen slug={slug} form={form} />;
 }

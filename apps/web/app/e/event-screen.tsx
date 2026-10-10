@@ -1,0 +1,70 @@
+import { notFound } from "next/navigation";
+import { publicEvent, publicChurchTimezone } from "@connectapp/db";
+import { supabaseServer } from "@/lib/supabase/server";
+import { churchNow } from "@/lib/church-now";
+import { EventPage } from "@/components/event-page";
+import { PortalShell } from "@/components/portal-shell";
+import { BackLink } from "@/components/back-link";
+import { portalReader } from "@/lib/portal-reader";
+import { t } from "@connectapp/i18n";
+
+/**
+ * R14.2, R17.1. The event page a church links to from its own website.
+ *
+ * Whoever follows it has no account and should not need one to say they are
+ * coming to the picnic.
+ *
+ * A member of this church reading the same address gets it inside the portal
+ * instead: they opened it from their own Events tab, and the public frame
+ * dropped them onto the open web with the church's name at the top and no way
+ * back to the tabs they came from. One address either way, so a link in a
+ * text message and a press in the portal lead to the same place.
+ *
+ * One screen for both ways in: the church's own address, where the host names
+ * it and the path names only the event, and ours, where the path carries both.
+ */
+export async function EventScreen({
+  slug,
+  event,
+  fromHost,
+}: {
+  slug: string;
+  event: string;
+  /** R17.1. On the church's own address the path names only the event. */
+  fromHost?: boolean;
+}) {
+  // The church's own date, so an event closing on the 6th is open all of the
+  // 6th wherever the reader happens to be.
+  const clock = churchNow(await publicChurchTimezone(slug));
+
+  const found = await publicEvent(slug, event, clock.date, clock.time);
+  if (!found) notFound();
+
+  const inPortal = await portalReader(slug);
+
+  const supabase = await supabaseServer();
+  const sign = async (key: string | null) => {
+    if (!key) return null;
+    const signed = await supabase.storage.from("church").createSignedUrl(key, 3600);
+    return signed.data?.signedUrl ?? null;
+  };
+
+  const page = (
+    <EventPage
+      event={found}
+      coverUrl={await sign(found.coverKey)}
+      logoUrl={await sign(found.church.logoKey)}
+      registerHref={fromHost ? `/e/${event}/register` : `/e/${slug}/${event}/register`}
+      bare={Boolean(inPortal)}
+    />
+  );
+
+  if (!inPortal) return page;
+
+  return (
+    <PortalShell session={inPortal} tab={t("nav.events")}>
+      <BackLink href={"/events"} label={t("nav.events")} />
+      {page}
+    </PortalShell>
+  );
+}

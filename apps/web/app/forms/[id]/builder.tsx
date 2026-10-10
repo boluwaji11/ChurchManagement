@@ -110,6 +110,8 @@ const ONE_LINE: FormFieldKind[] = ["text", "email", "phone", "date", "number"];
  */
 export function Builder({
   church,
+  publicLink,
+  embedLink,
   form,
   view,
   responses,
@@ -120,6 +122,10 @@ export function Builder({
   coverUrl,
 }: {
   church: string;
+  /** R4.3, R17.1. The address the public form answers on, built on the server. */
+  publicLink: string;
+  /** The same form without the page around it, for the church's own site. */
+  embedLink: string;
   form: BuilderForm;
   view: "questions" | "responses";
   responses: SubmissionRow[];
@@ -136,11 +142,6 @@ export function Builder({
   const [pending, startTransition] = React.useTransition();
   const [name, setName] = React.useState(form.name);
   const [copied, setCopied] = React.useState<"link" | "embed" | null>(null);
-
-  // The origin is read after mount, because the server does not have one and a
-  // link rendered from nothing would not match on hydration.
-  const [origin, setOrigin] = React.useState("");
-  React.useEffect(() => setOrigin(window.location.origin), []);
 
   // Dragged and dropped-on, by question id, so the list can show where a
   // question will land before the drop happens.
@@ -179,11 +180,9 @@ export function Builder({
    * deployment gets the preview link rather than a production link that does
    * not hold their form yet.
    */
-  const publicLink = origin ? `${origin}/f/${church}/${form.slug}` : "";
-  const snippet = publicLink
-    ? `<iframe src="${publicLink}/embed" title="${form.name}" width="100%" height="720" `
-      + `style="border:0" loading="lazy"></iframe>`
-    : "";
+  const snippet =
+    `<iframe src="${embedLink}" title="${form.name}" width="100%" height="720" `
+    + `style="border:0" loading="lazy"></iframe>`;
 
   const copy = async (text: string, what: "link" | "embed") => {
     await navigator.clipboard.writeText(text);

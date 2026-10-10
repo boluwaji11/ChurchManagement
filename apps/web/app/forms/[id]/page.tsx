@@ -8,6 +8,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
+import { publicLink } from "@/lib/church-address";
 import { Denied } from "@/components/denied";
 import { supabaseServer } from "@/lib/supabase/server";
 import { longDate } from "@/lib/dates";
@@ -100,6 +101,10 @@ export default async function FormPage({
 
       <Builder
         church={session.tenantSlug}
+        /* R4.3, R17.1. The link and the frame, built where the request is, so
+           what a church copies is what the public routes answer on. */
+        publicLink={await publicLink(session.tenantSlug, "f", `/${result.form.slug}`)}
+        embedLink={await publicLink(session.tenantSlug, "f", `/${result.form.slug}/embed`)}
         form={result.form}
         view={reading ? "responses" : "questions"}
         responses={result.responses.map((one) => ({

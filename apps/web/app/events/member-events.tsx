@@ -4,7 +4,7 @@ import { t } from "@connectapp/i18n";
 import { PortalShell, PortalTitle, Panel } from "@/components/portal-shell";
 import { churchNow } from "@/lib/church-now";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { Session } from "@/lib/session";
+import { churchFromHost, type Session } from "@/lib/session";
 
 /**
  * R14.2, R17.1. What the church has on, for somebody who is not running it.
@@ -14,6 +14,10 @@ import type { Session } from "@/lib/session";
  * so there is one event page rather than two.
  */
 export async function MemberEvents({ session }: { session: Session }) {
+  /* R17.1. On the church's own address the host names the church, so the
+     event page answers at the short path. */
+  const fromHost = (await churchFromHost()) === session.tenantSlug;
+
   const { events, covers } = await withTenant(
     {
       tenantId: session.tenantId,
@@ -69,7 +73,7 @@ export async function MemberEvents({ session }: { session: Session }) {
             return (
               <Link
                 key={one.id}
-                href={`/e/${session.tenantSlug}/${one.slug}`}
+                href={fromHost ? `/e/${one.slug}` : `/e/${session.tenantSlug}/${one.slug}`}
                 className="flex flex-col overflow-hidden rounded-2xl border border-line bg-surface transition-colors hover:border-line-strong"
               >
                 <span

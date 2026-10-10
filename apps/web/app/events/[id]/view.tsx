@@ -72,6 +72,7 @@ function answerText(value: unknown): string {
  */
 export function EventView({
   church,
+  publicLink,
   event,
   coverUrl,
   registrations,
@@ -79,6 +80,8 @@ export function EventView({
   tab,
 }: {
   church: string;
+  /** R14.2, R17.1. The address the public page answers on, built on the server. */
+  publicLink: string;
   event: ChurchEvent;
   coverUrl: string | null;
   /** R14.12. Everybody with a place, bookings kept together. */
@@ -90,13 +93,11 @@ export function EventView({
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [copied, setCopied] = React.useState(false);
-  const [origin, setOrigin] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [pending, startTransition] = React.useTransition();
   /* Which action is running, so only the control pressed shows it. */
   const [doing, setDoing] = React.useState<string>();
 
-  React.useEffect(() => setOrigin(window.location.origin), []);
 
   React.useEffect(() => {
     if (!pending) setDoing(undefined);
@@ -111,7 +112,6 @@ export function EventView({
     });
   };
 
-  const publicLink = origin ? `${origin}/e/${church}/${event.slug}` : "";
 
   /*
    * R14.12. Ten at a time. A camp with two hundred registered is a table
