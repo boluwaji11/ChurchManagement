@@ -87,6 +87,63 @@ export const SUBDIVISIONS: Record<string, { code: string; name: string }[]> = {
     ["MH","Meath"],["MN","Monaghan"],["OY","Offaly"],["RN","Roscommon"],["SO","Sligo"],
     ["TA","Tipperary"],["WD","Waterford"],["WH","Westmeath"],["WX","Wexford"],["WW","Wicklow"],
   ].map(([code, name]) => ({ code: code!, name: name! })),
+  /*
+   * The counties, council areas and principal areas a letter is addressed to.
+   * England's ceremonial counties, Scotland's council areas, Wales's principal
+   * areas and Northern Ireland's six counties, in one alphabetical list,
+   * because somebody filling in an address knows their county and should not
+   * first have to decide which of four lists it belongs to.
+   *
+   * The code is the name, because a letter prints the stored value and what
+   * goes on a UK envelope is the county written out. A two-letter code is the
+   * right answer in the United States and the wrong one here.
+   */
+  GB: [
+    ["Aberdeen City","Aberdeen City"],["Aberdeenshire","Aberdeenshire"],["Anglesey","Anglesey"],
+    ["Angus","Angus"],["Antrim","Antrim"],["Argyll and Bute","Argyll and Bute"],
+    ["Armagh","Armagh"],["Bedfordshire","Bedfordshire"],["Berkshire","Berkshire"],
+    ["Blaenau Gwent","Blaenau Gwent"],["Bridgend","Bridgend"],["Bristol","Bristol"],
+    ["Buckinghamshire","Buckinghamshire"],["Caerphilly","Caerphilly"],
+    ["Cambridgeshire","Cambridgeshire"],["Cardiff","Cardiff"],
+    ["Carmarthenshire","Carmarthenshire"],["Ceredigion","Ceredigion"],["Cheshire","Cheshire"],
+    ["City of London","City of London"],["Clackmannanshire","Clackmannanshire"],
+    ["Conwy","Conwy"],["Cornwall","Cornwall"],["Cumbria","Cumbria"],
+    ["Denbighshire","Denbighshire"],["Derbyshire","Derbyshire"],["Devon","Devon"],
+    ["Dorset","Dorset"],["Down","Down"],["Dumfries and Galloway","Dumfries and Galloway"],
+    ["Dundee City","Dundee City"],["Durham","Durham"],["East Ayrshire","East Ayrshire"],
+    ["East Dunbartonshire","East Dunbartonshire"],["East Lothian","East Lothian"],
+    ["East Renfrewshire","East Renfrewshire"],
+    ["East Riding of Yorkshire","East Riding of Yorkshire"],["East Sussex","East Sussex"],
+    ["Edinburgh","Edinburgh"],["Essex","Essex"],["Falkirk","Falkirk"],["Fermanagh","Fermanagh"],
+    ["Fife","Fife"],["Flintshire","Flintshire"],["Glasgow","Glasgow"],
+    ["Gloucestershire","Gloucestershire"],["Greater London","Greater London"],
+    ["Greater Manchester","Greater Manchester"],["Gwynedd","Gwynedd"],["Hampshire","Hampshire"],
+    ["Herefordshire","Herefordshire"],["Hertfordshire","Hertfordshire"],["Highland","Highland"],
+    ["Inverclyde","Inverclyde"],["Isle of Wight","Isle of Wight"],["Kent","Kent"],
+    ["Lancashire","Lancashire"],["Leicestershire","Leicestershire"],
+    ["Lincolnshire","Lincolnshire"],["Londonderry","Londonderry"],["Merseyside","Merseyside"],
+    ["Merthyr Tydfil","Merthyr Tydfil"],["Midlothian","Midlothian"],
+    ["Monmouthshire","Monmouthshire"],["Moray","Moray"],
+    ["Na h-Eileanan Siar","Na h-Eileanan Siar"],["Neath Port Talbot","Neath Port Talbot"],
+    ["Newport","Newport"],["Norfolk","Norfolk"],["North Ayrshire","North Ayrshire"],
+    ["North Lanarkshire","North Lanarkshire"],["North Yorkshire","North Yorkshire"],
+    ["Northamptonshire","Northamptonshire"],["Northumberland","Northumberland"],
+    ["Nottinghamshire","Nottinghamshire"],["Orkney Islands","Orkney Islands"],
+    ["Oxfordshire","Oxfordshire"],["Pembrokeshire","Pembrokeshire"],
+    ["Perth and Kinross","Perth and Kinross"],["Powys","Powys"],["Renfrewshire","Renfrewshire"],
+    ["Rhondda Cynon Taf","Rhondda Cynon Taf"],["Rutland","Rutland"],
+    ["Scottish Borders","Scottish Borders"],["Shetland Islands","Shetland Islands"],
+    ["Shropshire","Shropshire"],["Somerset","Somerset"],["South Ayrshire","South Ayrshire"],
+    ["South Lanarkshire","South Lanarkshire"],["South Yorkshire","South Yorkshire"],
+    ["Staffordshire","Staffordshire"],["Stirling","Stirling"],["Suffolk","Suffolk"],
+    ["Surrey","Surrey"],["Swansea","Swansea"],["Torfaen","Torfaen"],
+    ["Tyne and Wear","Tyne and Wear"],["Tyrone","Tyrone"],
+    ["Vale of Glamorgan","Vale of Glamorgan"],["Warwickshire","Warwickshire"],
+    ["West Dunbartonshire","West Dunbartonshire"],["West Lothian","West Lothian"],
+    ["West Midlands","West Midlands"],["West Sussex","West Sussex"],
+    ["West Yorkshire","West Yorkshire"],["Wiltshire","Wiltshire"],
+    ["Worcestershire","Worcestershire"],["Wrexham","Wrexham"],
+  ].map(([code, name]) => ({ code: code!, name: name! })),
   NG: [
     ["AB","Abia"],["AD","Adamawa"],["AK","Akwa Ibom"],["AN","Anambra"],["BA","Bauchi"],
     ["BY","Bayelsa"],["BE","Benue"],["BO","Borno"],["CR","Cross River"],["DE","Delta"],
@@ -300,8 +357,9 @@ export function countryList(locale?: string): { code: string; name: string }[] {
  * "Country" twice on it asks the same question in two places and means
  * something different each time. None of them goes on a UK envelope either:
  * Royal Mail has not needed the line since the postcode carried the delivery
- * office. So the line is the county, it is typed rather than chosen, and it is
- * as optional as Royal Mail treats it.
+ * office. So the line is the county, chosen from the counties, council areas
+ * and principal areas a UK address actually names, and as optional as Royal
+ * Mail treats it.
  */
 export const REGION_LABEL: Record<string, string> = {
   US: "State", AU: "State", BR: "State", MX: "State", MY: "State", NG: "State",
