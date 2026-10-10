@@ -815,7 +815,9 @@ function Sent({
         </button>
 
         <Dialog open={big} onOpenChange={setBig}>
-          <DialogContent title={file.label} closeLabel={t("common.close")}>
+          {/* The picture is the thing. Its name is kept for a screen reader
+              rather than written across the top of it. */}
+          <DialogContent hideTitle title={file.label} closeLabel={t("common.close")}>
             {shown ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
