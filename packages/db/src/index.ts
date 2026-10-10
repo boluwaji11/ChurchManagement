@@ -66,7 +66,7 @@ export {
   type CustomFieldDef, type CustomFieldType, type CustomFieldEntity, type CustomValue,
 } from "./repo/custom-fields";
 export {
-  mergePeople, mergeCluster, undoMerge, listMerges,
+  mergePeople, mergeCluster, undoMerge, listMerges, countMerges,
   findDuplicatePairs, findDuplicateClusters, MERGE_UNDO_WINDOW_DAYS,
   type MergePlan, type MergeResult, type MergeSummary,
   type DuplicatePair, type DuplicateCluster,

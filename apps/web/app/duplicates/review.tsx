@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { Check, ArrowRight, ChevronLeft, ChevronRight, X, Undo2 } from "lucide-react";
-import { Badge, Button, Banner, IconButton, Working, cn } from "@connectapp/ui";
+import { Badge, Button, Banner, IconButton, Spinner, Working, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { merge, mergeAll, undo, type MergeOutcome } from "./actions";
 import { Step } from "@/components/pager";
@@ -65,6 +65,7 @@ export function Review({
   back,
   on,
   history,
+  pastPager,
 }: {
   church: string;
   /** R2.8. The one group on screen. */
@@ -76,6 +77,8 @@ export function Review({
   back: string | null;
   on: string | null;
   history: PastMerge[];
+  /** R24.6. The foot of the past merges, drawn on the server so its links are links. */
+  pastPager?: React.ReactNode;
 }) {
   const two = group && group.members.length === 2
     ? { a: group.members[0]!, b: group.members[1]!, confidence: group.confidence, reason: group.reason }
@@ -100,7 +103,7 @@ export function Review({
 
       {history.length > 0 ? (
         <div className="w-full max-w-[880px]">
-          <History church={church} history={history} />
+          <History history={history} pager={pastPager} />
         </div>
       ) : null}
     </div>
@@ -471,7 +474,9 @@ function ClusterCard({ church, group }: { church: string; group: Group }) {
   );
 }
 
-function History({ church, history }: { church: string; history: PastMerge[] }) {
+function History({
+  history, pager,
+}: { history: PastMerge[]; pager?: React.ReactNode }) {
   const router = useRouter();
   const [outcome, setOutcome] = React.useState<MergeOutcome>();
   const [, startRedraw] = React.useTransition();
@@ -486,7 +491,7 @@ function History({ church, history }: { church: string; history: PastMerge[] }) 
   }, [outcome, router]);
 
   return (
-    <section className="rounded-lg border border-line bg-surface px-5 py-2">
+    <section id="past" className="rounded-lg border border-line bg-surface px-5 py-2">
       <div className="py-2 text-[13px] font-medium text-fg-subtle">{t("merge.history")}</div>
 
       {outcome?.error ? (
@@ -506,7 +511,6 @@ function History({ church, history }: { church: string; history: PastMerge[] }) 
           <span className="text-[12px] text-fg-subtle">{m.mergedAt}</span>
           {m.canUndo ? (
             <form action={submit}>
-              <input type="hidden" name="church" value={church} />
               <input type="hidden" name="mergeId" value={m.id} />
               {/* R24.6. Each row is a form of its own, so the one that was
                   pressed is the one that spins. */}
@@ -515,6 +519,8 @@ function History({ church, history }: { church: string; history: PastMerge[] }) 
           ) : null}
         </div>
       ))}
+
+      {pager ? <div className="-mx-5">{pager}</div> : null}
     </section>
   );
 }
@@ -538,18 +544,23 @@ function Submitting({ onChange }: { onChange: (on: boolean) => void }) {
 }
 
 /** R24.6. The Undo on one past merge, busy for as long as its own form is. */
+/**
+ * R24.11. Undo on every row it can be done on, so it carries the icon alone.
+ *
+ * The label is the accessible name and the tooltip both, so the action keeps
+ * its word for whoever needs it.
+ */
 function UndoButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button
+    <IconButton
       type="submit"
       variant="secondary"
-      loading={pending}
       disabled={pending}
-      className="min-h-8 px-2.5 text-[13px]"
+      label={t("merge.undo")}
     >
-      {t("merge.undo")}
-    </Button>
+      {pending ? <Spinner /> : <Undo2 />}
+    </IconButton>
   );
 }

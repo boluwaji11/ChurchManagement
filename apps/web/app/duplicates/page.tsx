@@ -1,5 +1,5 @@
 import {
-  withTenant, findDuplicateClusters, listMerges, getPersonForEdit, canArchivePeople,
+  withTenant, findDuplicateClusters, listMerges, countMerges, getPersonForEdit, canArchivePeople,
 } from "@connectapp/db";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -9,10 +9,15 @@ import { AppShell } from "@/components/app-shell";
 import { Review, type PersonSide } from "./review";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
+import { Pager } from "@/components/pager";
 
 /* R2.8, R24.6. One person to a screen, however many copies of them there
    are. Deciding whether some records are one person is one decision. */
 const PER_PAGE = 1;
+
+/* R24.6. Merging a group of five writes four lines at once, so what a church
+   has already merged is a list that grows faster than it is read. */
+const PAST_PER_PAGE = 5;
 
 export const dynamic = "force-dynamic";
 
@@ -29,12 +34,14 @@ export async function generateMetadata({
 export default async function DuplicatesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ a?: string; b?: string; page?: string }>;
+  searchParams: Promise<{ a?: string; b?: string; page?: string; past?: string }>;
 }) {
-  const { a, b, page } = await searchParams;
+  const { a, b, page, past } = await searchParams;
 
-  /* R2.8. Which pair is on screen, one-based, as the address writes it. */
+  /* R2.8. Which group is on screen, one-based, as the address writes it. */
   const at = Math.max(1, Number(page) || 1);
+  /* And which page of what the church has already merged. */
+  const pastAt = Math.max(1, Number(past) || 1);
   const session = await requireSession();
 
   // Merging moves every note and every record off one person and onto another,
@@ -46,10 +53,17 @@ export default async function DuplicatesPage({
     );
   }
 
-  const pageAt = (to: number) =>
-    `/duplicates?${new URLSearchParams({ ...(a && b ? { a, b } : {}), page: String(to) })}`;
+  const here = (over: Record<string, string>) =>
+    `/duplicates?${new URLSearchParams({
+      ...(a && b ? { a, b } : {}),
+      ...(at > 1 ? { page: String(at) } : {}),
+      ...(pastAt > 1 ? { past: String(pastAt) } : {}),
+      ...over,
+    })}`;
+  const pageAt = (to: number) => here({ page: String(to) });
+  const pastPageAt = (to: number) => `${here({ past: String(to) })}#past`;
 
-  const { group, on, total, history } = await withTenant(
+  const { group, on, total, history, pastTotal } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const found = await findDuplicateClusters(tx);
@@ -119,7 +133,8 @@ export default async function DuplicatesPage({
               reason: here.reason,
             }
           : null,
-        history: await listMerges(tx),
+        history: await listMerges(tx, { page: pastAt, perPage: PAST_PER_PAGE }),
+        pastTotal: await countMerges(tx),
       };
     },
   );
@@ -159,6 +174,15 @@ export default async function DuplicatesPage({
           undoneAt: m.undoneAt ? m.undoneAt.toISOString() : null,
           canUndo: m.canUndo,
         }))}
+        pastPager={
+          <Pager
+            page={pastAt}
+            size={PAST_PER_PAGE}
+            total={pastTotal}
+            anchor="past"
+            href={pastPageAt}
+          />
+        }
       />
     </AppShell>
   );

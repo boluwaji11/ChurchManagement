@@ -275,10 +275,29 @@ export interface MergeSummary {
   canUndo: boolean;
 }
 
+/** How many merges a church has, for the foot of the list. */
+export async function countMerges(db: Tx): Promise<number> {
+  const [row] = (await db.execute(sql`
+    select count(*)::int as n from person_merges`)) as unknown as { n: number }[];
+  return row?.n ?? 0;
+}
+
 const withinWindow = (at: Date): boolean =>
   Date.now() - at.getTime() <= MERGE_UNDO_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
-export async function listMerges(db: Tx): Promise<MergeSummary[]> {
+/**
+ * R2.8. What a church merged, newest first.
+ *
+ * Paged, because merging a group of five writes four lines at once and a
+ * church that tidied its directory has a list nobody scrolls to the end of.
+ */
+export async function listMerges(
+  db: Tx,
+  window?: { page?: number; perPage?: number },
+): Promise<MergeSummary[]> {
+  const perPage = Math.max(1, window?.perPage ?? 50);
+  const skip = Math.max(0, ((window?.page ?? 1) - 1) * perPage);
+
   const rows = (await db.execute(sql`
     select m.id, m.winner_id, m.loser_id, m.merged_at, m.undone_at,
            w.first_name || ' ' || w.last_name as winner_name,
@@ -287,7 +306,7 @@ export async function listMerges(db: Tx): Promise<MergeSummary[]> {
       join members w on w.id = m.winner_id
       join members l on l.id = m.loser_id
      order by m.merged_at desc
-     limit 50`)) as unknown as {
+     limit ${perPage} offset ${skip}`)) as unknown as {
     id: string;
     winner_id: string;
     loser_id: string;
