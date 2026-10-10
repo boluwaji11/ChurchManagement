@@ -270,26 +270,58 @@ function Reading({
   regionLabel: string;
   taxLabel: string;
 }) {
-  const rows: Array<[string, string | null, string?]> = [
+  /*
+   * Keyed by the field rather than by its label. Two labels can read the same
+   * and mean different things: a church in the United Kingdom has "Country"
+   * for the line under the city and "Country" again for the country itself.
+   */
+  interface Line {
+    key: string;
+    label: string;
+    value: string | null;
+    link?: string;
+  }
+
+  const rows: Line[] = [
     // The name is the card's own heading, beside the mark.
-    [t("church.legalName"), values.legalName],
+    { key: "legalName", label: t("church.legalName"), value: values.legalName },
     // R1.5. Off the screen entirely where the record did not carry it.
-    ...("taxId" in values ? [[taxLabel, values.taxId ?? null] as [string, string | null]] : []),
-    [t("church.address"), [values.addressLine1, values.addressLine2].filter(Boolean).join(", ")],
-    [t("church.city"), values.city],
-    [regionLabel, values.region],
-    [t("church.postalCode"), values.postalCode],
-    [t("church.country"), values.country],
-    [t("church.phone"), values.phone, values.phone?.trim() ? `tel:${values.phone.replace(/[^+\d]/g, "")}` : undefined],
-    [t("church.email"), values.email, values.email?.trim() ? `mailto:${values.email.trim()}` : undefined],
-    [t("church.website"), values.website, href(values.website)],
-    [t("church.timezone"), values.timezone.replace(/_/g, " ")],
+    ...("taxId" in values
+      ? [{ key: "taxId", label: taxLabel, value: values.taxId ?? null }]
+      : []),
+    {
+      key: "address",
+      label: t("church.address"),
+      value: [values.addressLine1, values.addressLine2].filter(Boolean).join(", "),
+    },
+    { key: "city", label: t("church.city"), value: values.city },
+    { key: "region", label: regionLabel, value: values.region },
+    { key: "postalCode", label: t("church.postalCode"), value: values.postalCode },
+    { key: "country", label: t("church.country"), value: values.country },
+    {
+      key: "phone",
+      label: t("church.phone"),
+      value: values.phone,
+      link: values.phone?.trim() ? `tel:${values.phone.replace(/[^+\d]/g, "")}` : undefined,
+    },
+    {
+      key: "email",
+      label: t("church.email"),
+      value: values.email,
+      link: values.email?.trim() ? `mailto:${values.email.trim()}` : undefined,
+    },
+    { key: "website", label: t("church.website"), value: values.website, link: href(values.website) },
+    {
+      key: "timezone",
+      label: t("church.timezone"),
+      value: values.timezone.replace(/_/g, " "),
+    },
   ];
 
   return (
     <Details>
-      {rows.map(([label, value, link]) => (
-        <Detail key={label} label={label}>
+      {rows.map(({ key, label, value, link }) => (
+        <Detail key={key} label={label}>
           {!value?.trim() ? null : link ? (
             <a
               href={link}
