@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
-  ArrowLeft, ArrowRight, CalendarCheck, HandCoins, Table2, TrendingUp, UserPlus,
+  ArrowLeft, ArrowRight, CalendarCheck, CircleDot, HandCoins, Table2, TrendingUp,
+  UserPlus,
 } from "lucide-react";
 import {
   withTenant, listSavedReports, countArchivedSavedReports, canManageChurch,
@@ -119,6 +120,13 @@ export default async function ReportsPage({
       hue: "fern",
       title: t("reports.growth.title"),
       detail: t("reports.growth.detail"),
+    },
+    {
+      href: `/reports/groups${here}`,
+      icon: CircleDot,
+      hue: "violet",
+      title: t("reports.groups.title"),
+      detail: t("reports.groups.detail"),
     },
     /* R1.5. Only for somebody whose role carries the giving amounts. */
     ...(canReadGivingAmounts(session)

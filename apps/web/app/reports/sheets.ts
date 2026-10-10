@@ -4,6 +4,7 @@ import {
   attendanceByService, attendanceByName, attendanceSummary, attendanceByWeekday,
   growthByMonth, growthSummary, visitorFunnel, visitorList, type VisitorRow,
   givingTotals, givingByMonth, givingByFund, lapsedGivers, firstTimeGivers,
+  groupParticipation, groupHealth, groupMeetingsByMonth,
   canEditPeople, canReadIncidents, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
@@ -36,7 +37,7 @@ export function standing(one: VisitorRow): "connected" | "returned" | "once" {
   return one.visits > 1 ? "returned" : "once";
 }
 
-export const BUILT_IN = ["attendance", "growth", "visitors", "giving"] as const;
+export const BUILT_IN = ["attendance", "growth", "visitors", "groups", "giving"] as const;
 export type BuiltIn = (typeof BUILT_IN)[number];
 
 export const isBuiltIn = (raw: string | null | undefined): raw is BuiltIn =>
@@ -221,6 +222,79 @@ export async function sheetFor(
             every,
           ],
           csv: every,
+        };
+      }
+
+      if (which === "groups") {
+        const [summary, rows, months] = await Promise.all([
+          groupParticipation(tx, range),
+          groupHealth(tx, range),
+          groupMeetingsByMonth(tx, range),
+        ]);
+
+        /* R18.10. The grid a church works through, which is the group list
+           rather than the summary above it. Quietest first, the same order
+           the screen puts them in. */
+        const each = table(
+          t("reports.groups.each"),
+          [
+            t("reports.groups.group"), t("reports.groups.kind"),
+            t("reports.groups.roster"), t("reports.groups.met"),
+            t("reports.groups.average"), t("reports.groups.turnout"),
+            t("reports.groups.lastMet"),
+          ],
+          [false, false, true, true, true, true, false],
+          rows.map((one) => [
+            one.name,
+            one.type ?? "",
+            String(one.roster),
+            String(one.held),
+            one.held === 0 ? "" : String(one.average),
+            one.held === 0 ? "" : `${one.turnout}%`,
+            one.lastMetOn ? shortDate(one.lastMetOn) : t("reports.groups.neverMet"),
+          ]),
+        );
+
+        return {
+          ...frame,
+          title: t("reports.groups.title"),
+          figures: [
+            figure(
+              t("reports.groups.inAGroup"),
+              `${summary.rate}%`,
+              t("reports.groups.inAGroupSub", {
+                count: String(summary.inAGroup),
+                of: String(summary.counted),
+              }),
+            ),
+            figure(
+              t("reports.groups.running"),
+              String(summary.groups),
+              plural("reports.groups.runningSub", summary.meeting),
+            ),
+            figure(
+              t("reports.groups.silent"),
+              String(summary.silent),
+              t("reports.groups.silentSub"),
+            ),
+            figure(
+              t("reports.groups.average"),
+              String(summary.average),
+              summary.leaderless === 0
+                ? t("reports.groups.allLed")
+                : plural("reports.groups.leaderless", summary.leaderless),
+            ),
+          ],
+          blocks: [
+            {
+              kind: "series" as const,
+              title: t("reports.groups.overTime"),
+              name: t("reports.groups.average"),
+              points: months.map((one) => ({ label: one.month, value: one.average })),
+            },
+            each,
+          ],
+          csv: each,
         };
       }
 

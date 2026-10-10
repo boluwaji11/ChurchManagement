@@ -145,7 +145,7 @@ and a design file does not move it.
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
 | HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
 | HRT-18 | Storage quota, enforced at upload, with the church logo as its first user | R1.1, R1.16 | Closed |
-| HRT-284 | The church's legal details on its own record: legal name, EIN, registered address | R1.1, R13.1 | New |
+| HRT-284 | The church's legal details on its own record: legal name, EIN, registered address | R1.1, R13.1 | Built, its tests have not run: Docker is down on this machine |
 | HRT-44 | Show usage against the quota, once a church can approach it | R1.16 | Deferred |
 | HRT-36 | **Externalise every user-facing string.** | R22.8 | Closed |
 | HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | Closed |
@@ -358,7 +358,7 @@ of money and after everything else.
 | HRT-106 | In-context help on every screen | R22.2 | Closed |
 | HRT-213 | Regional spelling, from one catalogue, by the church's country | R22.8 | Closed |
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
-| HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | New |
+| HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Resolved |
 | HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
@@ -607,7 +607,7 @@ church actually asks.
 | HRT-186 | Attendance reports: trend, year over year, by service, by demographic | R18.2 | Closed |
 | HRT-187 | The first-time visitor funnel, with conversion rates and elapsed time at each step | R18.3 | Closed |
 | HRT-188 | Growth and retention: new, returning, lapsed, net change by month | R18.4 | Closed |
-| HRT-189 | Group participation and group health | R18.6 | New |
+| HRT-189 | Group participation and group health | R18.6 | Built, its tests have not run: Docker is down on this machine |
 | HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | New |
 | HRT-191 | Milestone and demographic lists | R18.8 | New |
 | HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | New |
@@ -763,7 +763,7 @@ What it settles for now:
 
 | | |
 |---|---|
-| **Active** | **HRT-284** the church's legal details (R1.1, R13.1) |
+| **Active** | **HRT-206** empty, first-run, loading and error states (R24.6, R24.11) |
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
