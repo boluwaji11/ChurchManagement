@@ -86,6 +86,34 @@ const TABLES = [
   "person_merges",
   "tenant_roles",
   "notifications",
+  /*
+   * R19.5. Everything else a church writes down. The export is the trust
+   * mechanism, so a table added after it was written is a table missing from
+   * every church's archive until somebody notices. The test beside this one
+   * fails the moment a tenant table is not named here.
+   */
+  "announcements",
+  "announcement_dismissals",
+  "mailers",
+  "conversations",
+  "conversation_people",
+  "messages",
+  "message_reactions",
+  "message_drafts",
+  "message_files",
+  "push_subscriptions",
+  "events",
+  "event_registrations",
+  "plan_item_kinds",
+  "saved_reports",
+  "funds",
+  "gifts",
+  "gift_batches",
+  "recurring_gifts",
+  "pledges",
+  "campaigns",
+  "stripe_accounts",
+  "platform_events",
   "audit_entries",
 ] as const;
 
