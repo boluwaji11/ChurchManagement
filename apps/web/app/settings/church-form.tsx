@@ -10,6 +10,7 @@ import {
   TAX_ID_LABEL, TAX_ID_SAMPLE,
 } from "@connectapp/i18n";
 import { Said } from "@/components/said";
+import { FieldHint } from "@/components/field-hint";
 import { saveChurch } from "./actions";
 import { Details, Detail } from "./card";
 
@@ -147,7 +148,17 @@ export function ChurchForm({
               <Input name="legalName" defaultValue={values.legalName ?? ""} disabled={!canEdit} />
             </Field>
             {mayReadTaxId ? (
-              <Field label={taxLabel}>
+              <Field
+                label={taxLabel}
+                /* R22.2. The words sit in the panel rather than under the
+                   box, so the form stays a form. */
+                mark={
+                  <FieldHint
+                    about={country === "US" ? "help.taxId" : "help.taxIdOther"}
+                    label={t("church.taxIdHint")}
+                  />
+                }
+              >
                 <Input
                   name="taxId"
                   defaultValue={values.taxId ?? ""}

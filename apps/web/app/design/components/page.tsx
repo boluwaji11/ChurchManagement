@@ -11,6 +11,7 @@ import {
 } from "@connectapp/ui";
 import { check, email } from "@/lib/validate";
 import { PageTitle, Section, Row } from "@/components/section";
+import { FieldHint } from "@/components/field-hint";
 
 
 function ValidationDemo() {
@@ -34,7 +35,15 @@ function ValidationDemo() {
         setError(check(String(new FormData(ref.current).get("demo-email") ?? ""), email));
       }}
     >
-      <Field label="Email" htmlFor="demo-email" error={error} hint="Try submitting it empty." required>
+      <Field
+        label="Email"
+        htmlFor="demo-email"
+        error={error}
+        hint="Try submitting it empty."
+        required
+        /* R22.2. The mark that opens the words in the panel from the right. */
+        mark={<FieldHint about="help.taxId" label="What is this" />}
+      >
         <Input name="demo-email" type="email" placeholder="you@church.org" />
       </Field>
       <Button type="submit">Submit</Button>

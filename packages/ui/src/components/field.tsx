@@ -52,6 +52,7 @@ export function Field({
   required,
   htmlFor,
   action,
+  mark,
   children,
   className,
 }: {
@@ -67,6 +68,14 @@ export function Field({
    * is, rather than under it where they read as the whole form's actions.
    */
   action?: React.ReactNode;
+  /**
+   * R22.2. What explains this one field, beside its label.
+   *
+   * For the mark that opens the words rather than for the words themselves. A
+   * sentence under every box is a form that shouts at everybody who already
+   * knew, and `hint` is the place for one on the rare field that earns it.
+   */
+  mark?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -110,6 +119,10 @@ export function Field({
     // the server has to say so.
     <div data-required={required ? "" : undefined} className={cn("flex flex-col gap-1.5", className)}>
       <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
+      {/* The label and whatever explains it, kept together. An explanation
+          pushed to the other end of a wide row stops reading as belonging to
+          the words it explains. */}
+      <span className="flex min-w-0 items-center gap-1">
       <Label
         id={labelId}
         htmlFor={group ? undefined : id}
@@ -124,6 +137,11 @@ export function Field({
           </span>
         ) : null}
       </Label>
+      {/* Outside the label element on purpose: a button inside a label is
+          pressed twice, once for itself and once by the label handing the
+          click on to the control. */}
+      {mark}
+      </span>
       {action}
       </div>
 
