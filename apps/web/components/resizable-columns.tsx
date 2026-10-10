@@ -49,6 +49,25 @@ const sum = (set: number[]) => set.reduce((a, b) => a + b, 0);
  *
  * A set wider than the room is left alone: that table is meant to scroll.
  */
+/**
+ * R24.6. A table nobody has arranged fits the card it is in.
+ *
+ * What the browser laid out can be wider than the room, from a long fund name
+ * or a column minimum. Pinning that measurement is what left two tables on
+ * the giving screen scrolling sideways before anybody had touched them. The
+ * measurement is scaled down to the room instead, and sideways scrolling is
+ * left to a reader who has widened a column themselves.
+ */
+const squeezed = (set: number[], room: number) => {
+  const total = sum(set);
+  const last = set.length - 1;
+  if (room === 0 || total <= room || last < 0) return set;
+
+  const cut = set.map((one) => Math.max(FLOOR, Math.floor((one * room) / total)));
+  cut[last] = Math.max(FLOOR, room - sum(cut.slice(0, last)));
+  return cut;
+};
+
 const fitted = (set: number[], room: number) => {
   const total = sum(set);
   const last = set.length - 1;
@@ -116,7 +135,7 @@ export function ResizableTable({
 
     let held: number[] | null = null;
     try {
-      const raw = window.localStorage.getItem(`cols:${id}`);
+      const raw = window.localStorage.getItem(`cols:v2:${id}`);
       const parsed = raw ? (JSON.parse(raw) as unknown) : null;
       if (
         Array.isArray(parsed)
@@ -143,7 +162,9 @@ export function ResizableTable({
     const room = host.current?.clientWidth ?? 0;
     if (held && tooWide(held, measured, room)) held = null;
 
-    setWidths(fitted(held ?? measured, room));
+    /* A set the reader arranged is theirs, wide or not. A set nobody has
+       arranged is made to fit. */
+    setWidths(held ? fitted(held, room) : squeezed(measured, room));
     setHeadHeight(table.tHead?.getBoundingClientRect().height ?? 0);
     setNarrow(isNarrow(room));
     };
@@ -195,7 +216,7 @@ export function ResizableTable({
       next[at + 1] = theirs - room;
 
       try {
-        window.localStorage.setItem(`cols:${id}`, JSON.stringify(next));
+        window.localStorage.setItem(`cols:v2:${id}`, JSON.stringify(next));
       } catch {
         // Nothing to do. The widths hold for this page either way.
       }
