@@ -2726,8 +2726,9 @@ export const en = {
   "domain.hint": "e.g. members.yourchurch.org",
   // HRT-283, R1.1. Whether the address works yet, and the one thing a church
   // has to do to make it.
-  "domain.live.title": "This address is working",
-  "domain.live.body": "Members can use it now.",
+  "domain.state.live": "Working",
+  "domain.state.waiting": "Not working yet",
+  "domain.state.none": "Not set up",
   "domain.waiting.title": "One thing left",
   "domain.waiting.body": "Sign in to whoever you bought this domain from and add the record below. It can take a few hours to start working after that.",
   "domain.record.type": "Type",

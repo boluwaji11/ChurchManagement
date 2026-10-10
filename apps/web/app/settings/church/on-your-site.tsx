@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy, ExternalLink, Globe, Link2, Search, Users } from "lucide-react";
+import {
+  Check, CircleCheck, Copy, ExternalLink, Globe, Link2, Search, Users,
+} from "lucide-react";
 import {
   Banner, Button, Card, CardTitle, Field, Input, Separator, Switch, Textarea, Tooltip
 } from "@connectapp/ui";
@@ -121,70 +123,42 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
     `<iframe src="${groupsLink}/embed" title="${t("nav.groups")}" width="100%" height="720" `
     + `style="border:0" loading="lazy"></iframe>`;
 
+  /* R1.1. What the address card's badge says, in one word. */
+  const live = found?.pointsHere === true;
+
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-2">
+    <div className="flex max-w-[1120px] flex-col gap-5">
       {approved ? null : (
-        <div className="lg:col-span-2">
-          <Banner tone="info" title={t("site.waiting")}>{t("site.waitingBody")}</Banner>
-        </div>
+        <Banner tone="info" title={t("site.waiting")}>{t("site.waitingBody")}</Banner>
       )}
 
-      {error ? (
-        <div className="lg:col-span-2">
-          <Banner tone="danger">{error}</Banner>
-        </div>
-      ) : null}
-
-      {/* R1.7. The address a church puts behind "My account" on its own
-          website. There is no code to hand out: the address names the church,
-          and the switch decides whether it is open. */}
-      <Card className="flex h-full flex-col gap-4">
-        <Head icon={<Link2 />} title={t("site.account")} />
-        <Separator />
-
-        <Copyable label={t("site.account")} value={accountLink} open={accountLink} />
-
-        <label className="mt-auto flex cursor-pointer items-center gap-3 rounded-lg bg-sunken px-3 py-2.5 text-[length:var(--d-text-body)] text-fg">
-          <Switch
-            checked={open}
-            disabled={pending || !approved}
-            onCheckedChange={(on) => {
-              setOpen(on);
-              start(async () => {
-                const answer = await setSignup(on);
-                if (answer?.error) {
-                  setOpen(!on);
-                  setError(answer.error);
-                }
-              });
-            }}
-          />
-          {t("site.account.open")}
-        </label>
-      </Card>
-
-      <Card className="flex h-full flex-col gap-4">
-        <Head icon={<Users />} title={t("site.groups")} />
-        <Separator />
-
-        <Copyable label={t("site.groups")} value={groupsLink} open={groupsLink} />
-
-        <Field label={t("site.snippet")}>
-          <Textarea
-            readOnly
-            rows={3}
-            value={snippet}
-            onFocus={(e) => e.currentTarget.select()}
-            className="font-mono text-[12px]"
-          />
-        </Field>
-      </Card>
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* R1.1, R17.1. The church's own name over the whole of it. A frame
           cannot carry a session, so this is the way the signed-in screens live
           on the church's own address. */}
-      <Card className="flex flex-col gap-4 lg:col-span-2">
-        <Head icon={<Globe />} title={t("domain.title")} />
+      <Card className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <Head icon={<Globe />} title={t("domain.title")} />
+
+          {/* R24.6. Green when it is working, and it says which. The same
+              badge the giving card carries, because it answers the same
+              question: is this thing on. */}
+          <span className="ml-auto flex h-[26px] shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold"
+            style={
+              live
+                ? { background: "var(--hue-fern-tint)", color: "var(--hue-fern-key)" }
+                : { background: "var(--color-sunken)", color: "var(--color-fg-muted)" }
+            }
+          >
+            {live ? <CircleCheck className="size-3.5" aria-hidden /> : null}
+            {live
+              ? t("domain.state.live")
+              : found
+                ? t("domain.state.waiting")
+                : t("domain.state.none")}
+          </span>
+        </div>
         <Separator />
 
         <div className="flex flex-wrap items-end gap-3">
@@ -241,12 +215,6 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
           work. Until it has been looked at there is nothing to say, so
           nothing is said.
         */}
-        {found?.pointsHere === true ? (
-          <Banner tone="success" title={t("domain.live.title")}>
-            {t("domain.live.body")}
-          </Banner>
-        ) : null}
-
         {found?.pointsHere === false ? (
           <div className="flex flex-col gap-3">
             <Banner tone="info" title={t("domain.waiting.title")}>
@@ -271,6 +239,55 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
 
         {found ? <DomainReading found={found} /> : null}
       </Card>
+
+      {/* R1.7, R9.5. What a church pastes into the site it already has. The
+          two sit together, under the address they will be written at. */}
+      <div className="grid items-start gap-5 lg:grid-cols-2">
+      {/* R1.7. The address a church puts behind "My account" on its own
+          website. There is no code to hand out: the address names the church,
+          and the switch decides whether it is open. */}
+      <Card className="flex h-full flex-col gap-4">
+        <Head icon={<Link2 />} title={t("site.account")} />
+        <Separator />
+
+        <Copyable label={t("site.account")} value={accountLink} open={accountLink} />
+
+        <label className="mt-auto flex cursor-pointer items-center gap-3 rounded-lg bg-sunken px-3 py-2.5 text-[length:var(--d-text-body)] text-fg">
+          <Switch
+            checked={open}
+            disabled={pending || !approved}
+            onCheckedChange={(on) => {
+              setOpen(on);
+              start(async () => {
+                const answer = await setSignup(on);
+                if (answer?.error) {
+                  setOpen(!on);
+                  setError(answer.error);
+                }
+              });
+            }}
+          />
+          {t("site.account.open")}
+        </label>
+      </Card>
+
+      <Card className="flex h-full flex-col gap-4">
+        <Head icon={<Users />} title={t("site.groups")} />
+        <Separator />
+
+        <Copyable label={t("site.groups")} value={groupsLink} open={groupsLink} />
+
+        <Field label={t("site.snippet")}>
+          <Textarea
+            readOnly
+            rows={3}
+            value={snippet}
+            onFocus={(e) => e.currentTarget.select()}
+            className="font-mono text-[12px]"
+          />
+        </Field>
+      </Card>
+      </div>
     </div>
   );
 }
