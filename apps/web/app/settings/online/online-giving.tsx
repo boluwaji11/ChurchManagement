@@ -174,11 +174,17 @@ export function OnlineGiving({
             {face.name ? (
               <span className="truncate font-semibold text-fg">{face.name}</span>
             ) : null}
-            {/* R13.1. Which account, and nothing about the money. Where it
-                goes and how often is Stripe's screen to answer, and said
-                here it is a second copy to go out of date. */}
-            {account && !account.livemode ? (
-              <span className="truncate text-[12px] text-fg-subtle">{t("stripe.test")}</span>
+            {/* R13.1. The account the money lands in. How often Stripe moves
+                it is Stripe's own screen to answer. */}
+            {account ? (
+              <span className="truncate text-[12px] text-fg-subtle">
+                {[
+                  face.bank ? t("stripe.payingTo", { bank: face.bank }) : null,
+                  account.livemode ? null : t("stripe.test"),
+                ]
+                  .filter(Boolean)
+                  .join(" \u00b7 ")}
+              </span>
             ) : null}
           </span>
 

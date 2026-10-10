@@ -312,28 +312,41 @@ export async function stripeDashboard(): Promise<ConnectResult> {
 export interface AccountFace {
   /** What Stripe holds as the church's name. */
   name: string | null;
+  /** The account the money lands in, as a treasurer would say it. */
+  bank: string | null;
 }
 
 /**
  * R13.1. What a church recognises about its own account.
  *
- * The id is a token for support; a treasurer knows their church's name. Where
- * the money lands and how often it moves is Stripe's own screen to answer,
- * and a copy of it here is a copy that goes out of date.
+ * The id is a token for support; a treasurer knows their church's name and
+ * the last four digits of the account the money lands in. How often Stripe
+ * moves it is Stripe's own screen to answer.
  */
 export async function accountFace(): Promise<AccountFace> {
   const { ctx } = await context();
-  const nothing = { name: null };
+  const nothing = { name: null, bank: null };
   if (!stripeConfigured()) return nothing;
 
   try {
     const held = await withTenant(ctx, (tx) => getStripeAccount(tx));
     if (!held) return nothing;
 
-    const account = await stripe().accounts.retrieve(held.accountId);
+    const account = await stripe().accounts.retrieve(held.accountId, {
+      expand: ["external_accounts"],
+    });
+
+    const external = account.external_accounts?.data?.[0];
+    const bank =
+      external && external.object === "bank_account"
+        ? [external.bank_name, external.last4 ? `••••${external.last4}` : null]
+            .filter(Boolean)
+            .join(" ")
+        : null;
 
     return {
       name: account.business_profile?.name ?? account.settings?.dashboard?.display_name ?? null,
+      bank: bank || null,
     };
   } catch {
     return nothing;

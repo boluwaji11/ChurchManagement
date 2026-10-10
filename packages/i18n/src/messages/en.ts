@@ -1468,6 +1468,7 @@ export const en = {
   "stripe.state.settling": "Stripe is checking what your church sent",
   "stripe.state.ready": "Active for online giving",
   "stripe.account": "Account: {id}",
+  "stripe.payingTo": "Pays out to {bank}",
   "stripe.test": "Test mode",
   "stripe.step.account": "Your Stripe account",
   "stripe.step.later": "Pending Stripe approval",
