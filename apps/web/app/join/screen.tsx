@@ -68,7 +68,9 @@ export async function JoinScreen({
   if (user && (await belongsTo(user.id, church.slug))) {
     const member = await verifiedMembership(user.id, church.slug);
     const [first] = member ? navFor({ role: member.role, permissions: member.permissions }) : [];
-    redirect(`${first?.href ?? "/home"}?church=${church.slug}`);
+    const landing = first?.href ?? "/home";
+    /* R17.1. The address already names the church, so the path does not. */
+    redirect(fromHost ? landing : `${landing}?church=${church.slug}`);
   }
 
   /* R17.1. On the church's own address the host names it, so the way back
