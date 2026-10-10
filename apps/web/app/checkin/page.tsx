@@ -177,21 +177,9 @@ export default async function CheckinPage({
     /* R24.6. The screen's one action is in the top bar. The row under it keeps
        the other things this screen can do, which are tools rather than the
        errand somebody opened it for. */
-    <AppShell session={session} title={t("checkin.title")} action={action}>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-display text-[22px] leading-[28px] text-fg">
-            {service
-              ? t("checkin.serviceAt", { name: service.name, time: service.readableTime })
-              : t("checkin.noService.title")}
-          </h2>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3.5">
-          <span className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
-            <Move className="size-3.5" aria-hidden /> {t("board.dragChild")}
-          </span>
-
+    <AppShell session={session} title={t("checkin.title")}>
+      <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-3.5">
           {canReadIncidents(session) ? (
             <ToolLink href={`/incidents?church=${session.tenantSlug}`}>
               <FileWarning /> {t("incident.title")}
@@ -218,7 +206,14 @@ export default async function CheckinPage({
             <Printer /> {t("checkin.rosters")}
           </ToolLink>
 
+          {/* The errand itself, at the end of the row the tools are on. */}
+          {action}
         </div>
+
+        {/* How the board is worked, under the row rather than inside it. */}
+        <span className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
+          <Move className="size-3.5" aria-hidden /> {t("board.dragChild")}
+        </span>
       </div>
 
       {/* A church with several services today picks which one it is looking at. */}
