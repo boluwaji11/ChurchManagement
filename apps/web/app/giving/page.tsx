@@ -356,27 +356,29 @@ export default async function GivingPage({
                     />
                   </div>
 
+                  {/* R24.6. The table fits the card it is in. It only scrolls
+                      once a reader has widened a column themselves. */}
                   <ResizableTable id="giving-counts" className="hidden sm:block">
-                    <table className="w-full min-w-[640px] border-collapse">
+                    <table className="w-full table-fixed border-collapse">
                       <thead>
                         <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                          <th className="w-[130px] px-5 py-2 text-left font-bold">
+                          <th className="w-[12%] px-5 py-2 text-left font-bold">
                             {t("giving.col.date")}
                           </th>
                           {/* The name takes whatever the others do not. */}
                           <th className="w-full px-3 py-2 text-left font-bold">
                             {t("giving.count.name")}
                           </th>
-                          <th className="w-[140px] px-3 py-2 text-left font-bold">
+                          <th className="w-[14%] px-3 py-2 text-left font-bold">
                             {t("giving.col.fund")}
                           </th>
-                          <th className="w-[100px] px-3 py-2 text-left font-bold">
+                          <th className="w-[10%] px-3 py-2 text-left font-bold">
                             {t("giving.col.method")}
                           </th>
-                          <th className="w-[130px] px-3 py-2 text-right font-bold">
+                          <th className="w-[13%] px-3 py-2 text-right font-bold">
                             {t("giving.count.counted")}
                           </th>
-                          <th className="w-[56px] px-3 py-2" />
+                          <th className="w-[5%] px-3 py-2" />
                         </tr>
                       </thead>
 
@@ -504,29 +506,29 @@ export default async function GivingPage({
                   </div>
 
                   <ResizableTable id="giving-gifts" className="hidden sm:block">
-                    <table className="w-full min-w-[760px] border-collapse">
+                    <table className="w-full table-fixed border-collapse">
                       <thead>
                         <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                          <th className="w-[150px] px-5 py-2 text-left font-bold">
+                          <th className="w-[14%] px-5 py-2 text-left font-bold">
                             {t("giving.col.date")}
                           </th>
                           {/* The giver takes whatever the others do not. */}
                           <th className="w-full px-3 py-2 text-left font-bold">
                             {t("giving.col.giver")}
                           </th>
-                          <th className="w-[130px] px-3 py-2 text-left font-bold">
+                          <th className="w-[13%] px-3 py-2 text-left font-bold">
                             {t("giving.col.fund")}
                           </th>
-                          <th className="w-[100px] px-3 py-2 text-left font-bold">
+                          <th className="w-[10%] px-3 py-2 text-left font-bold">
                             {t("giving.col.method")}
                           </th>
-                          <th className="w-[120px] px-3 py-2 text-right font-bold">
+                          <th className="w-[12%] px-3 py-2 text-right font-bold">
                             {t("giving.col.amount")}
                           </th>
-                          <th className="w-[110px] px-3 py-2 text-left font-bold">
+                          <th className="w-[11%] px-3 py-2 text-left font-bold">
                             {t("giving.col.status")}
                           </th>
-                          <th className="w-[84px] px-3 py-2" />
+                          <th className="w-[7%] px-3 py-2" />
                         </tr>
                       </thead>
 
