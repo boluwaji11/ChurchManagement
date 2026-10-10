@@ -123,11 +123,9 @@ export default async function PlanPage({
       <div className="grid gap-x-6 gap-y-6 [grid-template-columns:minmax(0,1fr)] lg:[grid-template-columns:minmax(0,1fr)_minmax(240px,280px)]">
         <div className="flex flex-col gap-6 lg:col-span-2">
 
-          {/* The row of other services keeps to the plan's own column, in a
-              grid of the same tracks, so it ends where the plan's card ends
-              rather than running out to the edge of the screen. */}
+          {/* The row of other services sits in the middle of the screen, and
+              only runs to the edges once there are more than fit. */}
           {tabs.length > 1 ? (
-            <div className="grid gap-x-6 [grid-template-columns:minmax(0,1fr)] lg:[grid-template-columns:minmax(0,1fr)_minmax(240px,280px)]">
             <PlanTabs
               church={session.tenantSlug}
               current={occurrence.id}
@@ -138,7 +136,6 @@ export default async function PlanPage({
                 name: one.name,
               }))}
             />
-            </div>
           ) : null}
 
           <div className="flex flex-wrap items-end justify-between gap-3">
