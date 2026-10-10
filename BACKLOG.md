@@ -59,43 +59,43 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-4 | The `/design` gallery, eight pages | R24.8, R24.16 | Closed |
 | HRT-5 | Replace native browser validation with our own field messages | R24.6 | Closed |
 | HRT-6 | Dark-mode status colours, and stop tinting invalid inputs | R24.5, R24.10 | Closed |
-| HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.6, R24.18 | Resolved |
-| HRT-200 | Land the redesign handoff, reconcile its tokens against ours | R24.1, R24.4 | Resolved |
-| HRT-201 | The shell: collapsible sidebar, a top bar with one action, bottom tabs on a phone | R24.6, R24.14 | Resolved |
+| HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.6, R24.18 | Closed |
+| HRT-200 | Land the redesign handoff, reconcile its tokens against ours | R24.1, R24.4 | Closed |
+| HRT-201 | The shell: collapsible sidebar, a top bar with one action, bottom tabs on a phone | R24.6, R24.14 | Closed |
 | HRT-202 | Navigation scoped to the role, one sidebar per persona | R1.3, R24.6 | New |
-| HRT-203 | The dashboard: setup checklist, reorderable tiles, attendance over time | R18.1, R22.1 | Resolved |
-| HRT-204 | People: the filter drawer, inline search, CSV export, pagination | R2.14, R19.4 | Resolved |
+| HRT-203 | The dashboard: setup checklist, reorderable tiles, attendance over time | R18.1, R22.1 | Closed |
+| HRT-204 | People: the filter drawer, inline search, CSV export, pagination | R2.14, R19.4 | Closed |
 | HRT-205 | The command palette on Cmd+K, and no search box in the top bar | R24.6 | New |
 | HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | New |
-| HRT-207 | Notifications: the bell, the unread count, a panel per role | R24.6 | Resolved |
-| HRT-253 | Every screen on a phone: the shell, the tables, the panels and the public site | R24.6, R24.14 | Resolved. The check-in desk and the supervisor board need a service on today's date to exercise |
-| HRT-254 | One way to reach an archived record, on every screen that has them | R24.6, R2.9 | Resolved |
-| HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | Resolved |
-| HRT-222 | The ConnectApp website: the page a church reads before it is anybody | R22.1, R24.6 | Resolved |
-| HRT-223 | The church code comes out: a church is named by its address, not a secret | R1.7, R22.1 | Resolved |
-| HRT-224 | Onboarding: a welcome, the five things in the order one unblocks the next | R22.1, R22.3 | Resolved |
-| HRT-225 | The setup dock: the path follows whoever is walking it, on any screen | R22.1, R22.3 | Resolved |
-| HRT-226 | A church writes its own vocabulary: group types and teams start empty, teams configured in Settings | R9.1, R10.1 | Resolved |
-| HRT-227 | The ConnectApp admin portal: churches, approval, archive, the operators and the log | R21.x, R22.x | Resolved |
-| HRT-234 | Speed: Turbopack in development, one trip to the database per frame, pipelined reads. [docs/performance.md](docs/performance.md) | R24.11 | Resolved |
-| HRT-235 | Plan templates are configured in Settings, with ready-made shapes, and the plan screen starts from them | R11.8 | Resolved |
-| HRT-236 | The kinds of plan item are a list the church keeps, in its own words | R11.2 | Resolved |
-| HRT-237 | Giving: the funds, the counting session with dual control, and what came in | R13.9 to R13.15, R13.21 | Resolved |
-| HRT-238 | Stripe Connect at a zero platform fee: the church's own account, direct charges, the webhook | R13.1, R13.2 | Resolved |
-| HRT-239 | The giving page a church links to from its own website, with optional fee coverage | R13.5, R13.6 | Resolved |
-| HRT-240 | The deposit slip, and the gifts as a spreadsheet | R13.22, R13.23 | Resolved |
+| HRT-207 | Notifications: the bell, the unread count, a panel per role | R24.6 | Closed |
+| HRT-253 | Every screen on a phone: the shell, the tables, the panels and the public site | R24.6, R24.14 | Closed. The check-in desk and the supervisor board need a service on today's date to exercise |
+| HRT-254 | One way to reach an archived record, on every screen that has them | R24.6, R2.9 | Closed |
+| HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | Closed |
+| HRT-222 | The ConnectApp website: the page a church reads before it is anybody | R22.1, R24.6 | Closed |
+| HRT-223 | The church code comes out: a church is named by its address, not a secret | R1.7, R22.1 | Closed |
+| HRT-224 | Onboarding: a welcome, the five things in the order one unblocks the next | R22.1, R22.3 | Closed |
+| HRT-225 | The setup dock: the path follows whoever is walking it, on any screen | R22.1, R22.3 | Closed |
+| HRT-226 | A church writes its own vocabulary: group types and teams start empty, teams configured in Settings | R9.1, R10.1 | Closed |
+| HRT-227 | The ConnectApp admin portal: churches, approval, archive, the operators and the log | R21.x, R22.x | Closed |
+| HRT-234 | Speed: Turbopack in development, one trip to the database per frame, pipelined reads. [docs/performance.md](docs/performance.md) | R24.11 | Closed |
+| HRT-235 | Plan templates are configured in Settings, with ready-made shapes, and the plan screen starts from them | R11.8 | Closed |
+| HRT-236 | The kinds of plan item are a list the church keeps, in its own words | R11.2 | Closed |
+| HRT-237 | Giving: the funds, the counting session with dual control, and what came in | R13.9 to R13.15, R13.21 | Closed |
+| HRT-238 | Stripe Connect at a zero platform fee: the church's own account, direct charges, the webhook | R13.1, R13.2 | Closed |
+| HRT-239 | The giving page a church links to from its own website, with optional fee coverage | R13.5, R13.6 | Closed |
+| HRT-240 | The deposit slip, and the gifts as a spreadsheet | R13.22, R13.23 | Closed |
 | HRT-241 | Year-end giving statements to Publication 1771, on screen and in print | R13.17, R13.19 | Resolved, waiting on CPA review before 0.3 ships |
-| HRT-242 | The giving report: by month, by fund, who stopped giving, who started | R13.21, R13.24, R13.25 | Resolved |
-| HRT-243 | A gift that repeats, and the giver's own way to change or stop it | R13.3 | Resolved |
-| HRT-244 | A member's own giving, and their own statement, from the portal | R13.19, R17.4 | Resolved |
-| HRT-245 | A repeating gift that has stopped collecting says so on the giving screen | R13.8 | Resolved |
-| HRT-246 | Campaigns and pledges: a target over a period, and what households committed | R13.16, R13.18 | Resolved |
-| HRT-247 | One statement a household, where the church chooses that | R13.18 | Resolved |
-| HRT-248 | A gift split across funds, written as one gift a fund | R13.4 | Resolved |
-| HRT-249 | A printable QR code for the foyer and the bulletin | R13.7 | Resolved. Text-to-give waits on messaging |
-| HRT-250 | The church's balance, payouts and payments read inside ConnectApp, no actions | R13.1 | Resolved |
+| HRT-242 | The giving report: by month, by fund, who stopped giving, who started | R13.21, R13.24, R13.25 | Closed |
+| HRT-243 | A gift that repeats, and the giver's own way to change or stop it | R13.3 | Closed |
+| HRT-244 | A member's own giving, and their own statement, from the portal | R13.19, R17.4 | Closed |
+| HRT-245 | A repeating gift that has stopped collecting says so on the giving screen | R13.8 | Closed |
+| HRT-246 | Campaigns and pledges: a target over a period, and what households committed | R13.16, R13.18 | Closed |
+| HRT-247 | One statement a household, where the church chooses that | R13.18 | Closed |
+| HRT-248 | A gift split across funds, written as one gift a fund | R13.4 | Closed |
+| HRT-249 | A printable QR code for the foyer and the bulletin | R13.7 | Closed. Text-to-give waits on messaging |
+| HRT-250 | The church's balance, payouts and payments read inside ConnectApp, no actions | R13.1 | Closed |
 | HRT-251 | Stripe Accounts v2: account creation, onboarding links, account sessions and the v2 event destination | R13.1 | New, before 0.3 ships |
-| HRT-252 | A bank gift shows the day it is authorised and counts the day it arrives, with what the bank said where it did not | R13.2 | Resolved |
+| HRT-252 | A bank gift shows the day it is authorised and counts the day it arrives, with what the bank said where it did not | R13.2 | Closed |
 
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
@@ -113,32 +113,32 @@ and a design file does not move it.
 | HRT-10 | Adversarial isolation suite, cross-tenant reads and writes on every table | R1.3 | Closed |
 | HRT-11 | Sign-in, membership-verified sessions, invitations | R1.7 | Closed |
 | HRT-12 | Database hardening: pinned search paths, no PostgREST reachability | R21.3, R21.x | Closed |
-| HRT-111 | Campus and location on the record and in the UI where it shows | R1.2 | Resolved |
+| HRT-111 | Campus and location on the record and in the UI where it shows | R1.2 | Closed |
 | HRT-77 | Supabase advisors: the storage membership check off the REST API, covering indexes | R21.x | Closed |
-| HRT-121 | Backups with point-in-time recovery, and a restore drill run and written down | R21.6 | Resolved |
-| HRT-122 | The no-training commitment where a church can read it, and nothing in the pipeline that breaks it | R21.12 | Resolved |
+| HRT-121 | Backups with point-in-time recovery, and a restore drill run and written down | R21.6 | Closed |
+| HRT-122 | The no-training commitment where a church can read it, and nothing in the pipeline that breaks it | R21.12 | Closed |
 | HRT-123 | Church-supplied provider credentials encrypted with their own key, never logged, never returned | R21.15 | New |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8, R21.4 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | Cut |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
-| HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | Resolved |
+| HRT-43 | Brand colour on the member-facing and printed surfaces | R1.1 | Closed |
 | HRT-45 | Settings behind the user's own name, with tabs for account, church, tags and fields | R22.x | Closed |
-| HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Resolved |
-| HRT-110 | Saved lists, static and rule-based | R1.14 | Resolved. The repository and the actions only; nothing rendered a control, so no list could be made. Finished in HRT-255 |
-| HRT-255 | The controls that make a saved list, and the ones that read it | R1.14, R2.14 | Resolved |
-| HRT-256 | Every press that goes to the server says so, on every screen | R24.6 | Resolved |
-| HRT-257 | The bell rings for all seven kinds, not the two that had writers | R24.6, R4.6, R5.3, R10.5 | Resolved |
-| HRT-258 | A church picks the colour a kind of group wears | R9.1, R24.4 | Resolved |
-| HRT-259 | A service that has gone takes nobody new onto its rota | R10.3 | Resolved |
-| HRT-260 | The member's home screen, the household screen, and which address is read | R17.1, R2.4, R24.4 | Resolved |
-| HRT-261 | A church's own colour, any colour, with the contrast rebuilt from it | R1.1, R24.4 | Resolved |
-| HRT-263 | My schedule redrawn, and a calendar that refuses a day already taken | R17.7, R10.4 | Resolved |
-| HRT-264 | A signed-in member's own details fill their first place at an event | R14.3 | Resolved |
-| HRT-265 | A member can take back a request to join a group | R9.5 | Resolved |
-| HRT-266 | A member reads an event and registers without leaving the portal | R14.2, R17.1 | Resolved |
-| HRT-262 | The household address: a screen that sets it, and the settings menu on a phone | R2.4, R24.6 | Resolved |
-| HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Resolved |
-| HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Resolved |
+| HRT-109 | Creating an account, and a password somebody can set, change or recover | R1.7, R1.8, R22.1 | Closed |
+| HRT-110 | Saved lists, static and rule-based | R1.14 | Closed. The repository and the actions only; nothing rendered a control, so no list could be made. Finished in HRT-255 |
+| HRT-255 | The controls that make a saved list, and the ones that read it | R1.14, R2.14 | Closed |
+| HRT-256 | Every press that goes to the server says so, on every screen | R24.6 | Closed |
+| HRT-257 | The bell rings for all seven kinds, not the two that had writers | R24.6, R4.6, R5.3, R10.5 | Closed |
+| HRT-258 | A church picks the colour a kind of group wears | R9.1, R24.4 | Closed |
+| HRT-259 | A service that has gone takes nobody new onto its rota | R10.3 | Closed |
+| HRT-260 | The member's home screen, the household screen, and which address is read | R17.1, R2.4, R24.4 | Closed |
+| HRT-261 | A church's own colour, any colour, with the contrast rebuilt from it | R1.1, R24.4 | Closed |
+| HRT-263 | My schedule redrawn, and a calendar that refuses a day already taken | R17.7, R10.4 | Closed |
+| HRT-264 | A signed-in member's own details fill their first place at an event | R14.3 | Closed |
+| HRT-265 | A member can take back a request to join a group | R9.5 | Closed |
+| HRT-266 | A member reads an event and registers without leaving the portal | R14.2, R17.1 | Closed |
+| HRT-262 | The household address: a screen that sets it, and the settings menu on a phone | R2.4, R24.6 | Closed |
+| HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Closed |
+| HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Closed |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
@@ -159,18 +159,18 @@ and a design file does not move it.
 | HRT-22 | Relationships, independent of household | R2.4 | Closed |
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | Closed |
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Closed |
-| HRT-117 | A merge moves group memberships, pipeline entries and follow-ups | R2.8 | Resolved |
+| HRT-117 | A merge moves group memberships, pipeline entries and follow-ups | R2.8 | Closed |
 | HRT-118 | ~~Skills, interests and spiritual gifts as managed vocabularies~~ | R2.9 | **Cut** |
 | HRT-210 | The status engine: a nightly pass, the thresholds as settings, and nothing it writes over a human | R2.16 | New |
 | HRT-211 | Status history on a person, with who changed it and a one-press revert | R2.17 | New |
 | HRT-212 | Staff as its own fact: flag, job title, start date, and a badge | R2.18 | New |
-| HRT-119 | Search across names, emails, phones and addresses, under 300ms at 5,000 people | R2.14 | Resolved |
-| HRT-120 | The person timeline: attendance, groups, notes and milestones in one order | R2.15 | Resolved |
+| HRT-119 | Search across names, emails, phones and addresses, under 300ms at 5,000 people | R2.14 | Closed |
+| HRT-120 | The person timeline: attendance, groups, notes and milestones in one order | R2.15 | Closed |
 | HRT-25 | Bulk edit across a selection: tag, status, archive | R2.12 | Closed |
 | HRT-40 | Directory search, filtering, sorting and pagination | R2.1, R2.2 | Closed |
 | HRT-42 | Date field and calendar of our own, replacing the browser's | R24.x | Closed |
-| HRT-26 | Background check status and expiry tracking | R2.10, R21.11 | Resolved |
-| HRT-27 | Birthdays and anniversaries list, by month and week | R2.11 | Resolved |
+| HRT-26 | Background check status and expiry tracking | R2.10, R21.11 | Closed |
+| HRT-27 | Birthdays and anniversaries list, by month and week | R2.11 | Closed |
 
 ### F19. Data portability
 
@@ -236,9 +236,9 @@ starting any story below. They are the definition of done, ahead of anything the
 | HRT-78 | A station is three questions: a name, who drives it, what prints | R8.1, R8.2 | Closed |
 | HRT-60 | The station keeps working with no network | R8.20 to R8.24 | Closed |
 | HRT-61 | Label printing: Brother QL, Dymo, and plain paper | R8.25, R8.26 | Closed |
-| HRT-112 | The bag or stroller label, an optional third print | R8.12 | Resolved |
-| HRT-62 | Supervisor board and class rosters | R8.18, R8.19 | Resolved |
-| HRT-63 | Incident reports, restricted and permanently retained | R8.13 | Resolved |
+| HRT-112 | The bag or stroller label, an optional third print | R8.12 | Closed |
+| HRT-62 | Supervisor board and class rosters | R8.18, R8.19 | Closed |
+| HRT-63 | Incident reports, restricted and permanently retained | R8.13 | Closed |
 
 ### F18. Insights, deferred to 1.0
 
@@ -273,16 +273,16 @@ record anything at all, so every leader-facing flow is a phone and under sixty s
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-83 | Groups: types, the record, leaders and the roster | R9.1 to R9.4 | Resolved |
-| HRT-221 | Leaving a group: the member's own way out, and a leader keeping their roster | R9.4, R17.5 | Resolved |
-| HRT-84 | A leader sees their own group and nothing else | R9.3 | Resolved |
-| HRT-85 | Group attendance in under sixty seconds on a phone | R9.7, R7.4 | Resolved |
-| HRT-86 | The group finder, join requests, and a leader approving them | R9.5, R9.6 | Resolved |
+| HRT-83 | Groups: types, the record, leaders and the roster | R9.1 to R9.4 | Closed |
+| HRT-221 | Leaving a group: the member's own way out, and a leader keeping their roster | R9.4, R17.5 | Closed |
+| HRT-84 | A leader sees their own group and nothing else | R9.3 | Closed |
+| HRT-85 | Group attendance in under sixty seconds on a phone | R9.7, R7.4 | Closed |
+| HRT-86 | The group finder, join requests, and a leader approving them | R9.5, R9.6 | Closed |
 | HRT-87 | Messaging a group's roster through the church's own provider | R9.8 | New |
-| HRT-88 | A picture on a group, with the storage quota behind it | R9.2, R5.3 | Resolved |
-| HRT-89 | A public group page a church can link to without signing in | R9.5 | Resolved |
-| HRT-90 | A group's own page: what it is, when it meets, who runs it | R9.2, R9.5 | Resolved |
-| HRT-91 | One groups screen: the finder is the groups page | R9.1, R9.5 | Resolved |
+| HRT-88 | A picture on a group, with the storage quota behind it | R9.2, R5.3 | Closed |
+| HRT-89 | A public group page a church can link to without signing in | R9.5 | Closed |
+| HRT-90 | A group's own page: what it is, when it meets, who runs it | R9.2, R9.5 | Closed |
+| HRT-91 | One groups screen: the finder is the groups page | R9.1, R9.5 | Closed |
 | HRT-92 | The church's own email provider | R16.2 | Dropped |
 
 Two things a church's existing finder does that ours does not yet. **HRT-88:** every group has a
@@ -295,11 +295,11 @@ it. Both are real, and both are after the rest of F9.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-93 | The six pipelines, their steps, and a person's follow-up | R5.1, R5.2, R5.4, R5.6 | Resolved |
-| HRT-94 | Entering a pipeline on its own: first visit, second visit, three absences | R5.3 | Resolved |
-| HRT-97 | Editing the six: names, steps, days, who they land on, off | R5.2 | Resolved |
-| HRT-95 | My follow-ups: the queue, overdue first | R5.5 | Resolved |
-| HRT-96 | The board: who is in each pipeline and what is late | R5.7 | Resolved |
+| HRT-93 | The six pipelines, their steps, and a person's follow-up | R5.1, R5.2, R5.4, R5.6 | Closed |
+| HRT-94 | Entering a pipeline on its own: first visit, second visit, three absences | R5.3 | Closed |
+| HRT-97 | Editing the six: names, steps, days, who they land on, off | R5.2 | Closed |
+| HRT-95 | My follow-ups: the queue, overdue first | R5.5 | Closed |
+| HRT-96 | The board: who is in each pipeline and what is late | R5.7 | Closed |
 
 No workflow engine. Six pipelines, written down, and a configurable builder deferred to 1.x where
 the PRD puts it (R5.8). **HRT-97** is the middle ground: a church renames a pipeline, rewrites a
@@ -312,8 +312,8 @@ this product is for.
 | ID | Story | Req | State |
 |---|---|---|---|
 | HRT-98 | The member directory inside the product | R3.1 | Dropped |
-| HRT-99 | Per-field visibility chosen by the member, and whole-record opt out | R3.2, R3.3 | Resolved |
-| HRT-100 | The printed directory, honouring every setting at generation | R3.5, R3.4 | Resolved |
+| HRT-99 | Per-field visibility chosen by the member, and whole-record opt out | R3.2, R3.3 | Closed |
+| HRT-100 | The printed directory, honouring every setting at generation | R3.5, R3.4 | Closed |
 | HRT-101 | The admin view that shows every field, permission gated | R3.6 | Closed, built in F2 |
 
 **Decision, October 2026: there is no directory of the congregation inside the product.** It was
@@ -351,11 +351,11 @@ of money and after everything else.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-105 | The setup wizard: church, services, roles, import. Resumable and skippable | R22.1 | Resolved |
-| HRT-108 | Who can get in: the team, invitations, roles | R1.4, R1.7 | Resolved |
-| HRT-106 | In-context help on every screen | R22.2 | Resolved |
-| HRT-213 | Regional spelling, from one catalogue, by the church's country | R22.8 | Resolved |
-| HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Resolved |
+| HRT-105 | The setup wizard: church, services, roles, import. Resumable and skippable | R22.1 | Closed |
+| HRT-108 | Who can get in: the team, invitations, roles | R1.4, R1.7 | Closed |
+| HRT-106 | In-context help on every screen | R22.2 | Closed |
+| HRT-213 | Regional spelling, from one catalogue, by the church's country | R22.8 | Closed |
+| HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
 screen a church fills in (HRT-92, dropped), so the 0.2 wizard is church details, service times,
@@ -403,9 +403,9 @@ one and adds the people, which takes a minute and needs no migration screen.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-79 | Teams, positions, and a person serving across several of them | R10.1, R10.2 | Resolved |
-| HRT-80 | The schedule plan: by service, blockout dates, how often, and where else somebody is | R10.3 to R10.5 | Resolved |
-| HRT-124 | Accept and decline from a link, with no sign-in | R10.6 | Resolved |
+| HRT-79 | Teams, positions, and a person serving across several of them | R10.1, R10.2 | Closed |
+| HRT-80 | The schedule plan: by service, blockout dates, how often, and where else somebody is | R10.3 to R10.5 | Closed |
+| HRT-124 | Accept and decline from a link, with no sign-in | R10.6 | Closed |
 | HRT-125 | ~~Substitute requests: the volunteer asks, the leader confirms~~ | R10.7 | **Cut** |
 | HRT-126 | Reminders on publication, a week out and two days out, including the email that carries the answer link | R10.8 | Blocked on a messaging provider (R16.3) |
 | HRT-81 | Who is serving in a kids class today, and the two-adult-rule alert on the board | R8.17, R10.12 | Deferred to 0.9 |
@@ -421,14 +421,14 @@ at an arrangement and R11.4 lands on top of what is already here.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-127 | The plan: items in order, with types, durations, a running total and the end time | R11.1 to R11.3 | Resolved |
-| HRT-128 | Notes on an item, and notes addressed to a team or a position | R11.6 | Resolved |
-| HRT-129 | Attachments on an item: charts, PDFs, audio, images | R11.7 | Resolved |
-| HRT-130 | Templates, and duplicating last week's plan without its content | R11.8 | Resolved |
-| HRT-131 | Who serves, inline on the plan, writing through to the schedule | R11.9 | Resolved |
-| HRT-132 | The printed order of service, full for the team and short for the bulletin | R11.10 | Resolved |
-| HRT-133 | Live mode: current item, next item, elapsed against planned | R11.11 | Resolved |
-| HRT-134 | Plan history: who changed what, and when | R11.12 | Resolved |
+| HRT-127 | The plan: items in order, with types, durations, a running total and the end time | R11.1 to R11.3 | Closed |
+| HRT-128 | Notes on an item, and notes addressed to a team or a position | R11.6 | Closed |
+| HRT-129 | Attachments on an item: charts, PDFs, audio, images | R11.7 | Closed |
+| HRT-130 | Templates, and duplicating last week's plan without its content | R11.8 | Closed |
+| HRT-131 | Who serves, inline on the plan, writing through to the schedule | R11.9 | Closed |
+| HRT-132 | The printed order of service, full for the team and short for the bulletin | R11.10 | Closed |
+| HRT-133 | Live mode: current item, next item, elapsed against planned | R11.11 | Closed |
+| HRT-134 | Plan history: who changed what, and when | R11.12 | Closed |
 | HRT-135 | Scripture items with the reference, the translation and the resolved text | R11.5 | Blocked on HRT-198, the Bible lookup (R20.3) |
 | HRT-136 | Song items carrying an arrangement, its key and its sequence | R11.4 | Deferred with the song library |
 
@@ -464,19 +464,19 @@ behind them were dropped in migration 0058.
 | HRT-143 | Consent and unsubscribe | R16.8 | Deferred |
 | HRT-144 | The church's own Twilio, and opt-in before any SMS | R16.2, R16.8 | Deferred |
 | HRT-145 | Inbound replies into a shared inbox | R16.9 | Deferred |
-| HRT-146 | Avery labels and envelopes | R16.12 | Resolved. Mail-merge letters are HRT-267 |
-| HRT-267 | Mail-merge letters, one page a household | R16.12 | Resolved |
-| HRT-268 | A mailer is kept, and saves itself as it is written | R16.12 | Resolved |
-| HRT-269 | In-app messages, and an inbox in the portal and on the platform | R16.9, R17.1 | Resolved |
-| HRT-271 | An inbox: who a message is for, drafts, and no reloading | R16.9, R17.1 | Resolved |
-| HRT-270 | Group and team threads, on the same tables | R16.9, R9.7 | Resolved |
-| HRT-272 | Reactions, and emoji in the message box | R16.9 | Resolved |
-| HRT-273 | Changing a line and taking one back | R16.9, R2.13 | Resolved |
-| HRT-274 | Answering one line in particular | R16.9 | Resolved |
-| HRT-275 | A push when a line arrives, and the office can say yes to one | R16.9, R16.10, R17.11 | Resolved |
-| HRT-276 | Writing to somebody from their own record, a group's or a team's | R16.9 | Resolved |
-| HRT-277 | The inbox in the gallery, on the keyboard and read aloud | R16.9, R24.11 | Resolved |
-| HRT-278 | A tick when a line lands, two when somebody has read it | R16.9 | Resolved |
+| HRT-146 | Avery labels and envelopes | R16.12 | Closed. Mail-merge letters are HRT-267 |
+| HRT-267 | Mail-merge letters, one page a household | R16.12 | Closed |
+| HRT-268 | A mailer is kept, and saves itself as it is written | R16.12 | Closed |
+| HRT-269 | In-app messages, and an inbox in the portal and on the platform | R16.9, R17.1 | Closed |
+| HRT-271 | An inbox: who a message is for, drafts, and no reloading | R16.9, R17.1 | Closed |
+| HRT-270 | Group and team threads, on the same tables | R16.9, R9.7 | Closed |
+| HRT-272 | Reactions, and emoji in the message box | R16.9 | Closed |
+| HRT-273 | Changing a line and taking one back | R16.9, R2.13 | Closed |
+| HRT-274 | Answering one line in particular | R16.9 | Closed |
+| HRT-275 | A push when a line arrives, and the office can say yes to one | R16.9, R16.10, R17.11 | Closed |
+| HRT-276 | Writing to somebody from their own record, a group's or a team's | R16.9 | Closed |
+| HRT-277 | The inbox in the gallery, on the keyboard and read aloud | R16.9, R24.11 | Closed |
+| HRT-278 | A tick when a line lands, two when somebody has read it | R16.9 | Closed |
 | HRT-147 | Birthday and anniversary sends | R16.13 | Deferred |
 
 ### F4. Forms
@@ -486,16 +486,16 @@ a person record or attaches to one, using the duplicate logic already built in F
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-148 | The builder: every field type, section headers, required fields and validation | R4.1, R4.9 | Resolved |
-| HRT-209 | The builder rebuilt to the redesign: tiles, inline questions, the preview beside them | R4.1, R24.6 | Resolved |
-| HRT-149 | Conditional logic, showing and hiding fields on earlier answers | R4.2 | Resolved |
-| HRT-150 | The public link and the snippet a church pastes into its own site | R4.3 | Resolved |
-| HRT-151 | A submission matching a person or creating one, writing custom field answers through | R4.4 | Resolved |
-| HRT-152 | An uncertain match writes its own record and says so, rather than a queue | R4.5 | Resolved |
-| HRT-216 | File questions on a form: how many, what kind, and a public upload path | R4.1 | Resolved |
-| HRT-217 | Every email, phone and address on a person, with which one leads | R2.4 | Resolved |
+| HRT-148 | The builder: every field type, section headers, required fields and validation | R4.1, R4.9 | Closed |
+| HRT-209 | The builder rebuilt to the redesign: tiles, inline questions, the preview beside them | R4.1, R24.6 | Closed |
+| HRT-149 | Conditional logic, showing and hiding fields on earlier answers | R4.2 | Closed |
+| HRT-150 | The public link and the snippet a church pastes into its own site | R4.3 | Closed |
+| HRT-151 | A submission matching a person or creating one, writing custom field answers through | R4.4 | Closed |
+| HRT-152 | An uncertain match writes its own record and says so, rather than a queue | R4.5 | Closed |
+| HRT-216 | File questions on a form: how many, what kind, and a public upload path | R4.1 | Closed |
+| HRT-217 | Every email, phone and address on a person, with which one leads | R2.4 | Closed |
 | HRT-153 | Notification on submit, and a submission starting a pipeline | R4.6, R4.7 | New |
-| HRT-154 | The prebuilt forms: connection card, prayer request, membership interest, volunteer application, child information, facility use | R4.8 | Resolved |
+| HRT-154 | The prebuilt forms: connection card, prayer request, membership interest, volunteer application, child information, facility use | R4.8 | Closed |
 
 ### F17. Member and volunteer portal
 
@@ -538,15 +538,15 @@ no business in.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-155 | Magic link sign-in, with a password as an option | R17.1 | Resolved |
-| HRT-156 | The installable PWA: offline shell, push notifications, and what a push is sent for | R17.11, R16.10 | Resolved |
-| HRT-157 | Profile and household self-service, honouring the privacy settings | R17.2, R17.3 | Resolved |
-| HRT-158 | My serving schedule, with accept, decline and blockout dates | R17.7 | Resolved |
-| HRT-159 | Browse groups, ask to join, see my groups | R17.5 | Resolved |
-| HRT-160 | Check my children in from my phone, generating the codes the station prints | R17.8 | Resolved |
+| HRT-155 | Magic link sign-in, with a password as an option | R17.1 | Closed |
+| HRT-156 | The installable PWA: offline shell, push notifications, and what a push is sent for | R17.11, R16.10 | Closed |
+| HRT-157 | Profile and household self-service, honouring the privacy settings | R17.2, R17.3 | Closed |
+| HRT-158 | My serving schedule, with accept, decline and blockout dates | R17.7 | Closed |
+| HRT-159 | Browse groups, ask to join, see my groups | R17.5 | Closed |
+| HRT-160 | Check my children in from my phone, generating the codes the station prints | R17.8 | Closed |
 | HRT-161 | Submit a form or a prayer request, and the prayer wall for the ones marked public | R17.9, R17.10 | Cut |
-| HRT-162 | The announcement feed | R16.11 | Resolved |
-| HRT-163 | Give, see my giving, manage a recurring gift, download a statement | R17.4 | Resolved as HRT-239, HRT-243 and HRT-244 |
+| HRT-162 | The announcement feed | R16.11 | Closed |
+| HRT-163 | Give, see my giving, manage a recurring gift, download a statement | R17.4 | Closed as HRT-239, HRT-243 and HRT-244 |
 
 ### F6. Pastoral care
 
@@ -578,15 +578,15 @@ is recorded, which the notes table already does.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-177 | The event record and the public event page | R14.1, R14.2 | Resolved |
-| HRT-178 | Free registration, capacity, and a waitlist that promotes when a place frees | R14.4 | Resolved |
-| HRT-179 | Custom questions per registrant, reusing the form logic | R14.5 | Resolved |
-| HRT-180 | Family registration in one flow, several household members and one submission | R14.6 | Resolved |
+| HRT-177 | The event record and the public event page | R14.1, R14.2 | Closed |
+| HRT-178 | Free registration, capacity, and a waitlist that promotes when a place frees | R14.4 | Closed |
+| HRT-179 | Custom questions per registrant, reusing the form logic | R14.5 | Closed |
+| HRT-180 | Family registration in one flow, several household members and one submission | R14.6 | Closed |
 | HRT-181 | Recurring events and event series | R14.9 | New |
 | HRT-182 | Event check-in through the same station, with badges and rosters | R14.10 | New |
-| HRT-183 | Attendee export, printed roster, and the emergency contact sheet | R14.12 | Resolved |
-| HRT-214 | Readable addresses for events, groups and forms, with ids still resolving | R24.6 | Resolved |
-| HRT-215 | Groups are drafted then published, with a preview of the public page | R9.5 | Resolved |
+| HRT-183 | Attendee export, printed roster, and the emergency contact sheet | R14.12 | Closed |
+| HRT-214 | Readable addresses for events, groups and forms, with ids still resolving | R24.6 | Closed |
+| HRT-215 | Groups are drafted then published, with a preview of the public page | R9.5 | Closed |
 | HRT-184 | Paid registration, add-ons, discount codes and refunds | R14.3, R14.7, R14.8, R14.11 | Held to 0.3 with money |
 
 ### F18. Reporting and analytics
@@ -596,20 +596,20 @@ church actually asks.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-185 | The dashboard: attendance, new people, coverage gaps, overdue follow-ups | R18.1 | Resolved |
-| HRT-186 | Attendance reports: trend, year over year, by service, by demographic | R18.2 | Resolved |
-| HRT-187 | The first-time visitor funnel, with conversion rates and elapsed time at each step | R18.3 | Resolved |
-| HRT-188 | Growth and retention: new, returning, lapsed, net change by month | R18.4 | Resolved |
+| HRT-185 | The dashboard: attendance, new people, coverage gaps, overdue follow-ups | R18.1 | Closed |
+| HRT-186 | Attendance reports: trend, year over year, by service, by demographic | R18.2 | Closed |
+| HRT-187 | The first-time visitor funnel, with conversion rates and elapsed time at each step | R18.3 | Closed |
+| HRT-188 | Growth and retention: new, returning, lapsed, net change by month | R18.4 | Closed |
 | HRT-189 | Group participation and group health | R18.6 | New |
 | HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | New |
 | HRT-191 | Milestone and demographic lists | R18.8 | New |
 | HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | New |
-| HRT-193 | CSV and PDF on every report | R18.10 | Resolved |
+| HRT-193 | CSV and PDF on every report | R18.10 | Closed |
 | HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
-| HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Resolved |
-| HRT-219 | Members, not people: the word on screen, in the address and in the schema | R2.x, R24.6 | Resolved |
-| HRT-220 | The builder as a fields panel, shelves, a gallery and a drawn canvas | R18.12 | Resolved |
-| HRT-279 | A saved report belongs to whoever built it, until the church shares it | R18.12, R1.5 | Resolved |
+| HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Closed |
+| HRT-219 | Members, not people: the word on screen, in the address and in the schema | R2.x, R24.6 | Closed |
+| HRT-220 | The builder as a fields panel, shelves, a gallery and a drawn canvas | R18.12 | Closed |
+| HRT-279 | A saved report belongs to whoever built it, until the church shares it | R18.12, R1.5 | Closed |
 
 **On HRT-193.** A built report exports to CSV, to PowerPoint and to PDF. The PDF is the print view
 the browser saves, which is how the directory, the run sheet and the room rosters already produce
