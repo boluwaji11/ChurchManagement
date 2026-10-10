@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Check, CircleCheck, Copy, Download, ExternalLink, Landmark, Link2, Loader2, Printer,
-  QrCode, RefreshCw,
-} from "lucide-react";
+  QrCode, } from "lucide-react";
 import { Banner, Button, Card, Tooltip } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { StripeWordmark } from "@/components/stripe-wordmark";
@@ -147,13 +146,6 @@ export function OnlineGiving({
       if (result.url) window.location.href = result.url;
     });
 
-  const again = () =>
-    startTransition(async () => {
-      const result = await refreshStripe();
-      setError(result.error);
-      if (!result.error) router.refresh();
-    });
-
   return (
     <div className="flex max-w-[1120px] flex-col gap-4">
       {/* R24.6. The account and the rate stand side by side and end level,
@@ -261,11 +253,6 @@ export function OnlineGiving({
                   >
                     {account ? t("stripe.continue") : t("stripe.connect")}
                   </Button>
-                  {account && !settling ? (
-                    <Button variant="secondary" disabled={pending} onClick={again}>
-                      <RefreshCw /> {t("stripe.refresh")}
-                    </Button>
-                  ) : null}
                 </div>
               </>
             )}
