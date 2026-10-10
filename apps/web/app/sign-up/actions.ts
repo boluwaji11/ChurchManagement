@@ -122,7 +122,7 @@ export async function sendReset(data: FormData) {
    * be, and it read as the press having gone wrong in some larger way.
    */
   if (!email) {
-    redirect(`/sign-in?error=${encodeURIComponent(t("signIn.error.noEmail"))}`);
+    redirect(`/forgot?error=${encodeURIComponent(t("signIn.error.noEmail"))}`);
   }
 
   const supabase = await supabaseServer();

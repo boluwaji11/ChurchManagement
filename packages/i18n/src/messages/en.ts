@@ -195,6 +195,12 @@ export const en = {
   "auth.step.church": "Your church",
   "auth.step.setup": "Set up",
   "signIn.forgot": "Forgot password?",
+  // R1.8. Its own screen, because asking for a reset on the sign-in form
+  // meant pressing it with an empty box and being told off by a form nobody
+  // was filling in.
+  "forgot.title": "Reset your password",
+  "forgot.send": "Email me a link",
+  "forgot.back": "Back to sign in",
   "signIn.noAccount": "Set up a church account",
   "signIn.set": "Your password is set. Sign in with it.",
   "auth.error.rateLimit": "Too many emails have gone out just now. Try again in an hour.",

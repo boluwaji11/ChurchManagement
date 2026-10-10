@@ -62,19 +62,19 @@ export function AuthShell({
       >
         {art ? <Art pieces={art} /> : null}
 
-        <div className={cn("relative flex w-full flex-col gap-7", width)}>
-          {/* R24.6. The way back where the product always puts it: a mark at
-              the top left, rather than a sentence under the card. */}
-          {back ? (
-            <Link
-              href={back.href}
-              aria-label={back.label}
-              className="absolute -top-1 left-0 grid size-9 place-items-center rounded-full text-fg-muted no-underline hover:bg-sunken hover:text-fg [&_svg]:size-[18px]"
-            >
-              <ArrowLeft aria-hidden />
-            </Link>
-          ) : null}
+        {/* R24.6. The way back where a back is: the top left of the page,
+            rather than beside a heading that happens to be centred. */}
+        {back ? (
+          <Link
+            href={back.href}
+            aria-label={back.label}
+            className="absolute left-6 top-8 grid size-9 place-items-center rounded-full text-fg-muted no-underline hover:bg-sunken hover:text-fg sm:top-10 [&_svg]:size-[18px]"
+          >
+            <ArrowLeft aria-hidden />
+          </Link>
+        ) : null}
 
+        <div className={cn("relative flex w-full flex-col gap-7", width)}>
           <div className="flex flex-col items-center gap-3 text-center">
             {/* R1.1. The church's own mark over its own door, so somebody
                 arriving knows whose it is before they read the heading. */}

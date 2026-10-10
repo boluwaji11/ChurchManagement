@@ -8,7 +8,6 @@ import { check, email as validEmail, requiredValue } from "@/lib/validate";
 import { useValidatedForm, type Errors } from "@/lib/use-validated-form";
 import Link from "next/link";
 import { sendMagicLink, signInWithPassword } from "./actions";
-import { sendReset } from "../sign-up/actions";
 import { AUTH_INPUT, AUTH_BUTTON } from "../auth-chrome";
 
 /**
@@ -145,13 +144,15 @@ function PasswordForm({ next, email }: { next?: string; email?: string }) {
 
       {/* R1.8. The way back in for somebody who cannot remember, and the way
           in for somebody who has never set one. */}
-      <button
-        type="submit"
-        formAction={sendReset}
-        className="min-h-[var(--d-tap)] cursor-pointer text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
+      {/* R1.8. Its own screen. Sharing the email box with signing in meant
+          pressing this before typing answered with the sign-in form's own
+          complaint. */}
+      <Link
+        href="/forgot"
+        className="min-h-[var(--d-tap)] text-center text-[length:var(--d-text-body)] text-fg-muted no-underline underline-offset-4 hover:text-fg hover:underline"
       >
         {t("signIn.forgot")}
-      </button>
+      </Link>
     </form>
   );
 }
