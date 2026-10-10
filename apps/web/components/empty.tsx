@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import {
-  CalendarDays, CalendarX, CircleDot, ClipboardList, DoorOpen, HeartHandshake,
-  History, Inbox, ListMusic, ListPlus, Printer, SearchX, ShieldAlert, Tablet,
-  Tag, Users,
+  CalendarDays, CalendarX, CircleDot, ClipboardList, DoorOpen, FileText,
+  HeartHandshake, History, Inbox, ListMusic, ListPlus, Printer, SearchX,
+  ShieldAlert, Tablet, Tag, Users,
 } from "lucide-react";
 import { EmptyState } from "@connectapp/ui";
 import { useChurchMark } from "./church-mark";
@@ -21,6 +21,7 @@ const ICONS = {
   calendarOff: CalendarX,
   group: CircleDot,
   form: ClipboardList,
+  letter: FileText,
   room: DoorOpen,
   serving: HeartHandshake,
   history: History,

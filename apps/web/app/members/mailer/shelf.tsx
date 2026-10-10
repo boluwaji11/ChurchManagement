@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArchiveRestore, FileText, Plus } from "lucide-react";
 import {
-  Button, EmptyState, Field, IconButton, Input, Sheet, SheetContent,
+  Button, Field, IconButton, Input, Sheet, SheetContent,
 } from "@connectapp/ui";
 import { plural, t } from "@connectapp/i18n";
+import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
 import { archiveMailer, startMailer } from "./actions";
 
@@ -102,19 +103,7 @@ export function Shelf({
       {mailers.length === 0 && putAway ? (
         <p className="text-fg-muted">{t("post.archived.none")}</p>
       ) : mailers.length === 0 ? (
-        <EmptyState
-          mark={
-            <span
-              aria-hidden
-              className="grid size-12 place-items-center rounded-[14px]"
-              style={{ background: "var(--hue-indigo-tint)", color: "var(--hue-indigo-key)" }}
-            >
-              <FileText className="size-5" />
-            </span>
-          }
-          title={t("post.noneYet")}
-          action={start}
-        />
+        <Empty icon="letter" title={t("post.noneYet")} action={start} />
       ) : (
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))]">
           {shown.map((one) => (
