@@ -25,6 +25,7 @@ import {
 import { FormCover } from "./cover";
 import { FormViews } from "./views";
 import { Responses, type SubmissionRow } from "./responses";
+import { dragShape } from "@/lib/drag-shadow";
 
 export interface BuilderForm {
   id: string;
@@ -593,7 +594,7 @@ function Question({
   return (
     <div
       draggable
-      onDragStart={onHold}
+      onDragStart={(e) => { dragShape(e); onHold(); }}
       onDragOver={(e) => {
         e.preventDefault();
         onOver();

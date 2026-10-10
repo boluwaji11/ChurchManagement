@@ -18,6 +18,7 @@ import { LibraryPicker } from "@/components/library-picker";
 import { useFormError } from "@/lib/form-error";
 import { planTemplateLibrary, type ShapeLine } from "./library";
 import { saveTemplate, archiveTemplate } from "./actions";
+import { dragShape } from "@/lib/drag-shadow";
 
 const summary = (lines: { minutes: number }[]) =>
   t("order.summary", {
@@ -418,6 +419,7 @@ function Lines({
               key={at}
               draggable
               onDragStart={(e) => {
+                dragShape(e);
                 setDragging(at);
                 e.dataTransfer.effectAllowed = "move";
                 e.dataTransfer.setData("text/plain", String(at));

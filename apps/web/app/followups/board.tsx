@@ -9,6 +9,7 @@ import { t } from "@connectapp/i18n";
 import { Searching } from "@/components/searching";
 import { moveToStage } from "../members/followup-actions";
 import { addToStage, findPeople } from "./actions";
+import { dragShadow } from "@/lib/drag-shadow";
 
 export interface BoardCard {
   entryId: string;
@@ -117,9 +118,9 @@ export function Board({
                 <div
                   key={card.entryId}
                   draggable
-                  onDragStart={() => setDragging(card.entryId)}
+                  onDragStart={(e) => { dragShadow(e); setDragging(card.entryId); }}
                   onDragEnd={() => setDragging(null)}
-                  className="relative flex cursor-grab flex-col gap-0.5 rounded-md border border-line bg-surface p-3 hover:border-line-strong"
+                  className="relative flex cursor-grab flex-col gap-0.5 rounded-md border border-line bg-surface p-3 hover:border-line-strong active:cursor-grabbing"
                 >
                   <Link
                     href={`/members/${card.personSlug}?church=${church}`}

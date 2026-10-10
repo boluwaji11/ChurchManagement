@@ -12,6 +12,7 @@ import type { PlanCandidate } from "@connectapp/db";
 import { useFormError } from "@/lib/form-error";
 import { Confirm } from "@/components/confirm";
 import { Reach } from "@/components/reach";
+import { dragShape } from "@/lib/drag-shadow";
 
 export interface GridService {
   id: string;
@@ -648,6 +649,7 @@ export function ScheduleGrid({
                 key={one.memberId}
                 draggable
                 onDragStart={(e) => {
+                  dragShape(e);
                   setDragging(one);
                   e.dataTransfer.effectAllowed = "copy";
                   e.dataTransfer.setData("text/plain", one.memberId);

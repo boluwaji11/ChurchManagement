@@ -23,6 +23,7 @@ import {
   saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
   keepAsTemplate, useTemplate, shapeOf,
 } from "./actions";
+import { dragShape } from "@/lib/drag-shadow";
 
 export interface OrderItem {
   id: string;
@@ -231,6 +232,7 @@ export function Order({
                   key={item.id}
                   draggable
                   onDragStart={(e) => {
+                    dragShape(e);
                     setDragging(item.id);
                     e.dataTransfer.effectAllowed = "move";
                     // Firefox starts no drag at all without something on it.

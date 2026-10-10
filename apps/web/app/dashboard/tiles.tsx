@@ -4,6 +4,7 @@ import * as React from "react";
 import { GripVertical } from "lucide-react";
 import { t } from "@connectapp/i18n";
 import { Tooltip } from "@connectapp/ui";
+import { dragShadow } from "@/lib/drag-shadow";
 
 export interface Tile {
   id: string;
@@ -75,14 +76,14 @@ export function Tiles({ church, tiles }: { church: string; tiles: Tile[] }) {
         <div
           key={tile.id}
           draggable
-          onDragStart={() => { held.current = tile.id; }}
+          onDragStart={(e) => { dragShadow(e); held.current = tile.id; }}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
             e.preventDefault();
             if (held.current) moveTo(held.current, i);
             held.current = null;
           }}
-          className="flex flex-col rounded-[14px] border border-line bg-surface p-5 shadow-sm"
+          className="flex cursor-grab flex-col rounded-[14px] border border-line bg-surface p-5 shadow-sm active:cursor-grabbing"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-fg-muted">

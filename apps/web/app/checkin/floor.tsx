@@ -7,6 +7,7 @@ import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import type { Board, RoomRosterEntry, ArrivingChild } from "@connectapp/db";
 import { floor, place } from "./actions";
+import { dragShadow } from "@/lib/drag-shadow";
 
 /** What the server knew when the page was drawn. */
 export interface FloorStart {
@@ -124,7 +125,7 @@ export function Floor({
               role="button"
               aria-label={child.name}
               aria-pressed={dragging === child.visitId}
-              onDragStart={() => setDragging(child.visitId)}
+              onDragStart={(e) => { dragShadow(e); setDragging(child.visitId); }}
               onDragEnd={() => setDragging(null)}
               /* R8.18, R24.6. Picked up with a press or a key and put down on
                  a class the same way, so the board works for a finger and for
@@ -247,7 +248,7 @@ export function Floor({
                       role="button"
                       aria-label={child.name}
                       aria-pressed={dragging === child.visitId}
-                      onDragStart={() => setDragging(child.visitId)}
+                      onDragStart={(e) => { dragShadow(e); setDragging(child.visitId); }}
                       onDragEnd={() => setDragging(null)}
                       onClick={(e) => {
                         e.stopPropagation();

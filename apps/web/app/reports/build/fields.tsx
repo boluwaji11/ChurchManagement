@@ -5,6 +5,7 @@ import { Calendar, Hash, Search, ToggleLeft, Type, X } from "lucide-react";
 import { IconButton } from "@connectapp/ui";
 import { SUBJECTS, type FieldDef, type SubjectKey } from "@connectapp/db/rules";
 import { t } from "@connectapp/i18n";
+import { dragShape } from "@/lib/drag-shadow";
 
 /** Accents and case set aside, so typing "campus" finds "Campus". */
 export const fold = (value: string) =>
@@ -107,6 +108,7 @@ function Group({
               <div
                 draggable
                 onDragStart={(e) => {
+                  dragShape(e);
                   e.dataTransfer.setData(FIELD_MIME, one.key);
                   e.dataTransfer.setData("text/plain", one.key);
                   e.dataTransfer.effectAllowed = "copy";

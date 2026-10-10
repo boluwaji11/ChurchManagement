@@ -24,6 +24,7 @@ import { Canvas } from "./canvas";
 import type { Part } from "../plot";
 import { read } from "../read";
 import { readingLocale } from "@/lib/reading-locale";
+import { dragShadow } from "@/lib/drag-shadow";
 
 /** The date picker's words, said once rather than at every call. */
 
@@ -241,14 +242,14 @@ export function Builder({
 
                   <li
                     draggable
-                    onDragStart={() => { held.current = at; }}
+                    onDragStart={(e) => { dragShadow(e); held.current = at; }}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
                       e.preventDefault();
                       if (held.current !== null) moveFilter(held.current, at);
                       held.current = null;
                     }}
-                    className="flex items-start gap-1.5 rounded-[10px] border border-line bg-sunken p-1.5"
+                    className="flex cursor-grab items-start gap-1.5 rounded-[10px] border border-line bg-sunken p-1.5 active:cursor-grabbing"
                   >
                     <button
                       type="button"
