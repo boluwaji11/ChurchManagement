@@ -123,12 +123,19 @@ export function PortalAddress({
             placeholder={slug}
             disabled={!canEdit}
             aria-label={t("portal.label")}
-            /* Sized to what is typed, so the name sits against the domain it
-               belongs to and the whole address reads from the left. */
-            size={Math.max((draft || slug).length + 1, 10)}
-            className="min-w-0 bg-transparent py-2.5 pl-3 text-right font-mono text-[13px] text-fg outline-none"
+            /*
+             * Sized to exactly what is typed, so the address reads from the
+             * left with the name against the domain it belongs to.
+             *
+             * `field-sizing` is the browser doing it precisely. `size` is the
+             * same idea a character at a time, for the browsers that have not
+             * got it yet, and it is why a space is left on the end: a field
+             * sized to the last character has nowhere to put the caret.
+             */
+            size={Math.max((draft || slug).length + 1, 8)}
+            className="min-w-0 bg-transparent py-2.5 pl-3 font-mono text-[13px] text-fg outline-none [field-sizing:content]"
           />
-          <span className="shrink-0 py-2.5 pr-3 font-mono text-[13px] text-fg-subtle">
+          <span className="shrink-0 py-2.5 pr-3 -ml-px font-mono text-[13px] text-fg-subtle">
             .{host}
           </span>
         </div>
