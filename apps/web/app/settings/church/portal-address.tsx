@@ -126,7 +126,7 @@ export function PortalAddress({
             /* Sized to what is typed, so the name sits against the domain it
                belongs to and the whole address reads from the left. */
             size={Math.max((draft || slug).length + 1, 10)}
-            className="min-w-0 bg-transparent py-2.5 pl-3 font-mono text-[13px] text-fg outline-none"
+            className="min-w-0 bg-transparent py-2.5 pl-3 text-right font-mono text-[13px] text-fg outline-none"
           />
           <span className="shrink-0 py-2.5 pr-3 font-mono text-[13px] text-fg-subtle">
             .{host}
