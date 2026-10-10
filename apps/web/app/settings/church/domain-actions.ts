@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import {
   withTenant, setCustomDomain, setSelfSignup,
   canManageChurch, readDomain, dnsResolver, type DomainFindings,
+  setPortalName, portalNameFree, cleanPortalName,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -72,4 +73,53 @@ export async function checkDomain(
 
   const found = await readDomain(domain, dnsResolver(), expect);
   return found ? { found } : { error: t("domain.error.notADomain") };
+}
+
+/**
+ * R1.1, R17.1. Whether this name is free, and taking it.
+ *
+ * Checked against every church's chosen name and every church's slug, because
+ * a name that shadowed another church's own address would take that address
+ * away from them.
+ */
+export async function claimPortalName(
+  name: string,
+  church?: string,
+): Promise<{ name?: string | null; free?: boolean; error?: string }> {
+  const session = await requireSession(church);
+  if (!canManageChurch(session)) return { error: t("domain.error.notAllowed") };
+
+  try {
+    const saved = await withTenant(
+      {
+        tenantId: session.tenantId,
+        role: session.role,
+        userId: session.userId,
+        permissions: session.permissions,
+      },
+      (tx) =>
+        setPortalName(
+          tx,
+          { tenantId: session.tenantId, role: session.role, userId: session.userId },
+          { name: name.trim() || null },
+        ),
+    );
+    revalidatePath("/settings/website");
+    return { name: saved, free: true };
+  } catch (reason) {
+    return { error: explain(reason) };
+  }
+}
+
+/** R1.1. A look before the press, so a taken name says so as it is typed. */
+export async function checkPortalName(
+  name: string,
+  church?: string,
+): Promise<{ free: boolean; cleaned: string | null }> {
+  const session = await requireSession(church);
+  if (!canManageChurch(session)) return { free: false, cleaned: null };
+
+  const cleaned = cleanPortalName(name);
+  if (!cleaned) return { free: false, cleaned: null };
+  return { free: await portalNameFree(cleaned, session.tenantId), cleaned };
 }

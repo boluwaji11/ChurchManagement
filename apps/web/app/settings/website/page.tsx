@@ -4,6 +4,7 @@ import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
 import { OnYourSite } from "../church/on-your-site";
+import { PortalAddress } from "../church/portal-address";
 import { t } from "@connectapp/i18n";
 import { tabMetadata } from "@/lib/page-metadata";
 
@@ -51,10 +52,21 @@ export default async function WebsitePage({
   const head = await headers();
   const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
   const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  /* R1.1. Our own host, which every church gets a name under. The request's
+     host while somebody is working on it, so riverside.localhost answers. */
+  const platformHost = process.env["PLATFORM_HOST"] ?? (host.includes(".") ? host.replace(/^[^.]+\./, "") : host);
 
   return (
     <>
       <SettingsHeading title="settings.tab.website" lede="settings.lede.website" />
+
+      <PortalAddress
+        church={session.tenantSlug}
+        slug={session.tenantSlug}
+        name={profile?.portalName ?? null}
+        host={platformHost}
+        canEdit={canManageChurch(session)}
+      />
 
       <OnYourSite
         origin={`${proto}://${host}`}

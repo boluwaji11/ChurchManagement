@@ -2721,6 +2721,17 @@ export const en = {
   // HRT-114. The church's own door: the code it hands out, and who is at it.
   "joining.copy": "Copy",
   "joining.copied": "Copied",
+  // R1.1, R17.1. The name a church chooses for its members' address.
+  "portal.title": "Where members sign in",
+  "portal.lede": "Pick the name your congregation will type. Your website stays exactly where it is.",
+  "portal.label": "Your address",
+  "portal.check": "Check this name",
+  "portal.free": "{name} is yours.",
+  "portal.taken": "Somebody already has that name. Try another.",
+  "portal.use": "Use this address",
+  "portal.current": "Members sign in here now.",
+  "portal.error.shape": "Use letters, numbers and hyphens, three characters or more.",
+  "portal.error.taken": "Somebody already has that name. Try another.",
   "domain.title": "Members sign in at your own address",
   "domain.lede": "Members reach their sign-in at an address you own instead of ours.",
   "domain.label": "The address members will use",

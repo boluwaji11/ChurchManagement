@@ -33,6 +33,64 @@ export function cleanDomain(value: string): string | null {
 }
 
 /**
+ * R1.1, R17.1. Our own host, which every church gets a name under.
+ *
+ * `riverside.connectapp.church` is where Riverside's members sign in. It needs
+ * nothing from the church: we own the name, we hold the certificate, and the
+ * church is named by the slug it already has.
+ */
+const platformHost = (): string =>
+  (process.env["PLATFORM_HOST"] ?? "connectapp.church").trim().toLowerCase();
+
+/**
+ * Names under ours that are the platform rather than a church.
+ *
+ * A church whose slug was `www` would otherwise take the front door with it.
+ */
+const RESERVED = new Set([
+  "www", "app", "api", "admin", "static", "assets", "cdn", "mail", "smtp",
+  "stage", "status", "help", "docs", "blog", "dashboard", "auth", "login",
+]);
+
+/**
+ * R1.1. The church named by a host under ours, if it is one.
+ *
+ * Returns the slug rather than looking it up, so the rule is one pure thing
+ * that can be read and tested without a database.
+ */
+export function slugUnderPlatform(host: string, platform = platformHost()): string | null {
+  const bare = (cleanDomain(host) ?? "").trim();
+  if (!bare) return null;
+
+  // Localhost always counts, so a church can be opened at
+  // riverside.localhost while somebody is working on it.
+  const roots = [platform, "localhost"];
+  for (const root of roots) {
+    if (!root || bare === root || !bare.endsWith(`.${root}`)) continue;
+    const label = bare.slice(0, bare.length - root.length - 1);
+    // One label deep. Anything further is not a church's address.
+    if (!label || label.includes(".") || RESERVED.has(label)) return null;
+    return label;
+  }
+  return null;
+}
+
+/**
+ * R1.1. What a church may call its members' address.
+ *
+ * Lower case letters, digits and hyphens, because it is typed by a
+ * congregation and read aloud from a notice sheet. Three characters at least,
+ * so the short ones stay available, and forty at most, because an address
+ * nobody can say is an address nobody uses.
+ */
+const PORTAL_NAME = /^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$/;
+
+export function cleanPortalName(value: string): string | null {
+  const bare = value.trim().toLowerCase();
+  return PORTAL_NAME.test(bare) && !RESERVED.has(bare) ? bare : null;
+}
+
+/**
  * Which church this host belongs to.
  *
  * One of the documented pre-authorization reads, the same shape as resolving a
@@ -45,6 +103,20 @@ export async function resolveTenantByHost(
 ): Promise<{ id: string; name: string; slug: string } | null> {
   const bare = cleanDomain(host);
   if (!bare) return null;
+
+  /* R1.1. A name under ours names the church by its own slug, which is the
+     address every church has without doing anything. */
+  const under = slugUnderPlatform(bare);
+  if (under) {
+    /* The name the church chose, or its slug, which answers from the day it
+       signs up and goes on answering after a name is chosen. */
+    const rows = await owner()<{ id: string; name: string; slug: string }[]>`
+      select id, name, slug from tenants
+       where portal_name = ${under} or slug = ${under}
+       order by (portal_name = ${under}) desc
+       limit 1`;
+    return rows[0] ?? null;
+  }
 
   const rows = await owner()<{ id: string; name: string; slug: string }[]>`
     select id, name, slug from tenants where custom_domain = ${bare} limit 1`;
@@ -89,4 +161,43 @@ export async function churchesWithDomains(): Promise<{ slug: string; domain: str
   return owner()<{ slug: string; domain: string }[]>`
     select slug, custom_domain as domain from tenants
      where custom_domain is not null order by slug`;
+}
+
+/**
+ * R1.1, R17.1. Whether a church may have this name, and taking it.
+ *
+ * Checked against both columns, because a name that shadowed another church's
+ * slug would take that church's address away from it.
+ */
+export async function portalNameFree(name: string, tenantId: string): Promise<boolean> {
+  const bare = cleanPortalName(name);
+  if (!bare) return false;
+
+  const rows = await owner()<{ id: string }[]>`
+    select id from tenants
+     where (portal_name = ${bare} or slug = ${bare}) and id <> ${tenantId}
+     limit 1`;
+  return rows.length === 0;
+}
+
+export async function setPortalName(
+  db: Tx,
+  actor: WriteActor,
+  input: { name: string | null },
+): Promise<string | null> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  const bare = input.name?.trim() ? cleanPortalName(input.name) : null;
+  if (input.name?.trim() && !bare) throw new InvalidInputError("portal.error.shape");
+
+  if (bare && !(await portalNameFree(bare, actor.tenantId))) {
+    throw new NameTakenError("portal.error.taken", bare, actor.tenantId);
+  }
+
+  await db
+    .update(tenants)
+    .set({ portalName: bare })
+    .where(eq(tenants.id, actor.tenantId));
+
+  return bare;
 }

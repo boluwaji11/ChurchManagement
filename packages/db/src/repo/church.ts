@@ -48,6 +48,8 @@ export interface ChurchProfile {
   statementsBy: string;
   /** R1.1. The church's own address for its members' screens. */
   customDomain: string | null;
+  /** R1.1, R17.1. The name the church chose for its members' address. */
+  portalName: string | null;
   /**
    * R1.1, R1.5, R13.1. The number the church is registered under.
    *
@@ -103,7 +105,7 @@ export async function getChurch(
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
-      customDomain: tenants.customDomain,
+      customDomain: tenants.customDomain, portalName: tenants.portalName,
       taxId: tenants.taxId,
     })
     .from(tenants)
@@ -200,7 +202,8 @@ export async function updateChurch(
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
-      customDomain: tenants.customDomain, taxId: tenants.taxId,
+      customDomain: tenants.customDomain, portalName: tenants.portalName,
+      taxId: tenants.taxId,
     });
 
   if (!row) throw new InvalidInputError("church.error.notFound");

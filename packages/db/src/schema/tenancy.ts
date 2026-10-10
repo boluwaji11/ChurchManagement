@@ -104,6 +104,14 @@ export const tenants = pgTable(
      */
     customDomain: text("custom_domain"),
     /**
+     * R1.1, R17.1. The name a church chose for its members' address.
+     *
+     * Members sign in at `<portal_name>.connectapp.church`. Null until the
+     * church picks one, and the slug answers in the meantime, so every church
+     * has an address from the day it signs up.
+     */
+    portalName: text("portal_name"),
+    /**
      * R8.11. What goes on a child's label.
      *
      * The church's own layout rather than the station's, because a parent who
