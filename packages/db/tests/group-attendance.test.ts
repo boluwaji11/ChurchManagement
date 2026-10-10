@@ -49,7 +49,7 @@ beforeAll(async () => {
   }
 
   group = (await run((tx) => createGroup(tx, as(), {
-    name: "Tuesday twelve", dayOfWeek: 2, startsAt: "19:30",
+    name: "Tuesday twelve", typeId: aKind, dayOfWeek: 2, startsAt: "19:30",
   }))).id;
 
   // Twelve on the roster, which is the size the criterion names.
@@ -172,7 +172,7 @@ describe("who may record it (R9.3, R9.7)", () => {
   });
 
   it("is not a leader of some other group", async () => {
-    const other = await run((tx) => createGroup(tx, as(), { name: "Somebody else's" }));
+    const other = await run((tx) => createGroup(tx, as(), { name: "Somebody else's", typeId: aKind }));
     const allowed = await run(
       (tx) => canRecordFor(tx, { role: "group_leader", userId: leaderUser }, other.id),
       "group_leader",

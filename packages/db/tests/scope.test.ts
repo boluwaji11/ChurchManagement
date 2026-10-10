@@ -57,7 +57,7 @@ beforeAll(async () => {
 
   await run((tx) => linkPersonToUser(tx, leader, leaderUser));
 
-  group = (await run((tx) => createGroup(tx, as(), { name: "Tuesday night" }))).id;
+  group = (await run((tx) => createGroup(tx, as(), { name: "Tuesday night", typeId: aKind }))).id;
   await run((tx) => addToGroup(tx, as(), { groupId: group, memberId: leader, role: "leader" }));
   await run((tx) => addToGroup(tx, as(), { groupId: group, memberId: member }));
 });

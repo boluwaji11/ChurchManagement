@@ -164,12 +164,14 @@ export function Conversation({
          * nothing and it takes the palette with it into dark.
          */
         style={{
+          backgroundColor: "var(--canvas)",
           backgroundImage: [
-            "radial-gradient(circle at 18% 12%, color-mix(in oklch, var(--primary) 7%, transparent), transparent 55%)",
-            "radial-gradient(circle at 86% 88%, color-mix(in oklch, var(--accent) 6%, transparent), transparent 55%)",
-            "radial-gradient(color-mix(in oklch, var(--fg) 7%, transparent) 1px, transparent 1px)",
+            "radial-gradient(60% 40% at 15% 8%, color-mix(in oklch, var(--primary) 16%, transparent), transparent 70%)",
+            "radial-gradient(55% 40% at 90% 92%, color-mix(in oklch, var(--accent) 14%, transparent), transparent 70%)",
+            "radial-gradient(color-mix(in oklch, var(--fg) 12%, transparent) 1px, transparent 1.4px)",
           ].join(", "),
-          backgroundSize: "auto, auto, 18px 18px",
+          backgroundSize: "auto, auto, 20px 20px",
+          backgroundAttachment: "local, local, local",
         }}
         className="flex min-h-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto px-4 py-3"
       >

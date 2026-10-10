@@ -53,7 +53,7 @@ beforeAll(async () => {
   await run((tx) => setPresentMany(tx, as(), service.id, [person], true));
 
   // A group they joined and later left.
-  const group = await run((tx) => createGroup(tx, as(), { name: "Thursday group" }));
+  const group = await run((tx) => createGroup(tx, as(), { name: "Thursday group", typeId: aKind }));
   await run((tx) =>
     addToGroup(tx, as(), { groupId: group.id, memberId: person, joinedOn: "2026-02-01" }),
   );
