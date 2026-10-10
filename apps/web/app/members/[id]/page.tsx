@@ -200,21 +200,9 @@ export default async function PersonPage({
          names itself with the face and the name under it, and a record page
          that says whose it is twice says it once too often.
 
-         A note sat on the timeline card, in the right-hand column, which put
-         the thing this screen is most often opened to do further down the page
-         than anything else on it. */
+         A note sits beside the two marks on the name's own row, with the
+         other things a record is opened to do. */
       back={{ href: `/members?church=${session.tenantSlug}`, label: t("members.title") }}
-      action={
-        canEdit ? (
-          <NoteForm
-            church={session.tenantSlug}
-            memberId={person.id}
-            name={display}
-            canConfidential={canReadConfidentialNotes(session)}
-            trigger={<Button>{t("person.addNote")}</Button>}
-          />
-        ) : undefined
-      }
     >
       {/* A 72px face, the name in Fraunces at 32, and under it the one line
           that places them: what they are to the church, whose household, and
@@ -244,7 +232,17 @@ export default async function PersonPage({
         </div>
 
         {canEdit ? (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            {/* The errand this screen is most often opened for, beside the
+                marks that do the other two things to a record. */}
+            <NoteForm
+              church={session.tenantSlug}
+              memberId={person.id}
+              name={display}
+              canConfidential={canReadConfidentialNotes(session)}
+              trigger={<Button variant="secondary">{t("person.addNote")}</Button>}
+            />
+
             {/* R16.9. Only the office writes to a person by name, so the action
                 is here for whoever answers for the church. */}
             {canAnswerMessages(session) ? (
