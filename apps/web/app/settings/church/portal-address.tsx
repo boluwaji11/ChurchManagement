@@ -86,19 +86,23 @@ export function PortalAddress({
        * had quietly stopped being reachable there.
        */
       /*
-       * R1.1, R1.4. The name they were reached at has just stopped being a
-       * name, so this tab cannot stay where it is.
+       * R1.1, R1.4. The tab follows the new name, where a session can follow
+       * it.
        *
-       * It goes to the new name where the session reaches it, and to our own
-       * host where it does not. Our host serves the church the action just
-       * wrote down, so either way they carry on from the screen they were on.
+       * Where it cannot, nothing moves. A cookie is host-only without a
+       * domain, so every other host is a host this reader has no session on,
+       * our own included, and each of them would answer by asking them to
+       * sign in. Standing still costs nothing: the address they are on has
+       * stopped naming a church, and the session names it instead, which is
+       * what the action wrote down a moment ago.
        */
+      if (!spanning) return;
+
       const moved = answer.name ?? slug;
       const here = typeof window === "undefined" ? "" : window.location.host;
-      if (!here.endsWith(`.${host}`)) return;
+      if (!here.endsWith(`.${host}`) || here === `${moved}.${host}`) return;
 
-      const to = spanning ? `${moved}.${host}` : host;
-      if (here !== to) window.location.href = `${origin}//${to}${window.location.pathname}`;
+      window.location.href = `${origin}//${moved}.${host}${window.location.pathname}`;
     });
 
   return (
