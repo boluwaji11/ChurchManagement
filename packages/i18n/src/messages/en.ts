@@ -543,7 +543,7 @@ export const en = {
   "push.ask.no": "Not now",
   "settings.tab.export": "Export",
   "settings.lede.church": "How your church appears on receipts, labels and your website.",
-  "settings.lede.access": "Who can sign in, and what each member can see.",
+  "settings.lede.access": "Who can sign in, and what each team member can see.",
   "settings.lede.rooms": "The rooms and halls check-in puts members into.",
   "settings.tab.teams": "Teams",
   "settings.lede.teams": "The teams your church schedules, and the positions each one fills.",
@@ -2570,7 +2570,7 @@ export const en = {
   "team.send": "Send invite",
   "team.waiting": "Invitations open once this church is approved",
   "team.waitingBody": "Usually within the hour. Your own account works as it does now.",
-  "team.invite": "Invite someone",
+  "team.invite": "Invite team member",
   "team.invited": "Invited",
 
   // HRT-114. The church's own door: the code it hands out, and who is at it.
