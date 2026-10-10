@@ -49,10 +49,8 @@ const mayRead = (actor: Actor) => canEditPeople(actor) || canReadIncidents(actor
  * what the church keeps and the ones who share them.
  */
 const mine = (actor: Actor) =>
-  canManageChurch(actor)
-    ? sql`true`
-    : sql`(${savedReports.sharedAt} is not null
-        or ${savedReports.createdByUserId} = ${actor.userId ?? null})`;
+  sql`(${savedReports.sharedAt} is not null
+    or ${savedReports.createdByUserId} = ${actor.userId ?? null})`;
 
 const clean = (name: string): string => name.trim().replace(/\s+/g, " ");
 
@@ -254,6 +252,8 @@ export async function setSavedReportShared(
   shared: boolean,
 ): Promise<void> {
   if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+  // Sharing is done with your own report, by somebody who runs the church.
+  await assertOwns(db, actor, id);
   await db
     .update(savedReports)
     .set({ sharedAt: shared ? new Date() : null, updatedAt: new Date() })

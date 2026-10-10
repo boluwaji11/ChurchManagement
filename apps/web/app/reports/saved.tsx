@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EllipsisVertical, Table2, Users } from "lucide-react";
 import {
-  Button, Field, IconButton, Input, Spinner, Dialog, DialogContent, DialogFooter,
+  Button, Field, Input, Spinner, Dialog, DialogContent, DialogFooter,
   Sheet, SheetContent,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
@@ -97,16 +97,10 @@ export function SavedReports({
                 {one.name}
               </Link>
               <span className="flex items-center gap-1.5 text-caption text-fg-muted">
-                {t(`report.subject.${one.subject}` as never)}
-                {one.by ? (
-                  <>
-                    <span aria-hidden>·</span>
-                    {one.by}
-                  </>
-                ) : null}
+                {one.by}
                 {one.shared ? (
                   <>
-                    <span aria-hidden>·</span>
+                    {one.by ? <span aria-hidden>·</span> : null}
                     <Users className="size-3.5" aria-hidden />
                     {t("report.shared")}
                   </>
@@ -119,14 +113,16 @@ export function SavedReports({
             <span className={`relative z-10 shrink-0 ${one.mine || canShare ? "" : "hidden"}`}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <IconButton
-                    label={t("report.more", { name: one.name })}
-                    variant="ghost"
+                  {/* The mark opens a menu that names everything in it, so it
+                      carries its words for a reader rather than on hover. */}
+                  <button
+                    type="button"
+                    aria-label={t("report.more", { name: one.name })}
                     disabled={busy}
-                    className="size-8 min-h-0 [&_svg]:size-4"
+                    className="grid size-8 cursor-pointer place-items-center rounded-[var(--d-radius-control)] text-fg-muted hover:bg-sunken hover:text-fg disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-4"
                   >
                     {onCard === one.id ? <Spinner /> : <EllipsisVertical />}
-                  </IconButton>
+                  </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {putAway ? (

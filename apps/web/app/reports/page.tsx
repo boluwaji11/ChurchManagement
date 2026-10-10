@@ -142,7 +142,7 @@ export default async function ReportsPage({
       icon: Table2,
       hue: "indigo",
       title: one.name,
-      detail: one.by ?? t(`report.subject.${one.subject}` as never),
+      detail: one.by ?? "",
     })),
   ];
 
