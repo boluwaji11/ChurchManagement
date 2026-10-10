@@ -97,13 +97,14 @@ export function PortalAddress({
 
       <Separator />
 
+      {error ? <Banner tone="danger">{error}</Banner> : null}
+
       {took ? (
         <Banner tone="success">{t("portal.free", { name: `${took}.${host}` })}</Banner>
       ) : null}
 
       <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("portal.lede")}</p>
 
-      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* The address itself, read as one thing: the name they chose and the
           part we own, which never changes. */}

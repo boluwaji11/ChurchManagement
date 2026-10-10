@@ -120,8 +120,18 @@ const PORTAL_NAME = /^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$/;
 
 export function cleanPortalName(value: string): string | null {
   const bare = value.trim().toLowerCase();
-  return PORTAL_NAME.test(bare) && !RESERVED.has(bare) ? bare : null;
+  return PORTAL_NAME.test(bare) ? bare : null;
 }
+
+/**
+ * R17.1. Whether this is one of ours.
+ *
+ * Asked apart from the shape, because "that is not a name" and "that name is
+ * not yours to take" are different things to be told and a church told the
+ * first about the second goes on trying to fix the spelling.
+ */
+export const isReservedName = (name: string): boolean =>
+  RESERVED.has(name.trim().toLowerCase());
 
 /**
  * Which church this host belongs to.
@@ -206,7 +216,7 @@ export async function churchesWithDomains(): Promise<{ slug: string; domain: str
  */
 export async function portalNameFree(name: string, tenantId: string): Promise<boolean> {
   const bare = cleanPortalName(name);
-  if (!bare) return false;
+  if (!bare || isReservedName(bare)) return false;
 
   const rows = await owner()<{ id: string }[]>`
     select id from tenants
@@ -224,6 +234,9 @@ export async function setPortalName(
 
   const bare = input.name?.trim() ? cleanPortalName(input.name) : null;
   if (input.name?.trim() && !bare) throw new InvalidInputError("portal.error.shape");
+
+  /* Ours, which is a different answer from somebody else having it. */
+  if (bare && isReservedName(bare)) throw new InvalidInputError("portal.error.blocked");
 
   if (bare && !(await portalNameFree(bare, actor.tenantId))) {
     throw new NameTakenError("portal.error.taken", bare, actor.tenantId);

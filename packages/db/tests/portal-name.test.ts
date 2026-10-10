@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { withTenant, owner, closeConnections, type Tx } from "../src/client";
 import {
-  slugUnderPlatform, cleanPortalName, portalNameFree, setPortalName,
+  slugUnderPlatform, cleanPortalName, isReservedName, portalNameFree, setPortalName,
   setPortalOpen, resolveTenantByHost,
 } from "../src/repo/domains";
 import { PermissionError, type TenantRole } from "../src/roles";
@@ -74,11 +74,12 @@ describe("what a church may call it", () => {
    * of these ourselves: it stops a church looking like the company, or like
    * our own giving page, or answering for our mail.
    */
-  it("refuses the names that are the platform", () => {
+  it("refuses the names that are the platform", async () => {
     for (const taken of [
       "connectapp", "www", "api", "admin", "mail", "status",
-      // A mail client looking for these under our own domain.
-      "autodiscover", "mx", "ns1", "dmarc",
+      // A mail client looking for these under our own domain. The two-letter
+      // ones never reach the list: three characters is the shape.
+      "autodiscover", "ns1", "dmarc", "smtp",
       // Where the product is worked on.
       "test", "example", "demo", "staging",
       // Anything that would read as the company speaking.
@@ -86,11 +87,20 @@ describe("what a church may call it", () => {
       // And the one somebody could collect money under our name with.
       "give", "giving", "donate", "tithe",
     ]) {
-      expect(cleanPortalName(taken)).toBeNull();
+      // The shape is fine. It is ours, which is a different answer.
+      expect(cleanPortalName(taken)).toBe(taken);
+      expect(isReservedName(taken)).toBe(true);
+      expect(await portalNameFree(taken, one)).toBe(false);
     }
   });
 
+  it("refuses the short ones on their shape, before the list is reached", () => {
+    expect(cleanPortalName("mx")).toBeNull();
+    expect(cleanPortalName("ns")).toBeNull();
+  });
+
   it("still takes a name that only contains one of them", () => {
+    expect(isReservedName("givechurch")).toBe(false);
     expect(cleanPortalName("givechurch")).toBe("givechurch");
     expect(cleanPortalName("thewell")).toBe("thewell");
     expect(cleanPortalName("apple-valley")).toBe("apple-valley");
@@ -127,6 +137,28 @@ describe("taking a name", () => {
     await expect(
       run(one, (tx) => setPortalName(tx, as(one), { name: "one family" })),
     ).rejects.toBeInstanceOf(InvalidInputError);
+  });
+
+  /*
+   * R17.1. Three refusals, and a church is told which. Being told the spelling
+   * is wrong when the name is simply ours sends somebody back to fix a
+   * spelling that was right.
+   */
+  it("says which of the three it is", async () => {
+    const refusal = async (name: string) => {
+      try {
+        await run(one, (tx) => setPortalName(tx, as(one), { name }));
+        return "allowed";
+      } catch (reason) {
+        // The message is already in the reader's language, so the key is
+        // what says which refusal this is.
+        return (reason as { key?: string }).key ?? "unknown";
+      }
+    };
+
+    expect(await refusal("one family")).toBe("portal.error.shape");
+    expect(await refusal("connectapp")).toBe("portal.error.blocked");
+    expect(await refusal("portaltwo")).toBe("portal.error.taken");
   });
 
   it("is given up by clearing it", async () => {
