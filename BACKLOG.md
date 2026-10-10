@@ -477,6 +477,7 @@ behind them were dropped in migration 0058.
 | HRT-276 | Writing to somebody from their own record, a group's or a team's | R16.9 | Closed |
 | HRT-277 | The inbox in the gallery, on the keyboard and read aloud | R16.9, R24.11 | Closed |
 | HRT-278 | A tick when a line lands, two when somebody has read it | R16.9 | Closed |
+| HRT-280 | A message carries photographs and documents | R16.9, R16.14 | Resolved |
 | HRT-147 | Birthday and anniversary sends | R16.13 | Deferred |
 
 ### F4. Forms
@@ -608,6 +609,7 @@ church actually asks.
 | HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
 | HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Closed |
 | HRT-219 | Members, not people: the word on screen, in the address and in the schema | R2.x, R24.6 | Closed |
+| HRT-281 | What the rename and the new tables left behind: two triggers, two policies, a missing export | R1.11, R19.5, R21.1 | Resolved |
 | HRT-220 | The builder as a fields panel, shelves, a gallery and a drawn canvas | R18.12 | Closed |
 | HRT-279 | A saved report belongs to whoever built it, until the church shares it | R18.12, R1.5 | Closed |
 
