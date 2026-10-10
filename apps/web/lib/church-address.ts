@@ -106,3 +106,39 @@ export async function publicPath(slug: string, path: string): Promise<string | n
   const origin = await churchOrigin(name);
   return origin ? `${origin}${path}${query}` : null;
 }
+
+/**
+ * R1.1, R17.1. A church's own origin, for a link built away from a request
+ * for one of its pages.
+ *
+ * Null where the church has no address of its own, or has closed it, which is
+ * when a link has to carry the slug in the path instead.
+ */
+export async function publicOrigin(slug: string): Promise<string | null> {
+  const church = await portalAddressFor(slug);
+  if (!church?.portalOpen) return null;
+  return churchOrigin(church.portalName ?? church.slug);
+}
+
+/**
+ * R1.1, R17.1. A whole public address, in whichever shape the church has.
+ *
+ * The church's own address with the short path where it has one, and ours
+ * with the church in the path where it does not. The same two shapes the
+ * public routes answer on, built in one place so a card a church prints and
+ * the link it copies cannot disagree.
+ */
+export async function publicLink(
+  slug: string,
+  section: string,
+  rest = "",
+): Promise<string> {
+  const home = await publicOrigin(slug);
+  if (home) return `${home}/${section}${rest}`;
+
+  const head = await headers();
+  const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
+  const proto = head.get("x-forwarded-proto")
+    ?? (host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https");
+  return `${proto}://${host}/${section}/${slug}${rest}`;
+}

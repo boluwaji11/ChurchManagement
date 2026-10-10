@@ -5,6 +5,7 @@ import {
   givingPage, giverKnown, giverMember, giverCustomer, rememberCustomer,
 } from "@connectapp/db";
 import { stripe, stripeConfigured, asChurch, PLATFORM_FEE, withFee } from "@/lib/stripe";
+import { publicOrigin } from "@/lib/church-address";
 import { EVERY, type Repeat } from "./repeats";
 
 export interface GiveResult {
@@ -89,6 +90,13 @@ export async function startGift(input: {
 
   const charged = input.coverFee ? withFee(input.amountCents) : input.amountCents;
   const back = await origin();
+
+  /* R13.6, R17.1. Where Stripe sends them once the gift is made. The church's
+     own address where it has one, so nobody is bounced through a path that
+     names the church twice on the way to being thanked. */
+  const home = await publicOrigin(page.slug);
+  const thanks = home ? `${home}/give/thanks` : `${back}/give/${page.slug}/thanks`;
+
 
   /*
    * R13.2. A giver this church already knows is offered their own card back
@@ -226,7 +234,7 @@ export async function startGift(input: {
         ui_mode: "embedded_page" as never,
         return_url: input.inside
           ? `${back}/giving?gift={CHECKOUT_SESSION_ID}`
-          : `${back}/give/${page.slug}/thanks?session={CHECKOUT_SESSION_ID}`,
+          : `${thanks}?session={CHECKOUT_SESSION_ID}`,
       },
       asChurch(page.accountId),
     );

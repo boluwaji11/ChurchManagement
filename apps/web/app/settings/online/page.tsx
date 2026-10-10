@@ -1,7 +1,7 @@
-import { headers } from "next/headers";
 import QRCode from "qrcode";
 import { withTenant, getChurch, getStripeAccount, canManageGiving } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
+import { publicLink } from "@/lib/church-address";
 import { SettingsHeading } from "../heading";
 import { Denied } from "@/components/denied";
 import { stripeConfigured } from "@/lib/stripe";
@@ -81,10 +81,9 @@ export default async function OnlineGivingPage({
         read.profile?.addressLine1 ? null : "address",
       ].filter((one): one is string => one !== null);
 
-  const head = await headers();
-  const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
-  const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const address = `${proto}://${host}/give/${session.tenantSlug}`;
+  /* R13.7, R17.1. What the church prints on a card. Its own address where it
+     has one, so the name is not said twice. */
+  const address = await publicLink(session.tenantSlug, "give");
 
   /*
    * R13.7. The code itself, drawn here so the screen can show it and hand it

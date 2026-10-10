@@ -1,13 +1,10 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { publicChurch, publicGroups } from "@connectapp/db";
-import { Card } from "@connectapp/ui";
+import { redirect } from "next/navigation";
 import { t } from "@connectapp/i18n";
-import { Empty } from "@/components/empty";
-import { BrandRuleFor } from "@/components/brand-rule";
-import { photoUrls } from "@/lib/photos";
-import { GroupLine } from "./line";
+import { churchFromHost } from "@/lib/session";
 import { publicTab } from "@/lib/page-metadata";
+import { publicPath } from "@/lib/church-address";
+import { GroupsScreen } from "../list-screen";
+import { GroupScreen } from "../group-screen";
 
 export const dynamic = "force-dynamic";
 
@@ -18,99 +15,34 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  return publicTab(t("nav.groups"), slug);
+  return publicTab(t("nav.groups"), (await churchFromHost()) ?? slug);
 }
 
 /**
- * R9.5. The groups page a church links to from its own website.
+ * R9.5, R17.1. One segment after `/g`, which is a church or a group depending
+ * on what the host has already said.
  *
- * Whoever follows that link has no account and should not need one to find out
- * that there is a Tuesday group for parents of young children. The finder
- * behind sign-in answers the member's question; this answers the stranger's.
+ * On a church's own address the church is named there, so the segment can only
+ * be a group. On ours nothing has named a church yet, so the segment is one,
+ * and a church with an address of its own is sent to it.
  *
- * No leader names and no roster. Publishing a volunteer's name on the open web
- * is a different act from naming them inside the church, and not one a church
- * has asked for.
+ * Two meanings for one path reads as a trap, and would be if either could be
+ * mistaken for the other. The host decides before the segment is read, so
+ * there is never a moment where both are possible.
  */
-export default async function PublicGroupsPage({
+export default async function GroupsOrGroup({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const host = await churchFromHost();
 
-  // Both reads take the address, so neither waits on the other.
-  const [church, groups] = await Promise.all([publicChurch(slug), publicGroups(slug)]);
-  if (!church) notFound();
+  // The host named the church, so this is a group inside it.
+  if (host) return <GroupScreen slug={host} id={slug} />;
 
-  /*
-   * The bucket is private, so each picture is served through a signed link.
-   * Signing them one at a time was one round trip to storage per group, in
-   * turn, on a page a stranger is waiting on.
-   */
-  const signed = await photoUrls(groups.map((group) => group.photoKey));
-  const photos = new Map<string, string>(
-    groups.flatMap((group) => {
-      const url = group.photoKey ? signed[group.photoKey] : undefined;
-      return url ? [[group.id, url] as const] : [];
-    }),
-  );
+  const elsewhere = await publicPath(slug, "/g");
+  if (elsewhere) redirect(elsewhere);
 
-  return (
-    <div data-theme="light" className="site-wash flex min-h-dvh flex-col">
-      <BrandRuleFor hue={church.brandHue} className="h-1.5 w-full" />
-
-      <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
-        <h1 className="mb-8 font-display text-display text-fg">
-          {t("publicGroups.title", { church: church.name })}
-        </h1>
-
-        {groups.length === 0 ? (
-          <Empty icon="group" title={t("publicGroups.none")}
-          body={t("publicGroups.none.body")} />
-        ) : (
-          <ul className="grid gap-4 sm:grid-cols-2">
-            {groups.map((group) => (
-              <li key={group.id}>
-                <Card className="relative flex h-full flex-col gap-2 overflow-hidden transition-shadow focus-within:shadow-md hover:shadow-md">
-                  {photos.get(group.id) ? (
-                    <img
-                      src={photos.get(group.id)}
-                      alt=""
-                      className="-mx-[var(--d-pad-card)] -mt-[var(--d-pad-card)] mb-1 h-32 w-[calc(100%+2*var(--d-pad-card))] object-cover"
-                    />
-                  ) : null}
-
-                  <Link
-                    href={`/g/${slug}/${group.slug}`}
-                    className="text-heading text-fg after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none"
-                  >
-                    {group.name}
-                  </Link>
-
-                  <GroupLine group={group} />
-                </Card>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <p className="mt-10 text-caption text-fg-muted">
-          {t("publicGroups.contact")}
-          {church.phone ? ` ${church.phone}` : ""}
-        </p>
-
-        {church.website ? (
-          <p className="mt-2">
-            <a
-              href={church.website}
-              className="inline-flex min-h-11 items-center text-label text-fg-muted underline hover:text-fg"
-            >
-              {church.name}
-            </a>
-          </p>
-        ) : null}
-      </main>
-    </div>
-  );
+  return <GroupsScreen slug={slug} />;
 }

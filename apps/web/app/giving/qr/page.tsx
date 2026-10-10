@@ -1,9 +1,9 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import QRCode from "qrcode";
 import { withTenant, getChurch, getStripeAccount, canManageGiving } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { publicLink } from "@/lib/church-address";
 import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { tabMetadata } from "@/lib/page-metadata";
 
@@ -49,10 +49,9 @@ export default async function GivingQrPage({
 
   if (!read.account?.chargesEnabled) redirect("/settings/online");
 
-  const head = await headers();
-  const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
-  const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const address = `${proto}://${host}/give/${session.tenantSlug}`;
+  /* R13.7, R17.1. What the church prints on a card. Its own address where it
+     has one, so the name is not said twice. */
+  const address = await publicLink(session.tenantSlug, "give");
 
   /*
    * Drawn as SVG rather than a picture, so it prints at whatever size the

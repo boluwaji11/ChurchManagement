@@ -361,7 +361,7 @@ of money and after everything else.
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
 | HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Built. Waits for the screen it belongs to, see the note below |
 | HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
-| HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Active. The query parameter is gone, the DNS and the two paths are left |
+| HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Active. The paths are done, the DNS and the certificate are left |
 | HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
@@ -752,12 +752,23 @@ because a name that shadowed another church's slug would take that church's
 address away from it. The slug answers from the day a church signs up, so every
 church has an address before it picks one.
 
-Built and tested. **HRT-288** is what is left:
+Built and tested. **HRT-288** is what is left, and it is not code:
 
-- Wildcard DNS on `*.connectapp.church` and a certificate for it.
-- `/join/<slug>` and `/g/<slug>` take the church in the path, so on a church's
-  own address the slug is said twice. The host should name the church and the
-  path should drop it.
+- Wildcard DNS on `*.connectapp.church`.
+- A wildcard certificate for it. Without one every church's address shows a
+  security warning, which is worse than having no address, so the two ship
+  together.
+
+The slug came out of the public paths in October 2026. On a church's own
+address `/give`, `/g`, `/g/<group>`, `/join` and `/give/thanks` answer, and the
+longer forms that carry the slug go on working and redirect to them, because a
+church has printed them on cards and put them on its own website. One route
+means two things: `/g/<one segment>` is a group on a church's address and a
+church on ours, decided by the host before the segment is read.
+
+What a church is handed to print, the giving address and the QR code, is built
+from the short form through one helper, so a card and a copied link cannot
+disagree.
 
 `?church=` came off every link and every screen in October 2026. It was how the
 product named a church before churches had addresses, and it had reached 282

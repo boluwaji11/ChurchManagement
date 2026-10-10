@@ -1,9 +1,8 @@
-import { notFound } from "next/navigation";
-import { publicChurch, publicGroup } from "@connectapp/db";
-import { supabaseServer } from "@/lib/supabase/server";
-import { GroupPublicPage } from "@/components/group-public-page";
-import { publicTab } from "@/lib/page-metadata";
+import { redirect } from "next/navigation";
 import { t } from "@connectapp/i18n";
+import { publicTab } from "@/lib/page-metadata";
+import { publicPath } from "@/lib/church-address";
+import { GroupScreen } from "../../group-screen";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +17,10 @@ export async function generateMetadata({
 }
 
 /**
- * R9.5. One group, for a church that wants to link straight to it.
+ * R9.5, R17.1. One group, with the church named in the path.
  *
- * The same rule as the list it came from: what it is, when it meets, roughly
- * how big it is, and nothing about the members in it.
+ * The address a church handed out before it had one of its own, so it goes on
+ * working and sends people to the short path where there is one.
  */
 export default async function PublicGroupPage({
   params,
@@ -29,25 +28,9 @@ export default async function PublicGroupPage({
   params: Promise<{ slug: string; id: string }>;
 }) {
   const { slug, id } = await params;
-  const church = await publicChurch(slug);
-  if (!church) notFound();
 
-  const group = await publicGroup(slug, id);
-  if (!group) notFound();
+  const elsewhere = await publicPath(slug, `/g/${id}`);
+  if (elsewhere) redirect(elsewhere);
 
-  const supabase = await supabaseServer();
-  const sign = async (key: string | null) => {
-    if (!key) return null;
-    const signed = await supabase.storage.from("church").createSignedUrl(key, 3600);
-    return signed.data?.signedUrl ?? null;
-  };
-
-  return (
-    <GroupPublicPage
-      church={church}
-      group={group}
-      photoUrl={await sign(group.photoKey)}
-      logoUrl={await sign(church.logoKey)}
-    />
-  );
+  return <GroupScreen slug={slug} id={id} />;
 }
