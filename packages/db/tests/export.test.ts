@@ -111,6 +111,28 @@ describe("what comes out", () => {
     expect(tenants[0]!["slug"]).toBe("riverside");
   });
 
+  /*
+   * A table the church has not used yet has no row to read column names off,
+   * and a CSV built from no columns is a byte order mark and nothing else. A
+   * spreadsheet shows that as one cell of mojibake, so an export full of
+   * tables a church has not reached yet reads as a corrupt file.
+   */
+  it("gives every table its header row, including the ones never used", async () => {
+    const archive = await archiveFor(riverside);
+
+    const empty = Object.entries(archive.data)
+      .filter(([, rows]) => rows.length === 0)
+      .map(([table]) => table);
+
+    expect(empty.length).toBeGreaterThan(0);
+
+    for (const table of empty) {
+      const text = archive.csv[table]!.replace(/^\uFEFF/, "").trim();
+      expect(text, `${table} has no header row`).not.toBe("");
+      expect(text.split(",").length, `${table} has no columns`).toBeGreaterThan(1);
+    }
+  });
+
   it("states its format, so a reader in two years knows what it is", async () => {
     const archive = await archiveFor(riverside);
     expect(archive.meta.format).toBe(ARCHIVE_FORMAT);

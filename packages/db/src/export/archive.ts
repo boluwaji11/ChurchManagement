@@ -165,6 +165,27 @@ export async function buildArchive(
   const counts: Record<string, number> = {};
   const withheld: string[] = [];
 
+  /*
+   * R19.8. What each table's columns are called, whether or not it holds rows.
+   *
+   * A table a church has not used yet has no row to read the column names off,
+   * and a CSV written from no columns is a file holding a byte order mark and
+   * nothing else. A spreadsheet opens that as one cell of mojibake, which reads
+   * as a corrupt export rather than as an empty one.
+   */
+  const named = (await db.execute(sql`
+    select table_name, column_name
+      from information_schema.columns
+     where table_schema = 'public'
+     order by table_name, ordinal_position
+  `)) as unknown as { table_name: string; column_name: string }[];
+
+  const columnsOf = new Map<string, string[]>();
+  for (const { table_name, column_name } of named) {
+    if (DROPPED[table_name]?.includes(column_name)) continue;
+    columnsOf.set(table_name, [...(columnsOf.get(table_name) ?? []), column_name]);
+  }
+
   for (const table of TABLES) {
     // No tenant predicate. Row-level security supplies it, so a table added
     // later is scoped by the policy rather than by remembering to filter here.
@@ -178,7 +199,11 @@ export async function buildArchive(
   }
 
   const csv: Record<string, string> = {};
-  for (const [table, rows] of Object.entries(data)) csv[table] = toCsv(rows);
+  for (const [table, rows] of Object.entries(data)) {
+    // The rows name their own columns. An empty table has the schema to fall
+    // back on, so it still arrives with its header row.
+    csv[table] = toCsv(rows, rows.length > 0 ? undefined : columnsOf.get(table));
+  }
 
   return {
     data,
@@ -203,6 +228,17 @@ export async function buildArchive(
  * every other role the body is absent, and the withholding is declared in the
  * archive's metadata rather than left to be noticed.
  */
+/**
+ * R21.15. Columns the export never writes, whatever the role holds.
+ *
+ * Named here as well as removed below, so a table with no rows in it does not
+ * advertise a column its CSV would never carry.
+ */
+const DROPPED: Record<string, string[]> = {
+  church_providers: ["credential_key_id"],
+  notes: ["body_encrypted"],
+};
+
 function clean(
   table: string,
   row: Record<string, unknown>,
