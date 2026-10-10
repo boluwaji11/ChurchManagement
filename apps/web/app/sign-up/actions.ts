@@ -114,7 +114,16 @@ export async function resendSignUp(data: FormData): Promise<{ error?: string }> 
 /** R1.8. A link to set a password, for somebody who has forgotten or never had one. */
 export async function sendReset(data: FormData) {
   const email = String(data.get("email") ?? "").trim().toLowerCase();
-  if (!email) return fail(t("signIn.error.noEmail"));
+  /*
+   * R1.8. Back to the screen they pressed it on.
+   *
+   * This used to answer an empty box by sending somebody to sign up, which
+   * is the one place a person who already has an account does not want to
+   * be, and it read as the press having gone wrong in some larger way.
+   */
+  if (!email) {
+    redirect(`/sign-in?error=${encodeURIComponent(t("signIn.error.noEmail"))}`);
+  }
 
   const supabase = await supabaseServer();
   await supabase.auth.resetPasswordForEmail(email, {

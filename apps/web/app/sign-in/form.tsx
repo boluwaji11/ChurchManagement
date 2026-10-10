@@ -148,7 +148,7 @@ function PasswordForm({ next, email }: { next?: string; email?: string }) {
       <button
         type="submit"
         formAction={sendReset}
-        className="min-h-[var(--d-tap)] text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
+        className="min-h-[var(--d-tap)] cursor-pointer text-[length:var(--d-text-body)] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
       >
         {t("signIn.forgot")}
       </button>

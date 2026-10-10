@@ -194,7 +194,7 @@ export const en = {
   "auth.step.account": "Your account",
   "auth.step.church": "Your church",
   "auth.step.setup": "Set up",
-  "signIn.forgot": "Forgot password",
+  "signIn.forgot": "Forgot password?",
   "signIn.noAccount": "Set up a church account",
   "signIn.set": "Your password is set. Sign in with it.",
   "auth.error.rateLimit": "Too many emails have gone out just now. Try again in an hour.",
