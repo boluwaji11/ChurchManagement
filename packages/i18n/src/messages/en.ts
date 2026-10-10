@@ -1096,7 +1096,7 @@ export const en = {
   "settings.tab.website": "Website",
   "settings.tab.household": "My household",
   "settings.tab.roles": "Roles",
-  "settings.lede.website": "Manage what your church sees on your own website",
+  "settings.lede.website": "Manage how your church accesses ConnectApp",
   "settings.lede.roles": "Manage your roles and permissions",
   "roles.permission": "Permission",
   "roles.cell.on": "{role} can {permission}",
