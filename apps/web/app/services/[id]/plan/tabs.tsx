@@ -55,9 +55,15 @@ export function PlanTabs({
     };
 
     measure();
+    /* Measured again after the browser has laid the row out, because the
+       first reading is taken while the row is still the width of nothing. */
+    const soon = requestAnimationFrame(() => requestAnimationFrame(measure));
     const watch = new ResizeObserver(measure);
     watch.observe(el);
-    return () => watch.disconnect();
+    return () => {
+      cancelAnimationFrame(soon);
+      watch.disconnect();
+    };
   }, [tabs.length]);
 
   const here = Math.max(0, tabs.findIndex((one) => one.id === current));
