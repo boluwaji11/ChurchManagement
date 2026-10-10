@@ -52,6 +52,16 @@ const mine = (actor: Actor) =>
   sql`(${savedReports.sharedAt} is not null
     or ${savedReports.createdByUserId} = ${actor.userId ?? null})`;
 
+/**
+ * R18.x, R2.13. Whose a report is once it has been put away.
+ *
+ * Only its writer's. Somebody else's archive is their own housekeeping, and
+ * a report taken off the list is off everybody's list but the one person who
+ * can bring it back.
+ */
+const written = (actor: Actor) =>
+  sql`${savedReports.createdByUserId} = ${actor.userId ?? null}`;
+
 const clean = (name: string): string => name.trim().replace(/\s+/g, " ");
 
 interface Written {
@@ -101,7 +111,7 @@ export async function listSavedReports(
     )
     .where(
       and(
-        mine(actor),
+        opts.archivedOnly ? written(actor) : mine(actor),
         opts.archivedOnly
           ? sql`${savedReports.archivedAt} is not null`
           : opts.includeArchived
@@ -120,7 +130,7 @@ export async function countArchivedSavedReports(db: Tx, actor: Actor): Promise<n
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(savedReports)
-    .where(and(mine(actor), sql`${savedReports.archivedAt} is not null`));
+    .where(and(written(actor), sql`${savedReports.archivedAt} is not null`));
   return row?.count ?? 0;
 }
 

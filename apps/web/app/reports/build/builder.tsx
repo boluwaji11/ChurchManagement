@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import {
-  ChevronDown, Database, GripVertical, ListFilter, Plus, SlidersHorizontal, X,
+  ChevronDown, Database, GripVertical, ListFilter, Plus, Redo2, SlidersHorizontal,
+  Undo2, X,
 } from "lucide-react";
 import {
   Button, IconButton, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
@@ -78,6 +79,16 @@ export function Builder({
   const [page, setPage] = React.useState<ReportPage>(
     saved?.spec ?? { tiles: [freshTile("members", "1", 0)] },
   );
+  /*
+   * R18.12. What the page looked like before each change, and what it looked
+   * like after the ones that have been taken back. A report is arranged by
+   * dragging, and a drag that went wrong is the one thing somebody will want
+   * to undo before they have worked out how to put it back by hand.
+   */
+  const [history, setHistory] = React.useState<{ past: ReportPage[]; future: ReportPage[] }>({
+    past: [],
+    future: [],
+  });
   const [chosen, setChosen] = React.useState<string>(saved?.spec.tiles[0]?.id ?? "1");
   const [results, setResults] = React.useState<Record<string, ReportResultish | undefined>>({});
   const [running, setRunning] = React.useState(true);
@@ -140,8 +151,28 @@ export function Builder({
     };
   }, [page, saved, church]);
 
+  /** Every change to the page, remembered so it can be taken back. */
+  const edit = (next: (was: ReportPage) => ReportPage) => {
+    setHistory((was) => ({ past: [...was.past.slice(-49), page], future: [] }));
+    setPage(next);
+  };
+
+  const undo = () => {
+    const prev = history.past[history.past.length - 1];
+    if (!prev) return;
+    setHistory({ past: history.past.slice(0, -1), future: [page, ...history.future] });
+    setPage(prev);
+  };
+
+  const redo = () => {
+    const next = history.future[0];
+    if (!next) return;
+    setHistory({ past: [...history.past, page], future: history.future.slice(1) });
+    setPage(next);
+  };
+
   const change = (patch: Partial<ReportTile>) =>
-    setPage((was) => ({
+    edit((was) => ({
       tiles: was.tiles.map((one) => (one.id === tile.id ? { ...one, ...patch } : one)),
     }));
 
@@ -159,7 +190,7 @@ export function Builder({
   const addTile = () => {
     const id = String(Date.now());
     const bottom = Math.max(0, ...page.tiles.map((one) => one.place.y + one.place.h));
-    setPage((was) => ({ tiles: [...was.tiles, freshTile(tile.subject, id, bottom)] }));
+    edit((was) => ({ tiles: [...was.tiles, freshTile(tile.subject, id, bottom)] }));
     setChosen(id);
   };
 
@@ -175,6 +206,26 @@ export function Builder({
               ? t("report.savedAt", { when: stamp(savedAt) })
               : ""}
         </span>
+        {/* R18.12. Taking back the last change, and putting it back. */}
+        <span className="flex items-center gap-1">
+          <IconButton
+            label={t("action.undo")}
+            variant="ghost"
+            disabled={history.past.length === 0}
+            onClick={undo}
+          >
+            <Undo2 />
+          </IconButton>
+          <IconButton
+            label={t("action.redo")}
+            variant="ghost"
+            disabled={history.future.length === 0}
+            onClick={redo}
+          >
+            <Redo2 />
+          </IconButton>
+        </span>
+
         <Button variant="secondary" onClick={addTile}>
           <Plus /> {t("report.addVisual")}
         </Button>
@@ -449,21 +500,21 @@ export function Builder({
               setTab("format");
             }}
             onRename={(id, title) =>
-              setPage((was) => ({
+              edit((was) => ({
                 tiles: was.tiles.map((one) => (one.id === id ? { ...one, title } : one)),
               }))}
             onMove={(id, place) =>
-              setPage((was) => ({
+              edit((was) => ({
                 tiles: was.tiles.map((one) => (one.id === id ? { ...one, place } : one)),
               }))}
             onRemove={(id) =>
-              setPage((was) => ({
+              edit((was) => ({
                 tiles: was.tiles.length > 1
                   ? was.tiles.filter((one) => one.id !== id)
                   : was.tiles,
               }))}
             onDuplicate={(id) =>
-              setPage((was) => {
+              edit((was) => {
                 const from = was.tiles.find((one) => one.id === id);
                 if (!from) return was;
                 const copy = {

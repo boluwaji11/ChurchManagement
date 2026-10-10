@@ -62,6 +62,8 @@ export const en = {
   "unsaved.stay": "Stay here",
   "unsaved.discard": "Discard changes",
   "action.cancel": "Cancel",
+  "action.undo": "Undo",
+  "action.redo": "Redo",
   "action.add": "Add",
   "action.edit": "Edit",
   "action.change": "Change",
