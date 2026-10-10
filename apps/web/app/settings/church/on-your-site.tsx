@@ -153,6 +153,8 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
   const [checking, startChecking] = React.useTransition();
   /* R22.2. The rest of the reading, which is a diagnosis rather than a task. */
   const [more, setMore] = React.useState(false);
+  /* R1.1. What the church's record holds, so it can be taken back off. */
+  const [kept, setKept] = React.useState(domain);
 
   const check = () =>
     startChecking(async () => {
@@ -165,11 +167,21 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
       }
       setFound(back.found);
 
-      // Kept under the name as we read it back, so a pasted address with a
-      // scheme on the front is stored as a domain.
-      const kept = await saveDomain(back.found.domain, slug);
-      setError(kept.error);
-      if (!kept.error) setDraft(kept.domain ?? "");
+      /*
+       * R1.1. Kept only once it works.
+       *
+       * Checking an address is somebody finding out. Storing it on the way
+       * past put an address into the church's record that nobody chose, and
+       * then warned them about it, which is how this screen came to greet a
+       * church with a problem it had not asked for.
+       */
+      if (!back.found.pointsHere) return;
+      const stored = await saveDomain(back.found.domain, slug);
+      setError(stored.error);
+      if (!stored.error) {
+        setDraft(stored.domain ?? "");
+        setKept(stored.domain ?? null);
+      }
     });
 
   const accountLink = `${origin}/join/${slug}`;
@@ -231,20 +243,21 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
           {/* R24.6. Green when it is working, and it says which. The same
               badge the giving card carries, because it answers the same
               question: is this thing on. */}
-          <span className="ml-auto flex h-[26px] shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold"
-            style={
-              live
-                ? { background: "var(--hue-fern-tint)", color: "var(--hue-fern-key)" }
-                : { background: "var(--color-sunken)", color: "var(--color-fg-muted)" }
-            }
-          >
-            {live ? <CircleCheck className="size-3.5" aria-hidden /> : null}
-            {live
-              ? t("domain.state.live")
-              : found
-                ? t("domain.state.waiting")
-                : t("domain.state.none")}
-          </span>
+          {/* R24.6. Only once there is something to report. A card that
+              greets a church with "Not working yet" before they have asked
+              for anything reads as a thing that is broken. */}
+          {found ? (
+            <span className="ml-auto flex h-[26px] shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold"
+              style={
+                live
+                  ? { background: "var(--hue-fern-tint)", color: "var(--hue-fern-key)" }
+                  : { background: "var(--color-sunken)", color: "var(--color-fg-muted)" }
+              }
+            >
+              {live ? <CircleCheck className="size-3.5" aria-hidden /> : null}
+              {live ? t("domain.state.live") : t("domain.state.waiting")}
+            </span>
+          ) : null}
         </div>
         <Separator />
 
@@ -252,7 +265,7 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
             here actually gets the church. Nothing else on it explains itself
             without this. */}
         <p className="text-[length:var(--d-text-body)] text-fg-muted">
-          {t("domain.lede", { ours: accountLink.replace(/^https?:\/\//, "") })}
+          {t("domain.lede")}
         </p>
 
         <div className="flex flex-wrap items-end gap-3">
@@ -286,6 +299,30 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
             <Search /> {t("domain.check")}
           </Button>
         </div>
+
+        {/* R1.1, R24.6. An address the church keeps can be taken back off.
+            Only where there is one, so the press is not offered over an
+            empty field. */}
+        {kept ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="self-start"
+            loading={checking}
+            onClick={() =>
+              startChecking(async () => {
+                const gone = await saveDomain("", slug);
+                setError(gone.error);
+                if (gone.error) return;
+                setKept(null);
+                setDraft("");
+                setFound(null);
+              })
+            }
+          >
+            {t("domain.remove")}
+          </Button>
+        ) : null}
 
         {/*
           R1.1. The one question this card has to answer: does the address

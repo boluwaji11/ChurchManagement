@@ -2722,7 +2722,7 @@ export const en = {
   "joining.copy": "Copy",
   "joining.copied": "Copied",
   "domain.title": "Members sign in at your own address",
-  "domain.lede": "Instead of {ours}, members reach their sign-in at an address you own.",
+  "domain.lede": "Members reach their sign-in at an address you own instead of ours.",
   "domain.label": "The address members will use",
   "domain.hint": "e.g. members.yourchurch.org",
   // HRT-283, R1.1. Whether the address works yet, and the one thing a church
@@ -2754,6 +2754,8 @@ export const en = {
   "domain.step.done": "Members reach your church here",
   "domain.openConsole": "Open {provider}",
   "domain.recheck": "Check again",
+  "domain.remove": "Remove this address",
+  "domain.removed": "Removed.",
   "domain.copy": "Copy",
   "domain.copied": "Copied",
   "domain.more": "What else this domain is set up with",
