@@ -16,7 +16,7 @@ describe("lookup", () => {
 
   it("fills in values", () => {
     expect(t("signIn.sent.body", { email: "grace@example.org" })).toBe(
-      "We sent a sign-in link to grace@example.org. It is good for one hour.",
+      "We sent a sign-in link to grace@example.org. Link valid for an hour.",
     );
   });
 

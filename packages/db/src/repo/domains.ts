@@ -175,3 +175,25 @@ export async function setPortalOpen(
 export {
   cleanDomain, slugUnderPlatform, cleanPortalName, isReservedName,
 } from "./portal-rules";
+
+/**
+ * R1.1, R17.1. The name a church is reached at, for a page that knows its slug.
+ *
+ * A public address carries the slug, because that is what a church handed out
+ * before it chose anything. What it is reached at now may be a name it picked
+ * since, and may be nothing at all if it closed its address.
+ */
+export async function portalAddressFor(
+  slug: string,
+): Promise<{ slug: string; portalName: string | null; portalOpen: boolean } | null> {
+  const rows = await owner()<
+    { slug: string; portal_name: string | null; portal_open: boolean }[]
+  >`
+    select slug, portal_name, portal_open from tenants
+     where slug = ${slug} and archived_at is null
+     limit 1`;
+  const found = rows[0];
+  return found
+    ? { slug: found.slug, portalName: found.portal_name, portalOpen: found.portal_open }
+    : null;
+}

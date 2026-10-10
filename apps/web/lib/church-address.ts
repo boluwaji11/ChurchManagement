@@ -1,7 +1,7 @@
 import "server-only";
 import { headers } from "next/headers";
 import { slugUnderPlatform } from "@connectapp/db/rules";
-import { resolveTenantByHost } from "@connectapp/db";
+import { resolveTenantByHost, portalAddressFor } from "@connectapp/db";
 
 /**
  * R1.1, R17.1. A church's own address, built from the request we are on.
@@ -72,4 +72,37 @@ export async function canonicalAddress(): Promise<string | null> {
   const query = head.get("x-search") ?? "";
 
   return `${proto}://${church.portalName}.${parent}${path}${query}`;
+}
+
+/**
+ * R1.1, R17.1. Where a church's public page belongs, when it is not here.
+ *
+ * A public address carries the church's slug, because that is what a church
+ * handed out on a card and in a news sheet before it chose anything. On the
+ * church's own address the host already says the name, so the path saying it
+ * again reads as riverside.connectapp.church/give/riverside.
+ *
+ * The short path answers on the church's address. Everywhere else the long
+ * one sends people to it, keeping whatever query came with it.
+ *
+ * Null when the request is already where it belongs, and null when the church
+ * has no address of its own, which is when the long path is all there is.
+ */
+export async function publicPath(slug: string, path: string): Promise<string | null> {
+  const head = await headers();
+  const host = head.get("x-forwarded-host") ?? head.get("host");
+  if (!host) return null;
+
+  const church = await portalAddressFor(slug);
+  // A church nobody can reach at a name of its own keeps the long path.
+  if (!church?.portalOpen) return null;
+
+  const name = church.portalName ?? church.slug;
+  const query = head.get("x-search") ?? "";
+
+  // Already on that church's address, so only the repeated name comes off.
+  if (slugUnderPlatform(host) === name) return `${path}${query}`;
+
+  const origin = await churchOrigin(name);
+  return origin ? `${origin}${path}${query}` : null;
 }

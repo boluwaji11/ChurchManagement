@@ -19,6 +19,20 @@ describe("the word table", () => {
     expect(toAmerican("catalogue")).toBe("catalog");
   });
 
+  /*
+   * R22.8. A different word rather than a different spelling.
+   *
+   * A church in Missouri writes "last name" on every form it has, and reading
+   * "surname" on one screen beside "Last name" on the next is two names for
+   * one thing.
+   */
+  it("swaps a word America calls something else", () => {
+    expect(toAmerican("surname")).toBe("last name");
+    expect(toAmerican("Surname")).toBe("Last name");
+    expect(toAmerican("surnames")).toBe("last names");
+    expect(toAmerican("Try a surname, a first name")).toBe("Try a last name, a first name");
+  });
+
   it("keeps the shape of the word it replaced", () => {
     expect(toAmerican("Colour")).toBe("Color");
     expect(toAmerican("COLOUR")).toBe("COLOR");

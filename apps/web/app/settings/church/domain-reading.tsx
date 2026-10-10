@@ -166,7 +166,7 @@ export function DomainReading({ found }: { found: DomainFindings }) {
               ))}
               {found.spf ? (
                 <li className="flex flex-wrap items-baseline gap-2 border-t border-line pt-2.5">
-                  <span className="text-caption text-fg-subtle">SPF</span>
+                  <span className="text-caption text-fg-subtle">{t("domain.spf")}</span>
                   <code className="min-w-0 break-all font-mono text-[13px] text-fg-muted">
                     {found.spf}
                   </code>

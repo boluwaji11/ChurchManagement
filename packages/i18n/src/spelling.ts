@@ -135,6 +135,11 @@ const WORDS: [string, string][] = [
   ["sceptical", "skeptical"],
   ["speciality", "specialty"],
   ["tyre", "tyre"],
+  // Not a spelling, a different word. A church in Missouri writes "last name"
+  // on every form it has ever filled in, and reading "surname" beside a field
+  // called Last name is two names for one thing.
+  ["surnames", "last names"],
+  ["surname", "last name"],
 ];
 
 /** Longest first, so "colourful" is matched before "colour". */

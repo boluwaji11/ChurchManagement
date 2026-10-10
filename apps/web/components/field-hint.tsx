@@ -19,7 +19,7 @@ import { t } from "@connectapp/i18n";
  * explains the box.
  */
 export function FieldHint({
-  /** A catalogue stem. `<stem>.title` and `<stem>.body` are the words. */
+  /** A catalogue stem, whose title and body keys hold the words. */
   about,
   /** What the mark is called, since the mark itself says nothing. */
   label,
