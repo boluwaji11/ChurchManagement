@@ -1514,7 +1514,7 @@ export const en = {
   "fund.error.taken": "A fund already has that name.",
   "fund.error.missing": "That fund could not be found.",
   "fund.error.last": "A gift has to go to a fund, so one has to stay.",
-  "permission.giving.manage": "Record gifts, keep the funds and connect the church's Stripe account",
+  "permission.giving.manage": "Record gifts, keep the funds and connect the church's online giving account",
 
   // Tags
   "tags.title": "Tags",
