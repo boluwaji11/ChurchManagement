@@ -76,6 +76,16 @@ export default async function ReportsPage({
 
   /* R18.x. A report is somebody's until the church shares it, so the two
      lists are drawn apart: what the church keeps, and what this reader built. */
+  /* R18.x. Who wrote it: the administration is one voice, so a report from
+     it is the church's rather than a particular person's, and everybody else
+     is named. */
+  const writer = (by: { name: string | null; role: string | null } | null): string | null => {
+    if (!by) return null;
+    if (by.role === "owner" || by.role === "admin") return t("report.byAdmin");
+    const first = (by.name ?? "").trim().split(/\s+/)[0];
+    return first ? t("report.writtenBy", { name: first }) : null;
+  };
+
   const all = saved.map((one) => ({
     id: one.id,
     slug: one.slug,
@@ -83,6 +93,7 @@ export default async function ReportsPage({
     subject: one.subject,
     shared: one.shared,
     mine: one.createdByUserId === session.userId,
+    by: writer(one.createdBy),
   }));
   const theirs = putAway ? [] : all.filter((one) => one.shared && !one.mine);
   const cards = putAway ? all : all.filter((one) => !one.shared || one.mine);
@@ -131,7 +142,7 @@ export default async function ReportsPage({
       icon: Table2,
       hue: "indigo",
       title: one.name,
-      detail: t(`report.subject.${one.subject}` as never),
+      detail: one.by ?? t(`report.subject.${one.subject}` as never),
     })),
   ];
 

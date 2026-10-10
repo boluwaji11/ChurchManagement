@@ -22,6 +22,8 @@ export interface SavedCard {
   shared: boolean;
   /** R18.x. Whether this reader wrote it, which is who may change it. */
   mine: boolean;
+  /** R18.x. Who wrote it, where it is worth saying. */
+  by: string | null;
 }
 
 /**
@@ -96,6 +98,12 @@ export function SavedReports({
               </Link>
               <span className="flex items-center gap-1.5 text-caption text-fg-muted">
                 {t(`report.subject.${one.subject}` as never)}
+                {one.by ? (
+                  <>
+                    <span aria-hidden>·</span>
+                    {one.by}
+                  </>
+                ) : null}
                 {one.shared ? (
                   <>
                     <span aria-hidden>·</span>

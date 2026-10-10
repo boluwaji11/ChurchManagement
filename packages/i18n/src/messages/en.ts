@@ -3615,6 +3615,8 @@ export const en = {
   "report.share": "Share with the church",
   "report.unshare": "Keep it to myself",
   "report.shared": "Shared",
+  "report.writtenBy": "Created by {name}",
+  "report.byAdmin": "Created by an administrator",
   "report.more": "More for {name}",
   "report.buildDetail": "Query anything the church records, and keep the result.",
   "report.yours": "Your reports",

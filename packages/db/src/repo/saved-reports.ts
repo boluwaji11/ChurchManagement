@@ -2,6 +2,7 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import type { Permission } from "../permissions";
 import { savedReports } from "../schema/reports";
+import { appUsers, tenantMembers } from "../schema/tenancy";
 import { InvalidInputError, NameTakenError } from "../errors";
 import { PermissionError, canEditPeople, type TenantRole } from "../roles";
 import { canManageChurch } from "./church";
@@ -25,6 +26,8 @@ export interface SavedReport {
   createdByUserId: string | null;
   /** R18.x. Whether the church sees it, rather than only whoever wrote it. */
   shared: boolean;
+  /** R18.x. Who wrote it, for the line on its card. */
+  createdBy: { name: string | null; role: TenantRole | null } | null;
   archivedAt: Date | null;
   updatedAt: Date;
 }
@@ -53,7 +56,15 @@ const mine = (actor: Actor) =>
 
 const clean = (name: string): string => name.trim().replace(/\s+/g, " ");
 
-const shape = (row: typeof savedReports.$inferSelect): SavedReport => ({
+interface Written {
+  name: string | null;
+  role: TenantRole | null;
+}
+
+const shape = (
+  row: typeof savedReports.$inferSelect,
+  by: Written | null = null,
+): SavedReport => ({
   id: row.id,
   name: row.name,
   slug: row.slug,
@@ -63,6 +74,7 @@ const shape = (row: typeof savedReports.$inferSelect): SavedReport => ({
   spec: cleanPage(row.spec),
   createdByUserId: row.createdByUserId,
   shared: row.sharedAt !== null,
+  createdBy: by,
   archivedAt: row.archivedAt,
   updatedAt: row.updatedAt,
 });
@@ -73,8 +85,22 @@ export async function listSavedReports(
   opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<SavedReport[]> {
   const rows = await db
-    .select()
+    .select({
+      report: savedReports,
+      name: appUsers.fullName,
+      role: tenantMembers.role,
+    })
     .from(savedReports)
+    /* R18.x. Who wrote it, read beside it rather than looked up a card at a
+       time: a church with twenty reports is twenty round trips otherwise. */
+    .leftJoin(appUsers, eq(appUsers.id, savedReports.createdByUserId))
+    .leftJoin(
+      tenantMembers,
+      and(
+        eq(tenantMembers.userId, savedReports.createdByUserId),
+        eq(tenantMembers.tenantId, savedReports.tenantId),
+      ),
+    )
     .where(
       and(
         mine(actor),
@@ -86,7 +112,9 @@ export async function listSavedReports(
       ),
     )
     .orderBy(asc(savedReports.name));
-  return rows.map(shape);
+  return rows.map((row) =>
+    shape(row.report, row.name || row.role ? { name: row.name, role: row.role } : null),
+  );
 }
 
 /** R18.x, R24.6. How many a church has put away, for the link that reaches them. */
