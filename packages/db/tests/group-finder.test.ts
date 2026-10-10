@@ -14,6 +14,7 @@ import {
 } from "../src/repo/group-finder";
 import {
   createGroup, updateGroup, addToGroup, groupRoster, seedGroupTypes, listGroupTypes,
+  setGroupStatus,
 } from "../src/repo/groups";
 import { linkPersonToUser } from "../src/repo/scope";
 import { createPerson } from "../src/repo/members";
@@ -27,6 +28,7 @@ let closed: string;
 let leader: string;
 let seeker: string;
 let smallType: string;
+let otherType: string;
 
 const leaderUser = "77777777-7777-4777-8777-777777777777";
 const seekerUser = "88888888-8888-4888-8888-888888888888";
@@ -48,7 +50,10 @@ beforeAll(async () => {
   }
 
   await run((tx) => seedGroupTypes(tx, as()));
-  smallType = (await run((tx) => listGroupTypes(tx))).find((t) => t.name === "Small group")!.id;
+  const kinds = await run((tx) => listGroupTypes(tx));
+  smallType = kinds.find((one) => one.name === "Small group")!.id;
+  /* R9.1. A second kind, so filtering by one of them means something. */
+  otherType = kinds.find((one) => one.id !== smallType)!.id;
 
   const make = async (firstName: string) =>
     (await run((tx) =>
@@ -66,15 +71,19 @@ beforeAll(async () => {
     name: "Tuesday night", typeId: smallType, dayOfWeek: 2, startsAt: "19:30",
     location: "The Hall", capacity: 3,
   }))).id;
+  /* R9.5. The finder shows what a church has published, so these are. */
+  await run((tx) => setGroupStatus(tx, as(), tuesday, "published"));
   await run((tx) => addToGroup(tx, as(), { groupId: tuesday, memberId: leader, role: "leader" }));
 
   closed = (await run((tx) => createGroup(tx, as(), {
-    name: "Elders", typeId: smallType, dayOfWeek: 1, location: "The Vestry", openToJoin: false,
+    name: "Elders", typeId: otherType, dayOfWeek: 1, location: "The Vestry", openToJoin: false,
   }))).id;
+  await run((tx) => setGroupStatus(tx, as(), closed, "published"));
 
-  await run((tx) => createGroup(tx, as(), {
-    name: "Private thing", typeId: smallType, listed: false, dayOfWeek: 4,
+  const unlisted = await run((tx) => createGroup(tx, as(), {
+    name: "Private thing", typeId: otherType, listed: false, dayOfWeek: 4,
   }));
+  await run((tx) => setGroupStatus(tx, as(), unlisted.id, "published"));
 });
 
 afterAll(async () => {
@@ -209,7 +218,9 @@ describe("answering (R9.6)", () => {
   });
 
   it("keeps a declined answer, rather than letting it disappear", async () => {
-    const other = await run((tx) => createGroup(tx, as(), { name: "Thursday men", typeId: smallType, dayOfWeek: 4 }));
+    const other = await run((tx) =>
+      createGroup(tx, as(), { name: "Thursday men", typeId: otherType, dayOfWeek: 4 }));
+    await run((tx) => setGroupStatus(tx, as(), other.id, "published"));
     await run((tx) => addToGroup(tx, as(), { groupId: other.id, memberId: leader, role: "leader" }));
 
     const asked = await run((tx) => requestToJoin(tx, asSeeker, { groupId: other.id }), "member");
