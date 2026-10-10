@@ -68,10 +68,10 @@ const VIEWS: ExportView[] = [
 
   {
     key: "households",
-    columns: ["household", "person", "role", "email", "phone", "address", "joined", "archived"],
+    columns: ["household", "member", "role", "email", "phone", "address", "joined", "archived"],
     query: sql`
       select h.name as household,
-             btrim(coalesce(p.preferred_name, p.first_name) || ' ' || coalesce(p.last_name, '')) as person,
+             btrim(coalesce(p.preferred_name, p.first_name) || ' ' || coalesce(p.last_name, '')) as member,
              hm.role::text as role,
              (select value from contact_methods c
                where c.member_id = p.id and c.kind = 'email'
@@ -93,11 +93,11 @@ const VIEWS: ExportView[] = [
 
   {
     key: "attendance",
-    columns: ["date", "kind", "what", "person", "how"],
+    columns: ["date", "kind", "what", "member", "how"],
     query: sql`
       select o.occurs_on as date, 'Service' as kind,
              coalesce(o.name, st.name) as what,
-             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
+             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as member,
              ar.source::text as how
         from attendance_records ar
         join service_occurrences o on o.id = ar.occurrence_id
@@ -105,7 +105,7 @@ const VIEWS: ExportView[] = [
         join members pe on pe.id = ar.member_id
       union all
       select m.met_on as date, 'Group' as kind, g.name as what,
-             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
+             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as member,
              'group' as how
         from group_attendance ga
         join group_meetings m on m.id = ga.meeting_id
@@ -113,7 +113,7 @@ const VIEWS: ExportView[] = [
         join members pe on pe.id = ga.member_id
       union all
       select o.occurs_on as date, 'Check-in' as kind, r.name as what,
-             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
+             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as member,
              v.kind::text as how
         from checkin_visits v
         join service_occurrences o on o.id = v.occurrence_id
@@ -124,11 +124,11 @@ const VIEWS: ExportView[] = [
 
   {
     key: "checkin",
-    columns: ["date", "service", "person", "room", "code", "checked_in", "checked_out", "collected_by"],
+    columns: ["date", "service", "member", "room", "code", "checked_in", "checked_out", "collected_by"],
     query: sql`
       select o.occurs_on as date,
              coalesce(o.name, st.name) as service,
-             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
+             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as member,
              r.name as room,
              v.code,
              v.checked_in_at as checked_in,
@@ -145,13 +145,13 @@ const VIEWS: ExportView[] = [
 
   {
     key: "groups",
-    columns: ["group", "type", "meets", "where", "person", "role", "joined"],
+    columns: ["group", "type", "meets", "where", "member", "role", "joined"],
     query: sql`
       select g.name as "group",
              gt.name as type,
              g.frequency::text as meets,
              coalesce(nullif(g.location, ''), case when g.online then 'Online' else null end) as "where",
-             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
+             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as member,
              gm.role::text as role,
              gm.joined_on as joined
         from groups g
@@ -163,10 +163,10 @@ const VIEWS: ExportView[] = [
 
   {
     key: "teams",
-    columns: ["team", "person", "role", "positions", "joined"],
+    columns: ["team", "member", "role", "positions", "joined"],
     query: sql`
       select t.name as team,
-             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
+             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as member,
              tm.role::text as role,
              (select string_agg(tp.name, ', ' order by tp.position)
                 from team_member_positions tmp
@@ -181,13 +181,13 @@ const VIEWS: ExportView[] = [
 
   {
     key: "serving",
-    columns: ["date", "service", "team", "position", "person", "answer"],
+    columns: ["date", "service", "team", "position", "member", "answer"],
     query: sql`
       select o.occurs_on as date,
              coalesce(o.name, st.name) as service,
              t.name as team,
              tp.name as position,
-             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
+             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as member,
              sa.status::text as answer
         from serving_assignments sa
         join service_occurrences o on o.id = sa.occurrence_id
@@ -200,10 +200,10 @@ const VIEWS: ExportView[] = [
 
   {
     key: "followups",
-    columns: ["stage", "person", "step", "due", "done", "outcome", "entered", "status"],
+    columns: ["stage", "member", "step", "due", "done", "outcome", "entered", "status"],
     query: sql`
       select pl.name as stage,
-             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
+             btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as member,
              f.title as step,
              f.due_on as due,
              f.done_at as done,
@@ -219,9 +219,9 @@ const VIEWS: ExportView[] = [
 
   {
     key: "milestones",
-    columns: ["person", "milestone", "date", "notes"],
+    columns: ["member", "milestone", "date", "notes"],
     query: sql`
-      select btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
+      select btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as member,
              m.kind::text as milestone,
              m.occurred_on as date,
              m.notes
@@ -232,9 +232,9 @@ const VIEWS: ExportView[] = [
 
   {
     key: "checks",
-    columns: ["person", "provider", "status", "completed", "expires"],
+    columns: ["member", "provider", "status", "completed", "expires"],
     query: sql`
-      select btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as person,
+      select btrim(coalesce(pe.preferred_name, pe.first_name) || ' ' || coalesce(pe.last_name, '')) as member,
              b.provider, b.status::text as status,
              b.completed_on as completed,
              b.expires_on as expires
