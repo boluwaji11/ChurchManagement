@@ -45,7 +45,13 @@ export default async function SignIn({
        * where everybody arriving is a member looking for their sign-in.
        */
       footer={
-        church ? undefined : (
+        named ? (
+          /* R24.6. The way back to the church's own door, which is where
+             somebody came from to get here. */
+          <Link href="/join" className="font-medium text-primary">
+            {t("signIn.backTo", { name: named.name })}
+          </Link>
+        ) : (
           <>
             {t("signIn.volunteer")}{" "}
             <Link href="/checkin/station" className="font-medium text-primary">
@@ -71,7 +77,12 @@ export default async function SignIn({
       {params.set ? <Flash message={t("signIn.set")} /> : null}
       {params.taken ? <Banner tone="info" title={t("auth.error.taken")} /> : null}
 
-      <SignInForm next={params.next} email={params.taken} church={church ?? undefined} />
+      <SignInForm
+        next={params.next}
+        email={params.taken}
+        church={church ?? undefined}
+        churchName={named?.name}
+      />
     </AuthShell>
   );
 }

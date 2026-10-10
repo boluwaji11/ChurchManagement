@@ -22,6 +22,7 @@ export function SignInForm({
   next,
   email,
   church,
+  churchName,
 }: {
   next?: string;
   email?: string;
@@ -33,6 +34,8 @@ export function SignInForm({
    * own front door.
    */
   church?: string;
+  /** What that church is called, for the line offering to join it. */
+  churchName?: string;
 }) {
   const [byLink, setByLink] = React.useState(false);
 
@@ -53,7 +56,16 @@ export function SignInForm({
           {byLink ? t("signIn.tab.password") : t("signIn.tab.link")}
         </button>
 
-        {church ? null : (
+        {/* R17.1. On a church's own address the way on is joining that
+            church, which is what the door above this screen offers. */}
+        {church ? (
+          <span className="text-fg-muted">
+            {t("signIn.joinAsk")}{" "}
+            <Link href="/sign-up" className="font-medium text-primary">
+              {t("signIn.joinChurch", { name: churchName ?? "" })}
+            </Link>
+          </span>
+        ) : (
           <span className="text-fg-muted">
             {t("signIn.noAccountAsk")}{" "}
             <Link

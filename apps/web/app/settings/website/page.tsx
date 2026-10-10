@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { withTenant, getChurch, canManageChurch } from "@connectapp/db";
+import { slugUnderPlatform } from "@connectapp/db/rules";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
@@ -50,9 +51,16 @@ export default async function WebsitePage({
   const head = await headers();
   const host = head.get("x-forwarded-host") ?? head.get("host") ?? "";
   const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  /* R1.1. Our own host, which every church gets a name under. The request's
-     host while somebody is working on it, so riverside.localhost answers. */
-  const platformHost = process.env["PLATFORM_HOST"] ?? (host.includes(".") ? host.replace(/^[^.]+\./, "") : host);
+  /*
+   * R1.1. Our own host, which every church gets a name under.
+   *
+   * Read off the request rather than out of the environment, because the
+   * environment names the host and the request carries the port, and an
+   * address shown without the port is an address that does not work while
+   * somebody is working on it.
+   */
+  const under = slugUnderPlatform(host);
+  const platformHost = under ? host.slice(under.length + 1) : host;
 
   return (
     <>

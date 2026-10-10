@@ -50,13 +50,10 @@ export default async function SignUpPage({
             ? t("signUp.atChurch", { name: named.name })
             : t("signUp.title")
       }
-      under={
-        params.sent
-          ? undefined
-          : named
-            ? t("signUp.atChurchUnder", { name: named.name })
-            : t("signUp.free")
-      }
+      /* R17.1. Nothing under it on a church's own door: the heading says
+         which church, and the sentence selling the product to a pastor is
+         not what somebody joining a congregation came to read. */
+      under={params.sent || named ? undefined : t("signUp.free")}
       step={named ? undefined : 1}
       art={ART}
       width="max-w-[520px]"
