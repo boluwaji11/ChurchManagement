@@ -787,6 +787,18 @@ layer and has no screen. It was on the Website page and was the cause of a long
 afternoon: two cards both saying where members sign in. It comes back when a
 church asks for it.
 
+## One address in use, October 2026
+
+A church answers at its slug from the day it signs up, and went on answering
+there after picking a name of its own. Two live addresses for one church is two
+links to hand out, two things in a search engine, and a card that can only show
+one of them.
+
+The slug now sends people on to the chosen name, keeping the path and the
+query, so a link printed in a news sheet last year still lands in the right
+place. Taking a name also moves the tab to it, because staying put left
+somebody reading a name in the address bar they had just replaced.
+
 ## One person, however many copies of them, October 2026
 
 HRT-290. The review queue was pairs, and the work is not pairs. A church that

@@ -46,7 +46,7 @@ import {
  */
 export async function resolveTenantByHost(
   host: string,
-): Promise<{ id: string; name: string; slug: string } | null> {
+): Promise<{ id: string; name: string; slug: string; portalName: string | null } | null> {
   const bare = cleanDomain(host);
   if (!bare) return null;
 
@@ -58,17 +58,23 @@ export async function resolveTenantByHost(
        signs up and goes on answering after a name is chosen. */
     /* R17.1. A church that has turned its address off is not reachable at
        it, so the host names nobody. */
-    const rows = await owner()<{ id: string; name: string; slug: string }[]>`
-      select id, name, slug from tenants
+    const rows = await owner()<
+      { id: string; name: string; slug: string; portal_name: string | null }[]
+    >`
+      select id, name, slug, portal_name from tenants
        where (portal_name = ${under} or slug = ${under}) and portal_open = true
        order by (portal_name = ${under}) desc
        limit 1`;
-    return rows[0] ?? null;
+    const found = rows[0];
+    return found ? { ...found, portalName: found.portal_name } : null;
   }
 
-  const rows = await owner()<{ id: string; name: string; slug: string }[]>`
-    select id, name, slug from tenants where custom_domain = ${bare} limit 1`;
-  return rows[0] ?? null;
+  const rows = await owner()<
+    { id: string; name: string; slug: string; portal_name: string | null }[]
+  >`
+    select id, name, slug, portal_name from tenants where custom_domain = ${bare} limit 1`;
+  const found = rows[0];
+  return found ? { ...found, portalName: found.portal_name } : null;
 }
 
 /**

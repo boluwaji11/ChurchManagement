@@ -68,6 +68,22 @@ export function PortalAddress({
       }
       setTaken(answer.name ?? null);
       setTook(answer.name ?? null);
+
+      /*
+       * R1.1, R17.1. The tab moves to the address that was just taken.
+       *
+       * The old one is gone the moment this saves, and staying on it left
+       * somebody reading a name in the bar they had replaced, on a page that
+       * had quietly stopped being reachable there.
+       */
+      const moved = answer.name ?? slug;
+      const here = typeof window === "undefined" ? "" : window.location.host;
+      /* Only somebody already at a church's address is moved. On our own host
+         this screen is reached with the church on the session, and sending
+         them across would hand it to a host that has not been given one. */
+      if (here.endsWith(`.${host}`) && here !== `${moved}.${host}`) {
+        window.location.href = `${origin}//${moved}.${host}${window.location.pathname}`;
+      }
     });
 
   return (

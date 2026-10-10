@@ -184,7 +184,7 @@ describe("taking a name", () => {
  */
 describe("turning the address off", () => {
   /* The host this deployment answers on, which is what resolveTenantByHost
-     reads. Development runs under lvh.me so a cookie can span it. */
+     reads. Development runs under localhost. */
   const platform = process.env["PLATFORM_HOST"] ?? "connectapp.church";
 
   it("stops the host naming the church, and turning it on brings it back", async () => {
@@ -198,6 +198,34 @@ describe("turning the address off", () => {
 
     await run(one, (tx) => setPortalOpen(tx, as(one), true));
     expect(await resolveTenantByHost(`portalswitch.${platform}`)).not.toBeNull();
+  });
+
+  /*
+   * R1.1, R17.1. The slug goes on answering, and says where to go instead.
+   *
+   * A church reached at its slug after choosing a name is reached at an
+   * address it no longer hands out. The resolver carries the chosen name back
+   * so the request can be sent on to it, rather than serving a second copy of
+   * the church at a second address.
+   */
+  it("reports the chosen name when reached by the slug", async () => {
+    await run(one, (tx) => setPortalName(tx, as(one), { name: "portalchosen" }));
+
+    const bySlug = await resolveTenantByHost(`portalone.${platform}`);
+    expect(bySlug?.slug).toBe("portalone");
+    expect(bySlug?.portalName).toBe("portalchosen");
+
+    // Reached at the name it chose, where the name and the host agree, so
+    // there is nowhere else to send it.
+    const byName = await resolveTenantByHost(`portalchosen.${platform}`);
+    expect(byName?.portalName).toBe("portalchosen");
+  });
+
+  it("reports no chosen name for a church that has not picked one", async () => {
+    await run(one, (tx) => setPortalName(tx, as(one), { name: null }));
+    const found = await resolveTenantByHost(`portalone.${platform}`);
+    expect(found?.slug).toBe("portalone");
+    expect(found?.portalName).toBeNull();
   });
 
   it("cannot be turned off by a role that cannot manage the church", async () => {

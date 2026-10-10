@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { redirect } from "next/navigation";
 import { documentTheme } from "@/lib/theme";
+import { canonicalAddress } from "@/lib/church-address";
 import { Fraunces, Inter, JetBrains_Mono, Noto_Color_Emoji } from "next/font/google";
 import { TooltipProvider } from "@connectapp/ui";
 import "./globals.css";
@@ -62,6 +64,11 @@ export const viewport: Viewport = {
  * ConnectApp's own website opens dark instead, which `lib/theme.ts` holds.
  */
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  /* R1.1, R17.1. A church that picked a name is reached at it. The slug it
+     started with sends people on rather than serving a second copy. */
+  const elsewhere = await canonicalAddress();
+  if (elsewhere) redirect(elsewhere);
+
   const { attr } = await documentTheme();
 
   return (
