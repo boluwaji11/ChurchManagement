@@ -221,6 +221,14 @@ export async function commitGroups(
     .from(groupTypes)
     .where(isNull(groupTypes.archivedAt));
   const typeByName = new Map(types.map((row) => [fold(row.name), row.id]));
+  /*
+   * R9.1, R19.2. Every group is one of the kinds the church keeps, and a
+   * spreadsheet out of another product rarely says which. A row that names no
+   * kind, or names one this church does not have, takes the church's first
+   * kind rather than failing the import: a group filed under the wrong
+   * heading is a change of heading, and a refused import is an evening.
+   */
+  const fallbackType = types[0]?.id ?? null;
 
   // Read again here rather than trusting the plan. A group name is unique in a
   // church, so a group created between the preview and this would make the
@@ -249,7 +257,8 @@ export async function commitGroups(
     if (!groupId) {
       const group = await createGroup(db, { tenantId: actor.tenantId, role: actor.role }, {
         name: row.groupName.trim(),
-        typeId: row.typeName ? (typeByName.get(fold(row.typeName)) ?? null) : null,
+        typeId:
+          (row.typeName ? typeByName.get(fold(row.typeName)) : null) ?? fallbackType,
       });
       groupId = group.id;
       made.set(key, groupId);

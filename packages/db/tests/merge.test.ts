@@ -11,7 +11,9 @@ import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { mergePeople, undoMerge, listMerges, findDuplicatePairs } from "../src/repo/merge";
 import { createPerson, getPersonForEdit, listPeople, listTagsForPerson } from "../src/repo/members";
 import { createTag, setPersonTag } from "../src/repo/tags";
-import { createGroup, addToGroup, removeFromGroup, groupRoster, seedGroupTypes } from "../src/repo/groups";
+import {
+  createGroup, addToGroup, removeFromGroup, groupRoster, seedGroupTypes, listGroupTypes,
+} from "../src/repo/groups";
 import { enterPipeline, addTask, peopleIn, listPipelines } from "../src/repo/followups";
 import { createNote, countNotes } from "../src/repo/notes";
 import { PermissionError, type TenantRole } from "../src/roles";
@@ -287,12 +289,20 @@ describe("the review queue (R2.8)", () => {
 describe("what a merge takes with it (R2.8)", () => {
   const today = new Date().toISOString().slice(0, 10);
 
+  /* R9.1. Every group is one of the kinds the church keeps, so the tests
+     that make one ask the church for a kind first. */
+  const aKind = async (): Promise<string> => {
+    await run(riverside, "owner", (tx) => seedGroupTypes(tx, as(riverside)));
+    const kinds = await run(riverside, "owner", (tx) => listGroupTypes(tx));
+    return kinds[0]!.id;
+  };
+
   it("moves a group membership onto the survivor", async () => {
     const winner = await make("Ada");
     const loser = await make("Addie");
-    await run(riverside, "owner", (tx) => seedGroupTypes(tx, as(riverside)));
+    const typeId = await aKind();
     const group = await run(riverside, "owner", (tx) =>
-      createGroup(tx, as(riverside), { name: `Mergetest group ${Date.now()}` }),
+      createGroup(tx, as(riverside), { name: `Mergetest group ${Date.now()}`, typeId }),
     );
     await run(riverside, "owner", (tx) =>
       addToGroup(tx, as(riverside), { groupId: group.id, memberId: loser.id, role: "leader" }),
@@ -312,8 +322,9 @@ describe("what a merge takes with it (R2.8)", () => {
   it("leaves a membership where the survivor is already live in that group", async () => {
     const winner = await make("Bea");
     const loser = await make("Beatrice");
+    const typeId = await aKind();
     const group = await run(riverside, "owner", (tx) =>
-      createGroup(tx, as(riverside), { name: `Mergetest both ${Date.now()}` }),
+      createGroup(tx, as(riverside), { name: `Mergetest both ${Date.now()}`, typeId }),
     );
     for (const person of [winner, loser]) {
       await run(riverside, "owner", (tx) =>
@@ -335,8 +346,9 @@ describe("what a merge takes with it (R2.8)", () => {
     // a collision. Treating it as one was how somebody came off a group.
     const winner = await make("Cara");
     const loser = await make("Carah");
+    const typeId = await aKind();
     const group = await run(riverside, "owner", (tx) =>
-      createGroup(tx, as(riverside), { name: `Mergetest rejoin ${Date.now()}` }),
+      createGroup(tx, as(riverside), { name: `Mergetest rejoin ${Date.now()}`, typeId }),
     );
     await run(riverside, "owner", (tx) =>
       addToGroup(tx, as(riverside), { groupId: group.id, memberId: winner.id }),
@@ -380,8 +392,9 @@ describe("what a merge takes with it (R2.8)", () => {
   it("puts every one of them back when the merge is undone", async () => {
     const winner = await make("Eve");
     const loser = await make("Evie");
+    const typeId = await aKind();
     const group = await run(riverside, "owner", (tx) =>
-      createGroup(tx, as(riverside), { name: `Mergetest undo ${Date.now()}` }),
+      createGroup(tx, as(riverside), { name: `Mergetest undo ${Date.now()}`, typeId }),
     );
     await run(riverside, "owner", (tx) =>
       addToGroup(tx, as(riverside), { groupId: group.id, memberId: loser.id }),

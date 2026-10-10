@@ -101,7 +101,7 @@ describe("the record (R9.2)", () => {
   });
 
   it("takes a group with no pattern at all", async () => {
-    const group = await run((tx) => createGroup(tx, as(), { name: "Prayer, when it suits" }));
+    const group = await run((tx) => createGroup(tx, as(), { name: "Prayer, when it suits", typeId: smallGroup }));
     expect(group.dayOfWeek).toBeNull();
     expect(group.startsAt).toBeNull();
     expect(group.frequency).toBeNull();
@@ -110,23 +110,26 @@ describe("the record (R9.2)", () => {
   it("refuses what it cannot store honestly", async () => {
     await expect(run((tx) => createGroup(tx, as(), { name: "" })))
       .rejects.toBeInstanceOf(InvalidInputError);
-    await expect(run((tx) => createGroup(tx, as(), { name: "Bad day", dayOfWeek: 9 })))
+    await expect(run((tx) => createGroup(tx, as(), { name: "Bad day", typeId: smallGroup, dayOfWeek: 9 })))
       .rejects.toBeInstanceOf(InvalidInputError);
-    await expect(run((tx) => createGroup(tx, as(), { name: "Bad time", startsAt: "7pm" })))
+    await expect(run((tx) => createGroup(tx, as(), { name: "Bad time", typeId: smallGroup, startsAt: "7pm" })))
       .rejects.toBeInstanceOf(InvalidInputError);
-    await expect(run((tx) => createGroup(tx, as(), { name: "Bad often", frequency: "sometimes" })))
+    await expect(run((tx) => createGroup(tx, as(), { name: "Bad often", typeId: smallGroup, frequency: "sometimes" })))
       .rejects.toBeInstanceOf(InvalidInputError);
-    await expect(run((tx) => createGroup(tx, as(), { name: "Bad size", capacity: 0 })))
+    await expect(run((tx) => createGroup(tx, as(), { name: "Bad size", typeId: smallGroup, capacity: 0 })))
       .rejects.toBeInstanceOf(InvalidInputError);
   });
 
   it("refuses a second group with the same name", async () => {
-    await expect(run((tx) => createGroup(tx, as(), { name: "tuesday night" })))
+    await expect(run((tx) => createGroup(tx, as(), { name: "tuesday night", typeId: smallGroup })))
       .rejects.toBeInstanceOf(NameTakenError);
   });
 
   it("is changed, including back to having no pattern", async () => {
-    const [group] = await run((tx) => listGroups(tx, { typeId: smallGroup }));
+    /* The one written at the top of this file, by name rather than by its
+       place in a list that other tests add to. */
+    const all = await run((tx) => listGroups(tx, { typeId: smallGroup }));
+    const group = all.find((one) => one.name === "Tuesday night");
     const changed = await run((tx) => updateGroup(tx, as(), group!.id, {
       name: "Tuesday night", location: "The Annexe", dayOfWeek: null, startsAt: null,
     }));
@@ -140,7 +143,7 @@ describe("the record (R9.2)", () => {
   });
 
   it("refuses a member at the query layer", async () => {
-    await expect(run((tx) => createGroup(tx, as("member"), { name: "Mine" }), "member"))
+    await expect(run((tx) => createGroup(tx, as("member"), { name: "Mine", typeId: smallGroup }), "member"))
       .rejects.toBeInstanceOf(PermissionError);
   });
 });
@@ -226,7 +229,7 @@ describe("the roster (R9.3, R9.4)", () => {
 
 describe("archiving (R9.2)", () => {
   it("takes the group off the list and keeps its roster", async () => {
-    const group = await run((tx) => createGroup(tx, as(), { name: "Finished course" }));
+    const group = await run((tx) => createGroup(tx, as(), { name: "Finished course", typeId: smallGroup }));
     await run((tx) => addToGroup(tx, as(), { groupId: group.id, memberId: joy }));
 
     await run((tx) => setGroupArchived(tx, as(), group.id, true));

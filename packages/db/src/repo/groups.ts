@@ -544,7 +544,19 @@ export async function updateGroup(
   input: GroupInput,
 ): Promise<Group> {
   if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
-  const values = check(input);
+
+  /*
+   * R9.1. A group already has a kind, so a change that leaves it alone does
+   * not have to send it again. The kind is still required: a group cannot be
+   * written without one and cannot be edited into having none.
+   */
+  const [held] = await db
+    .select({ typeId: groups.typeId })
+    .from(groups)
+    .where(eq(groups.id, id))
+    .limit(1);
+  const typeId = input.typeId ?? held?.typeId ?? null;
+  const values = check({ ...input, typeId });
 
   const [taken] = await db
     .select({ id: groups.id })
@@ -558,7 +570,7 @@ export async function updateGroup(
   const updated = await db
     .update(groups)
     .set({
-      typeId: input.typeId ?? null,
+      typeId,
       online: input.online ?? false,
       childrenWelcome: input.childrenWelcome ?? false,
       openToJoin: input.openToJoin ?? true,

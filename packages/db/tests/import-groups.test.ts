@@ -13,7 +13,9 @@ import { readSheet } from "../src/import/csv";
 import { isGroupSheet, guessGroupMapping, parseGroupRole } from "../src/import/group-columns";
 import { planGroups, commitGroups, rollbackGroupImport } from "../src/import/run-groups";
 import { createPerson } from "../src/repo/members";
-import { groupRoster, listGroups, seedGroupTypes, createGroup, addToGroup } from "../src/repo/groups";
+import {
+  groupRoster, listGroups, seedGroupTypes, listGroupTypes, createGroup, addToGroup,
+} from "../src/repo/groups";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
 
@@ -214,7 +216,10 @@ describe("undoing it (R19.4)", () => {
   });
 
   it("leaves a group the church already had exactly where it was", async () => {
-    const existing = await run((tx) => createGroup(tx, as(), { name: "Already Ours" }));
+    const kinds = await run((tx) => listGroupTypes(tx));
+    const existing = await run((tx) =>
+      createGroup(tx, as(), { name: "Already Ours", typeId: kinds[0]!.id }),
+    );
     const { result } = await importGroups(
       `Already Ours,,Ruth,Mensah,ruth@grouptest.invalid,Member,\n`,
     );
