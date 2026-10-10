@@ -1,12 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy, ExternalLink, Globe, Link2, Users } from "lucide-react";
+import { Check, Copy, ExternalLink, Globe, Link2, Search, Users } from "lucide-react";
 import {
   Banner, Button, Card, CardTitle, Field, Input, Separator, Switch, Textarea, Tooltip
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { saveDomain, setSignup } from "./domain-actions";
+import type { DomainFindings } from "@connectapp/db/rules";
+import { saveDomain, setSignup, checkDomain } from "./domain-actions";
+import { DomainReading } from "./domain-reading";
 
 /**
  * One address, with the two things anybody does to it.
@@ -107,6 +109,9 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
   const [saved, setSaved] = React.useState(domain);
   const [error, setError] = React.useState<string>();
   const [pending, start] = React.useTransition();
+  /* HRT-283. What the lookup found, held until the field is typed over. */
+  const [found, setFound] = React.useState<DomainFindings | null>(null);
+  const [checking, startChecking] = React.useTransition();
 
   const accountLink = `${origin}/join/${slug}`;
   const groupsLink = `${origin}/g/${slug}`;
@@ -186,7 +191,12 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
           <Field label={t("domain.label")} className="min-w-[260px] flex-1">
             <Input
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                // A reading of the old name under the new one is worse than
+                // no reading at all.
+                setFound(null);
+              }}
               placeholder={t("domain.hint")}
               inputMode="url"
               disabled={!approved}
@@ -209,9 +219,30 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
           >
             {t("action.save")}
           </Button>
+
+          {/* HRT-283, R22.2. The reading comes before the change. Nothing
+              here writes, so it is safe to press at any point. */}
+          <Button
+            variant="secondary"
+            loading={checking}
+            disabled={!approved || !draft.trim() || checking}
+            onClick={() =>
+              startChecking(async () => {
+                setError(undefined);
+                setFound(null);
+                const back = await checkDomain(draft, slug);
+                setError(back.error);
+                setFound(back.found ?? null);
+              })
+            }
+          >
+            <Search /> {t("domain.check")}
+          </Button>
         </div>
 
         <p className="text-[13px] text-fg-muted">{t("domain.dns", { target: appHost })}</p>
+
+        {found ? <DomainReading found={found} /> : null}
       </Card>
     </div>
   );

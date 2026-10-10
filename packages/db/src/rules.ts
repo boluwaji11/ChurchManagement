@@ -19,3 +19,5 @@ export * from "./repo/form-templates";
 export * from "./repo/label-rules";
 export * from "./repo/storage-rules";
 export * from "./repo/report-spec";
+// HRT-283. Pure: the lookup itself lives beside it in domain/resolver.
+export * from "./domain/preflight";

@@ -42,6 +42,10 @@ export async function saveChurch(data: FormData): Promise<SettingsResult> {
       updateChurch(tx, { tenantId: session.tenantId, role: session.role }, {
         name: text(data, "name"),
         legalName: text(data, "legalName"),
+        /* R1.5. Named only when the form carried the field, which it does
+           only for a reader whose role may read it. Leaving the key off keeps
+           whatever is stored. */
+        ...(data.has("taxId") ? { taxId: text(data, "taxId") } : {}),
         timezone: text(data, "timezone"),
         addressLine1: text(data, "addressLine1"),
         addressLine2: text(data, "addressLine2"),

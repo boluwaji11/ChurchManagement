@@ -16,6 +16,19 @@ export const tenants = pgTable(
     slug: text("slug").notNull(),
     name: text("name").notNull(),
     legalName: text("legal_name"),
+    /**
+     * R1.1, R13.1. The number the church is registered under: an EIN in the
+     * United States, a charity number in the United Kingdom, an ABN in
+     * Australia.
+     *
+     * Asked for once and read from here by everything that needs it. Opening a
+     * giving account asks for it, and so does registering to send texts, and a
+     * volunteer who would have hunted for the paperwork twice hunts once.
+     *
+     * Read only by a role carrying `church.manage`. The query layer leaves the
+     * field off the record for everybody else (R1.5).
+     */
+    taxId: text("tax_id"),
     timezone: text("timezone").notNull().default("America/Chicago"),
     /** R1.1. One address. A church with two buildings has two campuses (R1.2). */
     addressLine1: text("address_line1"),

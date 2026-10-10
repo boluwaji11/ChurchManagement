@@ -112,6 +112,8 @@ export * from "./repo/stripe-accounts";
 export * from "./repo/public-giving";
 export * from "./repo/statements";
 export * from "./repo/giving-reports";
+export * from "./domain/preflight";
+export { dnsResolver } from "./domain/resolver";
 export * from "./repo/recurring";
 export * from "./repo/campaigns";
 export * from "./repo/plan-templates";

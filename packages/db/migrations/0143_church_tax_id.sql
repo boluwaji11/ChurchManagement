@@ -1,0 +1,13 @@
+-- HRT-284, R1.1, R13.1. The number a church is registered under.
+--
+-- One column rather than a table. A church has one registration, and the
+-- number is asked for by its own government, by Stripe when the giving
+-- account is opened, and by the carriers when a church registers to send
+-- texts. It is written down once here and read from here every time
+-- something asks for it.
+--
+-- Free text rather than a checked shape, because the shape differs by
+-- country. The United States writes an EIN as nine digits, the United Kingdom
+-- writes a charity number as six or seven, Australia writes an ABN as eleven.
+-- The query layer tidies the one shape it knows and leaves the rest as typed.
+alter table tenants add column if not exists tax_id text;

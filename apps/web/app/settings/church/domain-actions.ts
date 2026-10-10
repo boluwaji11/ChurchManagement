@@ -1,7 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { withTenant, setCustomDomain, setSelfSignup } from "@connectapp/db";
+import {
+  withTenant, setCustomDomain, setSelfSignup,
+  canManageChurch, readDomain, dnsResolver, type DomainFindings,
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
 
@@ -45,4 +49,25 @@ export async function setSignup(open: boolean, church?: string): Promise<{ error
   } catch (error) {
     return { error: explain(error) };
   }
+}
+
+/**
+ * HRT-283, R22.2. Read the church's domain and say what is published.
+ *
+ * Nothing is written anywhere by this. It is the lookup any mail server on the
+ * internet does before it delivers to them, done where the church can read the
+ * answer, so the screen that asks to touch their DNS can first show that it
+ * knows what is already there.
+ */
+export async function checkDomain(
+  domain: string,
+  church?: string,
+): Promise<{ found?: DomainFindings; error?: string }> {
+  const session = await requireSession(church);
+  if (!canManageChurch(session)) {
+    return { error: t("domain.error.notAllowed") };
+  }
+
+  const found = await readDomain(domain, dnsResolver());
+  return found ? { found } : { error: t("domain.error.notADomain") };
 }

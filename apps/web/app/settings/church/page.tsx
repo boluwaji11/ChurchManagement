@@ -33,7 +33,10 @@ export default async function SettingsPage({
   const { profile, campus } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
-      profile: await getChurch(tx, session.tenantId),
+      /* R1.5. The reader goes with the read, so the registration number is
+         on the record for a role that carries `church.manage` and absent for
+         everybody else. */
+      profile: await getChurch(tx, session.tenantId, session),
       // R1.2. The one campus every record in this church hangs off.
       campus: await primaryCampus(tx),
     }),

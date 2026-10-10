@@ -48,11 +48,27 @@ export interface ChurchProfile {
   statementsBy: string;
   /** R1.1. The church's own address for its members' screens. */
   customDomain: string | null;
+  /**
+   * R1.1, R1.5, R13.1. The number the church is registered under.
+   *
+   * Present only when the reader carries `church.manage`. Absent otherwise,
+   * which is the field-level rule: the record comes back without the field
+   * rather than with it blanked, so nothing downstream can read "may not see
+   * this" as "the church has not filled it in".
+   */
+  taxId?: string | null;
 }
 
 export interface ChurchInput {
   name: string;
   legalName?: string | null;
+  /**
+   * R1.1. Left out of the input entirely to keep whatever is stored. A caller
+   * that knows nothing about this field cannot blank it by omission, which
+   * matters because the setup wizard and the brand picker both write the
+   * profile back without ever having read this part of it.
+   */
+  taxId?: string | null;
   timezone: string;
   addressLine1?: string | null;
   addressLine2?: string | null;
@@ -66,7 +82,19 @@ export interface ChurchInput {
   brandHue?: string;
 }
 
-export async function getChurch(db: Tx, tenantId: string): Promise<ChurchProfile | null> {
+/**
+ * R1.1, R1.5. The church's record.
+ *
+ * The reader is optional because most callers want the timezone or the name
+ * and have no business answering who may read a registration number. Passing
+ * one is what puts `taxId` on the record, and only for a role carrying
+ * `church.manage`.
+ */
+export async function getChurch(
+  db: Tx,
+  tenantId: string,
+  reader?: Who,
+): Promise<ChurchProfile | null> {
   const [row] = await db
     .select({
       id: tenants.id, slug: tenants.slug, name: tenants.name, legalName: tenants.legalName,
@@ -76,14 +104,42 @@ export async function getChurch(db: Tx, tenantId: string): Promise<ChurchProfile
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
       customDomain: tenants.customDomain,
+      taxId: tenants.taxId,
     })
     .from(tenants)
     .where(eq(tenants.id, tenantId))
     .limit(1);
-  return row ?? null;
+  if (!row) return null;
+
+  /* R1.5. Field-level, enforced here. The view is a convenience, never the
+     guard: a screen that forgets to hide this must still not receive it. */
+  const { taxId, ...rest } = row;
+  return reader && canManageChurch(reader) ? { ...rest, taxId } : rest;
 }
 
 const trim = (value: string | null | undefined): string | null => value?.trim() || null;
+
+/**
+ * R1.1, R13.1. The registration number, tidied for the one country whose
+ * shape we know.
+ *
+ * A United States EIN is nine digits written as two and then seven, and a
+ * church secretary types it every way there is: with the hyphen, without it,
+ * with spaces. Stripe and the carriers want one of those, so it is settled
+ * here rather than at each of the places that will later read it.
+ *
+ * Everywhere else it is kept exactly as typed. Guessing at the shape of a
+ * charity number we have never seen is how a correct number gets rejected.
+ */
+export function tidyTaxId(value: string | null | undefined, country: string): string | null {
+  const raw = trim(value);
+  if (!raw) return null;
+  if (country.toUpperCase() !== "US") return raw;
+
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length !== 9) throw new InvalidInputError("church.error.taxId");
+  return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+}
 
 /** True when the runtime recognises the zone. An unknown zone breaks every date. */
 export function isKnownTimezone(zone: string): boolean {
@@ -113,18 +169,23 @@ export async function updateChurch(
     throw new InvalidInputError("church.error.email");
   }
 
+  const country = input.country?.trim() || "US";
+
   const [row] = await db
     .update(tenants)
     .set({
       name,
       legalName: trim(input.legalName),
+      /* R1.1. Only touched when the caller named it, so a form that has never
+         heard of this field cannot clear it. */
+      ...("taxId" in input ? { taxId: tidyTaxId(input.taxId, country) } : {}),
       timezone: input.timezone,
       addressLine1: trim(input.addressLine1),
       addressLine2: trim(input.addressLine2),
       city: trim(input.city),
       region: trim(input.region),
       postalCode: trim(input.postalCode),
-      country: input.country?.trim() || "US",
+      country,
       phone: trim(input.phone),
       email,
       website: trim(input.website),
@@ -139,7 +200,7 @@ export async function updateChurch(
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
-      customDomain: tenants.customDomain,
+      customDomain: tenants.customDomain, taxId: tenants.taxId,
     });
 
   if (!row) throw new InvalidInputError("church.error.notFound");

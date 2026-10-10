@@ -5,7 +5,10 @@ import { Pencil } from "lucide-react";
 import { Banner, Combobox, Field, IconButton, Input } from "@connectapp/ui";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions, BackToView } from "@/components/form-actions";
-import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@connectapp/i18n";
+import {
+  t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL,
+  TAX_ID_LABEL, TAX_ID_SAMPLE,
+} from "@connectapp/i18n";
 import { Said } from "@/components/said";
 import { saveChurch } from "./actions";
 import { Details, Detail } from "./card";
@@ -14,6 +17,11 @@ export interface ChurchValues {
   slug: string;
   name: string;
   legalName: string | null;
+  /**
+   * R1.1, R1.5. Absent where the reader's role does not carry it, which is
+   * what keeps the field off the screen as well as out of the record.
+   */
+  taxId?: string | null;
   timezone: string;
   addressLine1: string | null;
   addressLine2: string | null;
@@ -60,6 +68,12 @@ export function ChurchForm({
   const countries = React.useMemo(() => countryList(), []);
   const regions = subdivisionsFor(country);
   const regionLabel = REGION_LABEL[country] ?? t("church.region");
+  /* R1.1. Named and exampled by the country on the record, so a church in
+     Lagos is asked for an RC number rather than for an EIN. */
+  const taxLabel = TAX_ID_LABEL[country] ?? t("church.taxId");
+  const taxSample = TAX_ID_SAMPLE[country];
+  /* R1.5. The field is on the screen only when the record carried it. */
+  const mayReadTaxId = "taxId" in values;
 
   const save = (data: FormData) => {
     data.set("church", values.slug);
@@ -113,7 +127,9 @@ export function ChurchForm({
 
         <hr className="border-0 border-t border-line" />
 
-        {editing ? null : <Reading values={values} regionLabel={regionLabel} />}
+        {editing ? null : (
+          <Reading values={values} regionLabel={regionLabel} taxLabel={taxLabel} />
+        )}
 
         {/* The buttons that commit this form sit at the foot of the page,
             under the last section they change, so one press saves the lot. */}
@@ -130,6 +146,16 @@ export function ChurchForm({
             <Field label={t("church.legalName")}>
               <Input name="legalName" defaultValue={values.legalName ?? ""} disabled={!canEdit} />
             </Field>
+            {mayReadTaxId ? (
+              <Field label={taxLabel}>
+                <Input
+                  name="taxId"
+                  defaultValue={values.taxId ?? ""}
+                  placeholder={taxSample ? t("church.taxIdSample", { sample: taxSample }) : undefined}
+                  disabled={!canEdit}
+                />
+              </Field>
+            ) : null}
             <Field label={t("church.address")} className="[grid-column:1/-1]">
               <Input name="addressLine1" defaultValue={values.addressLine1 ?? ""} disabled={!canEdit} />
             </Field>
@@ -224,10 +250,20 @@ function href(website: string | null): string | undefined {
  * The same grid the form uses, so switching into editing moves nothing on the
  * screen except the boxes appearing around the words.
  */
-function Reading({ values, regionLabel }: { values: ChurchValues; regionLabel: string }) {
+function Reading({
+  values,
+  regionLabel,
+  taxLabel,
+}: {
+  values: ChurchValues;
+  regionLabel: string;
+  taxLabel: string;
+}) {
   const rows: Array<[string, string | null, string?]> = [
     // The name is the card's own heading, beside the mark.
     [t("church.legalName"), values.legalName],
+    // R1.5. Off the screen entirely where the record did not carry it.
+    ...("taxId" in values ? [[taxLabel, values.taxId ?? null] as [string, string | null]] : []),
     [t("church.address"), [values.addressLine1, values.addressLine2].filter(Boolean).join(", ")],
     [t("church.city"), values.city],
     [regionLabel, values.region],

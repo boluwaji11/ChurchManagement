@@ -305,3 +305,27 @@ export const REGION_LABEL: Record<string, string> = {
   GB: "Country", IE: "County", KE: "County", GH: "Region",
   JP: "Prefecture", KR: "Province", BD: "Division",
 };
+
+/**
+ * HRT-284, R1.1. What a country calls the number an organisation is
+ * registered under.
+ *
+ * The United States says EIN and a church secretary will not recognise
+ * anything else on the form. Everywhere this list does not reach falls back to
+ * the catalogue's plain "Tax ID", which is wrong nowhere and precise nowhere.
+ *
+ * Proper nouns rather than copy, which is why they sit here beside the region
+ * names rather than in the message catalogue.
+ */
+export const TAX_ID_LABEL: Record<string, string> = {
+  US: "EIN", CA: "Business number", GB: "Charity number", IE: "CHY number",
+  AU: "ABN", NZ: "NZBN", ZA: "NPO number", IN: "PAN", NG: "RC number",
+  KE: "KRA PIN", GH: "TIN", PH: "TIN", BR: "CNPJ", MX: "RFC",
+  DE: "Steuernummer", NL: "RSIN", FR: "SIRET", ES: "NIF", IT: "Codice fiscale",
+};
+
+/** How a country's number is written, shown as the specimen in the field. */
+export const TAX_ID_SAMPLE: Record<string, string> = {
+  US: "12-3456789", CA: "123456789RR0001", GB: "1234567", AU: "12 345 678 901",
+  NZ: "9429012345678", IE: "CHY12345", BR: "12.345.678/0001-90",
+};
