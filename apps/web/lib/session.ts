@@ -177,11 +177,14 @@ function nextFrom(path: string | null): string {
 
 export const requireSession = cache(async (asked?: string): Promise<Session> => {
   /*
-   * The address in the request wins, because a link somebody was sent names
-   * the church on purpose. Failing that, the host answers, which is what makes
-   * a church's own domain feel like the church's own software.
+   * R1.4, R17.1. The host wins.
+   *
+   * A church's own address is the church, so riverside.connectapp.church is
+   * Riverside's whatever a link in the address says. The parameter is how the
+   * product named a church before the addresses existed, and it still answers
+   * on our own host, where there is nothing else to go on.
    */
-  const slug = asked ?? (await churchFromHost());
+  const slug = (await churchFromHost()) ?? asked;
 
   const user = await currentUser();
   if (!user) {

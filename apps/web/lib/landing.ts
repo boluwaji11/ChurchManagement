@@ -1,6 +1,7 @@
 import {
   membershipsForUser, canEditPeople, canReadIncidents, type TenantRole,
 } from "@connectapp/db";
+import { churchLanding } from "@/lib/church-address";
 
 /**
  * R18.1, R5.5. Where somebody lands once they are signed in.
@@ -12,8 +13,17 @@ import {
 export async function landingFor(userId: string): Promise<string> {
   try {
     const memberships = await membershipsForUser(userId);
-    if (memberships.length !== 1) return "/dashboard";
-    return landingForRole(memberships[0]!.role);
+    if (memberships.length !== 1) return "/choose-church";
+
+    /*
+     * R17.1. Into the church at the church's own address.
+     *
+     * Landing on our host with the church written in the query left somebody
+     * one link away from an address that names them, and every screen after
+     * it carrying the name in the query because the first one did.
+     */
+    const only = memberships[0]!;
+    return churchLanding(only.tenantSlug, landingForRole(only.role));
   } catch {
     return "/dashboard";
   }

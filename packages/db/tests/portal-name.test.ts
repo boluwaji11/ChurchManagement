@@ -35,23 +35,27 @@ afterAll(async () => {
 });
 
 describe("a name under our own host", () => {
+  /* Named here rather than read from the environment, so the rule is what is
+     being tested and not whichever host this machine is set up for. */
+  const OURS = "connectapp.church";
+
   it("reads the church out of the address", () => {
-    expect(slugUnderPlatform("riverside.connectapp.church")).toBe("riverside");
-    expect(slugUnderPlatform("ONEFAMILY.connectapp.church")).toBe("onefamily");
+    expect(slugUnderPlatform("riverside.connectapp.church", OURS)).toBe("riverside");
+    expect(slugUnderPlatform("ONEFAMILY.connectapp.church", OURS)).toBe("onefamily");
     // Somebody working on it locally.
-    expect(slugUnderPlatform("riverside.localhost:4488")).toBe("riverside");
+    expect(slugUnderPlatform("riverside.localhost:4488", OURS)).toBe("riverside");
   });
 
   it("is not our own front door, and not a name two deep", () => {
-    expect(slugUnderPlatform("connectapp.church")).toBeNull();
-    expect(slugUnderPlatform("www.connectapp.church")).toBeNull();
-    expect(slugUnderPlatform("api.connectapp.church")).toBeNull();
-    expect(slugUnderPlatform("a.b.connectapp.church")).toBeNull();
+    expect(slugUnderPlatform("connectapp.church", OURS)).toBeNull();
+    expect(slugUnderPlatform("www.connectapp.church", OURS)).toBeNull();
+    expect(slugUnderPlatform("api.connectapp.church", OURS)).toBeNull();
+    expect(slugUnderPlatform("a.b.connectapp.church", OURS)).toBeNull();
   });
 
   it("is not somebody else's domain", () => {
-    expect(slugUnderPlatform("members.gracechurch.org")).toBeNull();
-    expect(slugUnderPlatform("gracechurch.org")).toBeNull();
+    expect(slugUnderPlatform("members.gracechurch.org", OURS)).toBeNull();
+    expect(slugUnderPlatform("gracechurch.org", OURS)).toBeNull();
   });
 });
 
@@ -179,17 +183,21 @@ describe("taking a name", () => {
  * running the week.
  */
 describe("turning the address off", () => {
+  /* The host this deployment answers on, which is what resolveTenantByHost
+     reads. Development runs under lvh.me so a cookie can span it. */
+  const platform = process.env["PLATFORM_HOST"] ?? "connectapp.church";
+
   it("stops the host naming the church, and turning it on brings it back", async () => {
     await run(one, (tx) => setPortalName(tx, as(one), { name: "portalswitch" }));
-    expect(await resolveTenantByHost("portalswitch.connectapp.church")).not.toBeNull();
+    expect(await resolveTenantByHost(`portalswitch.${platform}`)).not.toBeNull();
 
     await run(one, (tx) => setPortalOpen(tx, as(one), false));
-    expect(await resolveTenantByHost("portalswitch.connectapp.church")).toBeNull();
+    expect(await resolveTenantByHost(`portalswitch.${platform}`)).toBeNull();
     // And not by its slug either, since that is the same address.
-    expect(await resolveTenantByHost("portalone.connectapp.church")).toBeNull();
+    expect(await resolveTenantByHost(`portalone.${platform}`)).toBeNull();
 
     await run(one, (tx) => setPortalOpen(tx, as(one), true));
-    expect(await resolveTenantByHost("portalswitch.connectapp.church")).not.toBeNull();
+    expect(await resolveTenantByHost(`portalswitch.${platform}`)).not.toBeNull();
   });
 
   it("cannot be turned off by a role that cannot manage the church", async () => {

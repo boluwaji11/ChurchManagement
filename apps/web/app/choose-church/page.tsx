@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowRight, Church, Plus } from "lucide-react";
 import { membershipsForUser, resolveTenantBySlug } from "@connectapp/db";
 import { landingForRole } from "@/lib/landing";
+import { churchLanding } from "@/lib/church-address";
 import { Banner, Button, LIFT } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
 import { SignedInAs } from "@/components/signed-in-as";
@@ -48,6 +49,15 @@ export default async function ChooseChurch({
    */
   const asking = asked ? (await resolveTenantBySlug(asked))?.name : undefined;
 
+  /* R17.1. Each church at its own address, resolved here because a link
+     cannot wait on an answer. */
+  const ways = await Promise.all(
+    memberships.map(async (m) => ({
+      ...m,
+      href: await churchLanding(m.tenantSlug, landingForRole(m.role)),
+    })),
+  );
+
   return (
     <AuthShell
       title={memberships.length > 0 ? t("chooseChurch.title") : t("chooseChurch.getIn")}
@@ -80,13 +90,13 @@ export default async function ChooseChurch({
 
       {memberships.length > 0 ? (
         <ul className="flex list-none flex-col gap-2 p-0">
-          {memberships.map((m) => (
+          {ways.map((m) => (
             <li key={m.tenantId}>
               <Link
                 /* R1.4. The same screen signing in to that church would
                    open, so picking one out of a list and signing in to it
                    land in the same place. */
-                href={`${landingForRole(m.role)}?church=${m.tenantSlug}`}
+                href={m.href}
                 className={`group flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-4 no-underline shadow-sm ${LIFT}`}
               >
                 <span className="flex items-center gap-3">
