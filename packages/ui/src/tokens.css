@@ -116,7 +116,7 @@
      lightest thing on the rail. */
   --shell: var(--ink-600);
   --shell-fg: #ffffff;
-  --shell-muted: oklch(0.885 0.040 285);
+  --shell-muted: oklch(0.928 0.030 285);
   --shell-line: oklch(1 0 0 / 0.16);
   --fg: var(--stone-900);
   --fg-muted: var(--stone-600);
@@ -192,7 +192,7 @@
      lightest thing on the rail. */
   --shell: var(--ink-600);
   --shell-fg: #ffffff;
-  --shell-muted: oklch(0.885 0.040 285);
+  --shell-muted: oklch(0.928 0.030 285);
   --shell-line: oklch(1 0 0 / 0.16);
   --fg: var(--stone-900);
   --fg-muted: var(--stone-600);
@@ -239,9 +239,9 @@
     --canvas: oklch(0.238 0.032 286);
     --surface: oklch(0.288 0.034 286);
     --sunken: oklch(0.210 0.029 286);
-    --shell: oklch(0.300 0.082 285);
+    --shell: oklch(0.202 0.058 285);
     --shell-fg: #ffffff;
-    --shell-muted: oklch(0.830 0.044 285);
+    --shell-muted: oklch(0.888 0.034 285);
     --shell-line: oklch(1 0 0 / 0.14);
     --board: oklch(0.200 0.034 286);
     --fg: oklch(0.968 0.010 286);
@@ -305,9 +305,9 @@
     --canvas: oklch(0.238 0.032 286);
     --surface: oklch(0.288 0.034 286);
     --sunken: oklch(0.210 0.029 286);
-    --shell: oklch(0.300 0.082 285);
+    --shell: oklch(0.202 0.058 285);
     --shell-fg: #ffffff;
-    --shell-muted: oklch(0.830 0.044 285);
+    --shell-muted: oklch(0.888 0.034 285);
     --shell-line: oklch(1 0 0 / 0.14);
     --board: oklch(0.200 0.034 286);
     --fg: oklch(0.968 0.010 286);
