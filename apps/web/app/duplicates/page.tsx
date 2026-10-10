@@ -129,7 +129,7 @@ export default async function DuplicatesPage({
     <AppShell
       session={session}
       title={t("merge.title")}
-      max="max-w-[880px]"
+      max="max-w-[880px] mx-auto"
     >
       <Link
         href={"/members"}
