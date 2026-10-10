@@ -23,3 +23,4 @@ export * from "./notifications";
 export * from "./push";
 export * from "./reports";
 export * from "./giving";
+export * from "./messaging";

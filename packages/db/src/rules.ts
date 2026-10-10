@@ -21,3 +21,5 @@ export * from "./repo/storage-rules";
 export * from "./repo/report-spec";
 // HRT-283. Pure: the lookup itself lives beside it in domain/resolver.
 export * from "./domain/preflight";
+// HRT-286, HRT-287. Pure: the vendors live in the worker.
+export * from "./messaging/contract";

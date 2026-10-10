@@ -114,6 +114,7 @@ export * from "./repo/statements";
 export * from "./repo/giving-reports";
 export * from "./repo/group-reports";
 export * from "./domain/preflight";
+export * from "./messaging/contract";
 export { dnsResolver } from "./domain/resolver";
 export * from "./repo/recurring";
 export * from "./repo/campaigns";

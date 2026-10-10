@@ -40,3 +40,28 @@ function open(payload: string, name: string): string {
 export const encryptNote = (plaintext: string): string => seal(plaintext, "NOTE_ENCRYPTION_KEY");
 export const decryptNote = (payload: string): string => open(payload, "NOTE_ENCRYPTION_KEY");
 
+/**
+ * HRT-123, R21.15. A church's own provider credential, sealed.
+ *
+ * Same envelope as a confidential note and a different key, so a leak of one
+ * is not a leak of the other. The sealed value is what sits in the column; it
+ * is opened in the worker and nowhere else, and no read path selects it.
+ *
+ * `credentialKeyId` travels with the row so a key can be rotated by resealing
+ * rather than by reading every secret out and putting it back.
+ */
+export const CREDENTIAL_KEY_ID = "v1";
+
+export const sealCredential = (plaintext: string): string =>
+  seal(plaintext, "PROVIDER_CREDENTIAL_KEY");
+
+export const openCredential = (payload: string): string =>
+  open(payload, "PROVIDER_CREDENTIAL_KEY");
+
+/**
+ * What a credential may be written down as, anywhere a human or a log will
+ * see it. Never the value, and never a prefix of it either: the first eight
+ * characters of a Twilio SID identify the account.
+ */
+export const maskCredential = (value: string | null | undefined): string =>
+  value?.trim() ? "set" : "not set";

@@ -117,7 +117,7 @@ and a design file does not move it.
 | HRT-77 | Supabase advisors: the storage membership check off the REST API, covering indexes | R21.x | Closed |
 | HRT-121 | Backups with point-in-time recovery, and a restore drill run and written down | R21.6 | Closed |
 | HRT-122 | The no-training commitment where a church can read it, and nothing in the pipeline that breaks it | R21.12 | Closed |
-| HRT-123 | Church-supplied provider credentials encrypted with their own key, never logged, never returned | R21.15 | New |
+| HRT-123 | Church-supplied provider credentials encrypted with their own key, never logged, never returned | R21.15 | Resolved |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8, R21.4 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | Cut |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
@@ -461,8 +461,8 @@ behind them were dropped in migration 0058.
 |---|---|---|---|
 | HRT-137 | The church's own email provider | R16.1, R21.15 | **Removed, deferred** |
 | HRT-138 | The shared transactional quota | R16.3 | **Removed, deferred** |
-| HRT-286 | Connecting the church's own Twilio, and registering its carrier brand for it | R16.4, R16.13 | New, deferred |
-| HRT-287 | Connecting the church's own Resend, and verifying the root domain by DKIM | R16.1, R21.15 | New, deferred |
+| HRT-286 | Connecting the church's own Twilio, and registering its carrier brand for it | R16.4, R16.13 | Wiring built. Blocked on the Twilio subaccount spike, see docs/messaging-architecture.md |
+| HRT-287 | Connecting the church's own Resend, and verifying the root domain by DKIM | R16.1, R21.15 | Wiring built. Waiting on an OAuth client |
 | HRT-139 | The composer, merge fields and the template library | R16.4 | **Removed, deferred** |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
 | HRT-141 | The send queue | R16.6 | **Removed, deferred** |
