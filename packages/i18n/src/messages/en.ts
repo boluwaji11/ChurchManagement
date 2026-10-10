@@ -309,6 +309,7 @@ export const en = {
   "inbox.send": "Send",
   "inbox.attach": "Send a file",
   "inbox.aFile": "Sent a file",
+  "inbox.keepCopy": "Save a copy",
   "inbox.dontSend": "Do not send {name}",
   "inbox.failed": "That did not send",
   "inbox.tab.inbox": "Inbox",

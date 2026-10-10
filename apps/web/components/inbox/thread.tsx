@@ -1,8 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUp, Check, CheckCheck, FileText, Paperclip, X } from "lucide-react";
-import { Avatar, Spinner, Textarea, Tooltip } from "@connectapp/ui";
+import {
+  ArrowUp, Check, CheckCheck, Download, FileText, Paperclip, X,
+} from "lucide-react";
+import {
+  Avatar, Button, Spinner, Textarea, Tooltip,
+  Dialog, DialogContent, DialogFooter,
+} from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
 import { EmojiButton, LIKE, Marks } from "./marks";
@@ -340,7 +345,7 @@ export function Conversation({
                     {one.files.length > 0 ? (
                       <span className="mt-1.5 flex flex-col gap-1.5">
                         {one.files.map((file) => (
-                          <Sent key={file.id} church={church} file={file} mine={one.mine} />
+                          <Sent key={file.id} church={church} file={file} />
                         ))}
                       </span>
                     ) : null}
@@ -757,14 +762,13 @@ export function Writer({
 function Sent({
   church,
   file,
-  mine,
 }: {
   church: string;
   file: SentFile;
-  mine: boolean;
 }) {
   const [opening, setOpening] = React.useState(false);
   const [shown, setShown] = React.useState<string | null>(null);
+  const [big, setBig] = React.useState(false);
   const picture = file.contentType.startsWith("image/");
 
   /* A picture is the message, so it is fetched and shown. Anything else waits
@@ -778,7 +782,8 @@ function Sent({
     return () => { live = false; };
   }, [picture, file.key, church]);
 
-  const open = () => {
+  /** R16.14. Keeping a copy, under the name it was sent with. */
+  const save = () => {
     setOpening(true);
     void messageFileLink(file.key, church, file.label)
       .then((url) => {
@@ -789,32 +794,56 @@ function Sent({
 
   if (picture) {
     return (
-      <button
-        type="button"
-        onClick={open}
-        aria-label={file.label}
-        className="block max-w-[260px] cursor-pointer overflow-hidden rounded-lg"
-      >
-        {shown ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={shown} alt={file.label} className="h-auto w-full object-cover" />
-        ) : (
-          <span className="flex h-24 w-[200px] items-center justify-center bg-fg/[0.06]">
-            <Spinner />
-          </span>
-        )}
-      </button>
+      <>
+        {/* R16.14. A picture opens where it is, big enough to read. Keeping
+            a copy is a press inside that, rather than what looking at it
+            does. */}
+        <button
+          type="button"
+          onClick={() => setBig(true)}
+          aria-label={file.label}
+          className="block max-w-[260px] cursor-zoom-in overflow-hidden rounded-lg"
+        >
+          {shown ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={shown} alt={file.label} className="h-auto w-full object-cover" />
+          ) : (
+            <span className="flex h-24 w-[200px] items-center justify-center bg-fg/[0.06]">
+              <Spinner />
+            </span>
+          )}
+        </button>
+
+        <Dialog open={big} onOpenChange={setBig}>
+          <DialogContent title={file.label} closeLabel={t("common.close")}>
+            {shown ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={shown}
+                alt={file.label}
+                className="mx-auto max-h-[70vh] w-auto max-w-full rounded-lg"
+              />
+            ) : null}
+
+            <DialogFooter>
+              <Button type="button" variant="secondary" loading={opening} onClick={save}>
+                <Download /> {t("inbox.keepCopy")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
   return (
     <button
       type="button"
-      onClick={open}
+      onClick={save}
       disabled={opening}
-      className={`flex max-w-full cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12px] ${
-        mine ? "bg-primary-fg/15 text-primary-fg" : "bg-fg/[0.06] text-fg"
-      }`}
+      /* The same ground on either side of the conversation: a pale chip on
+         the writer's own lavender bubble had white words on it. */
+      className="flex max-w-full cursor-pointer items-center gap-1.5 rounded-lg bg-fg/[0.08] px-2 py-1.5 text-[12px] text-fg"
     >
       {opening ? <Spinner /> : <FileText className="size-4 shrink-0" aria-hidden />}
       <span className="truncate underline underline-offset-2">{file.label}</span>
