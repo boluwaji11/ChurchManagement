@@ -801,6 +801,8 @@ export interface PersonEditValues extends PersonInput {
   /** R24.6. The readable part of their address, for a link back. */
   slug: string;
   archivedAt: Date | null;
+  /** R2.8. When the record was written, which is what tells two copies apart. */
+  createdAt: Date;
 }
 
 /** Everything the edit form needs, shaped the way the form holds it. */
@@ -826,6 +828,7 @@ export async function getPersonForEdit(db: Tx, id: string): Promise<PersonEditVa
     id: person.id,
     slug: person.slug,
     archivedAt: person.archivedAt,
+    createdAt: person.createdAt,
     firstName: person.firstName,
     lastName: person.lastName,
     preferredName: person.preferredName,

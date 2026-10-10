@@ -21,6 +21,8 @@ export interface PersonSide {
   firstVisitOn: string | null;
   email: string | null;
   phone: string | null;
+  /** R2.8. When the record was written, for telling two copies apart. */
+  addedOn: string;
 }
 
 export interface Pair {
@@ -426,7 +428,9 @@ function ClusterCard({ church, group }: { church: string; group: Group }) {
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate font-medium text-fg">{one.name}</span>
                   <span className="truncate text-[12px] text-fg-subtle">
-                    {[show(one.email), show(one.phone), show(one.lifecycleStatus)].join(" \u00b7 ")}
+                    {[one.email, one.phone, one.lifecycleStatus.replace(/_/g, " "),
+                      t("merge.cluster.added", { date: one.addedOn })]
+                      .filter(Boolean).join(" \u00b7 ")}
                   </span>
                 </span>
 
@@ -441,7 +445,7 @@ function ClusterCard({ church, group }: { church: string; group: Group }) {
                 type="button"
                 variant="ghost"
                 disabled={busy || (kept && !left)}
-                label={left ? t("merge.cluster.putBack") : t("merge.notSame")}
+                label={left ? t("merge.cluster.restore") : t("merge.notSame")}
                 onClick={() => drop(one.id)}
               >
                 {left ? <Undo2 /> : <X />}

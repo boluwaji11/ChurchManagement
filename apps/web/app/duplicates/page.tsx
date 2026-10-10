@@ -101,6 +101,11 @@ export default async function DuplicatesPage({
           firstVisitOn: person.firstVisitOn ?? null,
           email: person.email ?? null,
           phone: person.phone ?? null,
+          /* R2.8. Five identical records are told apart by when each was
+             written, and by nothing else. */
+          addedOn: person.createdAt.toLocaleDateString(undefined, {
+            day: "numeric", month: "long", year: "numeric",
+          }),
         });
       }
 
