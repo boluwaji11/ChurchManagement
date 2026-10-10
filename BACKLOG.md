@@ -84,7 +84,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-238 | Stripe Connect at a zero platform fee: the church's own account, direct charges, the webhook | R13.1, R13.2 | Closed |
 | HRT-239 | The giving page a church links to from its own website, with optional fee coverage | R13.5, R13.6 | Closed |
 | HRT-240 | The deposit slip, and the gifts as a spreadsheet | R13.22, R13.23 | Closed |
-| HRT-241 | Year-end giving statements to Publication 1771, on screen and in print | R13.17, R13.19 | Resolved, waiting on CPA review before 0.3 ships |
+| HRT-241 | Year-end giving statements to Publication 1771, on screen and in print | R13.17, R13.19 | Closed |
 | HRT-242 | The giving report: by month, by fund, who stopped giving, who started | R13.21, R13.24, R13.25 | Closed |
 | HRT-243 | A gift that repeats, and the giver's own way to change or stop it | R13.3 | Closed |
 | HRT-244 | A member's own giving, and their own statement, from the portal | R13.19, R17.4 | Closed |
@@ -483,7 +483,7 @@ behind them were dropped in migration 0058.
 | HRT-276 | Writing to somebody from their own record, a group's or a team's | R16.9 | Closed |
 | HRT-277 | The inbox in the gallery, on the keyboard and read aloud | R16.9, R24.11 | Closed |
 | HRT-278 | A tick when a line lands, two when somebody has read it | R16.9 | Closed |
-| HRT-280 | A message carries photographs and documents | R16.9, R16.14 | Resolved |
+| HRT-280 | A message carries photographs and documents | R16.9, R16.14 | Closed |
 | HRT-147 | Birthday and anniversary sends | R16.13 | Deferred |
 
 ### F4. Forms
@@ -615,7 +615,7 @@ church actually asks.
 | HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
 | HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Closed |
 | HRT-219 | Members, not people: the word on screen, in the address and in the schema | R2.x, R24.6 | Closed |
-| HRT-281 | What the rename and the new tables left behind: two triggers, two policies, a missing export | R1.11, R19.5, R21.1 | Resolved |
+| HRT-281 | What the rename and the new tables left behind: two triggers, two policies, a missing export | R1.11, R19.5, R21.1 | Closed |
 | HRT-220 | The builder as a fields panel, shelves, a gallery and a drawn canvas | R18.12 | Closed |
 | HRT-279 | A saved report belongs to whoever built it, until the church shares it | R18.12, R1.5 | Closed |
 
@@ -763,7 +763,7 @@ What it settles for now:
 
 | | |
 |---|---|
-| **Active** | Nothing |
+| **Active** | **HRT-189** group participation and group health (R18.6) |
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
