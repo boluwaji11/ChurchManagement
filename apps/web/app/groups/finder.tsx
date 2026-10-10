@@ -249,7 +249,6 @@ export function Finder({
     .filter((group) => matches(group, chosen))
     .slice()
     .sort(BY_GROUP[order]);
-  const drafted = all.filter((group) => matches(group, draft));
 
   /**
    * The questions the drawer asks, and the answers this church actually has.
@@ -461,7 +460,7 @@ export function Finder({
                       setOpen(false);
                     }}
                   >
-                    {plural("find.show", drafted.length)}
+                    {t("find.show")}
                   </Button>
                 </div>
               }
