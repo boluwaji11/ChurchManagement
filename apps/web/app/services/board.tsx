@@ -71,7 +71,9 @@ export function ServiceBoard({
           ))}
         </div>
 
-        {action}
+        {/* Wrapped, because an element handed over from the server carries no
+            key of its own and React reads it as one of a list otherwise. */}
+        {action ? <div className="contents">{action}</div> : null}
         </div>
       </div>
 

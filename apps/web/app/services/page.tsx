@@ -147,16 +147,9 @@ export default async function ServicesPage({
           icon="calendar"
           title={t("services.none.title")}
           body={t("services.none.body")}
-          /* Keyed because the element crosses the server boundary into the
-             board's own row, where React reads it as one of a list. */
           action={
             canEdit ? (
-              <AddService
-                key="create"
-                church={session.tenantSlug}
-                today={now.date}
-                nowTime={now.time}
-              />
+              <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
             ) : undefined
           }
         />
