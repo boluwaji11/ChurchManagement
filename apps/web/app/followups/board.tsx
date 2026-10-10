@@ -104,10 +104,10 @@ export function Board({
             onDragLeave={() => setOver((was) => (was === stage.id ? null : was))}
             onDrop={() => drop(stage.id)}
             className="rounded-lg p-2"
-            style={{ background: over === stage.id ? "var(--color-line)" : "var(--color-sunken)" }}
+            style={{ background: over === stage.id ? "var(--color-line)" : "var(--color-board)" }}
           >
             <div
-              className="mb-2 flex items-center gap-2 border-b border-line px-1.5 pt-1 pb-2.5 text-[13px] font-medium"
+              className="mb-2 flex items-center gap-2 px-1.5 pt-1 pb-2.5 text-[13px] font-medium"
               style={{ color: `var(--hue-${stage.hue}-key)` }}
             >
               <span
@@ -125,7 +125,7 @@ export function Board({
                   draggable
                   onDragStart={(e) => { dragShadow(e); setDragging(card.entryId); }}
                   onDragEnd={() => setDragging(null)}
-                  className="relative flex cursor-grab flex-col gap-0.5 rounded-md bg-surface p-3 shadow-[0_1px_3px_rgb(0_0_0/0.10)] hover:shadow-[0_2px_8px_rgb(0_0_0/0.14)] active:cursor-grabbing"
+                  className="relative flex cursor-grab flex-col gap-0.5 rounded-md bg-surface p-3 shadow-[0_1px_2px_rgb(0_0_0/0.10),0_2px_6px_rgb(0_0_0/0.08)] hover:shadow-[0_2px_4px_rgb(0_0_0/0.12),0_6px_14px_rgb(0_0_0/0.14)] active:cursor-grabbing"
                 >
                   <span className="flex items-start justify-between gap-2">
                     <Link
