@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation";
-import { Banner, Button, Field, Input } from "@connectapp/ui";
+import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { currentUser } from "@/lib/session";
 import { landingFor } from "@/lib/landing";
 import { AuthShell } from "../auth-shell";
-import { AUTH_BUTTON } from "../auth-chrome";
-import { sendReset } from "../sign-up/actions";
+import { ForgotForm } from "./form";
 import { publicTab } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -39,21 +38,7 @@ export default async function ForgotPage({
     >
       {params.error ? <Banner tone="danger">{params.error}</Banner> : null}
 
-      <form action={sendReset} className="flex flex-col gap-5">
-        <Field label={t("signIn.email")} required>
-          <Input
-            name="email"
-            type="email"
-            autoComplete="email"
-            autoFocus
-            placeholder={t("signIn.emailPlaceholder")}
-          />
-        </Field>
-
-        <Button type="submit" full className={AUTH_BUTTON}>
-          {t("forgot.send")}
-        </Button>
-      </form>
+      <ForgotForm />
     </AuthShell>
   );
 }
