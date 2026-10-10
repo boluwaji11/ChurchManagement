@@ -2729,7 +2729,7 @@ export const en = {
   "portal.use": "Use this address",
   "portal.open": "Access ConnectApp portal at this address",
   "portal.state.off": "Turned off",
-  "portal.error.shape": "Use letters, numbers and hyphens, three characters or more.",
+  "portal.error.shape": "Use letters, numbers and hyphens, three characters or more, and no spaces.",
   "portal.error.taken": "That address is taken.",
   "portal.error.blocked": "That address cannot be used.",
   "domain.title": "Members sign in at your own address",
