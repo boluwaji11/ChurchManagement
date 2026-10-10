@@ -336,3 +336,27 @@ export const TAX_ID_SAMPLE: Record<string, string> = {
   US: "12-3456789", CA: "123456789RR0001", GB: "1234567", AU: "12 345 678 901",
   NZ: "9429012345678", IE: "CHY12345", BR: "12.345.678/0001-90",
 };
+
+/**
+ * What a country calls the number that gets a letter to the right street.
+ *
+ * "ZIP code" is a United States Postal Service trademark and means nothing
+ * anywhere else. A church in Manchester asked for a ZIP code reads the form as
+ * written for somebody in another country, which it was.
+ *
+ * Anything this list does not reach falls back to the catalogue's "Postal
+ * code", which is the neutral term and is wrong nowhere.
+ */
+export const POSTAL_LABEL: Record<string, string> = {
+  US: "ZIP code", PH: "ZIP code",
+  GB: "Postcode", AU: "Postcode", NZ: "Postcode", SG: "Postcode", ZA: "Postal code",
+  CA: "Postal code", NL: "Postcode", BE: "Postcode", MY: "Postcode",
+  IE: "Eircode",
+  IN: "PIN code",
+  NG: "Postal code", KE: "Postal code", GH: "Postal code", TZ: "Postcode",
+  DE: "PLZ", AT: "PLZ", CH: "PLZ",
+  FR: "Code postal", IT: "CAP", ES: "Código postal", PT: "Código postal",
+  BR: "CEP", MX: "Código postal", AR: "Código postal", CL: "Código postal",
+  JP: "Postal code", KR: "Postal code", ID: "Kode pos", PK: "Postal code",
+  BD: "Postal code", ET: "Postal code", UG: "Postal code",
+};

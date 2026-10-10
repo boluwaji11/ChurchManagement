@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { Combobox, Field, Input } from "@connectapp/ui";
-import { t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL } from "@connectapp/i18n";
+import {
+  t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL, POSTAL_LABEL,
+} from "@connectapp/i18n";
 import type { AddressValues } from "@/lib/address";
 
 /**
@@ -23,6 +25,8 @@ export function AddressFields({ values }: { values: AddressValues }) {
   const countries = React.useMemo(() => countryList(), []);
   const regions = subdivisionsFor(country);
   const regionLabel = REGION_LABEL[country] ?? t("church.region");
+  // R2.4. Named the way the country the letter is going to names it.
+  const postalLabel = POSTAL_LABEL[country] ?? t("address.postalCode");
 
   return (
     <>
@@ -70,7 +74,7 @@ export function AddressFields({ values }: { values: AddressValues }) {
         )}
       </Field>
 
-      <Field label={t("address.postalCode")}>
+      <Field label={postalLabel}>
         <Input
           name="addressPostalCode"
           defaultValue={values.postalCode}

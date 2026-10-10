@@ -12,7 +12,7 @@ import {
   LIFT,
 } from "@connectapp/ui";
 import type { HouseholdAddress } from "@connectapp/db";
-import { t, plural } from "@connectapp/i18n";
+import { t, plural, REGION_LABEL, POSTAL_LABEL } from "@connectapp/i18n";
 import { householdRoleOptions } from "@/lib/person-input";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
@@ -95,10 +95,13 @@ const parts = (held: HouseholdItem["address"]) => ({
 export function HouseholdList({
   church,
   households,
+  country = "US",
   onlyArchived = false,
 }: {
   church: string;
   households: HouseholdItem[];
+  /** R2.4. The church's own country, which names the address lines. */
+  country?: string;
   /** R2.1. The families that have been put away, rather than the ones in use. */
   onlyArchived?: boolean;
 }) {
@@ -158,6 +161,7 @@ export function HouseholdList({
                   every person's chip stay controls of their own. */}
               <EditHousehold
                 household={household}
+                country={country}
                 pending={pending}
                 doing={doing}
                 run={run}
@@ -267,6 +271,7 @@ export function HouseholdList({
 function EditHousehold({
   church,
   household,
+  country,
   pending,
   doing,
   run,
@@ -274,6 +279,8 @@ function EditHousehold({
 }: {
   church: string;
   household: HouseholdItem;
+  /** R2.4. The church's own country, which names the address lines. */
+  country: string;
   pending: boolean;
   doing?: string;
   run: (key: string, work: () => Promise<{ error?: string }>) => void;
@@ -420,7 +427,7 @@ function EditHousehold({
                     autoComplete="off"
                   />
                 </Field>
-                <Field label={t("address.region")}>
+                <Field label={REGION_LABEL[country] ?? t("address.region")}>
                   <Input
                     value={where.region}
                     onChange={(e) => setWhere({ ...where, region: e.target.value })}
@@ -428,7 +435,7 @@ function EditHousehold({
                     autoComplete="off"
                   />
                 </Field>
-                <Field label={t("address.postalCode")}>
+                <Field label={POSTAL_LABEL[country] ?? t("address.postalCode")}>
                   <Input
                     value={where.postalCode}
                     onChange={(e) => setWhere({ ...where, postalCode: e.target.value })}

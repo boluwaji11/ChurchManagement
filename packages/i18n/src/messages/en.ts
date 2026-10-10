@@ -748,7 +748,9 @@ export const en = {
   "church.noCountry": "No country by that name",
   "church.chooseRegion": "Choose one",
   "church.noRegion": "No match",
-  "church.postalCode": "ZIP code",
+  // The neutral term, for the countries POSTAL_LABEL does not name. "ZIP
+  // code" is a United States Postal Service mark and belongs to one country.
+  "church.postalCode": "Postal code",
   "church.country": "Country",
   "church.email": "Email",
   "church.phone": "Phone",

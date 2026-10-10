@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import {
   withTenant, listHouseholdRows, countArchivedHouseholds, canManageHouseholds,
+  getChurch,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -40,11 +41,15 @@ export default async function HouseholdsPage({
 
   const putAway = archived === "1";
 
-  const { rows, archivedCount } = await withTenant(
+  const { rows, archivedCount, country } = await withTenant(
     { tenantId: session.tenantId, role: session.role, permissions: session.permissions },
     async (tx) => ({
       rows: await listHouseholdRows(tx, putAway ? { archivedOnly: true } : {}),
       archivedCount: await countArchivedHouseholds(tx),
+      /* R2.4. This screen has no country of its own, so the address lines are
+         named the way the church's own country names them. A church's families
+         are almost all in the same country as the church. */
+      country: (await getChurch(tx, session.tenantId))?.country ?? "US",
     }),
   );
 
@@ -75,7 +80,12 @@ export default async function HouseholdsPage({
           action={putAway ? undefined : <NewHousehold church={session.tenantSlug} />}
         />
       ) : (
-        <HouseholdList church={session.tenantSlug} households={rows} onlyArchived={putAway} />
+        <HouseholdList
+          church={session.tenantSlug}
+          households={rows}
+          country={country}
+          onlyArchived={putAway}
+        />
       )}
 
       {!putAway && archivedCount > 0 ? (

@@ -6,7 +6,7 @@ import { Banner, Combobox, Field, IconButton, Input } from "@connectapp/ui";
 import { PhoneInput } from "@/components/phone-input";
 import { FormActions, BackToView } from "@/components/form-actions";
 import {
-  t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL,
+  t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL, POSTAL_LABEL,
   TAX_ID_LABEL, TAX_ID_SAMPLE,
 } from "@connectapp/i18n";
 import { Said } from "@/components/said";
@@ -69,6 +69,9 @@ export function ChurchForm({
   const countries = React.useMemo(() => countryList(), []);
   const regions = subdivisionsFor(country);
   const regionLabel = REGION_LABEL[country] ?? t("church.region");
+  /* R1.1. "ZIP code" is a United States term, and a church in Manchester
+     reads it as a form written for somebody else. */
+  const postalLabel = POSTAL_LABEL[country] ?? t("church.postalCode");
   /* R1.1. Named and exampled by the country on the record, so a church in
      Lagos is asked for an RC number rather than for an EIN. */
   const taxLabel = TAX_ID_LABEL[country] ?? t("church.taxId");
@@ -129,7 +132,12 @@ export function ChurchForm({
         <hr className="border-0 border-t border-line" />
 
         {editing ? null : (
-          <Reading values={values} regionLabel={regionLabel} taxLabel={taxLabel} />
+          <Reading
+            values={values}
+            regionLabel={regionLabel}
+            postalLabel={postalLabel}
+            taxLabel={taxLabel}
+          />
         )}
 
         {/* The buttons that commit this form sit at the foot of the page,
@@ -197,7 +205,7 @@ export function ChurchForm({
                 />
               )}
             </Field>
-            <Field label={t("church.postalCode")}>
+            <Field label={postalLabel}>
               <Input name="postalCode" defaultValue={values.postalCode ?? ""} disabled={!canEdit} />
             </Field>
             <Field label={t("church.country")}>
@@ -264,10 +272,12 @@ function href(website: string | null): string | undefined {
 function Reading({
   values,
   regionLabel,
+  postalLabel,
   taxLabel,
 }: {
   values: ChurchValues;
   regionLabel: string;
+  postalLabel: string;
   taxLabel: string;
 }) {
   /*
@@ -296,7 +306,7 @@ function Reading({
     },
     { key: "city", label: t("church.city"), value: values.city },
     { key: "region", label: regionLabel, value: values.region },
-    { key: "postalCode", label: t("church.postalCode"), value: values.postalCode },
+    { key: "postalCode", label: postalLabel, value: values.postalCode },
     { key: "country", label: t("church.country"), value: values.country },
     {
       key: "phone",
