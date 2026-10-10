@@ -165,7 +165,13 @@ export default async function ReportsPage({
         </div>
       )}
 
-      <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))]">
+      {/* R24.6. The ones the product came with, and the ones the church
+          shares. The archived list is its own screen and carries neither. */}
+      <div
+        className={`grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))] ${
+          putAway ? "hidden" : ""
+        }`}
+      >
         {reports.map((one) => {
           const Icon = one.icon;
           return (

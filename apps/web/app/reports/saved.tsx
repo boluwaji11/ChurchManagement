@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EllipsisVertical, Table2, Users } from "lucide-react";
 import {
-  Button, Field, Input, Spinner, Dialog, DialogContent, DialogFooter,
+  Button, Field, Input, Spinner, Tooltip, Dialog, DialogContent, DialogFooter,
   Sheet, SheetContent,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
@@ -99,11 +99,12 @@ export function SavedReports({
               <span className="flex items-center gap-1.5 text-caption text-fg-muted">
                 {one.by}
                 {one.shared ? (
-                  <>
-                    {one.by ? <span aria-hidden>·</span> : null}
-                    <Users className="size-3.5" aria-hidden />
-                    {t("report.shared")}
-                  </>
+                  <Tooltip content={t("report.shared")}>
+                    <span className="flex items-center">
+                      <Users className="size-3.5" aria-hidden />
+                      <span className="sr-only">{t("report.shared")}</span>
+                    </span>
+                  </Tooltip>
                 ) : null}
               </span>
             </span>
