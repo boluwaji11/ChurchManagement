@@ -13,7 +13,7 @@ export async function generateMetadata({
   params: Promise<{ church: string }>;
 }) {
   const { church } = await params;
-  return publicTab(t("signUp.title"), church);
+  return publicTab(t("join.action"), church);
 }
 
 /**

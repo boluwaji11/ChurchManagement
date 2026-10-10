@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 /** R17.1. The church this page belongs to, in the browser tab. */
 export async function generateMetadata() {
   const church = await churchFromHost();
-  return publicTab(t("signUp.title"), church ?? undefined);
+  return publicTab(t("join.action"), church ?? undefined);
 }
 
 /**
