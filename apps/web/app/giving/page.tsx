@@ -17,7 +17,6 @@ import { MyGiving } from "./mine";
 import { Empty } from "@/components/empty";
 import { Figure, Figures } from "@/app/reports/figure";
 import { Pager } from "@/components/pager";
-import { ResizableTable } from "@/components/resizable-columns";
 import { money, groupAmount } from "@/lib/money";
 import { briefDate, longDate } from "@/lib/dates";
 import { StartCount } from "./start-count";
@@ -356,29 +355,30 @@ export default async function GivingPage({
                     />
                   </div>
 
-                  {/* R24.6. The table fits the card it is in. It only scrolls
-                      once a reader has widened a column themselves. */}
-                  <ResizableTable id="giving-counts" className="hidden sm:block">
+                  {/* R24.6. A table of five short columns is read rather than
+                      arranged, so it takes the width it is given and divides
+                      it rather than offering handles and a sideways scroll. */}
+                  <div className="hidden sm:block">
                     <table className="w-full table-fixed border-collapse">
                       <thead>
                         <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                          <th className="w-[12%] px-5 py-2 text-left font-bold">
+                          <th className="w-[18%] px-5 py-2 text-left font-bold">
                             {t("giving.col.date")}
                           </th>
                           {/* The name takes whatever the others do not. */}
-                          <th className="w-full px-3 py-2 text-left font-bold">
+                          <th className="w-[32%] px-3 py-2 text-left font-bold">
                             {t("giving.count.name")}
                           </th>
-                          <th className="w-[14%] px-3 py-2 text-left font-bold">
+                          <th className="w-[17%] px-3 py-2 text-left font-bold">
                             {t("giving.col.fund")}
                           </th>
                           <th className="w-[10%] px-3 py-2 text-left font-bold">
                             {t("giving.col.method")}
                           </th>
-                          <th className="w-[13%] px-3 py-2 text-right font-bold">
+                          <th className="w-[16%] px-3 py-2 text-right font-bold">
                             {t("giving.count.counted")}
                           </th>
-                          <th className="w-[5%] px-3 py-2" />
+                          <th className="w-[7%] px-3 py-2" />
                         </tr>
                       </thead>
 
@@ -388,7 +388,7 @@ export default async function GivingPage({
                             key={count.id}
                             className="relative border-t border-line hover:bg-sunken"
                           >
-                            <td className="whitespace-nowrap px-5 py-3 text-[13px] text-fg-subtle">
+                            <td className="truncate px-5 py-3 text-[13px] text-fg-subtle">
                               {longDate(count.receivedOn)}
                             </td>
 
@@ -456,7 +456,7 @@ export default async function GivingPage({
                         ))}
                       </tbody>
                     </table>
-                  </ResizableTable>
+                  </div>
 
                   <Pager
                     page={countsPage}
@@ -505,27 +505,27 @@ export default async function GivingPage({
                     />
                   </div>
 
-                  <ResizableTable id="giving-gifts" className="hidden sm:block">
+                  <div className="hidden sm:block">
                     <table className="w-full table-fixed border-collapse">
                       <thead>
                         <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                          <th className="w-[14%] px-5 py-2 text-left font-bold">
+                          <th className="w-[17%] px-5 py-2 text-left font-bold">
                             {t("giving.col.date")}
                           </th>
                           {/* The giver takes whatever the others do not. */}
-                          <th className="w-full px-3 py-2 text-left font-bold">
+                          <th className="w-[24%] px-3 py-2 text-left font-bold">
                             {t("giving.col.giver")}
                           </th>
-                          <th className="w-[13%] px-3 py-2 text-left font-bold">
+                          <th className="w-[15%] px-3 py-2 text-left font-bold">
                             {t("giving.col.fund")}
                           </th>
                           <th className="w-[10%] px-3 py-2 text-left font-bold">
                             {t("giving.col.method")}
                           </th>
-                          <th className="w-[12%] px-3 py-2 text-right font-bold">
+                          <th className="w-[14%] px-3 py-2 text-right font-bold">
                             {t("giving.col.amount")}
                           </th>
-                          <th className="w-[11%] px-3 py-2 text-left font-bold">
+                          <th className="w-[13%] px-3 py-2 text-left font-bold">
                             {t("giving.col.status")}
                           </th>
                           <th className="w-[7%] px-3 py-2" />
@@ -557,7 +557,7 @@ export default async function GivingPage({
                             >
                               {/* R13.15. The turn marks the refund as
                                   belonging to the gift above it. */}
-                              <td className="whitespace-nowrap py-3 pr-3 pl-5 text-[13px] text-fg-subtle">
+                              <td className="truncate py-3 pr-3 pl-5 text-[13px] text-fg-subtle">
                                 <span className="flex items-center gap-1">
                                   {back ? (
                                     <CornerDownRight className="size-3.5 shrink-0" aria-hidden />
@@ -643,7 +643,7 @@ export default async function GivingPage({
                         })}
                       </tbody>
                     </table>
-                  </ResizableTable>
+                  </div>
 
                   <Pager
                     page={giftsPage}
