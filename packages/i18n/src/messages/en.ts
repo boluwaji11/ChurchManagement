@@ -1810,7 +1810,6 @@ export const en = {
   "timeline.enteredPipeline": "Entered {name}",
   "timeline.leftPipeline": "Finished {name}",
   "timeline.followUpDone": "Follow-up: {name}",
-  "timeline.followUpDone": "{name}",
   "timeline.check": "Background check",
   "timeline.archived": "Archived",
   "timeline.more": "Show everything",
