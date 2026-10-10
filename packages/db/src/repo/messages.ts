@@ -11,6 +11,7 @@ import { teamMembers, teams } from "../schema/serving";
 import { InvalidInputError } from "../errors";
 import { PermissionError } from "../roles";
 import { can, rolesWith, type TenantRole } from "../permissions";
+import { t } from "@connectapp/i18n";
 
 /**
  * R16.9, R17.1. Messages written here and read here.
@@ -175,6 +176,7 @@ interface Row {
   archived_at: Date | null;
   i_am_office: boolean;
   last_body: string | null;
+  last_had_file: boolean | null;
   last_mine: boolean | null;
   unread: number;
 }
@@ -195,6 +197,11 @@ async function readThreads(
              where m.conversation_id = c.id order by m.created_at desc limit 1) as last_body,
            (select ${MINE} from messages m
              where m.conversation_id = c.id order by m.created_at desc limit 1) as last_mine,
+           /* R16.14. Whether the last line was a file rather than words, so a
+              row in the list says something either way. */
+           (select exists (select 1 from message_files f where f.message_id = m.id)
+              from messages m
+             where m.conversation_id = c.id order by m.created_at desc limit 1) as last_had_file,
            (select count(*)::int from messages m
              where m.conversation_id = c.id
                and m.deleted_at is null
@@ -281,7 +288,7 @@ async function readThreads(
       withMemberId: whose?.groupSlug || whose?.teamSlug ? null : other?.memberId ?? null,
       withName: name,
       withPhotoKey: whose?.groupSlug || whose?.teamSlug ? null : other?.photoKey ?? null,
-      lastLine: opening(row.last_body ?? ""),
+      lastLine: opening(row.last_body ?? "") || (row.last_had_file ? t("inbox.aFile") : ""),
       lastAt: new Date(row.last_message_at),
       lastMine: Boolean(row.last_mine),
       unread: row.unread,
@@ -1489,7 +1496,14 @@ export async function tellAbout(
   if (!line) return null;
 
   const wrote = line.fromOffice ? churchName : nameOf(line);
-  const said = opening(line.body);
+  /* R16.14. A line that is a photograph and nothing else still has to say
+     something on a lock screen. */
+  const [carried] = await db
+    .select({ id: messageFiles.id })
+    .from(messageFiles)
+    .where(eq(messageFiles.messageId, what.messageId))
+    .limit(1);
+  const said = opening(line.body) || (carried ? t("inbox.aFile") : "");
   const to: Listener[] = [];
   let heading = wrote;
   let author: string | null = null;
