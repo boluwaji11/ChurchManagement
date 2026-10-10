@@ -609,6 +609,7 @@ church actually asks.
 | HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Resolved |
 | HRT-219 | Members, not people: the word on screen, in the address and in the schema | R2.x, R24.6 | Resolved |
 | HRT-220 | The builder as a fields panel, shelves, a gallery and a drawn canvas | R18.12 | Resolved |
+| HRT-279 | A saved report belongs to whoever built it, until the church shares it | R18.12, R1.5 | Resolved |
 
 **On HRT-193.** A built report exports to CSV, to PowerPoint and to PDF. The PDF is the print view
 the browser saves, which is how the directory, the run sheet and the room rosters already produce

@@ -56,10 +56,17 @@ export default async function CustomReportPage({
     );
   }
 
+  /* R18.x. A report is the reader's own unless the church shares it. */
+  const who = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
   const found = await withTenant(
-    { tenantId: session.tenantId, role: session.role },
+    who,
     async (tx) => {
-      const saved = await getSavedReport(tx, id);
+      const saved = await getSavedReport(tx, who, id);
       if (!saved) return null;
 
       const answers: Record<string, ReportResult> = {};

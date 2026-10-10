@@ -2,6 +2,7 @@
 
 import {
   withTenant, runReport, createSavedReport, updateSavedReport, setSavedReportArchived,
+  setSavedReportShared,
   getSavedReport,
   canEditPeople, canReadIncidents, SCREEN_LIMIT, cleanSpec,
   type ReportResult, type ReportSpec, type ReportPage, PermissionError,
@@ -102,7 +103,7 @@ export async function saveReport(
       if (input.id) {
         await updateSavedReport(tx, ctx, { id: input.id, name: input.name, spec: input.spec });
         // Renaming moves the address, so the fresh one is read back.
-        const after = await getSavedReport(tx, input.id);
+        const after = await getSavedReport(tx, ctx, input.id);
         return { slug: after?.slug };
       }
       const made = await createSavedReport(tx, ctx, { name: input.name, spec: input.spec });
@@ -154,6 +155,21 @@ export async function renameReport(
   try {
     const { ctx } = await context(church);
     await withTenant(ctx, (tx) => updateSavedReport(tx, ctx, { id, name }));
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/** R18.x. Putting a report in front of the church, or taking it back. */
+export async function shareReport(
+  id: string,
+  shared: boolean,
+  church?: string,
+): Promise<{ error?: string }> {
+  try {
+    const { ctx } = await context(church);
+    await withTenant(ctx, (tx) => setSavedReportShared(tx, ctx, id, shared));
     return {};
   } catch (error) {
     return { error: explain(error) };

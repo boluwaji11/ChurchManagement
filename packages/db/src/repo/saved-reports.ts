@@ -4,6 +4,7 @@ import type { Permission } from "../permissions";
 import { savedReports } from "../schema/reports";
 import { InvalidInputError, NameTakenError } from "../errors";
 import { PermissionError, canEditPeople, type TenantRole } from "../roles";
+import { canManageChurch } from "./church";
 import { canReadIncidents } from "./incidents";
 import { cleanPage, type ReportPage } from "./report-spec";
 
@@ -22,6 +23,8 @@ export interface SavedReport {
   subject: string;
   spec: ReportPage;
   createdByUserId: string | null;
+  /** R18.x. Whether the church sees it, rather than only whoever wrote it. */
+  shared: boolean;
   archivedAt: Date | null;
   updatedAt: Date;
 }
@@ -35,6 +38,19 @@ interface Actor {
 
 const mayRead = (actor: Actor) => canEditPeople(actor) || canReadIncidents(actor);
 
+/**
+ * R18.x. Whose a report is.
+ *
+ * Whoever wrote it, and anybody once it has been shared. A church's own
+ * administrators see every report, because they are the ones who answer for
+ * what the church keeps and the ones who share them.
+ */
+const mine = (actor: Actor) =>
+  canManageChurch(actor)
+    ? sql`true`
+    : sql`(${savedReports.sharedAt} is not null
+        or ${savedReports.createdByUserId} = ${actor.userId ?? null})`;
+
 const clean = (name: string): string => name.trim().replace(/\s+/g, " ");
 
 const shape = (row: typeof savedReports.$inferSelect): SavedReport => ({
@@ -46,45 +62,59 @@ const shape = (row: typeof savedReports.$inferSelect): SavedReport => ({
   // cannot come back through a row saved last year.
   spec: cleanPage(row.spec),
   createdByUserId: row.createdByUserId,
+  shared: row.sharedAt !== null,
   archivedAt: row.archivedAt,
   updatedAt: row.updatedAt,
 });
 
 export async function listSavedReports(
   db: Tx,
+  actor: Actor,
   opts: { includeArchived?: boolean; archivedOnly?: boolean } = {},
 ): Promise<SavedReport[]> {
   const rows = await db
     .select()
     .from(savedReports)
     .where(
-      opts.archivedOnly
-        ? sql`${savedReports.archivedAt} is not null`
-        : opts.includeArchived
-          ? undefined
-          : isNull(savedReports.archivedAt),
+      and(
+        mine(actor),
+        opts.archivedOnly
+          ? sql`${savedReports.archivedAt} is not null`
+          : opts.includeArchived
+            ? undefined
+            : isNull(savedReports.archivedAt),
+      ),
     )
     .orderBy(asc(savedReports.name));
   return rows.map(shape);
 }
 
 /** R18.x, R24.6. How many a church has put away, for the link that reaches them. */
-export async function countArchivedSavedReports(db: Tx): Promise<number> {
+export async function countArchivedSavedReports(db: Tx, actor: Actor): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(savedReports)
-    .where(sql`${savedReports.archivedAt} is not null`);
+    .where(and(mine(actor), sql`${savedReports.archivedAt} is not null`));
   return row?.count ?? 0;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** R24.6. By its readable address, or by its id where that is what was given. */
-export async function getSavedReport(db: Tx, key: string): Promise<SavedReport | null> {
+export async function getSavedReport(
+  db: Tx,
+  actor: Actor,
+  key: string,
+): Promise<SavedReport | null> {
   const [row] = await db
     .select()
     .from(savedReports)
-    .where(UUID.test(key) ? eq(savedReports.id, key) : eq(savedReports.slug, key))
+    .where(
+      and(
+        mine(actor),
+        UUID.test(key) ? eq(savedReports.id, key) : eq(savedReports.slug, key),
+      ),
+    )
     .limit(1);
   return row ? shape(row) : null;
 }
@@ -128,6 +158,7 @@ export async function updateSavedReport(
   input: { id: string; name?: string; spec?: unknown },
 ): Promise<void> {
   if (!mayRead(actor)) throw new PermissionError(actor.role, "buildReports");
+  await assertOwns(db, actor, input.id);
 
   const patch: Partial<typeof savedReports.$inferInsert> = { updatedAt: new Date() };
 
@@ -161,8 +192,43 @@ export async function setSavedReportArchived(
   archived: boolean,
 ): Promise<void> {
   if (!mayRead(actor)) throw new PermissionError(actor.role, "buildReports");
+  await assertOwns(db, actor, id);
   await db
     .update(savedReports)
     .set({ archivedAt: archived ? new Date() : null, updatedAt: new Date() })
-    .where(and(eq(savedReports.id, id), sql`true`));
+    .where(eq(savedReports.id, id));
+}
+
+/**
+ * R18.x. A report somebody else wrote is theirs to change.
+ *
+ * Sharing one puts it on everybody's screen; it does not hand everybody the
+ * pencil. An administrator may still edit any of them, because somebody has
+ * to tidy up after a volunteer who has left.
+ */
+async function assertOwns(db: Tx, actor: Actor, id: string): Promise<void> {
+  if (canManageChurch(actor)) return;
+  const [row] = await db
+    .select({ by: savedReports.createdByUserId })
+    .from(savedReports)
+    .where(eq(savedReports.id, id))
+    .limit(1);
+  if (!row) throw new InvalidInputError("report.error.missing");
+  if (row.by !== (actor.userId ?? null)) {
+    throw new PermissionError(actor.role, "buildReports");
+  }
+}
+
+/** R18.x. Putting a report in front of the church, or taking it back. */
+export async function setSavedReportShared(
+  db: Tx,
+  actor: Actor,
+  id: string,
+  shared: boolean,
+): Promise<void> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+  await db
+    .update(savedReports)
+    .set({ sharedAt: shared ? new Date() : null, updatedAt: new Date() })
+    .where(eq(savedReports.id, id));
 }

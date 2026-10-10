@@ -21,6 +21,14 @@ export const savedReports = pgTable(
     subject: text("subject").notNull(),
     spec: jsonb("spec").notNull().default({}),
     createdByUserId: uuid("created_by_user_id").references(() => appUsers.id, { onDelete: "set null" }),
+    /**
+     * R18.x. When somebody who runs the church put it in front of everybody.
+     *
+     * Null means it is the writer's own: a list somebody keeps for their own
+     * Monday morning is not something the rest of the office has to scroll
+     * past.
+     */
+    sharedAt: timestamp("shared_at", { withTimezone: true }),
     /** R2.13. Archive, never hard delete. */
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

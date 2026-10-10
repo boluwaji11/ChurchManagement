@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { EllipsisVertical, Table2 } from "lucide-react";
+import { EllipsisVertical, Table2, Users } from "lucide-react";
 import {
   Button, Field, IconButton, Input, Spinner, Dialog, DialogContent, DialogFooter,
   Sheet, SheetContent,
@@ -11,13 +11,15 @@ import {
   DropdownMenuSeparator,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { archiveReport, renameReport } from "./build/actions";
+import { archiveReport, renameReport, shareReport } from "./build/actions";
 
 export interface SavedCard {
   id: string;
   slug: string;
   name: string;
   subject: string;
+  /** R18.x. Whether the church sees it, or only whoever wrote it. */
+  shared: boolean;
 }
 
 /**
@@ -31,11 +33,14 @@ export function SavedReports({
   church,
   reports,
   putAway = false,
+  canShare = false,
 }: {
   church: string;
   reports: SavedCard[];
   /** R24.6. Whether this is the list of the ones put away. */
   putAway?: boolean;
+  /** R18.x. Whether this reader may put one in front of the church. */
+  canShare?: boolean;
 }) {
   const router = useRouter();
   const [asking, setAsking] = React.useState<SavedCard | null>(null);
@@ -87,8 +92,15 @@ export function SavedReports({
               >
                 {one.name}
               </Link>
-              <span className="text-caption text-fg-muted">
+              <span className="flex items-center gap-1.5 text-caption text-fg-muted">
                 {t(`report.subject.${one.subject}` as never)}
+                {one.shared ? (
+                  <>
+                    <span aria-hidden>·</span>
+                    <Users className="size-3.5" aria-hidden />
+                    {t("report.shared")}
+                  </>
+                ) : null}
               </span>
             </span>
 
@@ -142,6 +154,24 @@ export function SavedReports({
                       >
                         {t("report.rename")}
                       </DropdownMenuItem>
+                      {canShare ? (
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setOnCard(one.id);
+                            setWorking(true);
+                            void shareReport(one.id, !one.shared, church).then((result) => {
+                              setWorking(false);
+                              if (result.error) {
+                                setError(result.error);
+                                return;
+                              }
+                              startRedraw(() => router.refresh());
+                            });
+                          }}
+                        >
+                          {one.shared ? t("report.unshare") : t("report.share")}
+                        </DropdownMenuItem>
+                      ) : null}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onSelect={() => setAsking(one)}>
                         {t("report.archiveDo")}

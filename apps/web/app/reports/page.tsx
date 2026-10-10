@@ -3,7 +3,7 @@ import {
   ArrowLeft, ArrowRight, CalendarCheck, HandCoins, TrendingUp, UserPlus,
 } from "lucide-react";
 import {
-  withTenant, listSavedReports, countArchivedSavedReports,
+  withTenant, listSavedReports, countArchivedSavedReports, canManageChurch,
   canEditPeople, canReadIncidents, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
@@ -61,13 +61,18 @@ export default async function ReportsPage({
      again: nothing listed it and nothing brought it back. */
   const putAway = params.archived === "1";
 
-  const { saved, archivedCount } = await withTenant(
-    { tenantId: session.tenantId, role: session.role },
-    async (tx) => ({
-      saved: await listSavedReports(tx, putAway ? { archivedOnly: true } : {}),
-      archivedCount: await countArchivedSavedReports(tx),
-    }),
-  );
+  /* R18.x. A report belongs to whoever built it, so the reader is part of
+     the question. */
+  const who = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
+  const { saved, archivedCount } = await withTenant(who, async (tx) => ({
+    saved: await listSavedReports(tx, who, putAway ? { archivedOnly: true } : {}),
+    archivedCount: await countArchivedSavedReports(tx, who),
+  }));
 
   const reports = [
     {
@@ -159,8 +164,11 @@ export default async function ReportsPage({
         <SavedReports
           church={session.tenantSlug}
           putAway={putAway}
+          /* R18.x. Only somebody who runs the church shares one. */
+          canShare={canManageChurch(session)}
           reports={saved.map((one) => ({
-            id: one.id, slug: one.slug, name: one.name, subject: one.subject,
+            id: one.id, slug: one.slug, name: one.name,
+            subject: one.subject, shared: one.shared,
           }))}
         />
       ) : putAway ? (

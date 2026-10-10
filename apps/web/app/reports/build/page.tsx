@@ -44,10 +44,18 @@ export default async function BuildReportPage({
     );
   }
 
+  /* R18.x. A report is the reader's own unless the church shares it. */
+  const who = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
+
   const saved = id
     ? await withTenant(
-        { tenantId: session.tenantId, role: session.role },
-        (tx) => getSavedReport(tx, id),
+        who,
+        (tx) => getSavedReport(tx, who, id),
       )
     : null;
 
