@@ -257,6 +257,10 @@ export const en = {
   "signIn.volunteer": "Volunteer at check-in?",
   "signIn.openStation": "Open a check-in station",
   "signIn.title": "Sign in",
+  // R17.1. On a church's own address, the screen says whose it is.
+  "signIn.atChurch": "Sign in to {name}",
+  "signUp.atChurch": "Join {name}",
+  "signUp.atChurchUnder": "Your account at {name}, free, always.",
   "signIn.tab.link": "Email link",
   "signIn.tab.password": "Password",
   "signIn.email": "Email",

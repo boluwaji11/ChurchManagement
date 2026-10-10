@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Flash } from "@/components/said";
-import { currentUser } from "@/lib/session";
+import { currentUser, churchFromHost } from "@/lib/session";
+import { resolveTenantBySlug } from "@connectapp/db";
 import { landingFor } from "@/lib/landing";
 import { AuthShell } from "../auth-shell";
 import { SignInForm } from "./form";
@@ -25,22 +26,33 @@ export default async function SignIn({
 }) {
   const params = await searchParams;
   const signedIn = await currentUser();
+  /* R17.1. Whose address this is, where it is a church's. */
+  const church = await churchFromHost();
+  /* R17.1. Named, because arriving at a church's address and being asked to
+     sign in to nothing in particular reads as the wrong door. */
+  const named = church ? await resolveTenantBySlug(church) : null;
   // R24.6. Somebody who is already signed in and presses Sign in on the website
   // goes where signing in would have put them, rather than to the directory.
   if (signedIn) redirect(params.next ?? (await landingFor(signedIn.id)));
 
   return (
     <AuthShell
-      title={t("signIn.title")}
+      title={named ? t("signIn.atChurch", { name: named.name }) : t("signIn.title")}
+      /*
+       * R8.1, R17.1. A volunteer at check-in has no account and does not need
+       * one: the tablet is paired once and stays in station mode. That is a
+       * thing somebody does from our own door rather than from a church's,
+       * where everybody arriving is a member looking for their sign-in.
+       */
       footer={
-        <>
-          {/* R8.1. A volunteer at check-in has no account and does not need
-              one. The tablet is paired once and stays in station mode. */}
-          {t("signIn.volunteer")}{" "}
-          <Link href="/checkin/station" className="font-medium text-primary">
-            {t("signIn.openStation")}
-          </Link>
-        </>
+        church ? undefined : (
+          <>
+            {t("signIn.volunteer")}{" "}
+            <Link href="/checkin/station" className="font-medium text-primary">
+              {t("signIn.openStation")}
+            </Link>
+          </>
+        )
       }
     >
       {params.error ? (
@@ -59,7 +71,7 @@ export default async function SignIn({
       {params.set ? <Flash message={t("signIn.set")} /> : null}
       {params.taken ? <Banner tone="info" title={t("auth.error.taken")} /> : null}
 
-      <SignInForm next={params.next} email={params.taken} />
+      <SignInForm next={params.next} email={params.taken} church={church ?? undefined} />
     </AuthShell>
   );
 }

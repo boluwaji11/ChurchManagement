@@ -24,4 +24,4 @@ export * from "./domain/preflight";
 // HRT-286, HRT-287. Pure: the vendors live in the worker.
 export * from "./messaging/contract";
 // R17.1. Reading a church out of a host, which is pure.
-export { slugUnderPlatform, cleanPortalName, isReservedName } from "./repo/domains";
+export * from "./repo/portal-rules";

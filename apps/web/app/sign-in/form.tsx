@@ -18,7 +18,22 @@ import { AUTH_INPUT, AUTH_BUTTON } from "../auth-chrome";
  * uses. The link is underneath for everybody else, and it is the only way in
  * for a member who never set a password: one press and the email arrives.
  */
-export function SignInForm({ next, email }: { next?: string; email?: string }) {
+export function SignInForm({
+  next,
+  email,
+  church,
+}: {
+  next?: string;
+  email?: string;
+  /**
+   * R17.1. The church whose address this is, where it is one.
+   *
+   * On a church's own address nobody is here to start a church: they are
+   * here to get into this one, and the way to start another belongs on our
+   * own front door.
+   */
+  church?: string;
+}) {
   const [byLink, setByLink] = React.useState(false);
 
   return (
@@ -38,15 +53,17 @@ export function SignInForm({ next, email }: { next?: string; email?: string }) {
           {byLink ? t("signIn.tab.password") : t("signIn.tab.link")}
         </button>
 
-        <span className="text-fg-muted">
-          {t("signIn.noAccountAsk")}{" "}
-          <Link
-            href={`/sign-up${next ? `?next=${encodeURIComponent(next)}` : ""}`}
-            className="font-medium text-primary"
-          >
-            {t("signIn.noAccount")}
-          </Link>
-        </span>
+        {church ? null : (
+          <span className="text-fg-muted">
+            {t("signIn.noAccountAsk")}{" "}
+            <Link
+              href={`/sign-up${next ? `?next=${encodeURIComponent(next)}` : ""}`}
+              className="font-medium text-primary"
+            >
+              {t("signIn.noAccount")}
+            </Link>
+          </span>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { currentUser } from "@/lib/session";
+import { currentUser, churchFromHost } from "@/lib/session";
+import { resolveTenantBySlug } from "@connectapp/db";
 import { AuthShell } from "../auth-shell";
 import type { Piece } from "@/components/site/art";
 import { SignUpForm } from "./form";
@@ -30,11 +31,33 @@ export default async function SignUpPage({
   const params = await searchParams;
   if (await currentUser()) redirect(params.next ?? "/choose-church");
 
+  /*
+   * R17.1. Whose address this is, where it is a church's.
+   *
+   * Somebody creating an account at riverside.connectapp.church is joining
+   * Riverside, and the three steps of starting a church are not what they
+   * are doing, so the screen names the church and drops the steps.
+   */
+  const church = await churchFromHost();
+  const named = church ? await resolveTenantBySlug(church) : null;
+
   return (
     <AuthShell
-      title={params.sent ? t("signUp.sent.title") : t("signUp.title")}
-      under={params.sent ? undefined : t("signUp.free")}
-      step={1}
+      title={
+        params.sent
+          ? t("signUp.sent.title")
+          : named
+            ? t("signUp.atChurch", { name: named.name })
+            : t("signUp.title")
+      }
+      under={
+        params.sent
+          ? undefined
+          : named
+            ? t("signUp.atChurchUnder", { name: named.name })
+            : t("signUp.free")
+      }
+      step={named ? undefined : 1}
       art={ART}
       width="max-w-[520px]"
     >
