@@ -313,3 +313,43 @@ export async function readDomain(
     warnings: warningsFor({ mailHosts, spfCount: spf.length, dkimTaken, dmarc }),
   };
 }
+
+/**
+ * R22.2. Where a church goes to add the record, by name.
+ *
+ * We already read their nameservers to name the provider, and naming it
+ * without taking them there is the half of the job that helps nobody. A
+ * volunteer who has been told "add a CNAME at your domain provider" is a
+ * volunteer looking at a search engine.
+ *
+ * The deep link is to the provider's own domain list rather than to one
+ * domain's records, because the path to a single domain carries an account id
+ * we do not have.
+ */
+export const DNS_CONSOLE: Record<string, string> = {
+  "GoDaddy": "https://dcc.godaddy.com/control/portfolio",
+  "Cloudflare": "https://dash.cloudflare.com/",
+  "Namecheap": "https://ap.www.namecheap.com/domains/list/",
+  "Squarespace": "https://account.squarespace.com/domains",
+  "Wix": "https://www.wix.com/my-account/domains",
+  "Amazon Route 53": "https://console.aws.amazon.com/route53/v2/hostedzones",
+  "Name.com": "https://www.name.com/account/domain",
+  "DNSimple": "https://dnsimple.com/a/domains",
+  "DigitalOcean": "https://cloud.digitalocean.com/networking/domains",
+  "Vercel": "https://vercel.com/dashboard/domains",
+  "Netlify": "https://app.netlify.com/teams/overview/dns",
+  "IONOS": "https://my.ionos.com/domains",
+  "Gandi": "https://admin.gandi.net/domain",
+  "Hover": "https://www.hover.com/control_panel/domains",
+  "DreamHost": "https://panel.dreamhost.com/index.cgi?tree=domain.manage",
+  "Bluehost": "https://my.bluehost.com/domains",
+  "HostGator": "https://portal.hostgator.com/domains",
+  "SiteGround": "https://my.siteground.com/",
+  "Shopify": "https://admin.shopify.com/settings/domains",
+  "Weebly": "https://www.weebly.com/app/account/domains",
+  "NS1": "https://my.nsone.net/#/zones",
+};
+
+/** The console for whoever answers for this domain, where we know it. */
+export const consoleFor = (registrar: string | null | undefined): string | null =>
+  (registrar && DNS_CONSOLE[registrar]) ?? null;

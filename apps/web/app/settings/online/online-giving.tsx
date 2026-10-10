@@ -10,6 +10,7 @@ import {
 import { Banner, Button, Card, Tooltip } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { StripeWordmark } from "@/components/stripe-wordmark";
+import { Steps, Step } from "@/components/steps";
 import type { ChurchStripeAccount } from "@connectapp/db";
 import type { AccountFace } from "./actions";
 import { connectStripe, refreshStripe } from "./actions";
@@ -22,45 +23,6 @@ import { NonprofitRate } from "./nonprofit-rate";
  * this card should see the name of the company it is about to hold an account
  * with rather than a generic card icon.
  */
-/** One step down the card, with the thread running between them. */
-function Step({
-  icon,
-  title,
-  done,
-  last,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  /** R24.6. Green where the step is behind the church rather than ahead of it. */
-  done?: boolean;
-  last?: boolean;
-  children?: React.ReactNode;
-}) {
-  return (
-    <li className="flex gap-3">
-      <span className="flex w-6 shrink-0 flex-col items-center" aria-hidden>
-        <span
-          className="grid size-6 shrink-0 place-items-center rounded-full [&_svg]:size-3.5"
-          style={
-            done
-              ? { background: "var(--hue-fern-tint)", color: "var(--hue-fern-key)" }
-              : { background: "var(--color-sunken)", color: "var(--color-fg-subtle)" }
-          }
-        >
-          {icon}
-        </span>
-        {last ? null : <span className="my-1 w-px flex-1 bg-line" />}
-      </span>
-
-      <div className={`flex min-w-0 flex-1 flex-col gap-2.5 ${last ? "pb-1" : "pb-7"}`}>
-        <span className="text-[13px] font-medium text-fg-subtle">{title}</span>
-        {children}
-      </div>
-    </li>
-  );
-}
-
 /** The giving address, with the two things anybody does to it. */
 function Address({ value }: { value: string }) {
   const [copied, setCopied] = React.useState(false);
@@ -254,7 +216,7 @@ export function OnlineGiving({
           </span>
         </div>
 
-        <ol className="m-0 flex list-none flex-col p-0">
+        <Steps>
           <Step icon={<Landmark />} title={t("stripe.step.account")} done={ready}>
             {ready ? (
               <div className="flex flex-col gap-1.5">
@@ -348,7 +310,7 @@ export function OnlineGiving({
               <span className="text-[13px] text-fg-muted">{t("stripe.step.later")}</span>
             )}
           </Step>
-        </ol>
+        </Steps>
       </Card>
 
       </div>

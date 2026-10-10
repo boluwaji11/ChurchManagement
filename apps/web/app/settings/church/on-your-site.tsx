@@ -2,15 +2,17 @@
 
 import * as React from "react";
 import {
-  Check, CircleCheck, Copy, ExternalLink, Globe, Link2, Search, Users,
+  Check, ChevronDown, CircleCheck, Clock, Copy, ExternalLink, Globe, Link2,
+  Search, Users,
 } from "lucide-react";
 import {
   Banner, Button, Card, CardTitle, Field, Input, Separator, Switch, Textarea, Tooltip
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import type { DomainFindings } from "@connectapp/db/rules";
+import { consoleFor, type DomainFindings } from "@connectapp/db/rules";
 import { saveDomain, setSignup, checkDomain } from "./domain-actions";
 import { DomainReading } from "./domain-reading";
+import { Steps, Step } from "@/components/steps";
 
 /**
  * One address, with the two things anybody does to it.
@@ -77,6 +79,39 @@ function Head({ icon, title }: { icon: React.ReactNode; title: string }) {
 }
 
 /**
+ * R22.2. One line of the record, as a provider's form asks for it.
+ *
+ * A row rather than a field, because three fields across a card gave the word
+ * CNAME a third of the screen and told nobody anything. The value is the part
+ * that has to be typed exactly, so it is the part that is monospaced and the
+ * part the button copies.
+ */
+function RecordRow({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = React.useState(false);
+
+  return (
+    <div className="flex items-center gap-3 px-3 py-2">
+      <span className="w-24 shrink-0 text-caption text-fg-subtle">{label}</span>
+      <code className="min-w-0 flex-1 truncate font-mono text-[13px] text-fg">{value}</code>
+      <Tooltip content={copied ? t("domain.copied") : t("domain.copy")}>
+        <button
+          type="button"
+          aria-label={copied ? t("domain.copied") : t("domain.copy")}
+          onClick={() => {
+            void navigator.clipboard?.writeText(value);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 2000);
+          }}
+          className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-3.5"
+        >
+          {copied ? <Check className="text-primary" /> : <Copy />}
+        </button>
+      </Tooltip>
+    </div>
+  );
+}
+
+/**
  * R9.5, R17.1. What a church puts on its own website.
  *
  * The member's door and the group finder, as a link and as a snippet. A church
@@ -114,6 +149,26 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
   /* HRT-283. What the lookup found, held until the field is typed over. */
   const [found, setFound] = React.useState<DomainFindings | null>(null);
   const [checking, startChecking] = React.useTransition();
+  /* R22.2. The rest of the reading, which is a diagnosis rather than a task. */
+  const [more, setMore] = React.useState(false);
+
+  const check = () =>
+    startChecking(async () => {
+      setError(undefined);
+      setFound(null);
+      const back = await checkDomain(draft, slug, appHost);
+      if (back.error || !back.found) {
+        setError(back.error);
+        return;
+      }
+      setFound(back.found);
+
+      // Kept under the name as we read it back, so a pasted address with a
+      // scheme on the front is stored as a domain.
+      const kept = await saveDomain(back.found.domain, slug);
+      setError(kept.error);
+      if (!kept.error) setDraft(kept.domain ?? "");
+    });
 
   const accountLink = `${origin}/join/${slug}`;
   const groupsLink = `${origin}/g/${slug}`;
@@ -125,14 +180,22 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
 
   /* R1.1. What the address card's badge says, in one word. */
   const live = found?.pointsHere === true;
+  /* R22.2. Where they go to add it, where we recognised the provider. */
+  const providerConsole = consoleFor(found?.registrar);
 
   return (
-    <div className="flex max-w-[1120px] flex-col gap-5">
+    <div className="flex max-w-[1120px] flex-col gap-4">
       {approved ? null : (
         <Banner tone="info" title={t("site.waiting")}>{t("site.waitingBody")}</Banner>
       )}
 
       {error ? <Banner tone="danger">{error}</Banner> : null}
+
+      {/* R24.6. The task on the left and the two links on the right. The
+          address is a thing a church sets up once, with steps and a state;
+          the links are two strings to copy. Stacking them made the second
+          kind look as heavy as the first. */}
+      <div className="grid items-start gap-5 xl:[grid-template-columns:minmax(0,1fr)_minmax(300px,380px)]">
 
       {/* R1.1, R17.1. The church's own name over the whole of it. A frame
           cannot carry a session, so this is the way the signed-in screens live
@@ -187,24 +250,7 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
           <Button
             loading={checking}
             disabled={!approved || !draft.trim() || checking}
-            onClick={() =>
-              startChecking(async () => {
-                setError(undefined);
-                setFound(null);
-                const back = await checkDomain(draft, slug, appHost);
-                if (back.error || !back.found) {
-                  setError(back.error);
-                  return;
-                }
-                setFound(back.found);
-
-                // Kept under the name as we read it back, so a pasted address
-                // with a scheme on the front is stored as a domain.
-                const kept = await saveDomain(back.found.domain, slug);
-                setError(kept.error);
-                if (!kept.error) setDraft(kept.domain ?? "");
-              })
-            }
+            onClick={() => check()}
           >
             <Search /> {t("domain.check")}
           </Button>
@@ -216,37 +262,86 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
           nothing is said.
         */}
         {found?.pointsHere === false ? (
-          <div className="flex flex-col gap-3">
-            <Banner tone="info" title={t("domain.waiting.title")}>
-              {t("domain.waiting.body")}
-            </Banner>
+          <Steps>
+            {/* R22.2. Named, and linked, because we read their nameservers to
+                find out. Naming the provider and leaving them to find it is
+                the half of the job that helps nobody. */}
+            <Step
+              icon={<Globe />}
+              title={
+                found.registrar
+                  ? t("domain.step.addAt", { provider: found.registrar })
+                  : t("domain.step.add")
+              }
+            >
+              <div className="overflow-hidden rounded-[12px] border border-line bg-sunken">
+                <div className="divide-y divide-line">
+                  <RecordRow label={t("domain.record.type")} value="CNAME" />
+                  <RecordRow label={t("domain.record.name")} value={found.domain} />
+                  <RecordRow label={t("domain.record.target")} value={appHost} />
+                </div>
+              </div>
 
-            {/* The record itself, in the three boxes a provider's form asks
-                for, each one copyable because it has to be typed exactly. */}
-            <div className="grid gap-3 sm:grid-cols-3">
-              <Field label={t("domain.record.type")}>
-                <Copyable label={t("domain.record.type")} value="CNAME" />
-              </Field>
-              <Field label={t("domain.record.name")}>
-                <Copyable label={t("domain.record.name")} value={found.domain} />
-              </Field>
-              <Field label={t("domain.record.target")}>
-                <Copyable label={t("domain.record.target")} value={appHost} />
-              </Field>
-            </div>
+              {providerConsole ? (
+                <a
+                  href={providerConsole}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center gap-1.5 self-start text-[13px] font-medium text-primary no-underline hover:underline"
+                >
+                  {t("domain.openConsole", { provider: found.registrar ?? "" })}
+                  <ExternalLink className="size-3.5" aria-hidden />
+                </a>
+              ) : null}
+            </Step>
+
+            <Step icon={<Clock />} title={t("domain.step.wait")}>
+              <p className="text-[13px] text-fg-muted">{t("domain.step.waitBody")}</p>
+            </Step>
+
+            <Step icon={<Check />} title={t("domain.step.done")} last>
+              <Button
+                type="button"
+                variant="secondary"
+                className="self-start"
+                loading={checking}
+                disabled={checking}
+                onClick={() => check()}
+              >
+                {t("domain.recheck")}
+              </Button>
+            </Step>
+          </Steps>
+        ) : null}
+
+        {/* R22.2. Everything else we read is a diagnosis rather than a task,
+            so it waits behind a press. */}
+        {found ? (
+          <div className="flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => setMore(!more)}
+              aria-expanded={more}
+              className="inline-flex cursor-pointer items-center gap-1.5 self-start text-[13px] font-medium text-fg-muted hover:text-fg"
+            >
+              <ChevronDown
+                className={`size-4 transition-transform ${more ? "rotate-180" : ""}`}
+                aria-hidden
+              />
+              {more ? t("domain.less") : t("domain.more")}
+            </button>
+            {more ? <DomainReading found={found} /> : null}
           </div>
         ) : null}
 
-        {found ? <DomainReading found={found} /> : null}
       </Card>
 
-      {/* R1.7, R9.5. What a church pastes into the site it already has. The
-          two sit together, under the address they will be written at. */}
-      <div className="grid items-start gap-5 lg:grid-cols-2">
+      {/* R1.7, R9.5. What a church pastes into the site it already has. */}
+      <div className="flex min-w-0 flex-col gap-5">
       {/* R1.7. The address a church puts behind "My account" on its own
           website. There is no code to hand out: the address names the church,
           and the switch decides whether it is open. */}
-      <Card className="flex h-full flex-col gap-4">
+      <Card className="flex flex-col gap-4">
         <Head icon={<Link2 />} title={t("site.account")} />
         <Separator />
 
@@ -271,7 +366,7 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
         </label>
       </Card>
 
-      <Card className="flex h-full flex-col gap-4">
+      <Card className="flex flex-col gap-4">
         <Head icon={<Users />} title={t("site.groups")} />
         <Separator />
 
@@ -287,6 +382,7 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
           />
         </Field>
       </Card>
+      </div>
       </div>
     </div>
   );
