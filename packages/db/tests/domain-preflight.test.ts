@@ -10,6 +10,7 @@ import { describe, it, expect } from "vitest";
 import {
   readDomain, bareDomain, mailProviderOf, registrarOf,
   spfRecords, dmarcPolicy, plannedRecords, warningsFor, aimedAt,
+  isApex, hostLabel, suggestSubdomain,
   type Resolver,
 } from "../src/domain/preflight";
 
@@ -240,5 +241,41 @@ describe("whether the name reaches us yet", () => {
 
     const unasked = await readDomain("members.grace.org", pointed);
     expect(unasked!.pointsHere).toBeNull();
+  });
+});
+
+/*
+ * R1.1. The rule that stops us handing a church a record that breaks its mail.
+ * A CNAME cannot sit on the domain itself, so knowing which name is the domain
+ * itself decides what the screen is allowed to say.
+ */
+describe("the domain itself, against a name under it", () => {
+  it("knows an ordinary apex", () => {
+    expect(isApex("onefamilychurch.com")).toBe(true);
+    expect(isApex("grace.org")).toBe(true);
+    expect(isApex("members.grace.org")).toBe(false);
+    expect(isApex("my.members.grace.org")).toBe(false);
+  });
+
+  /* Counting dots would call this a subdomain and be wrong. */
+  it("knows an apex under a two-part suffix", () => {
+    expect(isApex("grace.co.uk")).toBe(true);
+    expect(isApex("grace.org.uk")).toBe(true);
+    expect(isApex("grace.com.au")).toBe(true);
+    expect(isApex("members.grace.co.uk")).toBe(false);
+  });
+
+  it("gives the provider's Name box what it actually wants", () => {
+    expect(hostLabel("members.grace.org")).toBe("members");
+    expect(hostLabel("my.members.grace.org")).toBe("my.members");
+    expect(hostLabel("members.grace.co.uk")).toBe("members");
+    // The domain itself, which providers write as @.
+    expect(hostLabel("grace.org")).toBe("@");
+    expect(hostLabel("grace.co.uk")).toBe("@");
+  });
+
+  it("offers a name under the church's own domain", () => {
+    expect(suggestSubdomain("grace.org")).toBe("members.grace.org");
+    expect(suggestSubdomain("grace.co.uk", "my")).toBe("my.grace.co.uk");
   });
 });

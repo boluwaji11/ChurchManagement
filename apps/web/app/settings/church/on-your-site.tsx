@@ -9,7 +9,9 @@ import {
   Banner, Button, Card, CardTitle, Field, Input, Separator, Switch, Textarea, Tooltip
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { consoleFor, type DomainFindings } from "@connectapp/db/rules";
+import {
+  consoleFor, isApex, hostLabel, suggestSubdomain, type DomainFindings,
+} from "@connectapp/db/rules";
 import { saveDomain, setSignup, checkDomain } from "./domain-actions";
 import { DomainReading } from "./domain-reading";
 import { Steps, Step } from "@/components/steps";
@@ -183,6 +185,28 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
   /* R22.2. Where they go to add it, where we recognised the provider. */
   const providerConsole = consoleFor(found?.registrar);
 
+  /*
+   * R1.1. A CNAME cannot sit on the domain itself. Every provider refuses it,
+   * and one that did not would take the church's email down with it, so an
+   * apex is answered with a name underneath it rather than with a record.
+   */
+  const apex = found ? isApex(found.domain) : false;
+  const suggested = found ? suggestSubdomain(found.domain) : "";
+
+  /* R22.2. What to press and what to type, at the provider we recognised. */
+  const steps = found
+    ? t(`dns.steps.${found.registrar ?? "generic"}` as never, {
+        name: hostLabel(found.domain),
+        target: appHost,
+      })
+    : "";
+  /* A provider we hold no steps for falls back to the general ones, and the
+     key coming back unresolved is how we know. */
+  const howTo = (steps.startsWith("dns.steps.")
+    ? t("dns.steps.generic", { name: hostLabel(found!.domain), target: appHost })
+    : steps
+  ).split("|");
+
   return (
     <div className="flex max-w-[1120px] flex-col gap-4">
       {approved ? null : (
@@ -261,7 +285,27 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
           work. Until it has been looked at there is nothing to say, so
           nothing is said.
         */}
-        {found?.pointsHere === false ? (
+        {/* R1.1. The domain itself cannot carry this record, so the screen
+            says what will work rather than what their provider will refuse. */}
+        {found && !found.pointsHere && apex ? (
+          <Banner tone="warning" title={t("domain.apex.title")}>
+            <div className="flex flex-col items-start gap-2.5">
+              <span>{t("domain.apex.body", { domain: found.domain })}</span>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setDraft(suggested);
+                  setFound(null);
+                }}
+              >
+                {t("domain.apex.use", { suggested })}
+              </Button>
+            </div>
+          </Banner>
+        ) : null}
+
+        {found?.pointsHere === false && !apex ? (
           <Steps>
             {/* R22.2. Named, and linked, because we read their nameservers to
                 find out. Naming the provider and leaving them to find it is
@@ -277,9 +321,30 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
               <div className="overflow-hidden rounded-[12px] border border-line bg-sunken">
                 <div className="divide-y divide-line">
                   <RecordRow label={t("domain.record.type")} value="CNAME" />
-                  <RecordRow label={t("domain.record.name")} value={found.domain} />
+                  <RecordRow label={t("domain.record.name")} value={hostLabel(found.domain)} />
                   <RecordRow label={t("domain.record.target")} value={appHost} />
                 </div>
+              </div>
+
+              {/* R22.2. What to press, in their provider's own words. The
+                  record above is what goes in the boxes; this is where the
+                  boxes are. */}
+              <div className="flex flex-col gap-2">
+                <span className="text-caption font-semibold text-fg-subtle">
+                  {found.registrar
+                    ? t("domain.stepsFor", { provider: found.registrar })
+                    : t("domain.stepsGeneric")}
+                </span>
+                <ol className="m-0 flex list-none flex-col gap-1.5 p-0">
+                  {howTo.map((one, at) => (
+                    <li key={one} className="flex gap-2.5 text-[13px] leading-5 text-fg-muted">
+                      <span className="w-4 shrink-0 text-right font-mono text-fg-subtle">
+                        {at + 1}
+                      </span>
+                      <span className="min-w-0">{one}</span>
+                    </li>
+                  ))}
+                </ol>
               </div>
 
               {providerConsole ? (

@@ -2729,6 +2729,23 @@ export const en = {
   "domain.state.live": "Working",
   "domain.state.waiting": "Not working yet",
   "domain.state.none": "Not set up",
+  // HRT-283, R22.2. What to press and what to type, at the provider we
+  // detected. One key a provider, the steps separated by a bar, the way the
+  // pipeline library writes its own steps.
+  "dns.steps.GoDaddy": "Sign in and open My Products|Find your domain and press DNS|Press Add New Record|Choose CNAME under Type|Put {name} in the Name box|Put {target} in the Value box|Leave TTL as it is|Press Save",
+  "dns.steps.Cloudflare": "Sign in and choose your domain|Open DNS, then Records|Press Add record|Choose CNAME under Type|Put {name} in the Name box|Put {target} in the Target box|Set Proxy status to DNS only|Press Save",
+  "dns.steps.Namecheap": "Sign in and open Domain List|Press Manage beside your domain|Open the Advanced DNS tab|Press Add New Record, then CNAME Record|Put {name} in the Host box|Put {target} in the Value box|Press the tick to save",
+  "dns.steps.Squarespace": "Sign in and open Domains|Choose your domain, then DNS|Press Add record|Choose CNAME under Type|Put {name} in the Host box|Put {target} in the Data box|Press Save",
+  "dns.steps.Wix": "Sign in and open Domains|Choose your domain, then Manage DNS|Find CNAME and press Add Record|Put {name} in the Host Name box|Put {target} in the Value box|Press Save",
+  "dns.steps.Amazon Route 53": "Open Route 53, then Hosted zones|Choose your domain|Press Create record|Put {name} in the Record name box|Choose CNAME under Record type|Put {target} in the Value box|Press Create records",
+  "dns.steps.generic": "Sign in to your domain provider|Find the DNS or Records screen for your domain|Add a new record|Choose CNAME as the type|Put {name} where it asks for the name or host|Put {target} where it asks for the value or target|Save it",
+  "domain.stepsFor": "At {provider}",
+  "domain.stepsGeneric": "At your domain provider",
+  // R1.1. An apex cannot carry this record, so the screen says so rather than
+  // handing a church something its provider will refuse.
+  "domain.apex.title": "Use a name under your domain",
+  "domain.apex.body": "{domain} cannot point here on its own, and your provider will refuse the record. A name underneath it works and leaves your email alone.",
+  "domain.apex.use": "Use {suggested}",
   "domain.step.add": "Add this record where your domain lives",
   "domain.step.addAt": "Add this record at {provider}",
   "domain.step.wait": "Wait for it to take effect",

@@ -353,3 +353,50 @@ export const DNS_CONSOLE: Record<string, string> = {
 /** The console for whoever answers for this domain, where we know it. */
 export const consoleFor = (registrar: string | null | undefined): string | null =>
   (registrar && DNS_CONSOLE[registrar]) ?? null;
+
+/**
+ * R1.1. Suffixes that take a label of their own before the name begins.
+ *
+ * `church.co.uk` is an apex the same way `church.org` is, and counting dots
+ * would call it a subdomain and hand a church a record that breaks their mail.
+ */
+const TWO_PART_SUFFIXES = [
+  "co.uk", "org.uk", "ac.uk", "gov.uk", "me.uk", "net.uk", "sch.uk",
+  "com.au", "net.au", "org.au", "edu.au", "gov.au",
+  "co.nz", "org.nz", "net.nz", "govt.nz",
+  "co.za", "org.za", "net.za",
+  "com.br", "com.mx", "com.ar", "com.sg", "com.my", "com.ph", "com.ng",
+  "co.in", "org.in", "net.in", "co.ke", "or.ke", "com.gh",
+];
+
+/**
+ * R1.1. Whether this is the church's domain itself rather than a name under it.
+ *
+ * It decides what we are allowed to tell them to do. A CNAME cannot sit on the
+ * domain itself: the standard forbids it alongside the other records a domain
+ * carries, every provider refuses it, and a provider that quietly accepted it
+ * would take their email down with it. So an apex gets a different answer.
+ */
+export function isApex(domain: string): boolean {
+  const name = domain.toLowerCase();
+  const labels = name.split(".");
+  // Three labels is an apex only when the last two are a suffix of their own.
+  if (TWO_PART_SUFFIXES.some((suffix) => name.endsWith(`.${suffix}`))) {
+    return labels.length <= 3;
+  }
+  return labels.length <= 2;
+}
+
+/** The part a provider's "Name" box wants, which is the name without the domain. */
+export function hostLabel(domain: string): string {
+  const labels = domain.toLowerCase().split(".");
+  const apexLabels = TWO_PART_SUFFIXES.some((suffix) => domain.toLowerCase().endsWith(`.${suffix}`))
+    ? 3
+    : 2;
+  return labels.length <= apexLabels ? "@" : labels.slice(0, labels.length - apexLabels).join(".");
+}
+
+/** A name under the church's own domain, for an apex we cannot point here. */
+export function suggestSubdomain(domain: string, label = "members"): string {
+  return `${label}.${domain}`;
+}
