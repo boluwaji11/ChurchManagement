@@ -72,7 +72,7 @@ export function StationManager({
   if (putAway) {
     return (
       <div className="flex flex-col gap-5" aria-busy={pending}>
-        {error ? <Banner tone="danger" title={t("stations.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         {stations.length === 0 ? (
           <Empty icon="station" title={t("stations.archived.none")} />
@@ -102,7 +102,7 @@ export function StationManager({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("stations.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {open.length > 0 ? (
         <div className="flex justify-end">

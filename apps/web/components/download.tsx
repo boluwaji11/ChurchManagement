@@ -68,7 +68,7 @@ export function Download({
       <Working open={busy} label={label} />
 
       {error ? (
-        <Banner tone="danger" title={title}>{error}</Banner>
+        <Banner tone="danger">{error}</Banner>
       ) : null}
 
       <button

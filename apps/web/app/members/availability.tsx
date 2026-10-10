@@ -62,7 +62,7 @@ export function Availability({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="flex flex-col gap-1.5">
         <span className="text-label text-fg">{t("availability.frequency")}</span>

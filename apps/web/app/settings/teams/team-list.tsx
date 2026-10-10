@@ -53,7 +53,7 @@ export function TeamList({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {teams.length === 0 ? (
         <Empty

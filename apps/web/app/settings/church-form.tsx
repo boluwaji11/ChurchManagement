@@ -93,7 +93,7 @@ export function ChurchForm({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("church.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
       {saved && !error ? (
         <Said message={t("church.saved")} onClose={() => setSaved(false)} />
       ) : null}

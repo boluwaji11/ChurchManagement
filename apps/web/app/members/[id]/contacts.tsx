@@ -64,7 +64,7 @@ export function Contacts({
 
   return (
     <div className="flex flex-col gap-2" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("personForm.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {mine.map((one) => (
         <span key={one.id} className="group flex items-center gap-2">

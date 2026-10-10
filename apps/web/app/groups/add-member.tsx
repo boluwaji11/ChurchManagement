@@ -117,7 +117,7 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
           </>
         }
       >
-        {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         <Field label={t("groups.findMember")}>
           <Searching on={searching}>

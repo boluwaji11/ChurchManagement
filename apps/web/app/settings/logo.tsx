@@ -78,7 +78,7 @@ export function ChurchLogo({
         label={removing ? t("church.logo.removing") : t("church.logo.uploading")}
       />
 
-      {error ? <Banner tone="danger" title={t("church.logo")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="flex items-center gap-3">
         {logoUrl ? (

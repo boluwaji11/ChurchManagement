@@ -273,7 +273,7 @@ export function Desk({
       ) : null}
 
       {error ?? searchError ? (
-        <Banner tone="danger" title={t("checkin.failed")}>{error ?? searchError}</Banner>
+        <Banner tone="danger">{error ?? searchError}</Banner>
       ) : null}
 
       {services.length > 1 ? (

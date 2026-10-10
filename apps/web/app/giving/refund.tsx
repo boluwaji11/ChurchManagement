@@ -62,7 +62,7 @@ export function RefundGift({
           closeLabel={t("common.close")}
         >
           <div className="flex flex-col gap-4">
-            {error ? <Banner tone="danger" title={t("giving.failed")}>{error}</Banner> : null}
+            {error ? <Banner tone="danger">{error}</Banner> : null}
 
             <Field label={t("giving.gift.amount")} required>
               <MoneyInput value={amount} onChange={setAmount} autoFocus />

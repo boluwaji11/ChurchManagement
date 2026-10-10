@@ -75,7 +75,7 @@ export function Steps({
 
   return (
     <div className="flex flex-col gap-9" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("setup.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-5">
         <div className="flex min-w-0 flex-1 flex-col gap-2">

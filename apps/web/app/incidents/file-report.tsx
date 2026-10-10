@@ -107,7 +107,7 @@ export function FileReport({
           }}
           className="flex flex-col gap-4"
         >
-          {error ? <Banner tone="danger" title={t("incident.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           <Field label={t("incident.who")} required>
             <Combobox

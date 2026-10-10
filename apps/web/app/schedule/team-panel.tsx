@@ -394,7 +394,7 @@ export function TeamPanel({
           }}
           className="flex flex-col gap-4"
         >
-          {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           {team || library.length === 0 ? null : (
             <button

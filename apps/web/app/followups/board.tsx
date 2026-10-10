@@ -86,7 +86,7 @@ export function Board({
 
   return (
     <div className="flex flex-col gap-3">
-      {error ? <Banner tone="danger" title={t("board.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div
         className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr))]"

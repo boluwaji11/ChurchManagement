@@ -49,7 +49,7 @@ export function Places({
       className="flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-5"
       aria-busy={pending}
     >
-      {error ? <Banner tone="danger" title={t("place.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <span className="font-semibold text-fg">{t("place.title")}</span>
 

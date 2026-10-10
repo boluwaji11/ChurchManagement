@@ -99,7 +99,7 @@ export function TagEditor({
 
   return (
     <div className="flex flex-col gap-3">
-      {error ? <Banner tone="danger" title={t("tags.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="flex flex-wrap gap-1.5" aria-busy={pending}>
         {shown.map((tag) => {

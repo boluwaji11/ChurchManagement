@@ -92,7 +92,7 @@ export function FollowUps({
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("followups.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {open.map((entry) => (
         <Thread
@@ -273,7 +273,7 @@ export function PersonTasks({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("followups.tasks")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {[...open, ...done].length > 0 ? (
         <ul className="flex flex-col">

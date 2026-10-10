@@ -132,7 +132,7 @@ export function Team({
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("team.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
       <Said message={message} onClose={() => setMessage(undefined)} />
 
       {/* R1.4. Both of these change what somebody may do, and neither is
@@ -608,7 +608,7 @@ export function InvitePerson({
         >
           {/* Inside the box. A banner at the top of the page is behind the
               dialog that is still open, which is nothing at all. */}
-          {failed ? <Banner tone="danger" title={t("team.failed")}>{failed}</Banner> : null}
+          {failed ? <Banner tone="danger">{failed}</Banner> : null}
 
           <input type="hidden" name="memberId" value={person} />
 

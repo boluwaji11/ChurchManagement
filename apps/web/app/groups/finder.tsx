@@ -341,7 +341,7 @@ export function Finder({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("find.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/*
        * R9.6. What this person owes an answer to, above what they are browsing.

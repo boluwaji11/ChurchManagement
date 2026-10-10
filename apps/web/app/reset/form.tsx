@@ -38,7 +38,7 @@ export function ResetForm() {
       onInput={revalidate}
       className="flex flex-col gap-4"
     >
-      {failed ? <Banner tone="danger" title={t("reset.title")}>{failed}</Banner> : null}
+      {failed ? <Banner tone="danger">{failed}</Banner> : null}
 
       <Field label={t("signUp.password")} htmlFor="password" error={errors["password"]} required>
         <Input id="password" name="password" type="password" autoComplete="new-password" autoFocus />

@@ -61,7 +61,7 @@ export function KindManager({
   if (putAway) {
     return (
       <div className="flex flex-col gap-4" aria-busy={pending}>
-        {error ? <Banner tone="danger" title={t("itemKind.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         {kinds.length === 0 ? (
           <Empty icon="calendar" title={t("itemKind.archived.none")} />
@@ -93,7 +93,7 @@ export function KindManager({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("itemKind.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {live.length === 0 ? (
         <Empty
@@ -269,7 +269,7 @@ function KindPanel({
           />
         ) : (
         <div className="flex flex-col gap-4">
-          {error ? <Banner tone="danger" title={t("itemKind.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           <Field label={t("itemKind.name")} required>
             <Input

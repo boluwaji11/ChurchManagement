@@ -71,7 +71,7 @@ export function AttachGift({
                 {t("giving.gift.attachWas", { who: gift.typed })}
               </p>
             ) : null}
-            {error ? <Banner tone="danger" title={t("giving.failed")}>{error}</Banner> : null}
+            {error ? <Banner tone="danger">{error}</Banner> : null}
 
             <Field label={t("giving.gift.giver")} required>
               <Picker

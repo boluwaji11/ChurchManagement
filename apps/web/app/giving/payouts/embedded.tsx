@@ -123,7 +123,7 @@ export function EmbeddedPayouts({
 
   return (
     <div className="flex flex-col gap-6">
-      {error ? <Banner tone="danger" title={t("stripe.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {connect === null ? (
         <>

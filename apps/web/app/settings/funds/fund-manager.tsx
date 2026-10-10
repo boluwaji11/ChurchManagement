@@ -76,7 +76,7 @@ export function FundManager({
   if (putAway) {
     return (
       <div className="flex flex-col gap-4" aria-busy={pending}>
-        {error ? <Banner tone="danger" title={t("fund.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         {funds.length === 0 ? (
           <Empty icon="tag" title={t("fund.archived.none")} />
@@ -110,7 +110,7 @@ export function FundManager({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("fund.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="flex justify-end">
         <FundPanel church={church} pending={pending} codesInUse={codes} />
@@ -311,7 +311,7 @@ function FundPanel({
         ) : null}
 
         <div className="flex flex-col gap-4" hidden={picking}>
-          {error ? <Banner tone="danger" title={t("fund.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           {/* R24.6. The way back to what churches already keep, for somebody
               who opened the wrong one. */}

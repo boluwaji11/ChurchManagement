@@ -220,7 +220,7 @@ export function ArchivedRoles({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("roles.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <ul className="flex flex-col rounded-[14px] border border-line bg-surface px-5 py-1">
         {roles.map((role) => {
@@ -433,7 +433,7 @@ export function RoleForm({
           )
         }
       >
-        {error ? <Banner tone="danger" title={t("roles.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         {picking ? (
           /*

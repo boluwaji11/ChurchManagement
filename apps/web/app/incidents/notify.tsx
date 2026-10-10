@@ -27,7 +27,7 @@ export function Notify({ church, id }: { church: string; id: string }) {
       >
         {t("incident.markTold")}
       </Button>
-      {error ? <Banner tone="danger" title={t("incident.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
     </div>
   );
 }

@@ -72,7 +72,7 @@ export default async function JoinPage({
       width="max-w-[460px]"
       footer={user ? <SignOutButton /> : undefined}
     >
-      {error ? <Banner tone="danger" title={error} /> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {user ? (
         <JoinNow church={church.slug} />

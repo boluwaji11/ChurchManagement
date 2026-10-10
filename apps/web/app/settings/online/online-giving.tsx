@@ -198,7 +198,7 @@ export function OnlineGiving({
           because neither is a footnote to the other. */}
       <div className="grid items-stretch gap-5 xl:[grid-template-columns:minmax(0,1fr)_minmax(300px,380px)]">
       <div className="flex min-w-0 flex-col gap-4">
-      {error ? <Banner tone="danger" title={t("stripe.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
       {configured ? null : (
         <Banner tone="info" title={t("stripe.title")}>{t("stripe.unconfigured")}</Banner>
       )}

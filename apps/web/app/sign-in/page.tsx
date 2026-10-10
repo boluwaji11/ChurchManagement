@@ -44,7 +44,7 @@ export default async function SignIn({
       }
     >
       {params.error ? (
-        <Banner tone="danger" title={t("signIn.failed")}>{params.error}</Banner>
+        <Banner tone="danger">{params.error}</Banner>
       ) : null}
 
       {params.sent ? (

@@ -99,7 +99,7 @@ export function SchedulePlan({
 
   return (
     <div className="flex flex-col gap-6" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("plan.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="flex flex-col gap-1.5">
         <span className="text-label text-fg">{t("plan.service")}</span>

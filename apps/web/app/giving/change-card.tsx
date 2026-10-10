@@ -56,7 +56,7 @@ export function ChangeCard({
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent title={t("give.card")} closeLabel={t("common.close")} width="560px">
           {error ? (
-            <Banner tone="danger" title={t("stripe.title")}>{error}</Banner>
+            <Banner tone="danger">{error}</Banner>
           ) : card ? (
             <Pay
               publishableKey={publishableKey}

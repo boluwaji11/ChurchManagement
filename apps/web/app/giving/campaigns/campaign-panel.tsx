@@ -133,7 +133,7 @@ export function CampaignPanel({
         {guard}
 
         <div className="flex flex-col gap-4">
-          {error ? <Banner tone="danger" title={t("campaigns.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           <Field label={t("campaigns.name")} required>
             <Input

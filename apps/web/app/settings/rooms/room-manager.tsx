@@ -93,7 +93,7 @@ export function RoomManager({
   if (putAway) {
     return (
       <div className="flex flex-col gap-5" aria-busy={pending}>
-        {error ? <Banner tone="danger" title={t("rooms.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         {rooms.length === 0 ? (
           <Empty icon="room" title={t("rooms.archived.none")} />
@@ -133,7 +133,7 @@ export function RoomManager({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("rooms.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {open.length === 0 ? (
         <Empty

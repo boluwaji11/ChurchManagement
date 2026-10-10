@@ -302,7 +302,7 @@ export function Register({
       {state === "waitlist" ? (
         <Banner tone="info" title={t("publicEvent.waitlistOpen")} />
       ) : null}
-      {failed ? <Banner tone="danger" title={t("publicEvent.failed")}>{failed}</Banner> : null}
+      {failed ? <Banner tone="danger">{failed}</Banner> : null}
 
       {step === "who" ? (
         <div className="flex flex-col gap-4">

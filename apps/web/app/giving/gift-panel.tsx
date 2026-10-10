@@ -181,7 +181,7 @@ export function GiftPanel({
         {guard}
 
         <div className="flex flex-col gap-4">
-          {error ? <Banner tone="danger" title={t("giving.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           {/* R13.14. Left empty, the gift is anonymous and still counts. */}
           <Field label={t("giving.gift.giver")}>

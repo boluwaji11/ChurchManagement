@@ -39,7 +39,7 @@ export default async function SignUpPage({
       width="max-w-[520px]"
     >
       {params.error ? (
-        <Banner tone="danger" title={t("signUp.failed")}>{params.error}</Banner>
+        <Banner tone="danger">{params.error}</Banner>
       ) : null}
 
       {params.sent ? (

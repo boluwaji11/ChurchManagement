@@ -332,7 +332,7 @@ function FieldSheet({
           )
         }
       >
-        {error ? <Banner tone="danger" title={t("fields.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         {picking ? (
           /*

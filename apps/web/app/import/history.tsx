@@ -129,7 +129,7 @@ function Undo({ church, batch }: { church: string; batch: BatchRow }) {
           description={t("import.rollback.window")}
         >
           {error ? (
-            <Banner tone="danger" title={t("import.failed")} className="mb-4">{error}</Banner>
+            <Banner tone="danger" className="mb-4">{error}</Banner>
           ) : null}
 
           <p className="mb-5 text-[length:var(--d-text-body)] text-fg">

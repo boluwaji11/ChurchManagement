@@ -76,7 +76,7 @@ export function AddService({
           </>
         }
       >
-        {error ? <Banner tone="danger" title={t("services.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         <form
           id="add-service"

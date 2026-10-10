@@ -149,7 +149,7 @@ export function CreateChurchForm() {
 
   return (
     <form action={action} noValidate className="flex flex-col gap-5">
-      {error ? <Banner tone="danger" title={t("createChurch.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <Field label={t("createChurch.name")} error={nameError} required>
         <Input

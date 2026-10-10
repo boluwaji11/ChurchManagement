@@ -49,7 +49,7 @@ export function ServiceActions({
   if (cancelled) {
     return (
       <div className="flex flex-wrap items-center gap-3">
-        {error ? <Banner tone="danger" title={t("services.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
         <Button variant="secondary" disabled={pending} onClick={() => run(false)}>
           <Undo2 /> {t("services.restore")}
         </Button>
@@ -66,7 +66,7 @@ export function ServiceActions({
       </DialogTrigger>
       <DialogContent alert title={t("services.cancelTitle", { name, date })}>
         {error ? (
-          <Banner tone="danger" title={t("services.failed")} className="mb-4">{error}</Banner>
+          <Banner tone="danger" className="mb-4">{error}</Banner>
         ) : null}
         <p className="mb-5 text-[length:var(--d-text-body)] text-fg-muted">
           {t("services.cancelBody")}

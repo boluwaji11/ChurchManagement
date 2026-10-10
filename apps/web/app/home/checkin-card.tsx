@@ -113,7 +113,7 @@ export function CheckinCard({
       ) : null}
 
       {error ? (
-        <Banner tone="danger" title={t("checkin.mine.failed")}>{error}</Banner>
+        <Banner tone="danger">{error}</Banner>
       ) : null}
     </div>
     </Block>

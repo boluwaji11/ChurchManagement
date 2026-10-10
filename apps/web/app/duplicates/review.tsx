@@ -166,7 +166,7 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
       </div>
 
       {outcome?.error ? (
-        <Banner tone="danger" title={t("merge.failed")} className="m-5">
+        <Banner tone="danger" className="m-5">
           {t(outcome.error as never)}
         </Banner>
       ) : null}
@@ -270,7 +270,7 @@ function History({ church, history }: { church: string; history: PastMerge[] }) 
       <div className="py-2 text-[13px] font-medium text-fg-subtle">{t("merge.history")}</div>
 
       {outcome?.error ? (
-        <Banner tone="danger" title={t("merge.history")} className="mb-3">
+        <Banner tone="danger" className="mb-3">
           {t(outcome.error as never)}
         </Banner>
       ) : null}

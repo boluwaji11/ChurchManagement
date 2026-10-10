@@ -64,7 +64,14 @@ export function Banner({
       <Icon className="size-5 shrink-0 mt-px" aria-hidden />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         {title ? <p className="font-medium">{title}</p> : null}
-        {children ? <div className="text-fg-muted">{children}</div> : null}
+        {/*
+          R24.9. Under a title the message is the second line and reads quieter.
+          On its own it is the whole banner, so it keeps the tone's own colour:
+          an error set in muted grey inside a red box reads as an aside.
+        */}
+        {children ? (
+          <div className={title ? "text-fg-muted" : undefined}>{children}</div>
+        ) : null}
       </div>
       {closable ? (
         <button

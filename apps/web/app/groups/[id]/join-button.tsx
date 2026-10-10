@@ -15,7 +15,7 @@ export function JoinButton({ church, groupId }: { church: string; groupId: strin
 
   return (
     <span className="flex flex-wrap items-center gap-3">
-      {error ? <Banner tone="danger" title={t("find.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
       <Button
         disabled={pending}
         onClick={() =>

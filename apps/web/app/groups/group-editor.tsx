@@ -194,7 +194,7 @@ export function GroupEditor({
       }}
       className="flex flex-col gap-5"
     >
-      {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* The name and when it meets on the left, the banner beside them, the
           same two columns the group's own page opens with. */}

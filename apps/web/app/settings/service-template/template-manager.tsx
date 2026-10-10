@@ -71,7 +71,7 @@ export function TemplateManager({
   if (putAway) {
     return (
       <div className="flex flex-col gap-4" aria-busy={pending}>
-        {error ? <Banner tone="danger" title={t("planTpl.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         {templates.length === 0 ? (
           <Empty icon="calendar" title={t("planTpl.archived.none")} />
@@ -104,7 +104,7 @@ export function TemplateManager({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("planTpl.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {live.length === 0 ? (
         <Empty
@@ -333,7 +333,7 @@ function TemplatePanel({
           />
         ) : (
           <div className="flex flex-col gap-4">
-            {error ? <Banner tone="danger" title={t("planTpl.failed")}>{error}</Banner> : null}
+            {error ? <Banner tone="danger">{error}</Banner> : null}
 
             {template || library.length === 0 ? null : (
               <button

@@ -34,7 +34,7 @@ export function Notices({ church, notices }: { church: string; notices: Notice[]
     <Block icon={<Megaphone />} title={t("announce.title")}>
       {error ? (
         <div className="px-5 pt-4">
-          <Banner tone="danger" title={t("announce.failed")}>{error}</Banner>
+          <Banner tone="danger">{error}</Banner>
         </div>
       ) : null}
 

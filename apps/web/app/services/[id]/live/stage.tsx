@@ -94,7 +94,7 @@ export function Stage({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("live.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <Card className="flex flex-col gap-4 p-6">
         {live.running && current ? (

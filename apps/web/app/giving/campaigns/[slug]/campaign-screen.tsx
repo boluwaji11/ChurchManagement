@@ -61,7 +61,7 @@ export function CampaignScreen({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("campaigns.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* R13.16. The one number somebody opened this page for, what it is
           measured against, and how that is going. */}
@@ -384,7 +384,7 @@ function PledgePanel({ church, campaignId }: { church: string; campaignId: strin
         {guard}
 
         <div className="flex flex-col gap-4">
-          {error ? <Banner tone="danger" title={t("campaigns.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           <Field label={t("pledge.who")} required>
             <Picker

@@ -221,7 +221,7 @@ export function PersonForm({
       {values?.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
       {formError ? (
-        <Banner tone="danger" title={t("personForm.failed")}>{formError}</Banner>
+        <Banner tone="danger">{formError}</Banner>
       ) : null}
 
       {/* The person on the left, who they live with on the right, with a

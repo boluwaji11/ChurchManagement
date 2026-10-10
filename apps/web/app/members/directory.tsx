@@ -401,7 +401,7 @@ export function Directory({
         ) : null}
       </div>
 
-      {result?.error ? <Banner tone="danger" title={t("import.failed")}>{result.error}</Banner> : null}
+      {result?.error ? <Banner tone="danger">{result.error}</Banner> : null}
       {result && !result.error && result.changed !== undefined ? (
         <Said
           message={t("directory.bulkDone", { count: result.changed })}
@@ -1252,7 +1252,7 @@ function ListBar({
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-3">
-      {failed ? <Banner tone="danger" title={t("import.failed")}>{failed}</Banner> : null}
+      {failed ? <Banner tone="danger">{failed}</Banner> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="flex min-w-0 items-center gap-2">

@@ -89,7 +89,7 @@ export function Floor({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("board.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="grid gap-5 [grid-template-columns:1fr] md:[grid-template-columns:minmax(240px,300px)_1fr]">
         {/* The children who are here and have not been put in a class. The

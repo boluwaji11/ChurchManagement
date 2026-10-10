@@ -99,7 +99,7 @@ export function CheckInSheet({
           </>
         }
       >
-        {error ? <Banner tone="danger" title={t("board.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         <Field label={t("board.child")} required>
           <Combobox

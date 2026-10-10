@@ -25,7 +25,7 @@ export function AskedButton({ church, groupId }: { church: string; groupId: stri
 
   return (
     <span className="flex flex-wrap items-center gap-3">
-      {error ? <Banner tone="danger" title={t("find.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <Confirm
         title={t("find.unaskTitle")}

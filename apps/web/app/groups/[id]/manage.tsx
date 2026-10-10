@@ -31,7 +31,7 @@ export function ManageGroup({
 
   return (
     <div className="flex items-center gap-1" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("groups.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* A link rather than a button, because it opens a page. Shaped from the
           same tokens the IconButton beside it uses, so the pair reads as one. */}

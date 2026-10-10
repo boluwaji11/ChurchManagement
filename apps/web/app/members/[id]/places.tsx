@@ -55,7 +55,7 @@ export function Places({
 
   return (
     <div className="flex flex-col gap-2" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("personForm.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {places.map((one) => (
         <span key={one.id} className="group flex items-baseline gap-2">

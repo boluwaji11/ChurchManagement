@@ -47,7 +47,7 @@ export function LabelLayoutForm({
 
   return (
     <div className="flex flex-col gap-4">
-      {error ? <Banner tone="danger" title={t("labels.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* It saves itself on every press, so it says where that has got to
           rather than leaving the station guessing. */}

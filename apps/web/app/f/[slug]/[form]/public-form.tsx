@@ -106,7 +106,7 @@ export function PublicForm({
         ) : null}
       </div>
 
-      {failed ? <Banner tone="danger" title={t("publicForm.failed")}>{failed}</Banner> : null}
+      {failed ? <Banner tone="danger">{failed}</Banner> : null}
 
       <div className="flex flex-col gap-6">
         {shown.map((field) => (

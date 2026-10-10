@@ -231,7 +231,7 @@ export function EventView({
         )}
       </div>
 
-      {error ? <Banner tone="danger" title={t("event.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* The name and when on the left, the cover beside them, which is what
           the designer was drawing. */}

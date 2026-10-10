@@ -131,7 +131,7 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
 
       {error ? (
         <div className="lg:col-span-2">
-          <Banner tone="danger" title={t("domain.title")}>{error}</Banner>
+          <Banner tone="danger">{error}</Banner>
         </div>
       ) : null}
 

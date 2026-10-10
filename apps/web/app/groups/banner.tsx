@@ -70,7 +70,7 @@ export function GroupBanner({
         open={busy || removing}
         label={removing ? t("image.removing") : t("image.uploading")}
       />
-      {error ? <Banner tone="danger" title={groupName}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="relative">
         {photoUrl ? (

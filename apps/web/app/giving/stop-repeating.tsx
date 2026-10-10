@@ -57,7 +57,7 @@ export function StopRepeating({
           closeLabel={t("common.close")}
         >
           <div className="flex flex-col gap-4">
-            {error ? <Banner tone="danger" title={t("giving.failed")}>{error}</Banner> : null}
+            {error ? <Banner tone="danger">{error}</Banner> : null}
             <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">
               {t("give.stop.body")}
             </p>

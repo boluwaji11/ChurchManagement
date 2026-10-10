@@ -357,7 +357,7 @@ export function EventEditor({
         */}
       <input type="hidden" name="hue" value={hue} />
       <input type="hidden" name="cover" value={picture?.name ?? ""} />
-      {error ? <Banner tone="danger" title={t("event.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* Save sits at the top right, where every other edit screen puts it,
           rather than at the end of a page somebody has to scroll to reach. */}

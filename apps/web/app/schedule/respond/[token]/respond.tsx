@@ -42,7 +42,7 @@ export function Respond({
 
   return (
     <Card className="flex flex-col gap-5 p-6" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("serving.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {answered ? (
         <>

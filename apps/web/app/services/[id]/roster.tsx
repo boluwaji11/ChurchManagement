@@ -124,7 +124,7 @@ export function Roster({
 
   return (
     <div className="flex flex-col gap-4">
-      {error ? <Banner tone="danger" title={t("roster.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-56 flex-1">

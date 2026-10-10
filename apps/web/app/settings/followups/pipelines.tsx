@@ -109,7 +109,7 @@ export function Pipelines({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {rows.map((row) => (
         <section
@@ -562,7 +562,7 @@ function StageForm({
       }}
       className="flex flex-col gap-4"
     >
-      {error ? <Banner tone="danger" title={t("pipelines.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {onBack ? (
         <button

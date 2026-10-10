@@ -134,7 +134,7 @@ export function HouseholdList({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("households.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <SearchField
         value={find}
@@ -902,7 +902,7 @@ export function NewHousehold({ church }: { church: string }) {
       </DialogTrigger>
 
       <DialogContent title={t("households.add")} closeLabel={t("common.close")} className="max-w-xl">
-        {error ? <Banner tone="danger" title={t("households.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         <div className="flex flex-col gap-5">
           <Field label={t("households.name")} required>

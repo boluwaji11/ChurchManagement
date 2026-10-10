@@ -66,7 +66,7 @@ export function ArchiveButton({
         </p>
 
         {error ? (
-          <Banner tone="danger" title={t("person.archive.failed")} className="mb-4">{error}</Banner>
+          <Banner tone="danger" className="mb-4">{error}</Banner>
         ) : null}
 
         <form noValidate action={submit}>

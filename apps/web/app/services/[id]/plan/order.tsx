@@ -189,7 +189,7 @@ export function Order({
 
   return (
     <div className="@container flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* R11.8. Above the plan and to the right, where a table's own actions
           sit. The same shape most weeks, filled in differently: the kinds, the
@@ -525,7 +525,7 @@ function ItemDialog({
         }
       >
         <div className="flex flex-col gap-4">
-          {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t("order.kind")}>
@@ -629,7 +629,7 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
       </DialogTrigger>
       <DialogContent title={t("order.note.add")} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">
-          {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           <Field label={t("order.note.body")} required>
             <Textarea rows={3} value={body} onChange={(e) => setBody(e.target.value)} autoFocus />
@@ -892,7 +892,7 @@ function StartFrom({
         }
       >
         {failed ? (
-          <Banner tone="danger" title={t("order.failed")} className="mb-4">{failed}</Banner>
+          <Banner tone="danger" className="mb-4">{failed}</Banner>
         ) : null}
 
         {looking ? (
@@ -1047,7 +1047,7 @@ function TemplateDialog({
         }
       >
         <div className="flex flex-col gap-4" aria-busy={pending}>
-          {error ? <Banner tone="danger" title={t("order.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           <Field label={t("order.template.name")} required>
             <Input

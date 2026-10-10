@@ -126,7 +126,7 @@ export function ProfileForm({
         label={removing ? t("profile.photo.removing") : t("profile.photo.uploading")}
       />
 
-      {error ? <Banner tone="danger" title={t("settings.profile.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center gap-4">
         {/* The way back to reading it, where this card is being edited. */}

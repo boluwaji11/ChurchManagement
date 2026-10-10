@@ -81,7 +81,7 @@ export function WhoServes({
         ) : null}
       </div>
 
-      {error ? <Banner tone="danger" title={t("plan.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {teams.length === 0 ? (
         <Empty icon="serving" title={t("serves.empty")}

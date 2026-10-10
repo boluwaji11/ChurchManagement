@@ -90,7 +90,7 @@ export function NoteForm({
           }}
           className="flex flex-col gap-4"
         >
-          {error ? <Banner tone="danger" title={t("notes.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           {/* R2.7. Who may open it again is the whole difference between the two
               kinds, so it is the first thing asked rather than a box underneath. */}

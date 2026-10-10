@@ -51,7 +51,7 @@ export function LeaveButton({
           title={t("group.leaveAsk", { group: groupName })}
           closeLabel={t("action.cancel")}
         >
-          {error ? <Banner tone="danger" title={t("find.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           <DialogFooter>
             <Button variant="secondary" onClick={() => setAsking(false)}>

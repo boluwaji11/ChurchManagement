@@ -64,7 +64,7 @@ export function TypeManager({
   if (putAway) {
     return (
       <div className="flex flex-col gap-4" aria-busy={pending}>
-        {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         {types.length === 0 ? (
           <Empty icon="group" title={t("groupType.archived.none")} />
@@ -96,7 +96,7 @@ export function TypeManager({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {live.length === 0 ? (
         <Empty
@@ -308,7 +308,7 @@ function TypeDialog({
             }}
             className="flex flex-col gap-4"
           >
-            {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
+            {error ? <Banner tone="danger">{error}</Banner> : null}
 
             {type || library.length === 0 ? null : (
               <button

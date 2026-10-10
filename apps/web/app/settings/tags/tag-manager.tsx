@@ -162,7 +162,7 @@ export function NewTag({
           )
         }
       >
-        {error ? <Banner tone="danger" title={t("tags.failed")}>{error}</Banner> : null}
+        {error ? <Banner tone="danger">{error}</Banner> : null}
 
         {picking ? (
           <LibraryPicker
@@ -279,7 +279,7 @@ function EditTag({ church, tag, others }: { church: string; tag: TagItem; others
       </SheetTrigger>
 
       <SheetContent title={tag.name} closeLabel={t("common.close")}>
-        {error ? <Banner tone="danger" title={t("tags.failed")} className="mb-4">{error}</Banner> : null}
+        {error ? <Banner tone="danger" className="mb-4">{error}</Banner> : null}
 
         <form id={formId} action={(d) => run(startSaving, saveTag, d)} className="flex flex-col gap-4">
           <input type="hidden" name="church" value={church} />

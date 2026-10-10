@@ -132,7 +132,7 @@ export function Checkout({
       </DialogTrigger>
       <DialogContent title={t("checkout.heading", { name: childName })} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">
-          {error ? <Banner tone="danger" title={t("checkout.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           {block ? (
             /*

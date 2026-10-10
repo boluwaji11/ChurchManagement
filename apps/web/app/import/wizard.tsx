@@ -150,7 +150,7 @@ export function ImportWizard({
           take long enough that the screen has to say so. */}
       <Working open={busy} label={t("import.running")} />
 
-      {error ? <Banner tone="danger" title={t("import.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {step === "file" ? (
         /* One column down the middle: the target first, and whatever has been
@@ -702,7 +702,7 @@ function Done({
       )}
 
       {failed ? (
-        <Banner tone="danger" title={t("import.failed")}>{failed}</Banner>
+        <Banner tone="danger">{failed}</Banner>
       ) : null}
 
       <div className="mt-2 flex flex-wrap justify-center gap-2">

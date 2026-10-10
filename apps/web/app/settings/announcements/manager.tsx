@@ -69,7 +69,7 @@ export function Announcements({
 
   return (
     <div className="flex flex-col gap-4" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("announce.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {putAway ? null : (
         <div className="flex justify-end">
@@ -270,7 +270,7 @@ function Writer({
         {guard}
 
         <div className="flex flex-col gap-4" onInput={() => setDirty(true)}>
-          {error ? <Banner tone="danger" title={t("announce.failed")}>{error}</Banner> : null}
+          {error ? <Banner tone="danger">{error}</Banner> : null}
 
           <Field label={t("announce.heading")} required>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />

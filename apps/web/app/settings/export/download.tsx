@@ -55,7 +55,7 @@ export function DownloadRow({
       <Working open={busy} label={t("settings.export.building")} />
 
       {error ? (
-        <Banner tone="danger" title={t("settings.tab.export")}>{error}</Banner>
+        <Banner tone="danger">{error}</Banner>
       ) : null}
 
       <IconButton

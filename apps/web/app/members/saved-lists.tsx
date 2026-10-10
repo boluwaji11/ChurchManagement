@@ -103,7 +103,7 @@ export function SaveView({
           </>
         }
       >
-        {failed ? <Banner tone="danger" title={t("lists.error.name")}>{failed}</Banner> : null}
+        {failed ? <Banner tone="danger">{failed}</Banner> : null}
 
         <Field label={t("lists.name")} required>
           <Input
@@ -239,7 +239,7 @@ export function AddToList({
           </>
         }
       >
-        {failed ? <Banner tone="danger" title={t("lists.error.name")}>{failed}</Banner> : null}
+        {failed ? <Banner tone="danger">{failed}</Banner> : null}
 
         {picked.length > 0 ? (
           <div className="flex flex-col gap-1">

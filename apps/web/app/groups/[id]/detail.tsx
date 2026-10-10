@@ -130,7 +130,7 @@ export function GroupDetail({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title={t("groups.failed")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* R9.4. Where the group stands, in one line: whether the open web can see
           it, and whether it is taking members. The state is a mark with its own
@@ -656,7 +656,7 @@ function Register({
 
   return (
     <section className="min-w-0 overflow-hidden rounded-lg border border-line bg-surface">
-      {error ? <Banner tone="danger" title={t("meeting.title")}>{error}</Banner> : null}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
         <div className="flex min-w-0 flex-col gap-2">
