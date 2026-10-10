@@ -505,6 +505,7 @@ begin
   on conflict (id) do update set public = false;
 
   execute 'drop policy if exists church_read on storage.objects';
+  execute 'drop policy if exists church_logo_read on storage.objects';
   execute 'drop policy if exists church_write on storage.objects';
   execute 'drop policy if exists church_update on storage.objects';
   execute 'drop policy if exists church_delete on storage.objects';
@@ -512,6 +513,21 @@ begin
   execute $pol$
     create policy church_read on storage.objects for select to authenticated
     using (bucket_id = 'church' and connectapp.user_in_church((storage.foldername(name))[1]))
+  $pol$;
+  /*
+   * R1.1. A church's mark, readable by anybody.
+   *
+   * The door a member signs in at, the giving page and the group finder are
+   * all screens somebody meets before they belong to the church, and a church
+   * logo is public by nature: it is on their website and their notice sheet.
+   * Everything else in the bucket stays behind the membership check above.
+   *
+   * Narrowed to the logo folder by position, so widening it means writing a
+   * second policy rather than adding a file to the wrong folder.
+   */
+  execute $pol$
+    create policy church_logo_read on storage.objects for select to anon, authenticated
+    using (bucket_id = 'church' and (storage.foldername(name))[2] = 'logo')
   $pol$;
   execute $pol$
     create policy church_write on storage.objects for insert to authenticated

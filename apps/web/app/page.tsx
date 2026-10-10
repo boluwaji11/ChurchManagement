@@ -119,7 +119,7 @@ export default async function Site() {
    * how to name a church and take somebody in.
    */
   const church = await churchFromHost();
-  if (church) redirect(`/join/${church}`);
+  if (church) redirect("/join");
 
   const { chosen } = await siteTheme();
 
