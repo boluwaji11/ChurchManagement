@@ -108,7 +108,7 @@
   --sunken: oklch(0.944 0.008 288);
   /* R24.4. A board somebody drags cards across: a tray the cards sit in,
      a step deeper than a sunken panel so white cards read against it. */
-  --board: oklch(0.905 0.030 288);
+  --board: oklch(0.915 0.014 288);
   --fg: var(--stone-900);
   --fg-muted: var(--stone-600);
   --fg-subtle: oklch(0.540 0.018 286);
@@ -175,7 +175,7 @@
   --sunken: oklch(0.944 0.008 288);
   /* R24.4. A board somebody drags cards across: a tray the cards sit in,
      a step deeper than a sunken panel so white cards read against it. */
-  --board: oklch(0.905 0.030 288);
+  --board: oklch(0.915 0.014 288);
   --fg: var(--stone-900);
   --fg-muted: var(--stone-600);
   --fg-subtle: oklch(0.540 0.018 286);
@@ -221,7 +221,7 @@
     --canvas: oklch(0.238 0.032 286);
     --surface: oklch(0.288 0.034 286);
     --sunken: oklch(0.210 0.029 286);
-    --board: oklch(0.205 0.045 286);
+    --board: oklch(0.200 0.034 286);
     --fg: oklch(0.968 0.010 286);
     --fg-muted: oklch(0.790 0.026 286);
     --fg-subtle: oklch(0.752 0.024 286);
@@ -283,7 +283,7 @@
     --canvas: oklch(0.238 0.032 286);
     --surface: oklch(0.288 0.034 286);
     --sunken: oklch(0.210 0.029 286);
-    --board: oklch(0.205 0.045 286);
+    --board: oklch(0.200 0.034 286);
     --fg: oklch(0.968 0.010 286);
     --fg-muted: oklch(0.790 0.026 286);
     --fg-subtle: oklch(0.752 0.024 286);

@@ -107,7 +107,7 @@ export function Board({
             style={{ background: over === stage.id ? "var(--color-line)" : "var(--color-board)" }}
           >
             <div
-              className="mb-2 flex items-center gap-2 border-b border-primary/25 px-1.5 pt-1 pb-2.5 text-[13px] font-medium"
+              className="mb-2 flex items-center gap-2 border-b border-primary/15 px-1.5 pt-1 pb-2.5 text-[13px] font-medium"
               style={{ color: `var(--hue-${stage.hue}-key)` }}
             >
               <span
