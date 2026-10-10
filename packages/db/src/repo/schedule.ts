@@ -340,14 +340,22 @@ export async function candidatesFor(
 
   if (roster.length === 0) return [];
 
+  /*
+   * R10.2. Who plays this position.
+   *
+   * The row is keyed on the membership rather than on the person, which is
+   * the same distinction the roster above keeps. Matched on the person's id
+   * it never found anybody, so the board put nobody at the top of a position
+   * they actually play.
+   */
   const plays = await db
-    .select({ memberId: teamMemberPositions.memberId })
+    .select({ teamMemberId: teamMemberPositions.memberId })
     .from(teamMemberPositions)
     .where(and(
       eq(teamMemberPositions.positionId, input.positionId),
-      inArray(teamMemberPositions.memberId, roster.map((r) => r.memberId)),
+      inArray(teamMemberPositions.memberId, roster.map((r) => r.teamMemberId)),
     ));
-  const playing = new Set(plays.map((p) => p.memberId));
+  const playing = new Set(plays.map((p) => p.teamMemberId));
 
   const preferences = await db
     .select({ memberId: servingPreferences.memberId, frequency: servingPreferences.frequency })
@@ -364,7 +372,7 @@ export async function candidatesFor(
     out.push({
       memberId: person.memberId,
       name: displayName(person),
-      plays: playing.has(person.memberId),
+      plays: playing.has(person.teamMemberId),
       lastServedOn: warning.tooSoon?.lastServedOn ?? null,
       frequency: byPerson.get(person.memberId) ?? null,
       warning,
