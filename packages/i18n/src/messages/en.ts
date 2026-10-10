@@ -1104,7 +1104,7 @@ export const en = {
   "permission.checkin.checks": "See who holds a background check",
   "permission.services.manage": "Plan services, keep plan templates and record attendance",
   "permission.teams.manage": "Create serving teams and their positions",
-  "permission.teams.lead": "Schedule the people on a team",
+  "permission.teams.lead": "Schedule the people on a serving team",
   "permission.groups.manage": "Create groups and change who is in them",
   "permission.groups.lead": "Take attendance for a group they lead",
   "permission.events.manage": "Create events and manage who has a place",

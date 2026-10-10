@@ -78,6 +78,33 @@ export const UPLOAD_RULES = {
     ],
     maxBytes: 10 * ONE_MIB,
   },
+  /**
+   * R16.14. What is sent with a message.
+   *
+   * The same list a plan item takes, because a church sends a chord chart to
+   * the worship team's thread and a consent form to a parent, and the two are
+   * the same errand. No video, for the same reason as everywhere else.
+   */
+  message: {
+    types: [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.oasis.opendocument.text",
+      "application/vnd.oasis.opendocument.presentation",
+      "application/vnd.oasis.opendocument.spreadsheet",
+      "application/rtf",
+      "image/png", "image/jpeg", "image/webp", "image/gif", "image/heic",
+      "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav", "audio/aac",
+      "audio/x-m4a", "audio/flac",
+      "text/plain", "text/csv", "text/markdown",
+    ],
+    maxBytes: 10 * ONE_MIB,
+  },
 } as const;
 
 export type UploadPurpose = keyof typeof UPLOAD_RULES;
@@ -100,4 +127,5 @@ export const SUGGESTED_PIXELS: Record<UploadPurpose, string | null> = {
   form_answer: null,
   event_cover: "1600 x 900",
   plan_item: null,
+  message: null,
 };

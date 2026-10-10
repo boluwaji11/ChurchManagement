@@ -1,7 +1,7 @@
 "use server";
 
 import {
-  withTenant, sendMessage, setThreadArchived, threadAt,
+  withTenant, sendMessage, setThreadArchived, threadAt, holdsFile,
   saveDraft, dropDraft, peopleNamed, writableGroups, writableTeams, react,
   editMessage, deleteMessage, canAnswerMessages, tellAbout,
 } from "@connectapp/db";
@@ -9,6 +9,7 @@ import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { readerFor } from "@/lib/inbox";
 import { tellAboutMessage } from "@/lib/inbox-push";
+import { supabaseServer } from "@/lib/supabase/server";
 
 /**
  * R16.9. Writing, reading and keeping what has not been sent.
@@ -36,6 +37,8 @@ export async function send(
   church?: string,
   /** R16.9. The line this one answers, where it answers one. */
   answering?: string | null,
+  /** R16.14. What was uploaded to go with it, in the order it was chosen. */
+  files?: { id: string; label?: string | null }[],
 ): Promise<{ key?: string; error?: string }> {
   try {
     const { session, ctx } = await context(church);
@@ -52,6 +55,7 @@ export async function send(
               : { office: false, slug: to },
         body,
         answering,
+        files,
       });
       /* R16.10. Read in the same breath as the write, sent after it: who to
          tell is a question about the church's records, and a push is three
@@ -68,6 +72,30 @@ export async function send(
   } catch (error) {
     return { error: explain(error) };
   }
+}
+
+/**
+ * R16.14, R21.1. A link to something sent with a message.
+ *
+ * Signed for a key this church's own ledger holds, and only for as long as it
+ * takes to open: a file in a conversation is the church's, not the web's.
+ */
+export async function messageFileLink(
+  key: string,
+  church?: string,
+  /** What to call it once it lands, which is the name it arrived with. */
+  name?: string,
+): Promise<string | null> {
+  const { ctx } = await context(church);
+  const mine = await withTenant(ctx, (tx) => holdsFile(tx, key));
+  if (!mine) return null;
+
+  const supabase = await supabaseServer();
+  const clean = (name ?? "").replace(/[\\/:*?"<>|]/g, "").trim();
+  const signed = await supabase.storage
+    .from("church")
+    .createSignedUrl(key, 3600, clean ? { download: clean } : undefined);
+  return signed.data?.signedUrl ?? null;
 }
 
 /** R2.13. Off the list, kept in the records. A reply brings it back. */

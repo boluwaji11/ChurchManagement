@@ -118,6 +118,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: t("event.error.missing") }, { status: 400 });
     }
   }
+  /*
+   * R16.14. Anybody who may write into a conversation may send a file with a
+   * line. Which conversation it belongs to is decided when the line is sent,
+   * because the line does not exist yet.
+   */
+  if (purpose === "message") {
+    if (!session.userId) {
+      return NextResponse.json({ error: t("member.error.noRecord") }, { status: 403 });
+    }
+  }
   if (purpose === "plan_item") {
     if (!canManageServices(session)) {
       return NextResponse.json({ error: t("error.permission.managePlans") }, { status: 403 });
@@ -150,16 +160,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: t("storage.error.failed") }, { status: 502 });
   }
 
+  /* R16.14. The ledger row, so a caller that has to refer to the file later
+     is given its id rather than having to look it up by key. */
+  let stored: { id: string } | null = null;
+
   try {
     const removed = await withTenant(actor, async (tx) => {
-      const stored = await recordFile(tx, actor, {
+      stored = await recordFile(tx, actor, {
         key, purpose, contentType, bytes, uploadedByUserId: session.userId,
       });
       if (purpose === "logo") {
         return (await setChurchLogo(tx, actor, key)).removed;
       }
       if (purpose === "plan_item" && itemId) {
-        await attachToItem(tx, actor, { itemId, fileId: stored.id, label });
+        await attachToItem(tx, actor, { itemId, fileId: stored!.id, label });
       }
       if (purpose === "group_photo" && groupId) {
         return (await setGroupPhoto(tx, actor, groupId, key)).removed;
@@ -187,5 +201,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: explain(error) }, { status: 400 });
   }
 
-  return NextResponse.json({ key });
+  return NextResponse.json({ key, id: (stored as { id: string } | null)?.id ?? null });
 }

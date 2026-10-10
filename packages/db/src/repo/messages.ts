@@ -2,9 +2,10 @@ import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Tx } from "../client";
 import {
   conversations, conversationPeople, messages, messageDrafts, messageReactions,
+  messageFiles,
 } from "../schema/messages";
 import { members } from "../schema/members";
-import { tenantMembers } from "../schema/tenancy";
+import { tenantMembers, storedFiles } from "../schema/tenancy";
 import { groupMemberships, groups } from "../schema/groups";
 import { teamMembers, teams } from "../schema/serving";
 import { InvalidInputError } from "../errors";
@@ -96,6 +97,19 @@ export interface Message {
    * what a church actually wants to know is whether anybody has looked.
    */
   readByOthers: boolean;
+  /** R16.14. What was sent with it. */
+  files: SentFile[];
+}
+
+/** R16.14. One file on a message, named and ready to be asked for. */
+export interface SentFile {
+  id: string;
+  /** Where it is stored, which the signed link is made from. */
+  key: string;
+  contentType: string;
+  bytes: number;
+  /** The name it arrived with. */
+  label: string;
 }
 
 export interface Thread {
@@ -404,6 +418,35 @@ export async function messagesIn(
         .from(messageReactions)
         .where(inArray(messageReactions.messageId, rows.map((one) => one.id)));
 
+  /* R16.14. What was sent with each line, read in one go beside them. */
+  const sent = rows.length === 0
+    ? []
+    : await db
+        .select({
+          messageId: messageFiles.messageId,
+          id: storedFiles.id,
+          key: storedFiles.key,
+          contentType: storedFiles.contentType,
+          bytes: storedFiles.bytes,
+          label: messageFiles.label,
+          position: messageFiles.position,
+        })
+        .from(messageFiles)
+        .innerJoin(storedFiles, eq(storedFiles.id, messageFiles.fileId))
+        .where(inArray(messageFiles.messageId, rows.map((one) => one.id)))
+        .orderBy(asc(messageFiles.position));
+
+  const withLine = (id: string): SentFile[] =>
+    sent
+      .filter((one) => one.messageId === id)
+      .map((one) => ({
+        id: one.id,
+        key: one.key,
+        contentType: one.contentType,
+        bytes: one.bytes,
+        label: one.label || one.key.split("/").pop() || one.contentType,
+      }));
+
   const against = (id: string): Reaction[] => {
     const here = marks.filter((one) => one.messageId === id);
     const out: Reaction[] = [];
@@ -433,6 +476,7 @@ export async function messagesIn(
       ? reader.office
       : one.authorMemberId !== null && one.authorMemberId === reader.memberId,
     reactions: one.deletedAt ? [] : against(one.id),
+    files: one.deletedAt ? [] : withLine(one.id),
     readByOthers: seen !== null && seen.getTime() >= one.createdAt.getTime(),
     answering: (() => {
       const held = one.replyToId
@@ -518,6 +562,10 @@ export async function deleteMessage(
     .where(eq(messages.id, messageId));
 
   await db.delete(messageReactions).where(eq(messageReactions.messageId, messageId));
+  /* R2.13, R16.14. The words go and so does what was sent with them. The
+     bytes stay in the ledger, where the quota and the audit can still see
+     them. */
+  await db.delete(messageFiles).where(eq(messageFiles.messageId, messageId));
 }
 
 /**
@@ -664,10 +712,19 @@ export async function openThread(
 export async function sendMessage(
   db: Tx,
   reader: Reader,
-  input: { to: Target; body: string; answering?: string | null },
+  input: {
+    to: Target;
+    body: string;
+    answering?: string | null;
+    /** R16.14. Files already uploaded, in the order they were chosen. */
+    files?: readonly { id: string; label?: string | null }[];
+  },
 ): Promise<{ threadId: string; id: string }> {
   const body = clean(input.body);
-  if (!body) throw new InvalidInputError("inbox.error.empty");
+  /* R16.14. A line with a photograph on it and nothing typed is a line. */
+  if (!body && (input.files ?? []).length === 0) {
+    throw new InvalidInputError("inbox.error.empty");
+  }
 
   const toGroup = !input.to.office && "group" in input.to ? input.to.group : null;
   const toTeam = !input.to.office && "team" in input.to ? input.to.team : null;
@@ -738,6 +795,30 @@ export async function sendMessage(
       replyToId: answering,
     })
     .returning({ id: messages.id });
+
+  /* R16.14. What was sent with it, in the order it was chosen. The files are
+     already in the ledger: the upload path checked the type, the size and the
+     church's quota before any of them were written. */
+  const sending = (input.files ?? []).slice(0, 10);
+  if (sending.length > 0) {
+    const held = await db
+      .select({ id: storedFiles.id })
+      .from(storedFiles)
+      .where(inArray(storedFiles.id, sending.map((one) => one.id)));
+
+    const real = sending.filter((one) => held.some((each) => each.id === one.id));
+    if (real.length > 0) {
+      await db.insert(messageFiles).values(
+        real.map((one, at) => ({
+          tenantId: reader.tenantId,
+          messageId: made!.id,
+          fileId: one.id,
+          label: one.label?.trim() || null,
+          position: at,
+        })),
+      );
+    }
+  }
 
   const now = new Date();
   await db

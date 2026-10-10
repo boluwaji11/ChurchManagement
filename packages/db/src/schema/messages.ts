@@ -1,7 +1,7 @@
 import {
-  pgTable, uuid, text, boolean, timestamp, index, uniqueIndex,
+  pgTable, uuid, text, boolean, integer, timestamp, index, uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { tenants, appUsers } from "./tenancy";
+import { tenants, appUsers, storedFiles } from "./tenancy";
 import { members } from "./members";
 import { groups } from "./groups";
 import { teams } from "./serving";
@@ -127,5 +127,33 @@ export const messageReactions = pgTable(
   (t) => [
     uniqueIndex("message_reaction_once").on(t.messageId, t.memberId, t.emoji),
     index("message_reaction_message_idx").on(t.messageId),
+  ],
+);
+
+/**
+ * R16.9, R16.14. What is sent with a message.
+ *
+ * A church sends the rota as a photograph of a whiteboard and the consent
+ * form as a PDF, and a conversation that cannot carry either sends people
+ * back to email. The bytes go through the one upload path, so the type, the
+ * size and the church's quota are checked before anything is written.
+ */
+export const messageFiles = pgTable(
+  "message_files",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    messageId: uuid("message_id").notNull()
+      .references(() => messages.id, { onDelete: "cascade" }),
+    fileId: uuid("file_id").notNull().references(() => storedFiles.id, { onDelete: "cascade" }),
+    /** The name it arrived with, which is what the line shows. */
+    label: text("label"),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("message_file_tenant_idx").on(t.tenantId),
+    index("message_file_message_idx").on(t.messageId, t.position),
+    uniqueIndex("message_file_once").on(t.messageId, t.fileId),
   ],
 );
