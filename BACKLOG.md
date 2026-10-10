@@ -361,6 +361,7 @@ of money and after everything else.
 | HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Built. Waits for the screen it belongs to, see the note below |
 | HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
 | HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | New |
+| HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
 screen a church fills in (HRT-92, dropped), so the 0.2 wizard is church details, service times,
@@ -762,6 +763,29 @@ The church's own domain (R1.1 `custom_domain`) still resolves in the data
 layer and has no screen. It was on the Website page and was the cause of a long
 afternoon: two cards both saying where members sign in. It comes back when a
 church asks for it.
+
+## Putting a piece of ConnectApp on a church's own site, October 2026
+
+HRT-289. The Website screen hands out one snippet, for the group finder, and
+leaves the church to work out where it goes. What it should be:
+
+- **A list of the parts that can be embedded**, and the church picks. The group
+  finder and giving first, then forms and events as those arrive.
+- **The snippet for whichever it picked**, with what it is called on the page
+  rather than what the route is.
+- **The steps for the site they actually built it on.** Adding an embed is a
+  different few presses at Wix, Squarespace, WordPress and Weebly, and "paste
+  this into your website" is the instruction a volunteer gets stuck on.
+
+Which means capturing the **site builder**, which is not always the DNS
+provider: a church can buy the name at GoDaddy and build the site on Squarespace.
+The nameservers say the second one often enough to offer a guess (`wixdns.net`
+is Wix, `squarespacedns.com` is Squarespace) and the church confirms it. The
+reading in HRT-283 already names the provider, so the guess costs nothing.
+
+The account link came off this screen: the church's own address is the sign-in
+and the sign-up both, so a second link to the same place was a second answer to
+one question.
 
 ## Where the domain reading belongs, October 2026
 

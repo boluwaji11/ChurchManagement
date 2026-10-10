@@ -69,15 +69,12 @@ export default async function WebsitePage({
           slug={session.tenantSlug}
           name={profile?.portalName ?? null}
           host={platformHost}
+          origin={`${proto}:`}
+          selfSignup={standing.approved && (profile?.selfSignup ?? false)}
           canEdit={canManageChurch(session)}
         />
 
-        <OnYourSite
-          origin={`${proto}://${host}`}
-          slug={session.tenantSlug}
-          selfSignup={profile?.selfSignup ?? false}
-          approved={standing.approved}
-        />
+        <OnYourSite origin={`${proto}://${host}`} slug={session.tenantSlug} />
       </div>
     </>
   );

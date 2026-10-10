@@ -3,10 +3,11 @@
 import * as React from "react";
 import { Check, CircleCheck, Globe, X } from "lucide-react";
 import {
-  Banner, Button, Card, CardTitle, Field, IconButton, Separator,
+  Banner, Button, Card, CardTitle, Field, IconButton, Separator, Switch,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { claimPortalName } from "./domain-actions";
+import { claimPortalName, setSignup } from "./domain-actions";
+import { Copyable } from "./copyable";
 
 /**
  * R1.1, R17.1. Where a congregation signs in.
@@ -24,6 +25,8 @@ export function PortalAddress({
   slug,
   name,
   host,
+  origin,
+  selfSignup,
   canEdit,
 }: {
   church: string;
@@ -33,6 +36,10 @@ export function PortalAddress({
   name: string | null;
   /** Our own host, which every church gets a name under. */
   host: string;
+  /** The scheme, so the address can be handed out whole. */
+  origin: string;
+  /** R1.7. Whether somebody can make an account at this address. */
+  selfSignup: boolean;
   canEdit: boolean;
 }) {
   const [draft, setDraft] = React.useState(name ?? "");
@@ -41,6 +48,7 @@ export function PortalAddress({
   const [took, setTook] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>();
   const [working, start] = React.useTransition();
+  const [open, setOpen] = React.useState(selfSignup);
 
   const live = taken ?? slug;
   const changed = draft.trim().toLowerCase() !== (taken ?? "");
@@ -153,17 +161,32 @@ export function PortalAddress({
         ) : null}
       </div>
 
-      <p className="text-caption text-fg-muted">
-        {t("portal.current")}{" "}
-        <a
-          href={`https://${live}.${host}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="font-mono text-primary underline-offset-4 hover:underline"
-        >
-          {live}.{host}
-        </a>
-      </p>
+      <Separator />
+
+      {/* R1.7, R17.1. The address itself, to paste on the church's own site.
+          It is the sign-in and the sign-up both, so the card that used to
+          carry a second link to the same place has gone. */}
+      <Field label={t("portal.current")}>
+        <Copyable value={`${origin}//${live}.${host}`} label={t("portal.current")} />
+      </Field>
+
+      <label className="flex cursor-pointer items-center gap-3 rounded-lg bg-sunken px-3 py-2.5 text-[length:var(--d-text-body)] text-fg">
+        <Switch
+          checked={open}
+          disabled={working || !canEdit}
+          onCheckedChange={(on) => {
+            setOpen(on);
+            start(async () => {
+              const answer = await setSignup(on);
+              if (answer?.error) {
+                setOpen(!on);
+                setError(answer.error);
+              }
+            });
+          }}
+        />
+        {t("site.account.open")}
+      </label>
     </Card>
   );
 }
