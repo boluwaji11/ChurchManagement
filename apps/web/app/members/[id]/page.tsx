@@ -130,9 +130,8 @@ export default async function PersonPage({
      * is skipped rather than the number being hidden on the way out.
      */
     const amounts = canReadGivingAmounts(session);
-    const year = churchNow(
-      (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago",
-    ).date.slice(0, 4);
+    const zone = (await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago";
+    const year = churchNow(zone).date.slice(0, 4);
 
     const [
       contacts, addresses, household, groups, serving, history, giving,
@@ -149,6 +148,9 @@ export default async function PersonPage({
         tx,
         { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
         memberId,
+        /* R2.15. Days read on the church's own clock, so an evening's work is
+           filed under the evening it happened. */
+        { timezone: zone },
       ),
       amounts
         ? givingForPerson(tx, memberId, { from: `${year}-01-01`, to: `${year}-12-31` })

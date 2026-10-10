@@ -61,9 +61,21 @@ export interface TimelineEntry {
   hue?: string | null;
 }
 
-const day = (value: Date | string | null): string | null => {
+/**
+ * The day a thing happened, read on the church's own clock.
+ *
+ * A follow-up answered at twenty past eight on a Friday evening in Missouri is
+ * a Friday. Read in UTC it is a Saturday, and the record then says the church
+ * did something the day after it did it.
+ */
+const dayIn = (zone: string) => (value: Date | string | null): string | null => {
   if (!value) return null;
-  return typeof value === "string" ? value.slice(0, 10) : value.toISOString().slice(0, 10);
+  if (typeof value === "string") return value.slice(0, 10);
+  // en-CA writes a date as 2026-10-09, which is the shape every date is held in.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: zone,
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(value);
 };
 
 /** How much of a life is read at once. A church of this size has years of it. */
@@ -80,9 +92,10 @@ export async function personTimeline(
   db: Tx,
   viewer: { tenantId: string; role: TenantRole; userId?: string; permissions?: readonly Permission[] | null },
   memberId: string,
-  opts: { limit?: number } = {},
+  opts: { limit?: number; timezone?: string } = {},
 ): Promise<TimelineEntry[]> {
   const limit = opts.limit ?? TIMELINE_LIMIT;
+  const day = dayIn(opts.timezone || "UTC");
   const out: TimelineEntry[] = [];
 
   const [person] = await db
