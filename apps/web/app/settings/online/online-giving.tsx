@@ -177,8 +177,16 @@ export function OnlineGiving({
             {account ? (
               <span className="truncate text-[12px] text-fg-subtle">
                 {[
-                  face.bank ? t("stripe.payingTo", { bank: face.bank }) : null,
-                  face.payouts ? t(`stripe.payouts.${face.payouts}` as never) : null,
+                  /* R13.1. What Stripe holds about an account it has not
+                     approved is not yet true of the church: there is no bank
+                     being paid and no schedule it is paid on. Said before it
+                     is, it reads as money moving that is not moving. */
+                  account.payoutsEnabled && face.bank
+                    ? t("stripe.payingTo", { bank: face.bank })
+                    : null,
+                  account.payoutsEnabled && face.payouts
+                    ? t(`stripe.payouts.${face.payouts}` as never)
+                    : null,
                   account.livemode ? null : t("stripe.test"),
                 ]
                   .filter(Boolean)
