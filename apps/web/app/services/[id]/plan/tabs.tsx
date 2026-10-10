@@ -71,7 +71,7 @@ export function PlanTabs({
 
   return (
     <div ref={box} className="flex items-center justify-center gap-3">
-      <div className="relative min-w-0 flex-1">
+      <div className="relative min-w-0">
         <div
           ref={row}
           className="flex items-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
