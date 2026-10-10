@@ -145,6 +145,7 @@ and a design file does not move it.
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
 | HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
 | HRT-18 | Storage quota, enforced at upload, with the church logo as its first user | R1.1, R1.16 | Closed |
+| HRT-284 | The church's legal details on its own record: legal name, EIN, registered address | R1.1, R13.1 | New |
 | HRT-44 | Show usage against the quota, once a church can approach it | R1.16 | Deferred |
 | HRT-36 | **Externalise every user-facing string.** | R22.8 | Closed |
 | HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | Closed |
@@ -357,6 +358,8 @@ of money and after everything else.
 | HRT-106 | In-context help on every screen | R22.2 | Closed |
 | HRT-213 | Regional spelling, from one catalogue, by the church's country | R22.8 | Closed |
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
+| HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | New |
+| HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
 screen a church fills in (HRT-92, dropped), so the 0.2 wizard is church details, service times,
@@ -458,6 +461,8 @@ behind them were dropped in migration 0058.
 |---|---|---|---|
 | HRT-137 | The church's own email provider | R16.1, R21.15 | **Removed, deferred** |
 | HRT-138 | The shared transactional quota | R16.3 | **Removed, deferred** |
+| HRT-286 | Connecting the church's own Twilio, and registering its carrier brand for it | R16.4, R16.13 | New, deferred |
+| HRT-287 | Connecting the church's own Resend, and verifying the root domain by DKIM | R16.1, R21.15 | New, deferred |
 | HRT-139 | The composer, merge fields and the template library | R16.4 | **Removed, deferred** |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
 | HRT-141 | The send queue | R16.6 | **Removed, deferred** |
@@ -734,6 +739,25 @@ no join link, no invitations, no outbound email. A real church is unblocked in a
 the sixty-minute time-to-value metric needs. An abuser gets nothing worth having.
 
 ---
+
+## Setting a church up with its own providers, October 2026
+
+A narrative of one church's first hour, an architecture sketch and a sending-domain blueprint were
+put to the project. The reading is in [docs/onboarding-integrations.md](docs/onboarding-integrations.md).
+HRT-283 through HRT-287 come from it and all five are New, pending a call on scope.
+
+What it settles for now:
+
+- **The position is sound.** The church owns every account and pays every bill, and we carry the
+  forms. That sits inside the bring-your-own-credentials rule.
+- **Act 2 is already a story.** HRT-251 (Stripe Accounts v2) is the in-product onboarding the
+  narrative describes.
+- **No Entri in v1.** $249 a month against a step each church performs once.
+- **No website builder.** HRT-285 is the page underneath the need, generated from the record we
+  already keep.
+- **Twilio Connect returns a subaccount, and a Primary Business Profile cannot live on one.** That
+  spike runs before HRT-286 is written.
+- Messaging stays deferred. HRT-286 and HRT-287 wait with HRT-87, HRT-123 and HRT-126.
 
 ## Now
 
