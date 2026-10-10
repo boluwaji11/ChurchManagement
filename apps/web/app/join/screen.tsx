@@ -83,7 +83,6 @@ export async function JoinScreen({
   return (
     <AuthShell
       title={t("join.heading", { name: church.name })}
-      under={user ? undefined : t("join.under")}
       mark={
         logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

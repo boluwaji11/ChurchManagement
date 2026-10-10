@@ -2798,11 +2798,9 @@ export const en = {
   "site.waitingBody": "Usually within the hour. The addresses below do not work until then.",
 
   // HRT-114. The member's side of the same door.
-  // R17.1. The church's own door. "Join" is what a newcomer is doing; the
-  // people arriving here are mostly members looking for their own screens,
-  // so it welcomes them and the buttons say which of the two they are.
+  // R17.1. The church's own door. "Join" is what a newcomer is doing, and
+  // most people arriving here are members looking for their own screens.
   "join.heading": "Welcome to {name}",
-  "join.under": "Your groups, your giving, and checking the children in.",
   "join.action": "Join",
   "join.createAccount": "Create an account",
   "join.signIn": "I already have an account",
