@@ -20,6 +20,8 @@ export interface SavedCard {
   subject: string;
   /** R18.x. Whether the church sees it, or only whoever wrote it. */
   shared: boolean;
+  /** R18.x. Whether this reader wrote it, which is who may change it. */
+  mine: boolean;
 }
 
 /**
@@ -34,6 +36,7 @@ export function SavedReports({
   reports,
   putAway = false,
   canShare = false,
+  heading,
 }: {
   church: string;
   reports: SavedCard[];
@@ -41,6 +44,8 @@ export function SavedReports({
   putAway?: boolean;
   /** R18.x. Whether this reader may put one in front of the church. */
   canShare?: boolean;
+  /** What the list is called, where it is not the reader's own. */
+  heading?: string;
 }) {
   const router = useRouter();
   const [asking, setAsking] = React.useState<SavedCard | null>(null);
@@ -65,7 +70,7 @@ export function SavedReports({
   return (
     <section className="flex flex-col gap-3">
       <h2 className="font-display text-[22px] leading-7 text-fg">
-        {putAway ? t("report.archived.title") : t("report.yours")}
+        {heading ?? (putAway ? t("report.archived.title") : t("report.yours"))}
       </h2>
       {error ? <p role="status" className="text-[13px] text-danger-text">{error}</p> : null}
 
@@ -104,8 +109,9 @@ export function SavedReports({
               </span>
             </span>
 
-            {/* One way in to everything that is not opening it. */}
-            <span className="relative z-10 shrink-0">
+            {/* One way in to everything that is not opening it. A report
+                somebody else wrote offers nothing, so it carries nothing. */}
+            <span className={`relative z-10 shrink-0 ${one.mine || canShare ? "" : "hidden"}`}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <IconButton
@@ -139,21 +145,26 @@ export function SavedReports({
                     </DropdownMenuItem>
                   ) : (
                     <>
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          setOnCard(one.id);
-                          startRedraw(() => {
-                            router.push(`/reports/build?church=${church}&id=${one.slug}`);
-                          });
-                        }}
-                      >
-                        {t("report.edit")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onSelect={() => { setName(one.name); setNaming(one); }}
-                      >
-                        {t("report.rename")}
-                      </DropdownMenuItem>
+                      {/* R18.x. Only whoever wrote it may change it. */}
+                      {one.mine ? (
+                        <>
+                          <DropdownMenuItem
+                            onSelect={() => {
+                              setOnCard(one.id);
+                              startRedraw(() => {
+                                router.push(`/reports/build?church=${church}&id=${one.slug}`);
+                              });
+                            }}
+                          >
+                            {t("report.edit")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() => { setName(one.name); setNaming(one); }}
+                          >
+                            {t("report.rename")}
+                          </DropdownMenuItem>
+                        </>
+                      ) : null}
                       {canShare ? (
                         <DropdownMenuItem
                           onSelect={() => {
@@ -172,10 +183,14 @@ export function SavedReports({
                           {one.shared ? t("report.unshare") : t("report.share")}
                         </DropdownMenuItem>
                       ) : null}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onSelect={() => setAsking(one)}>
-                        {t("report.archiveDo")}
-                      </DropdownMenuItem>
+                      {one.mine ? (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onSelect={() => setAsking(one)}>
+                            {t("report.archiveDo")}
+                          </DropdownMenuItem>
+                        </>
+                      ) : null}
                     </>
                   )}
                 </DropdownMenuContent>

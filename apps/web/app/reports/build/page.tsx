@@ -60,6 +60,11 @@ export default async function BuildReportPage({
     : null;
 
   if (id && !saved) notFound();
+  /* R18.x. A shared report is read by the church and changed by whoever
+     wrote it, so the builder refuses somebody else's. */
+  if (saved && saved.createdByUserId !== session.userId) {
+    return <Denied role={session.role} action="buildReports" church={session.tenantSlug} />;
+  }
 
   return (
     /* The bar says which report this is, so the page does not say it again

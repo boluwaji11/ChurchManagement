@@ -74,6 +74,19 @@ export default async function ReportsPage({
     archivedCount: await countArchivedSavedReports(tx, who),
   }));
 
+  /* R18.x. A report is somebody's until the church shares it, so the two
+     lists are drawn apart: what the church keeps, and what this reader built. */
+  const all = saved.map((one) => ({
+    id: one.id,
+    slug: one.slug,
+    name: one.name,
+    subject: one.subject,
+    shared: one.shared,
+    mine: one.createdByUserId === session.userId,
+  }));
+  const theirs = putAway ? [] : all.filter((one) => one.shared && !one.mine);
+  const cards = putAway ? all : all.filter((one) => !one.shared || one.mine);
+
   const reports = [
     {
       href: `/reports/attendance${here}`,
@@ -160,16 +173,24 @@ export default async function ReportsPage({
         })}
       </div>
 
-      {saved.length > 0 ? (
+      {/* R18.x. The ones the church shares sit with the ones it was given,
+          because both are read rather than worked on. */}
+      {!putAway && theirs.length > 0 ? (
+        <SavedReports
+          church={session.tenantSlug}
+          heading={t("report.church")}
+          canShare={canManageChurch(session)}
+          reports={theirs}
+        />
+      ) : null}
+
+      {cards.length > 0 ? (
         <SavedReports
           church={session.tenantSlug}
           putAway={putAway}
           /* R18.x. Only somebody who runs the church shares one. */
           canShare={canManageChurch(session)}
-          reports={saved.map((one) => ({
-            id: one.id, slug: one.slug, name: one.name,
-            subject: one.subject, shared: one.shared,
-          }))}
+          reports={cards}
         />
       ) : putAway ? (
         <p className="text-fg-muted">{t("report.archived.none")}</p>

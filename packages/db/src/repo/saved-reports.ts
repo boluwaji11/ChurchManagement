@@ -202,12 +202,11 @@ export async function setSavedReportArchived(
 /**
  * R18.x. A report somebody else wrote is theirs to change.
  *
- * Sharing one puts it on everybody's screen; it does not hand everybody the
- * pencil. An administrator may still edit any of them, because somebody has
- * to tidy up after a volunteer who has left.
+ * Sharing one puts it on everybody's screen; it does not hand anybody else
+ * the pencil, an administrator included. What an administrator may do is
+ * share it and take it back down again.
  */
 async function assertOwns(db: Tx, actor: Actor, id: string): Promise<void> {
-  if (canManageChurch(actor)) return;
   const [row] = await db
     .select({ by: savedReports.createdByUserId })
     .from(savedReports)

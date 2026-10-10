@@ -3618,6 +3618,7 @@ export const en = {
   "report.more": "More for {name}",
   "report.buildDetail": "Query anything the church records, and keep the result.",
   "report.yours": "Your reports",
+  "report.church": "The church's reports",
   "report.step.subject": "Subject",
   "report.step.filters": "Filters",
   "report.step.shape": "Aggregation",
