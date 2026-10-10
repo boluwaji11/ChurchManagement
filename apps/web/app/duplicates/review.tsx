@@ -3,10 +3,11 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge, Button, Banner, Working, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { merge, undo, type MergeOutcome } from "./actions";
+import { Step } from "@/components/pager";
 
 export interface PersonSide {
   id: string;
@@ -50,31 +51,93 @@ type FieldKey = (typeof FIELDS)[number];
 export function Review({
   church,
   pairs,
-  pager,
+  at,
+  total,
+  back,
+  on,
   history,
 }: {
   church: string;
+  /** R2.8. The one pair on screen. */
   pairs: Pair[];
-  /** R24.6. The foot of the list, drawn on the server so its links are links. */
-  pager?: React.ReactNode;
+  /** Which pair, one-based, and how many there are. */
+  at: number;
+  total: number;
+  /** The pair before this one, and the one after. Null at either end. */
+  back: string | null;
+  on: string | null;
   history: PastMerge[];
 }) {
+  const pair = pairs[0];
+
   return (
     <div className="flex flex-col gap-8">
-      {pairs.length === 0 ? (
+      {!pair ? (
         <div className="rounded-lg border border-line bg-surface p-7 text-center text-fg-muted">
           {t("merge.none.title")}
         </div>
       ) : (
-        <div id="pairs" className="flex flex-col gap-4">
-          {pairs.map((pair) => (
-            <PairCard key={`${pair.a.id}:${pair.b.id}`} church={church} pair={pair} />
-          ))}
-          {pager}
-        </div>
+        <Deck at={at} total={total} back={back} on={on}>
+          <PairCard key={`${pair.a.id}:${pair.b.id}`} church={church} pair={pair} />
+        </Deck>
       )}
 
       {history.length > 0 ? <History church={church} history={history} /> : null}
+    </div>
+  );
+}
+
+/**
+ * R2.8, R24.6. One pair, with the way to the next one either side of it.
+ *
+ * The arrow keys move as well as the chevrons, because somebody clearing
+ * thirty duplicates has a hand on the keyboard and not on the mouse.
+ */
+function Deck({
+  at,
+  total,
+  back,
+  on,
+  children,
+}: {
+  at: number;
+  total: number;
+  back: string | null;
+  on: string | null;
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+
+  React.useEffect(() => {
+    const move = (event: KeyboardEvent) => {
+      // Not while they are typing into something.
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable]")) return;
+
+      if (event.key === "ArrowLeft" && back) router.push(back);
+      if (event.key === "ArrowRight" && on) router.push(on);
+    };
+    window.addEventListener("keydown", move);
+    return () => window.removeEventListener("keydown", move);
+  }, [router, back, on]);
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <span data-numeric className="text-[13px] text-fg-muted">
+        {t("merge.position", { at, total })}
+      </span>
+
+      <div className="flex w-full items-center justify-center gap-3 sm:gap-5">
+        <Step href={back ?? "#"} enabled={Boolean(back)} label={t("merge.previousPair")}>
+          <ChevronLeft aria-hidden />
+        </Step>
+
+        <div className="w-full min-w-0 max-w-[620px]">{children}</div>
+
+        <Step href={on ?? "#"} enabled={Boolean(on)} label={t("merge.nextPair")}>
+          <ChevronRight aria-hidden />
+        </Step>
+      </div>
     </div>
   );
 }

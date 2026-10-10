@@ -259,6 +259,42 @@ describe("the review queue (R2.8)", () => {
     expect(mine).toHaveLength(1);
   });
 
+  /*
+   * R2.8. Three copies of one person, which is what a church gets when the
+   * same family fills the connection card at three services.
+   *
+   * Three records make three pairs, because the queue is pairs and every one
+   * of them is true. Merging one pair archives a record, and a pair naming an
+   * archived record is not a pair any more, so the queue shrinks from three to
+   * one rather than from three to two. Two merges clear three copies.
+   */
+  it("walks three copies of one person down to none, two merges", async () => {
+    const one = await make("Tris", { email: `tris.${SUR}@example.org` });
+    const two = await make("Tris", { email: `tris.${SUR}@example.org` });
+    const three = await make("Tris", { email: `tris.${SUR}@example.org` });
+
+    const queue = async () =>
+      (await run(riverside, "owner", (tx) => findDuplicatePairs(tx)))
+        .filter((p) => p.a.name.includes(SUR) && p.b.name.includes(SUR));
+
+    expect(await queue()).toHaveLength(3);
+
+    await run(riverside, "owner", (tx) =>
+      mergePeople(tx, as(riverside), { winnerId: one.id, loserId: two.id }),
+    );
+
+    // The two pairs that named the archived record go with it.
+    const left = await queue();
+    expect(left).toHaveLength(1);
+    expect([left[0]!.a.id, left[0]!.b.id].sort()).toEqual([one.id, three.id].sort());
+
+    await run(riverside, "owner", (tx) =>
+      mergePeople(tx, as(riverside), { winnerId: one.id, loserId: three.id }),
+    );
+
+    expect(await queue()).toHaveLength(0);
+  });
+
   it("stops listing a pair once it has been merged", async () => {
     const winner = await make("Ned", { email: `ned.${SUR}@example.org` });
     const loser = await make("Neddy", { email: `ned.${SUR}@example.org` });

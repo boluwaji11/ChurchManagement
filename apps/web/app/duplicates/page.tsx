@@ -9,11 +9,11 @@ import { AppShell } from "@/components/app-shell";
 import { Review, type PersonSide } from "./review";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
-import { Pager } from "@/components/pager";
 
-/* R24.6. Each pair is a whole record set against another record, so a screen
-   of them is a long read. Five is what fits without scrolling past the first. */
-const PER_PAGE = 5;
+/* R2.8, R24.6. One pair to a screen. Deciding whether two records are one
+   person is one decision, and a column of them is a column of decisions
+   nobody made. */
+const PER_PAGE = 1;
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +34,7 @@ export default async function DuplicatesPage({
 }) {
   const { a, b, page } = await searchParams;
 
-  /* R24.6. Five pairs at a time. Each one is a whole record against another
-     record, so a screen of them is a long read and a long scroll. */
+  /* R2.8. Which pair is on screen, one-based, as the address writes it. */
   const at = Math.max(1, Number(page) || 1);
   const session = await requireSession();
 
@@ -47,6 +46,9 @@ export default async function DuplicatesPage({
       
     );
   }
+
+  const pageAt = (to: number) =>
+    `/duplicates?${new URLSearchParams({ ...(a && b ? { a, b } : {}), page: String(to) })}`;
 
   const { pairs, on, total, history } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
@@ -144,18 +146,10 @@ export default async function DuplicatesPage({
       <Review
         church={session.tenantSlug}
         pairs={pairs}
-        pager={
-          <Pager
-            page={on}
-            size={PER_PAGE}
-            total={total}
-            anchor="pairs"
-            href={(to) => `/duplicates?${new URLSearchParams({
-              ...(a && b ? { a, b } : {}),
-              page: String(to),
-            })}`}
-          />
-        }
+        at={on}
+        total={total}
+        back={on > 1 ? pageAt(on - 1) : null}
+        on={on < total ? pageAt(on + 1) : null}
         history={history.map((m) => ({
           id: m.id,
           winnerName: m.winnerName,

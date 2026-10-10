@@ -63,7 +63,7 @@ export function Pager({
  * At the end of the list it is drawn and inert rather than taken away, so the
  * pair keeps its shape and the other one does not move under the pointer.
  */
-function Step({
+export function Step({
   href,
   enabled,
   label,
