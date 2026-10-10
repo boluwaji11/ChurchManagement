@@ -55,6 +55,9 @@ export default async function SignUpPage({
          not what somebody joining a congregation came to read. */
       under={params.sent || named ? undefined : t("signUp.free")}
       step={named ? undefined : 1}
+      /* R24.6. The way back to the church's own door, where somebody came
+         from to get here. */
+      back={named ? { href: "/join", label: t("signIn.backTo", { name: named.name }) } : undefined}
       art={ART}
       width="max-w-[520px]"
     >
