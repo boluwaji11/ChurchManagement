@@ -363,6 +363,7 @@ of money and after everything else.
 | HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
 | HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Active. The paths are done, the DNS and the certificate are left |
 | HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | New |
+| HRT-291 | The church's own domain: members.church.org and give.church.org, with the screen to set one up | R1.1, R22.2 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
 screen a church fills in (HRT-92, dropped), so the 0.2 wizard is church details, service times,
@@ -833,7 +834,16 @@ HRT-289. The Website screen hands out one snippet, for the group finder, and
 leaves the church to work out where it goes. What it should be:
 
 - **A list of the parts that can be embedded**, and the church picks. The group
-  finder and giving first, then forms and events as those arrive.
+  finder, giving, a form and an event page: all four are public already and all
+  four are what a church wants on its own site.
+
+  Two of them frame and two need care. The finder and a form have no session
+  and frame fine. Signing in cannot ever be framed, because a session inside
+  somebody else's page is a third-party cookie and Safari and Chrome both
+  refuse those, so a framed sign-in works until it silently does not. Giving
+  sits between them: the page itself has no session, but it holds Stripe's own
+  embedded checkout, and whether that survives being nested one frame deeper
+  has to be tried before it is offered.
 - **The snippet for whichever it picked**, with what it is called on the page
   rather than what the route is.
 - **The steps for the site they actually built it on.** Adding an embed is a
@@ -849,6 +859,46 @@ reading in HRT-283 already names the provider, so the guess costs nothing.
 The account link came off this screen: the church's own address is the sign-in
 and the sign-up both, so a second link to the same place was a second answer to
 one question.
+
+## The church's own domain, October 2026
+
+HRT-291. A church asks for `church.org/give`, and the answer has to start by
+saying what DNS can and cannot do, because the obvious route to it does not
+exist.
+
+**DNS maps a hostname, never a path.** There is no record that sends
+`church.org/give` to us and leaves the rest of `church.org` on the church's own
+website. So `church.org/give` happens one of two ways: the church builds that
+page on its own site and embeds ours inside it, which is HRT-289, or it is not
+that address at all but `give.church.org`, which is one CNAME and which a
+church can do.
+
+What is already built, from HRT-283:
+
+- `resolveTenantByHost` resolves a church by `custom_domain`, so the moment a
+  domain is on the record it answers.
+- The reading: MX, SPF, DMARC and nameservers at the apex, the CNAME at the
+  name being asked about, the mail provider and the registrar by name across
+  twenty-one consoles, and the records we would add.
+- `isApex`, because telling a church to CNAME its apex is advice every provider
+  refuses and which would take down its website and its Google Workspace mail.
+  `suggestSubdomain` offers `members.church.org` instead.
+
+What is left:
+
+- **A screen.** It was on the Website page once and came off: two cards both
+  saying where members sign in was the cause of a long afternoon. It comes back
+  as its own thing, after the name under our host, for the church that asks.
+- **The certificate.** A name we do not own needs one issued per church on
+  demand, which is a different piece of work from the wildcard on our own
+  domain and the reason this is not simply the same feature twice.
+- **Proving it.** A church pointing a name at us before we can serve it gets a
+  warning page, so the record has to be seen before the address is turned on.
+- **The session.** `members.church.org` can never share a cookie with
+  `connectapp.church`, whatever we set, so this needs the session handed over
+  explicitly rather than shared. That is the same piece of work the localhost
+  note above describes, and this is what makes it necessary rather than
+  convenient.
 
 ## Where the domain reading belongs, October 2026
 
