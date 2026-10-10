@@ -113,6 +113,7 @@ export * from "./repo/public-giving";
 export * from "./repo/statements";
 export * from "./repo/giving-reports";
 export * from "./repo/group-reports";
+export * from "./repo/serving-reports";
 export * from "./domain/preflight";
 export * from "./messaging/contract";
 export { dnsResolver } from "./domain/resolver";

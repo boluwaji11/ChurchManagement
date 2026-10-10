@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
-  ArrowLeft, ArrowRight, CalendarCheck, CircleDot, HandCoins, Table2, TrendingUp,
+  ArrowLeft, ArrowRight, CalendarCheck, CircleDot, HandCoins, HandHeart, Table2,
+  TrendingUp,
   UserPlus,
 } from "lucide-react";
 import {
@@ -127,6 +128,13 @@ export default async function ReportsPage({
       hue: "violet",
       title: t("reports.groups.title"),
       detail: t("reports.groups.detail"),
+    },
+    {
+      href: `/reports/serving${here}`,
+      icon: HandHeart,
+      hue: "teal",
+      title: t("reports.serving.title"),
+      detail: t("reports.serving.detail"),
     },
     /* R1.5. Only for somebody whose role carries the giving amounts. */
     ...(canReadGivingAmounts(session)

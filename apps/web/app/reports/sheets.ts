@@ -5,6 +5,7 @@ import {
   growthByMonth, growthSummary, visitorFunnel, visitorList, type VisitorRow,
   givingTotals, givingByMonth, givingByFund, lapsedGivers, firstTimeGivers,
   groupParticipation, groupHealth, groupMeetingsByMonth,
+  servingCoverage, coverageByTeam, servingLoad, expiringChecks,
   canEditPeople, canReadIncidents, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
@@ -37,7 +38,9 @@ export function standing(one: VisitorRow): "connected" | "returned" | "once" {
   return one.visits > 1 ? "returned" : "once";
 }
 
-export const BUILT_IN = ["attendance", "growth", "visitors", "groups", "giving"] as const;
+export const BUILT_IN = [
+  "attendance", "growth", "visitors", "groups", "serving", "giving",
+] as const;
 export type BuiltIn = (typeof BUILT_IN)[number];
 
 export const isBuiltIn = (raw: string | null | undefined): raw is BuiltIn =>
@@ -222,6 +225,95 @@ export async function sheetFor(
             every,
           ],
           csv: every,
+        };
+      }
+
+      if (which === "serving") {
+        const [summary, teams, load, checks] = await Promise.all([
+          servingCoverage(tx, range),
+          coverageByTeam(tx, range),
+          servingLoad(tx, range),
+          expiringChecks(tx, { within: 90, today: clock.date }),
+        ]);
+
+        const atRisk = checks.filter((one) => one.scheduledWithChildren).length;
+
+        /* R18.10, R10.9. The grid a church works through is the checks, not
+           the rota. It is the one with a date on it. */
+        const expiring = table(
+          t("reports.serving.expiring"),
+          [
+            t("reports.serving.person"), t("reports.serving.expires"),
+            t("reports.serving.left"), t("reports.serving.scheduled"),
+          ],
+          [false, false, true, false],
+          checks.map((one) => [
+            one.name,
+            one.expiresOn ? shortDate(one.expiresOn) : "",
+            one.daysLeft === null ? "" : String(one.daysLeft),
+            one.scheduledWithChildren ? t("reports.serving.withChildren") : "",
+          ]),
+        );
+
+        return {
+          ...frame,
+          title: t("reports.serving.title"),
+          figures: [
+            figure(
+              t("reports.serving.covered"),
+              `${summary.rate}%`,
+              t("reports.serving.coveredSub", {
+                filled: String(summary.filled),
+                asked: String(summary.asked),
+              }),
+            ),
+            figure(
+              t("reports.serving.waiting"),
+              String(summary.waiting),
+              t("reports.serving.waitingSub"),
+            ),
+            figure(
+              t("reports.serving.volunteers"),
+              String(summary.volunteers),
+              plural("reports.serving.declinedSub", summary.declined),
+            ),
+            figure(
+              t("reports.serving.checks"),
+              String(checks.length),
+              atRisk > 0
+                ? plural("reports.serving.atRisk", atRisk)
+                : t("reports.serving.checksSub"),
+            ),
+          ],
+          blocks: [
+            table(
+              t("reports.serving.byTeam"),
+              [
+                t("reports.serving.team"), t("reports.serving.asked"),
+                t("reports.serving.filled"), t("reports.serving.covered"),
+              ],
+              [false, true, true, true],
+              teams.map((one) => [
+                one.name, String(one.asked), String(one.filled), `${one.rate}%`,
+              ]),
+            ),
+            expiring,
+            table(
+              t("reports.serving.load"),
+              [
+                t("reports.serving.person"), t("reports.serving.served"),
+                t("reports.serving.declined"), t("reports.serving.lastServed"),
+              ],
+              [false, true, true, false],
+              load.map((one) => [
+                one.name,
+                String(one.served),
+                String(one.declined),
+                one.lastServedOn ? shortDate(one.lastServedOn) : "",
+              ]),
+            ),
+          ],
+          csv: expiring,
         };
       }
 
