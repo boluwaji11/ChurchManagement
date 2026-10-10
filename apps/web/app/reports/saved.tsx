@@ -67,7 +67,9 @@ export function SavedReports({
   }, [busy]);
 
   return (
-    <section className="flex flex-col gap-3">
+    /* A rule above the heading, so the ones the church keeps read apart from
+       the ones it was given. */
+    <section className="flex flex-col gap-3 border-t border-line pt-6">
       <h2 className="font-display text-[22px] leading-7 text-fg">
         {putAway ? t("report.archived.title") : t("report.yours")}
       </h2>
