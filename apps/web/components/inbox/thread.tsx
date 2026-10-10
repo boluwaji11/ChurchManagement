@@ -1,15 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUp, Check, CheckCheck, X } from "lucide-react";
+import { ArrowUp, Check, CheckCheck, FileText, Paperclip, X } from "lucide-react";
 import { Avatar, Spinner, Textarea, Tooltip } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
 import { EmojiButton, LIKE, Marks } from "./marks";
 import { LineActions } from "./line-actions";
 import { editLine, markMessage } from "@/app/messages/actions";
-import { keepDraft, send } from "@/app/messages/actions";
-import type { Said } from "./data";
+import { keepDraft, send, messageFileLink } from "@/app/messages/actions";
+import { UPLOAD_RULES } from "@connectapp/db/rules";
+import type { Said, SentFile } from "./data";
 
 /**
  * R16.9. A line that is nothing but a mark or two.
@@ -40,6 +41,13 @@ const marksAlone = (body: string): number => {
  * The tint is soft rather than solid: a column of filled blocks at full
  * strength is a phone game, and these are lines about a hall booking.
  */
+/** R16.14. One file picked for a line that has not been sent yet. */
+interface Carried {
+  id: string;
+  label: string;
+  type: string;
+}
+
 export function Conversation({
   church,
   churchName,
@@ -327,6 +335,16 @@ export function Conversation({
                       <Markdown text={one.body} />
                     )}
 
+                    {/* R16.14. What was sent with it: a picture is shown, and
+                        anything else is named and opened. */}
+                    {one.files.length > 0 ? (
+                      <span className="mt-1.5 flex flex-col gap-1.5">
+                        {one.files.map((file) => (
+                          <Sent key={file.id} church={church} file={file} mine={one.mine} />
+                        ))}
+                      </span>
+                    ) : null}
+
                     <Marks
                       church={church}
                       id={one.id}
@@ -506,9 +524,37 @@ export function Writer({
     void keepDraft(held.to, held.body, church);
   }, [church]);
 
+  /* R16.14. What is going with this line, uploaded as it is chosen so the
+     press that sends is only ever sending. */
+  const [carrying, setCarrying] = React.useState<Carried[]>([]);
+  const [uploading, setUploading] = React.useState(false);
+
+  const attach = (chosen: FileList | null) => {
+    const files = [...(chosen ?? [])].slice(0, 10);
+    if (files.length === 0) return;
+    setError(null);
+    setUploading(true);
+
+    void Promise.all(
+      files.map(async (file) => {
+        const form = new FormData();
+        form.set("church", church);
+        form.set("purpose", "message");
+        form.set("file", file);
+        const answer = await fetch("/api/upload", { method: "POST", body: form });
+        const back = (await answer.json()) as { id?: string; error?: string };
+        if (!answer.ok || !back.id) throw new Error(back.error ?? t("inbox.failed"));
+        return { id: back.id, label: file.name, type: file.type };
+      }),
+    )
+      .then((added) => setCarrying((was) => [...was, ...added].slice(0, 10)))
+      .catch((bad: Error) => setError(bad.message))
+      .finally(() => setUploading(false));
+  };
+
   const go = () => {
     const words = body.trim();
-    if (!words || busy) return;
+    if ((!words && carrying.length === 0) || busy || uploading) return;
 
     /*
      * R16.9. The box empties on the press rather than on the answer.
@@ -527,7 +573,16 @@ export function Writer({
     setWorking(true);
     setError(null);
 
-    void send(to, words, church, answering?.id ?? null).then((back) => {
+    const going = carrying;
+    setCarrying([]);
+
+    void send(
+      to,
+      words,
+      church,
+      answering?.id ?? null,
+      going.map((one) => ({ id: one.id, label: one.label })),
+    ).then((back) => {
       setWorking(false);
       posting.current = false;
       if (back.error) {
@@ -535,6 +590,7 @@ export function Writer({
         touched.current = true;
         saved.current = "";
         setBody(words);
+        setCarrying(going);
         setError(back.error);
         return;
       }
@@ -547,6 +603,7 @@ export function Writer({
   };
 
   const box = React.useRef<HTMLTextAreaElement>(null);
+  const picker = React.useRef<HTMLInputElement>(null);
 
   /* Written where the caret is, which is where somebody looking at the box
      expects it to land. */
@@ -596,8 +653,55 @@ export function Writer({
         </div>
       ) : null}
 
+      {/* R16.14. What is going with this line, read before it goes. */}
+      {carrying.length > 0 ? (
+        <ul className="flex flex-wrap gap-1.5">
+          {carrying.map((one) => (
+            <li
+              key={one.id}
+              className="flex max-w-full items-center gap-1 rounded-full bg-sunken px-2 py-0.5 text-[12px] text-fg-muted"
+            >
+              <Paperclip className="size-3.5 shrink-0" aria-hidden />
+              <span className="truncate">{one.label}</span>
+              <button
+                type="button"
+                aria-label={t("inbox.dontSend", { name: one.label })}
+                onClick={() => setCarrying((was) => was.filter((each) => each.id !== one.id))}
+                className="grid size-5 shrink-0 cursor-pointer place-items-center rounded-full text-fg-subtle hover:bg-line hover:text-fg [&_svg]:size-3"
+              >
+                <X aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
       <div className="flex items-end gap-1.5">
         <EmojiButton onPick={put} />
+
+        {/* R16.14. Sending a photograph or a document with the line. */}
+        <input
+          ref={picker}
+          type="file"
+          multiple
+          className="sr-only"
+          accept={UPLOAD_RULES.message.types.join(",")}
+          onChange={(event) => {
+            attach(event.target.files);
+            event.target.value = "";
+          }}
+        />
+        <Tooltip content={t("inbox.attach")}>
+          <button
+            type="button"
+            onClick={() => picker.current?.click()}
+            disabled={busy || uploading}
+            aria-label={t("inbox.attach")}
+            className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-fg-muted hover:bg-sunken hover:text-fg disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-[18px]"
+          >
+            {uploading ? <Spinner /> : <Paperclip aria-hidden />}
+          </button>
+        </Tooltip>
 
         <Textarea
           ref={box}
@@ -627,10 +731,10 @@ export function Writer({
           <button
             type="button"
             onClick={go}
-            disabled={busy || !body.trim()}
+            disabled={busy || uploading || (!body.trim() && carrying.length === 0)}
             aria-label={t("inbox.send")}
             className={`grid size-10 shrink-0 place-items-center rounded-full [&_svg]:size-[18px] ${
-              body.trim() && !busy
+              (body.trim() || carrying.length > 0) && !busy && !uploading
                 ? "cursor-pointer bg-primary text-primary-fg hover:opacity-90"
                 : "cursor-default bg-sunken text-fg-subtle"
             }`}
@@ -640,5 +744,80 @@ export function Writer({
         </Tooltip>
       </div>
     </div>
+  );
+}
+
+/**
+ * R16.14. One file on a line.
+ *
+ * The link is asked for when it is pressed rather than put in the page: a
+ * conversation of forty lines would otherwise sign forty URLs nobody opens,
+ * each one good for an hour.
+ */
+function Sent({
+  church,
+  file,
+  mine,
+}: {
+  church: string;
+  file: SentFile;
+  mine: boolean;
+}) {
+  const [opening, setOpening] = React.useState(false);
+  const [shown, setShown] = React.useState<string | null>(null);
+  const picture = file.contentType.startsWith("image/");
+
+  /* A picture is the message, so it is fetched and shown. Anything else waits
+     to be asked for. */
+  React.useEffect(() => {
+    if (!picture) return;
+    let live = true;
+    void messageFileLink(file.key, church).then((url) => {
+      if (live) setShown(url);
+    });
+    return () => { live = false; };
+  }, [picture, file.key, church]);
+
+  const open = () => {
+    setOpening(true);
+    void messageFileLink(file.key, church, file.label)
+      .then((url) => {
+        if (url) window.open(url, "_blank", "noopener");
+      })
+      .finally(() => setOpening(false));
+  };
+
+  if (picture) {
+    return (
+      <button
+        type="button"
+        onClick={open}
+        aria-label={file.label}
+        className="block max-w-[260px] cursor-pointer overflow-hidden rounded-lg"
+      >
+        {shown ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={shown} alt={file.label} className="h-auto w-full object-cover" />
+        ) : (
+          <span className="flex h-24 w-[200px] items-center justify-center bg-fg/[0.06]">
+            <Spinner />
+          </span>
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={open}
+      disabled={opening}
+      className={`flex max-w-full cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-[12px] ${
+        mine ? "bg-primary-fg/15 text-primary-fg" : "bg-fg/[0.06] text-fg"
+      }`}
+    >
+      {opening ? <Spinner /> : <FileText className="size-4 shrink-0" aria-hidden />}
+      <span className="truncate underline underline-offset-2">{file.label}</span>
+    </button>
   );
 }

@@ -35,6 +35,15 @@ export interface Mark {
   mine: boolean;
 }
 
+/** R16.14. One file sent with a line. */
+export interface SentFile {
+  id: string;
+  key: string;
+  contentType: string;
+  bytes: number;
+  label: string;
+}
+
 export interface Said {
   id: string;
   body: string;
@@ -56,6 +65,8 @@ export interface Said {
   reactions: Mark[];
   /** R16.9. Whether anybody else in the conversation has opened it. */
   readByOthers: boolean;
+  /** R16.14. What was sent with it. */
+  files: SentFile[];
 }
 
 export interface InboxData {

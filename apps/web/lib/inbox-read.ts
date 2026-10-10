@@ -115,6 +115,7 @@ export async function readInbox(
       at: one.createdAt.toISOString(),
       reactions: one.reactions,
       readByOthers: one.readByOthers,
+      files: one.files,
     })),
   };
 }

@@ -38,6 +38,7 @@ const line = (one: Partial<Said> & { id: string; body: string }): Said => ({
   at: new Date().toISOString(),
   reactions: [],
   readByOthers: false,
+  files: [],
   ...one,
 });
 
