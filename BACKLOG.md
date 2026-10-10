@@ -360,6 +360,7 @@ of money and after everything else.
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
 | HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Built. Waits for the screen it belongs to, see the note below |
 | HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
+| HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
 screen a church fills in (HRT-92, dropped), so the 0.2 wizard is church details, service times,
@@ -739,6 +740,28 @@ no join link, no invitations, no outbound email. A real church is unblocked in a
 the sixty-minute time-to-value metric needs. An abuser gets nothing worth having.
 
 ---
+
+## The address a congregation types, October 2026
+
+Members reach ConnectApp at `<name>.connectapp.church`. The church picks the
+name, we own the domain and hold the certificate, and nothing is asked of the
+church's own DNS. The name is checked against every chosen name and every slug,
+because a name that shadowed another church's slug would take that church's
+address away from it. The slug answers from the day a church signs up, so every
+church has an address before it picks one.
+
+Built and tested. **HRT-288** is what is left, and until it is done the address
+resolves but the links do not use it:
+
+- Wildcard DNS on `*.connectapp.church` and a certificate for it.
+- `/join/<slug>` and `/g/<slug>` take the church in the path, so on a church's
+  own address the slug is said twice. The host should name the church and the
+  path should drop it, which is also what takes `?church=` off every screen.
+
+The church's own domain (R1.1 `custom_domain`) still resolves in the data
+layer and has no screen. It was on the Website page and was the cause of a long
+afternoon: two cards both saying where members sign in. It comes back when a
+church asks for it.
 
 ## Where the domain reading belongs, October 2026
 

@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { Check, CircleCheck, Globe, X } from "lucide-react";
-import { Banner, Button, Card, CardTitle, Field, Separator } from "@connectapp/ui";
+import {
+  Banner, Button, Card, CardTitle, Field, IconButton, Separator,
+} from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { claimPortalName } from "./domain-actions";
 
@@ -131,10 +133,9 @@ export function PortalAddress({
         </Button>
 
         {taken ? (
-          <Button
-            type="button"
+          <IconButton
+            label={t("domain.remove")}
             variant="ghost"
-            loading={working}
             disabled={!canEdit || working}
             onClick={() =>
               start(async () => {
@@ -147,8 +148,8 @@ export function PortalAddress({
               })
             }
           >
-            <X /> {t("domain.remove")}
-          </Button>
+            <X />
+          </IconButton>
         ) : null}
       </div>
 

@@ -144,7 +144,7 @@ export function OnYourSite({ origin, slug, selfSignup, approved }: {
         </label>
       </Card>
 
-      <Card className="flex flex-col gap-4">
+      <Card className="flex flex-col gap-4 lg:col-span-2">
         <Head icon={<Users />} title={t("site.groups")} />
         <Separator />
 
