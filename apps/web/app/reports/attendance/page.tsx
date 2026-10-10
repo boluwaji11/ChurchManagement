@@ -7,6 +7,7 @@ import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
+import { Empty } from "@/components/empty";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { ReportFrame, backBy, windowOf } from "../frame";
@@ -108,7 +109,7 @@ export default async function AttendanceReport({
         path="attendance"
       >
         {summary.held === 0 ? (
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("reports.none")}</p>
+          <Empty icon="calendar" title={t("reports.none")} />
         ) : (
           <>
             <Figures>

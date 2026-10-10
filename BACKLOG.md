@@ -66,7 +66,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-203 | The dashboard: setup checklist, reorderable tiles, attendance over time | R18.1, R22.1 | Closed |
 | HRT-204 | People: the filter drawer, inline search, CSV export, pagination | R2.14, R19.4 | Closed |
 | HRT-205 | The command palette on Cmd+K, and no search box in the top bar | R24.6 | New |
-| HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | New |
+| HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | Resolved |
 | HRT-207 | Notifications: the bell, the unread count, a panel per role | R24.6 | Closed |
 | HRT-253 | Every screen on a phone: the shell, the tables, the panels and the public site | R24.6, R24.14 | Closed. The check-in desk and the supervisor board need a service on today's date to exercise |
 | HRT-254 | One way to reach an archived record, on every screen that has them | R24.6, R2.9 | Closed |
@@ -763,7 +763,7 @@ What it settles for now:
 
 | | |
 |---|---|
-| **Active** | **HRT-206** empty, first-run, loading and error states (R24.6, R24.11) |
+| **Active** | **HRT-202** navigation scoped to the role (R1.3, R24.6) |
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |

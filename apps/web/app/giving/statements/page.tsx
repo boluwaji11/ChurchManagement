@@ -4,6 +4,7 @@ import {
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
+import { Empty } from "@/components/empty";
 import { BackLink } from "@/components/back-link";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
@@ -104,7 +105,7 @@ export default async function StatementsPage({
         </div>
 
         {read.givers.length === 0 ? (
-          <p className="text-fg-muted">{t("statement.none")}</p>
+          <Empty icon="members" title={t("statement.none")} />
         ) : (
           <div
             id="givers"

@@ -6,6 +6,7 @@ import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
+import { Empty } from "@/components/empty";
 import { churchNow } from "@/lib/church-now";
 import { ReportFrame, backBy, windowOf } from "../frame";
 import { Figure, Figures } from "../figure";
@@ -94,7 +95,7 @@ export default async function GrowthReport({
         path="growth"
       >
         {months.length === 0 ? (
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">{t("reports.none")}</p>
+          <Empty icon="history" title={t("reports.none")} />
         ) : (
           <>
             <Figures>
