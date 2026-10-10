@@ -1,9 +1,8 @@
 import { headers } from "next/headers";
-import { withTenant, getChurch, canManageChurch, churchStanding } from "@connectapp/db";
+import { withTenant, getChurch, canManageChurch } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
-import { OnYourSite } from "../church/on-your-site";
 import { PortalAddress } from "../church/portal-address";
 import { t } from "@connectapp/i18n";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -39,12 +38,11 @@ export default async function WebsitePage({
     return <Denied role={session.role} action="editChurch" church={session.tenantSlug} />;
   }
 
-  const { profile, standing } = await withTenant(
+  const { profile } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => ({
       profile: await getChurch(tx, session.tenantId),
       // R1.1. Every address on this screen is refused until the church is approved.
-      standing: await churchStanding(tx, session.tenantId),
     }),
   );
 
@@ -63,19 +61,17 @@ export default async function WebsitePage({
       {/* R24.6. The address and the member's door stand together, because the
           door is the address with a path on it. The finder's snippet is wide
           and takes the row under them. */}
-      <div className="grid max-w-[1120px] items-start gap-5 lg:grid-cols-2">
+      <div className="grid max-w-[1120px] items-start gap-5">
         <PortalAddress
           church={session.tenantSlug}
           slug={session.tenantSlug}
           name={profile?.portalName ?? null}
           host={platformHost}
           origin={`${proto}:`}
-          selfSignup={standing.approved && (profile?.selfSignup ?? false)}
           portalOpen={profile?.portalOpen ?? true}
           canEdit={canManageChurch(session)}
         />
 
-        <OnYourSite origin={`${proto}://${host}`} slug={session.tenantSlug} />
       </div>
     </>
   );

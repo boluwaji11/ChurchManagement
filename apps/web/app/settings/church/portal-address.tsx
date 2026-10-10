@@ -6,7 +6,7 @@ import {
   Banner, Button, Card, CardTitle, Field, Separator, Switch,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { claimPortalName, setSignup, openPortal } from "./domain-actions";
+import { claimPortalName, openPortal } from "./domain-actions";
 
 /**
  * R1.1, R17.1. Where a congregation signs in.
@@ -25,7 +25,6 @@ export function PortalAddress({
   name,
   host,
   origin,
-  selfSignup,
   portalOpen,
   canEdit,
 }: {
@@ -38,8 +37,6 @@ export function PortalAddress({
   host: string;
   /** The scheme, so the address can be handed out whole. */
   origin: string;
-  /** R1.7. Whether somebody can make an account at this address. */
-  selfSignup: boolean;
   /** R17.1. Whether the address answers at all. */
   portalOpen: boolean;
   canEdit: boolean;
@@ -50,7 +47,6 @@ export function PortalAddress({
   const [took, setTook] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>();
   const [working, start] = React.useTransition();
-  const [open, setOpen] = React.useState(selfSignup);
   const [live_, setLive] = React.useState(portalOpen);
 
   const live = taken ?? slug;
@@ -188,23 +184,6 @@ export function PortalAddress({
         {t("portal.open")}
       </label>
 
-      <label className="flex cursor-pointer items-center gap-3 rounded-lg bg-sunken px-3 py-2.5 text-[length:var(--d-text-body)] text-fg">
-        <Switch
-          checked={open}
-          disabled={working || !canEdit}
-          onCheckedChange={(on) => {
-            setOpen(on);
-            start(async () => {
-              const answer = await setSignup(on);
-              if (answer?.error) {
-                setOpen(!on);
-                setError(answer.error);
-              }
-            });
-          }}
-        />
-        {t("site.account.open")}
-      </label>
     </Card>
   );
 }

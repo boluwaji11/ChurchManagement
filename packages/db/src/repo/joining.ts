@@ -46,7 +46,10 @@ export async function churchForSelfSignup(slug: string): Promise<JoinTarget | nu
   const rows = await sql<JoinTarget[]>`
     select id as "tenantId", slug, name from tenants
     where slug = ${value}
-      and self_signup
+      /* R1.7, R17.1. The address being open is the permission. A church that
+         has turned its address on has opened its door, and a second switch
+         asked the same question twice. */
+      and portal_open
       and demo_expires_at is null
       and approved_at is not null
       and archived_at is null

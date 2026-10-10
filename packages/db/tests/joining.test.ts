@@ -10,6 +10,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import { createPerson } from "../src/repo/members";
 import { churchForSelfSignup, joinChurch, setSelfSignup } from "../src/repo/joining";
+import { setPortalOpen } from "../src/repo/domains";
 import { personForUser } from "../src/repo/scope";
 import { PermissionError } from "../src/roles";
 import type { TenantRole } from "../src/roles";
@@ -198,14 +199,23 @@ describe("what the door can never do", () => {
     expect(rows.length).toBe(0);
   });
 
-  it("does nothing at all once joining is switched off", async () => {
-    await setSelfSignup(tenant, "owner", false);
+  /*
+   * R1.7, R17.1. The church's address being open is the permission. A church
+   * that turned its address off has shut its door, and there is no second
+   * switch asking the same question.
+   */
+  it("does nothing at all once the church's address is turned off", async () => {
+    await withTenant({ tenantId: tenant, role: "owner" }, (tx) =>
+      setPortalOpen(tx, { tenantId: tenant, role: "owner" }, false));
+
     expect(await churchForSelfSignup(SLUG)).toBeNull();
     await expect(
       joinChurch({
       slug: SLUG,
       user: account(9, "late@jointest.invalid") }),
     ).rejects.toThrow();
-    await setSelfSignup(tenant, "owner", true);
+
+    await withTenant({ tenantId: tenant, role: "owner" }, (tx) =>
+      setPortalOpen(tx, { tenantId: tenant, role: "owner" }, true));
   });
 });

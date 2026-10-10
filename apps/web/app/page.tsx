@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { siteTheme } from "@/lib/theme";
+import { churchFromHost } from "@/lib/session";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -108,6 +110,17 @@ function Start({ className = SITE_CTA, arrow = true }: { className?: string; arr
 }
 
 export default async function Site() {
+  /*
+   * R1.1, R17.1. A church's own address opens the church's door.
+   *
+   * Somebody typing onefamily.connectapp.church is a member of that church
+   * looking for their sign-in, and the page that sells the product to a pastor
+   * is not what they came for. The door itself is /join, which already knows
+   * how to name a church and take somebody in.
+   */
+  const church = await churchFromHost();
+  if (church) redirect(`/join/${church}`);
+
   const { chosen } = await siteTheme();
 
   return (
