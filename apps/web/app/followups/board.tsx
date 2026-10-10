@@ -154,7 +154,15 @@ export function Board({
                       />
                     </span>
                   </span>
-                  <span className="mt-1 text-[12px] text-fg-subtle">{card.owner}</span>
+                  {/* R5.5. A date that has gone says so, because the whole
+                      board is read to find what is overdue. */}
+                  <span
+                    className={`mt-1 text-[12px] ${
+                      card.late ? "font-medium text-danger-text" : "text-fg-subtle"
+                    }`}
+                  >
+                    {card.owner}
+                  </span>
                 </div>
               ))}
 
