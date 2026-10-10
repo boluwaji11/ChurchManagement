@@ -171,7 +171,7 @@ export function Conversation({
           ].join(", "),
           backgroundSize: "auto, auto, 18px 18px",
         }}
-        className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-4 py-3"
+        className="flex min-h-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto px-4 py-3"
       >
         {said.map((one, at) => {
           const before = said[at - 1];
@@ -818,7 +818,7 @@ function Sent({
           type="button"
           onClick={() => setBig(true)}
           aria-label={file.label}
-          className="block max-w-[260px] cursor-zoom-in overflow-hidden rounded-lg"
+          className="block w-full max-w-[260px] cursor-zoom-in overflow-hidden rounded-lg"
         >
           {shown ? (
             // eslint-disable-next-line @next/next/no-img-element
