@@ -4,7 +4,7 @@ import * as React from "react";
 import { Check, CircleCheck, Globe, X } from "lucide-react";
 import { Banner, Button, Card, CardTitle, Field, Separator } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { claimPortalName, checkPortalName } from "./domain-actions";
+import { claimPortalName } from "./domain-actions";
 
 /**
  * R1.1, R17.1. Where a congregation signs in.
@@ -35,32 +35,30 @@ export function PortalAddress({
 }) {
   const [draft, setDraft] = React.useState(name ?? "");
   const [taken, setTaken] = React.useState(name);
-  const [free, setFree] = React.useState<boolean | null>(null);
-  const [cleaned, setCleaned] = React.useState<string | null>(null);
+  /* What was just taken, so the screen says so rather than only changing. */
+  const [took, setTook] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>();
   const [working, start] = React.useTransition();
 
   const live = taken ?? slug;
   const changed = draft.trim().toLowerCase() !== (taken ?? "");
 
-  const look = () =>
-    start(async () => {
-      setError(undefined);
-      const answer = await checkPortalName(draft, church);
-      setFree(answer.free);
-      setCleaned(answer.cleaned);
-    });
-
+  /*
+   * R1.1. One press. Taking the name is the check: the query layer refuses a
+   * name another church holds and a shape nobody could type, so asking first
+   * and then asking again was two presses for one answer.
+   */
   const take = () =>
     start(async () => {
+      setError(undefined);
+      setTook(null);
       const answer = await claimPortalName(draft, church);
       if (answer.error) {
         setError(answer.error);
         return;
       }
       setTaken(answer.name ?? null);
-      setFree(null);
-      setCleaned(null);
+      setTook(answer.name ?? null);
     });
 
   return (
@@ -93,18 +91,21 @@ export function PortalAddress({
       {/* The address itself, read as one thing: the name they chose and the
           part we own, which never changes. */}
       <Field label={t("portal.label")}>
-        <div className="flex items-center gap-0 rounded-[var(--d-radius-control)] border border-line-strong bg-surface focus-within:border-fg-subtle">
+        {/* The name and the part we own, read as one address left to right.
+            Capped, because a field the width of the card put the name a hand's
+            width from the domain it belongs to. */}
+        <div className="flex max-w-[420px] items-center rounded-[var(--d-radius-control)] border border-line-strong bg-surface focus-within:border-fg-subtle">
           <input
             value={draft}
             onChange={(e) => {
               setDraft(e.target.value);
-              setFree(null);
-              setCleaned(null);
+              setError(undefined);
+              setTook(null);
             }}
             placeholder={slug}
             disabled={!canEdit}
             aria-label={t("portal.label")}
-            className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-right font-mono text-[13px] text-fg outline-none"
+            className="w-0 min-w-0 flex-1 bg-transparent py-2.5 pl-3 text-right font-mono text-[13px] text-fg outline-none"
           />
           <span className="shrink-0 py-2.5 pr-3 font-mono text-[13px] text-fg-subtle">
             .{host}
@@ -112,30 +113,18 @@ export function PortalAddress({
         </div>
       </Field>
 
-      {/* R1.1. The answer to the only question: has somebody got it. */}
-      {free === true && cleaned ? (
-        <Banner tone="success">{t("portal.free", { name: `${cleaned}.${host}` })}</Banner>
+      {took ? (
+        <Banner tone="success">{t("portal.free", { name: `${took}.${host}` })}</Banner>
       ) : null}
-      {free === false ? <Banner tone="danger">{t("portal.taken")}</Banner> : null}
 
       <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
-          variant="secondary"
           loading={working}
           disabled={!canEdit || !changed || working}
-          onClick={look}
-        >
-          <Check /> {t("portal.check")}
-        </Button>
-
-        <Button
-          type="button"
-          loading={working}
-          disabled={!canEdit || !changed || free !== true || working}
           onClick={take}
         >
-          {t("portal.use")}
+          <Check /> {t("portal.use")}
         </Button>
 
         {taken ? (
@@ -151,7 +140,7 @@ export function PortalAddress({
                 if (answer.error) return;
                 setTaken(null);
                 setDraft("");
-                setFree(null);
+                setTook(null);
               })
             }
           >

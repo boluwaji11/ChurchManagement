@@ -60,22 +60,25 @@ export default async function WebsitePage({
     <>
       <SettingsHeading title="settings.tab.website" lede="settings.lede.website" />
 
-      <PortalAddress
-        church={session.tenantSlug}
-        slug={session.tenantSlug}
-        name={profile?.portalName ?? null}
-        host={platformHost}
-        canEdit={canManageChurch(session)}
-      />
+      {/* R24.6. The address and the member's door stand together, because the
+          door is the address with a path on it. The finder's snippet is wide
+          and takes the row under them. */}
+      <div className="grid max-w-[1120px] items-start gap-5 lg:grid-cols-2">
+        <PortalAddress
+          church={session.tenantSlug}
+          slug={session.tenantSlug}
+          name={profile?.portalName ?? null}
+          host={platformHost}
+          canEdit={canManageChurch(session)}
+        />
 
-      <OnYourSite
-        origin={`${proto}://${host}`}
-        slug={session.tenantSlug}
-        selfSignup={profile?.selfSignup ?? false}
-        domain={profile?.customDomain ?? null}
-        appHost={host}
-        approved={standing.approved}
-      />
+        <OnYourSite
+          origin={`${proto}://${host}`}
+          slug={session.tenantSlug}
+          selfSignup={profile?.selfSignup ?? false}
+          approved={standing.approved}
+        />
+      </div>
     </>
   );
 }
