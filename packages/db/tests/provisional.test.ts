@@ -82,9 +82,13 @@ describe("a church nobody has looked at yet", () => {
   it("refuses the person past the cap, and not the one before it", async () => {
     await run((tx) => requireRoomForPeople(tx, tenant));
 
+    // A slug is required on every member, so the filler rows carry one. These
+    // go in raw rather than through createPerson, because the point is the cap
+    // rather than the writing.
     await owner()`
-      insert into members (tenant_id, first_name, last_name, lifecycle_status)
-      select ${tenant}::uuid, 'Filler' || n, 'Provisional', 'visitor'
+      insert into members (tenant_id, first_name, last_name, lifecycle_status, slug)
+      select ${tenant}::uuid, 'Filler' || n, 'Provisional', 'visitor',
+             'filler-provisional-' || n
         from generate_series(1, ${PROVISIONAL_PEOPLE - 3}) as n`;
 
     const standing = await run((tx) => churchStanding(tx, tenant));

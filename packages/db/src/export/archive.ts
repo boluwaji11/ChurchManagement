@@ -113,6 +113,13 @@ const TABLES = [
   "pledges",
   "campaigns",
   "stripe_accounts",
+  // HRT-286, HRT-287, R16.8. The church's own messaging wiring and, more to
+  // the point, its record of who agreed to be contacted. A church that moves
+  // away and loses its consent record has to ask four hundred people again.
+  "church_providers",
+  "church_sending_domains",
+  "church_registrations",
+  "contact_consent",
   "platform_events",
   "audit_entries",
 ] as const;
@@ -202,6 +209,22 @@ function clean(
   role: TenantRole,
   withheld: string[],
 ): Record<string, unknown> {
+  /*
+   * R21.15. A sealed provider credential leaves with nobody.
+   *
+   * It is useless to the church, since only our key opens it, and a copy of it
+   * sitting in a volunteer's downloads folder is a copy we cannot revoke. The
+   * row goes, so the church can see which accounts it had connected.
+   */
+  if (table === "church_providers") {
+    const out = { ...row };
+    delete out["credential"];
+    delete out["credential_key_id"];
+    out["credential"] = row["credential"] ? "sealed" : null;
+    withheld.push("church_providers.credential");
+    return out;
+  }
+
   if (table !== "notes") return row;
 
   const out = { ...row };

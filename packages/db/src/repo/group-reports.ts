@@ -149,9 +149,13 @@ export interface GroupHealthRow {
 /**
  * R18.6. Group by group, the quietest first.
  *
- * Sorted by when it last met rather than by name, because the report exists to
- * put the groups nobody has heard from at the top. A church reading it
- * alphabetically reads the first four and stops.
+ * Sorted by silence rather than by name, because the report exists to put the
+ * groups nobody has heard from at the top. A church reading it alphabetically
+ * reads the first four and stops.
+ *
+ * Silence is the absence of any record at all. A group whose leader wrote down
+ * that it did not meet has told the church something, and it sorts below a
+ * group that said nothing, even though neither of them met.
  */
 export async function groupHealth(
   db: Tx,
@@ -185,7 +189,20 @@ export async function groupHealth(
       from groups g
       left join group_types t on t.id = g.type_id
      where ${RUNNING}
-     order by (select max(mt.met_on) from group_meetings mt
+     /*
+      * Silence first, then the longest gap.
+      *
+      * A group that recorded a cancellation has been heard from: its leader
+      * did the thing we asked. A group that recorded nothing has not, and
+      * sorting them together by "last met" buries the second kind under the
+      * first, because neither of them has met.
+      */
+     order by (not exists (
+                select 1 from group_meetings mt
+                 where mt.group_id = g.id
+                   and mt.met_on between ${opts.from}::date and ${opts.to}::date
+              )) desc,
+              (select max(mt.met_on) from group_meetings mt
                 where mt.group_id = g.id and mt.not_held = false)
                 asc nulls first,
               g.name asc`);

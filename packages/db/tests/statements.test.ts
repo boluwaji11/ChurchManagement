@@ -104,11 +104,16 @@ describe("a statement", () => {
     const givers = await run((tx) => statementGivers(tx, as(), "2031", "household"));
     expect(givers).toHaveLength(2);
 
-    const home = givers.find((one) => one.name === "The Smiths")!;
+    /*
+     * R13.18. "The Smiths" on its own reads as a letter to one person, so the
+     * statement is headed "The Smiths Household". A church that already wrote
+     * the word into the name keeps what it wrote.
+     */
+    const home = givers.find((one) => one.name === "The Smiths Household")!;
     expect(home.totalCents).toBe(40_000);
 
     const sheet = await run((tx) => statementFor(tx, as(), ann, "2031", "household"));
-    expect(sheet!.name).toBe("The Smiths");
+    expect(sheet!.name).toBe("The Smiths Household");
     expect(sheet!.totalCents).toBe(40_000);
 
     // Carl has no household, so he stands on his own either way.

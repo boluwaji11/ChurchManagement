@@ -157,10 +157,19 @@ describe("which groups have gone quiet", () => {
 });
 
 describe("group by group", () => {
-  it("puts the group nobody has heard from at the top", async () => {
+  /*
+   * Both of these have never met. Only one of them has told the church so,
+   * and the one that stayed quiet is the one somebody has to ring.
+   */
+  it("puts the group that said nothing above the group that cancelled", async () => {
     const rows = await run((tx) => groupHealth(tx, RANGE));
+
     expect(rows[0]!.name).toBe("Tuesday Silent");
     expect(rows[0]!.lastMetOn).toBeNull();
+
+    const cancelling = rows.findIndex((one) => one.name === "Tuesday Cancelling");
+    expect(cancelling).toBeGreaterThan(0);
+    expect(rows[cancelling]!.lastMetOn).toBeNull();
   });
 
   it("separates what was held from what was cancelled", async () => {

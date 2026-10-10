@@ -145,7 +145,7 @@ and a design file does not move it.
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
 | HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
 | HRT-18 | Storage quota, enforced at upload, with the church logo as its first user | R1.1, R1.16 | Closed |
-| HRT-284 | The church's legal details on its own record: legal name, EIN, registered address | R1.1, R13.1 | Built, its tests have not run: Docker is down on this machine |
+| HRT-284 | The church's legal details on its own record: legal name, EIN, registered address | R1.1, R13.1 | Resolved |
 | HRT-44 | Show usage against the quota, once a church can approach it | R1.16 | Deferred |
 | HRT-36 | **Externalise every user-facing string.** | R22.8 | Closed |
 | HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | Closed |
@@ -607,10 +607,10 @@ church actually asks.
 | HRT-186 | Attendance reports: trend, year over year, by service, by demographic | R18.2 | Closed |
 | HRT-187 | The first-time visitor funnel, with conversion rates and elapsed time at each step | R18.3 | Closed |
 | HRT-188 | Growth and retention: new, returning, lapsed, net change by month | R18.4 | Closed |
-| HRT-189 | Group participation and group health | R18.6 | Built, its tests have not run: Docker is down on this machine |
-| HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | Built, its tests have not run: Docker is down on this machine |
-| HRT-191 | Milestone and demographic lists | R18.8 | Built, its tests have not run: Docker is down on this machine |
-| HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | Built, its tests have not run: Docker is down on this machine |
+| HRT-189 | Group participation and group health | R18.6 | Resolved |
+| HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | Resolved |
+| HRT-191 | Milestone and demographic lists | R18.8 | Resolved |
+| HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | Resolved |
 | HRT-193 | CSV and PDF on every report | R18.10 | Closed |
 | HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
 | HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Closed |
