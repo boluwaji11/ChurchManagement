@@ -278,7 +278,7 @@ export const en = {
   "signIn.submit": "Sign in",
   "signIn.failed": "That did not work",
   "signIn.sent.title": "Check your email",
-  "signIn.sent.body": "We sent a sign-in link to {email}. It is good for one hour.",
+  "signIn.sent.body": "We sent a sign-in link to {email}. Link valid for an hour.",
   "signIn.error.noEmail": "Enter an email address.",
   "signIn.error.noMatch": "That email and password do not match an account.",
 
