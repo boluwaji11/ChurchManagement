@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { spanningSubdomains } from "@/lib/cookie-domain";
 
 /**
  * Refreshes the Supabase session on every request, because a Server Component
@@ -29,7 +30,9 @@ export async function middleware(request: NextRequest) {
         setAll: (list) => {
           for (const { name, value } of list) request.cookies.set(name, value);
           response = NextResponse.next({ request: { headers: asked } });
-          for (const { name, value, options } of list) response.cookies.set(name, value, options);
+          for (const { name, value, options } of list) {
+            response.cookies.set(name, value, spanningSubdomains(options ?? {}));
+          }
         },
       },
     },

@@ -1,6 +1,7 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies, headers } from "next/headers";
+import { spanningSubdomains } from "@/lib/cookie-domain";
 
 const url = () => process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
 const key = () => process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]!;
@@ -28,7 +29,9 @@ export async function supabaseServer() {
       getAll: () => store.getAll(),
       setAll: (list) => {
         try {
-          for (const { name, value, options } of list) store.set(name, value, options);
+          for (const { name, value, options } of list) {
+            store.set(name, value, spanningSubdomains(options ?? {}));
+          }
         } catch {
           // Called from a Server Component, where cookies are read-only.
           // The middleware refreshes the session instead, which is the point of it.
