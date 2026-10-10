@@ -4,7 +4,8 @@ import { churchForSelfSignup } from "@connectapp/db";
 import { Banner, Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { SignOutButton } from "@/components/sign-out-button";
-import { currentUser } from "@/lib/session";
+import { currentUser, belongsTo, verifiedMembership } from "@/lib/session";
+import { navFor } from "@/components/shell/nav";
 import { AuthShell } from "../auth-shell";
 import { photoUrls } from "@/lib/photos";
 import { AUTH_BUTTON } from "../auth-chrome";
@@ -54,6 +55,21 @@ export async function JoinScreen({
   }
 
   if (user?.emailVerified === false) redirect(`/sign-up?sent=${encodeURIComponent(user.email)}`);
+
+  /*
+   * R1.4, R17.1. Somebody who already belongs here is not at a door.
+   *
+   * A member arriving at their church's own address has signed in before and
+   * is looking for their own screen, so they are taken to it rather than
+   * asked to join a church they are already in. Which screen that is comes
+   * from the same list the rail is built from, so it is whatever their role
+   * opens the product on.
+   */
+  if (user && (await belongsTo(user.id, church.slug))) {
+    const member = await verifiedMembership(user.id, church.slug);
+    const [first] = member ? navFor({ role: member.role, permissions: member.permissions }) : [];
+    redirect(`${first?.href ?? "/home"}?church=${church.slug}`);
+  }
 
   /* R17.1. On the church's own address the host names it, so the way back
      after signing in does not repeat it in the path. */

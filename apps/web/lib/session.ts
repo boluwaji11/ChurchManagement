@@ -141,6 +141,18 @@ export const belongsTo = cache(async (userId: string, slug: string): Promise<boo
 });
 
 /**
+ * R1.4. The same answer, with the role and the permissions on it.
+ *
+ * For a screen that has to decide where somebody goes rather than only
+ * whether they may be here.
+ */
+export const verifiedMembership = cache(async (userId: string, slug: string) => {
+  const tenant = await tenantBySlug(slug);
+  if (!tenant) return null;
+  return myMembership(userId, tenant.id);
+});
+
+/**
  * The address this request is on, as a path.
  *
  * The middleware passes it through on a header, because a server component
