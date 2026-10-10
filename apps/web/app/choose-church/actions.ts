@@ -5,6 +5,7 @@ import { verifyMembership, resolveTenantBySlug } from "@connectapp/db";
 import { currentUser } from "@/lib/session";
 import { rememberChurch } from "@/lib/church-choice";
 import { landingForRole } from "@/lib/landing";
+import { churchLanding } from "@/lib/church-address";
 
 /**
  * R1.4. Picking a church out of the list.
@@ -22,6 +23,8 @@ export async function chooseChurch(data: FormData) {
   const member = tenant ? await verifyMembership(user.id, tenant.id) : null;
   if (!member) redirect("/choose-church?reason=denied");
 
+  /* R1.4. Written down for our own host, which has nothing else to go on,
+     and then they go to the church's own address, which has. */
   await rememberChurch(member.tenantSlug);
-  redirect(landingForRole(member.role));
+  redirect(await churchLanding(member.tenantSlug, landingForRole(member.role)));
 }

@@ -45,5 +45,8 @@ export async function GET(request: NextRequest) {
   // R24.x. Their own palette, brought onto this device.
   await adoptTheme(user.id);
 
-  return NextResponse.redirect(`${origin}${next || (await landingFor(user.id))}`);
+  /* R17.1. Where they land may be the church's own address, which already
+     carries its own origin. Only a path needs ours put in front of it. */
+  const to = next || (await landingFor(user.id));
+  return NextResponse.redirect(to.startsWith("/") ? `${origin}${to}` : to);
 }
