@@ -209,8 +209,17 @@ describe("app_users is not enumerable across tenants", () => {
     const emails = (seen as unknown as { email: string }[]).map((r) => r.email);
 
     expect(emails.length).toBeGreaterThan(0);
-    expect(emails.every((e) => e.endsWith("@riverside.example.org"))).toBe(true);
     expect(emails.some((e) => e.endsWith("@northgate.example.org"))).toBe(false);
+
+    /* Everybody visible holds a seat in this church. The addresses are not
+       all at the church's own domain: a volunteer signs in with the address
+       they already have. */
+    const seats = await owner()<{ email: string }[]>`
+      select u.email from app_users u
+      join tenant_members m on m.user_id = u.id
+      where m.tenant_id = ${riverside}`;
+    const held = new Set(seats.map((r) => r.email));
+    expect(emails.every((e) => held.has(e))).toBe(true);
 
     // The other church's users exist. They are simply unreachable.
     const all = await owner()<{ email: string }[]>`select email from app_users`;
@@ -282,8 +291,9 @@ describe("the audit log is append only (R1.11)", () => {
   it("writes an entry automatically when a person is created", async () => {
     const created = await withTenant({ tenantId: riverside, role: "admin" }, async (tx) => {
       const rows = await tx.execute(raw`
-        insert into members (tenant_id, first_name, last_name)
-        values (${riverside}::uuid, ${"Audit"}, ${"Probe"}) returning id`);
+        insert into members (tenant_id, first_name, last_name, slug)
+        values (${riverside}::uuid, ${"Audit"}, ${"Probe"}, ${`audit-probe-${Date.now()}`})
+        returning id`);
       return (rows as unknown as { id: string }[])[0]!.id;
     });
 

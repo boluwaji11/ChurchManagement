@@ -100,6 +100,16 @@ begin
     execute format('alter table public.%I enable row level security', t);
     execute format('alter table public.%I no force row level security', t);
     execute format('drop policy if exists tenant_isolation on public.%I', t);
+    /*
+     * R21.1. One policy a table, and it is this one.
+     *
+     * A few migrations wrote a second policy of their own, named after the
+     * table, that cast the setting straight to uuid. With no tenant set that
+     * cast raises rather than matching nothing, so a query with no context
+     * answered with an error instead of with an empty result, and a reader
+     * learned that the table exists. Any such policy is taken off here.
+     */
+    execute format('drop policy if exists %I on public.%I', t || '_tenant', t);
     execute format(
       'create policy tenant_isolation on public.%I using (tenant_id = app_tenant_id()) with check (tenant_id = app_tenant_id())',
       t
@@ -233,6 +243,7 @@ end $$;
 -- a record. audit_entries itself is excluded: auditing the audit log recurses.
 do $$
 declare t text;
+declare old_trigger text;
 begin
   for t in
     select c.relname
@@ -244,6 +255,24 @@ begin
        and c.relname <> 'audit_entries'
      order by c.relname
   loop
+    /*
+     * R1.11. One audit trigger a table.
+     *
+     * A table that has been renamed keeps the trigger it carried under its
+     * old name, and both fire: every insert on members was written to the
+     * audit log twice, once as members and once as people. Anything on this
+     * table that writes the audit log under another name is taken off.
+     */
+    for old_trigger in
+      select tgname from pg_trigger
+       where tgrelid = format('public.%I', t)::regclass
+         and not tgisinternal
+         and tgfoid = 'public.audit_write()'::regprocedure
+         and tgname <> 'audit_' || t
+    loop
+      execute format('drop trigger %I on public.%I', old_trigger, t);
+    end loop;
+
     execute format('drop trigger if exists audit_%1$s on public.%1$I', t);
     execute format(
       'create trigger audit_%1$s after insert or update or delete on public.%1$I for each row execute function audit_write()',
@@ -289,6 +318,7 @@ end $$;
 -- later is covered the next time this file runs.
 do $$
 declare t text;
+declare old_trigger text;
 begin
   for t in
     select c.relname
@@ -302,6 +332,18 @@ begin
        and c.relname <> 'locations'
      order by c.relname
   loop
+    /* The same housekeeping as the audit triggers: a renamed table keeps the
+       trigger it carried under its old name, and both fire. */
+    for old_trigger in
+      select tgname from pg_trigger
+       where tgrelid = format('public.%I', t)::regclass
+         and not tgisinternal
+         and tgfoid = 'public.campus_default()'::regprocedure
+         and tgname <> 'campus_default_' || t
+    loop
+      execute format('drop trigger %I on public.%I', old_trigger, t);
+    end loop;
+
     execute format('drop trigger if exists campus_default_%1$s on public.%1$I', t);
     execute format(
       'create trigger campus_default_%1$s before insert on public.%1$I for each row execute function campus_default()',

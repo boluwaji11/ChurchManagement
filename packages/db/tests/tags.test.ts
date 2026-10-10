@@ -111,13 +111,13 @@ describe("applying a tag", () => {
     await run(riverside, "owner", (tx) => setPersonTag(tx, actor, p.id, t.id, true));
     await run(riverside, "owner", (tx) => setPersonTag(tx, actor, p.id, t.id, true));
 
-    let rows = await owner()`select * from person_tags where member_id = ${p.id} and tag_id = ${t.id}`;
+    let rows = await owner()`select * from member_tags where member_id = ${p.id} and tag_id = ${t.id}`;
     expect(rows).toHaveLength(1);
 
     await run(riverside, "owner", (tx) => setPersonTag(tx, actor, p.id, t.id, false));
     await run(riverside, "owner", (tx) => setPersonTag(tx, actor, p.id, t.id, false));
 
-    rows = await owner()`select * from person_tags where member_id = ${p.id} and tag_id = ${t.id}`;
+    rows = await owner()`select * from member_tags where member_id = ${p.id} and tag_id = ${t.id}`;
     expect(rows).toHaveLength(0);
   });
 
@@ -209,7 +209,7 @@ describe("deleting", () => {
     expect(result.removedFrom).toBe(1);
 
     expect(await owner()`select id from tags where id = ${t.id}`).toHaveLength(0);
-    expect(await owner()`select member_id from person_tags where tag_id = ${t.id}`).toHaveLength(0);
+    expect(await owner()`select member_id from member_tags where tag_id = ${t.id}`).toHaveLength(0);
     // The person is untouched. A tag is a label, not a record.
     expect(await owner()`select id from members where id = ${p.id}`).toHaveLength(1);
   });
