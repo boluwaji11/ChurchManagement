@@ -6,7 +6,6 @@ import {
   listSavedLists, countArchivedSavedLists, resolveList, listGroups,
   PER_PAGE,
 } from "@connectapp/db";
-import { Banner } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { Flash } from "@/components/said";
 import { requireSession } from "@/lib/session";
@@ -162,10 +161,6 @@ export default async function PeoplePage({
         >
           <ArrowLeft className="size-4" /> {t("members.archived.back")}
         </Link>
-      ) : null}
-
-      {session.role === "staff" || session.role === "member" ? (
-        <Banner tone="info" title={t("members.restricted.title")} className="mb-8" />
       ) : null}
 
       <Directory

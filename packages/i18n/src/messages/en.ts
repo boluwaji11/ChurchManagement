@@ -421,7 +421,6 @@ export const en = {
   "members.empty.body": "Add someone by hand, or import your directory from a spreadsheet.",
   "members.open": "Open {name}",
   "members.archivedBadge": "Archived",
-  "members.restricted.title": "Confidential pastoral notes are hidden from your role",
 
   "directory.search": "Search",
   "directory.searchPlaceholder": "Search members",
