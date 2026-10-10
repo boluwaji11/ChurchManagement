@@ -50,10 +50,13 @@ type FieldKey = (typeof FIELDS)[number];
 export function Review({
   church,
   pairs,
+  pager,
   history,
 }: {
   church: string;
   pairs: Pair[];
+  /** R24.6. The foot of the list, drawn on the server so its links are links. */
+  pager?: React.ReactNode;
   history: PastMerge[];
 }) {
   return (
@@ -63,10 +66,11 @@ export function Review({
           {t("merge.none.title")}
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div id="pairs" className="flex flex-col gap-4">
           {pairs.map((pair) => (
             <PairCard key={`${pair.a.id}:${pair.b.id}`} church={church} pair={pair} />
           ))}
+          {pager}
         </div>
       )}
 
