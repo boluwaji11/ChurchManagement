@@ -472,8 +472,16 @@ begin
   create schema if not exists connectapp;
   execute 'grant usage on schema connectapp to authenticated';
 
+  /*
+   * The function was written into a schema named after the old product name
+   * and the rename only reached half of it: the schema created here was the
+   * new one and the function was still put in the old. A database made before
+   * this keeps both, so the old one is taken off once the new one is in place
+   * below.
+   */
+
   execute $fn$
-    create or replace function hearth.user_in_church(p_slug text)
+    create or replace function connectapp.user_in_church(p_slug text)
     returns boolean
     language sql
     security definer
@@ -489,8 +497,8 @@ begin
     $body$;
   $fn$;
 
-  execute 'revoke all on function hearth.user_in_church(text) from public';
-  execute 'grant execute on function hearth.user_in_church(text) to authenticated';
+  execute 'revoke all on function connectapp.user_in_church(text) from public';
+  execute 'grant execute on function connectapp.user_in_church(text) to authenticated';
 
   insert into storage.buckets (id, name, public)
   values ('church', 'church', false)
@@ -503,21 +511,24 @@ begin
 
   execute $pol$
     create policy church_read on storage.objects for select to authenticated
-    using (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
+    using (bucket_id = 'church' and connectapp.user_in_church((storage.foldername(name))[1]))
   $pol$;
   execute $pol$
     create policy church_write on storage.objects for insert to authenticated
-    with check (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
+    with check (bucket_id = 'church' and connectapp.user_in_church((storage.foldername(name))[1]))
   $pol$;
   execute $pol$
     create policy church_update on storage.objects for update to authenticated
-    using (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
-    with check (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
+    using (bucket_id = 'church' and connectapp.user_in_church((storage.foldername(name))[1]))
+    with check (bucket_id = 'church' and connectapp.user_in_church((storage.foldername(name))[1]))
   $pol$;
   execute $pol$
     create policy church_delete on storage.objects for delete to authenticated
-    using (bucket_id = 'church' and hearth.user_in_church((storage.foldername(name))[1]))
+    using (bucket_id = 'church' and connectapp.user_in_church((storage.foldername(name))[1]))
   $pol$;
+
+  /* The old schema's copy, now that nothing points at it any more. */
+  execute 'drop function if exists hearth.user_in_church(text)';
 
   -- R4.1. What somebody with no account may write, and only that.
   --

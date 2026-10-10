@@ -157,9 +157,11 @@ describe("a new church is isolated from the first moment", () => {
       createPerson(tx, actor, { firstName: "Brand", lastName: "Newperson", lifecycleStatus: "visitor" }),
     );
 
+    /* R22.1. A new church already holds one member: whoever made it. The
+       one written here is the second. */
     const mine = await withTenant(actor, (tx) => listPeople(tx));
-    expect(mine).toHaveLength(1);
-    expect(mine[0]!.lastName).toBe("Newperson");
+    expect(mine).toHaveLength(2);
+    expect(mine.map((one) => one.lastName)).toContain("Newperson");
 
     // Riverside has ten members and must not gain an eleventh.
     const theirs = await withTenant({ tenantId: riverside, role: "owner" }, (tx) => listPeople(tx));

@@ -111,7 +111,7 @@ describe("nothing is reachable over the auto-generated REST API", () => {
       select p.prosecdef as definer
         from pg_proc p join pg_namespace n on n.oid = p.pronamespace
        where n.nspname = 'connectapp' and p.proname = 'user_in_church'`;
-    expect(fn?.definer, "hearth.user_in_church is missing").toBe(true);
+    expect(fn?.definer, "connectapp.user_in_church is missing").toBe(true);
 
     const [gone] = await owner()<{ present: boolean }[]>`
       select exists (
@@ -121,7 +121,7 @@ describe("nothing is reachable over the auto-generated REST API", () => {
     expect(gone?.present, "public.user_in_church is still an RPC endpoint").toBe(false);
 
     const [may] = await owner()<{ ok: boolean | null }[]>`
-      select has_function_privilege('authenticated', 'hearth.user_in_church(text)', 'execute') as ok`;
+      select has_function_privilege('authenticated', 'connectapp.user_in_church(text)', 'execute') as ok`;
     expect(may?.ok, "the bucket policies cannot call it").toBe(true);
   });
 });

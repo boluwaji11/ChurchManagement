@@ -39,8 +39,10 @@ describe("a church on its first day (R22.1)", () => {
     const progress = await run((tx) => setupProgress(tx, tenant));
     expect(progress.complete).toBe(false);
     expect(progress.settled).toBe(0);
+    /* R22.1. The order the setup screen reads them in, which is the order
+       SETUP_STEPS names. */
     expect(progress.steps.map((row) => row.step)).toEqual([
-      "church", "services", "members", "team", "rooms",
+      "members", "services", "rooms", "team", "church",
     ]);
   });
 });
@@ -60,9 +62,16 @@ describe("doing the work moves the step (R22.1)", () => {
     expect(step(await run((tx) => setupProgress(tx, tenant)), "services").done).toBe(true);
   });
 
-  it("counts one person, however they arrived", async () => {
+  it("wants somebody beyond whoever made the church", async () => {
     await run((tx) => createPerson(tx, as(), {
       firstName: "First", lastName: "Person", lifecycleStatus: "member",
+    } as never));
+    /* R22.1. One member is the person who wrote the church down. A church is
+       two. */
+    expect(step(await run((tx) => setupProgress(tx, tenant)), "members").done).toBe(false);
+
+    await run((tx) => createPerson(tx, as(), {
+      firstName: "Second", lastName: "Person", lifecycleStatus: "member",
     } as never));
     expect(step(await run((tx) => setupProgress(tx, tenant)), "members").done).toBe(true);
   });

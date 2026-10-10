@@ -68,8 +68,12 @@ describe("members entered one at a time (R22.3)", () => {
   it("counts the church usable at the twenty-fifth", async () => {
     for (let i = 0; i < USABLE_PEOPLE; i += 1) {
       await owner()`
-        insert into members (tenant_id, first_name, last_name, lifecycle_status, created_at)
-        values (${slow}, ${`Person${i}`}, 'Slow', 'member', now() - interval '20 minutes')`;
+        insert into members
+          (tenant_id, first_name, last_name, lifecycle_status, slug, created_at)
+        values (
+          ${slow}, ${`Person${i}`}, 'Slow', 'member', ${`slow-${i}`},
+          now() - interval '20 minutes'
+        )`;
     }
 
     const row = find(await timeToValue(owner()), "valuetest2");
@@ -83,8 +87,8 @@ describe("members entered one at a time (R22.3)", () => {
   it("is not reached by one person typed in while looking around", async () => {
     const third = await testTenant("valuetest3", "Browsing Church");
     await owner()`
-      insert into members (tenant_id, first_name, last_name, lifecycle_status)
-      values (${third}, 'Only', 'Person', 'member')`;
+      insert into members (tenant_id, first_name, last_name, lifecycle_status, slug)
+      values (${third}, 'Only', 'Person', 'member', 'only-person')`;
 
     expect(find(await timeToValue(owner()), "valuetest3").usableAt).toBeNull();
     await dropTenants("valuetest3");
