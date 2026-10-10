@@ -1887,7 +1887,7 @@ export const en = {
   "merge.failed": "That did not save. Try again.",
   "merge.title": "Duplicates",
   "merge.heading": "Possible duplicates",
-  "merge.lede": "Where the two disagree, pick what to keep. Merges can be undone for 30 days.",
+  "merge.lede": "Merges can be undone for 30 days.",
   "merge.bothKept": "Both are kept",
   "merge.pairTitle": "{a} and {b}",
   "merge.mergeInto": "Merge into {name}",
