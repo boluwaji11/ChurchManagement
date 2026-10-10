@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ArrowLeft, ArrowRight, CalendarCheck, HandCoins, TrendingUp, UserPlus,
+  ArrowLeft, ArrowRight, CalendarCheck, HandCoins, Table2, TrendingUp, UserPlus,
 } from "lucide-react";
 import {
   withTenant, listSavedReports, countArchivedSavedReports, canManageChurch,
@@ -121,6 +121,18 @@ export default async function ReportsPage({
           },
         ]
       : []),
+    /*
+     * R18.x. A report the church shares reads like one the product came with:
+     * same row, same card, opened rather than worked on. Whoever wrote it
+     * keeps it under their own list, where the pencil is.
+     */
+    ...theirs.map((one) => ({
+      href: `/reports/custom/${one.slug}${here}`,
+      icon: Table2,
+      hue: "indigo",
+      title: one.name,
+      detail: t(`report.subject.${one.subject}` as never),
+    })),
   ];
 
   return (
@@ -172,17 +184,6 @@ export default async function ReportsPage({
           );
         })}
       </div>
-
-      {/* R18.x. The ones the church shares sit with the ones it was given,
-          because both are read rather than worked on. */}
-      {!putAway && theirs.length > 0 ? (
-        <SavedReports
-          church={session.tenantSlug}
-          heading={t("report.church")}
-          canShare={canManageChurch(session)}
-          reports={theirs}
-        />
-      ) : null}
 
       {cards.length > 0 ? (
         <SavedReports

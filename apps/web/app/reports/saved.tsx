@@ -36,7 +36,6 @@ export function SavedReports({
   reports,
   putAway = false,
   canShare = false,
-  heading,
 }: {
   church: string;
   reports: SavedCard[];
@@ -44,8 +43,6 @@ export function SavedReports({
   putAway?: boolean;
   /** R18.x. Whether this reader may put one in front of the church. */
   canShare?: boolean;
-  /** What the list is called, where it is not the reader's own. */
-  heading?: string;
 }) {
   const router = useRouter();
   const [asking, setAsking] = React.useState<SavedCard | null>(null);
@@ -70,7 +67,7 @@ export function SavedReports({
   return (
     <section className="flex flex-col gap-3">
       <h2 className="font-display text-[22px] leading-7 text-fg">
-        {heading ?? (putAway ? t("report.archived.title") : t("report.yours"))}
+        {putAway ? t("report.archived.title") : t("report.yours")}
       </h2>
       {error ? <p role="status" className="text-[13px] text-danger-text">{error}</p> : null}
 
