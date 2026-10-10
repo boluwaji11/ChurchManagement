@@ -38,6 +38,33 @@ export function setFormBusy(form: string, on: boolean): void {
   for (const tell of watchers) tell();
 }
 
+/**
+ * R24.6. How many times this form has settled against the server.
+ *
+ * Bumped once a save has come back, whichever way it went. `useDirty` reads it
+ * and takes what is on screen as the new baseline, because what is on screen
+ * after a save has settled is what the server holds: the new values where it
+ * accepted them, the old ones where it refused.
+ */
+const settled = new Map<string, number>();
+const settleWatchers = new Set<() => void>();
+
+export function formSettled(form: string): void {
+  settled.set(form, (settled.get(form) ?? 0) + 1);
+  for (const tell of settleWatchers) tell();
+}
+
+function useSettled(form: string): number {
+  return React.useSyncExternalStore(
+    (tell) => {
+      settleWatchers.add(tell);
+      return () => settleWatchers.delete(tell);
+    },
+    () => settled.get(form) ?? 0,
+    () => 0,
+  );
+}
+
 function useFormBusy(form: string): boolean {
   return React.useSyncExternalStore(
     (tell) => {
@@ -173,6 +200,7 @@ function snapshot(form: HTMLFormElement): string {
  */
 export function useDirty(form: string): boolean {
   const [dirty, setDirty] = React.useState(false);
+  const settledCount = useSettled(form);
 
   React.useEffect(() => {
     const element = document.getElementById(form);
@@ -182,25 +210,47 @@ export function useDirty(form: string): boolean {
     const compare = () => setDirty(snapshot(element) !== opened);
 
     /*
-     * What was just saved becomes the new baseline.
-     *
-     * A form that stays on screen after saving would otherwise go dirty again
-     * on the next keystroke, because the comparison was still against what the
-     * page opened with rather than what was last committed.
+     * What was just saved becomes the new baseline, so a form that stays on
+     * screen does not go dirty again on the next keystroke.
      */
     const onSubmit = () => {
       opened = snapshot(element);
       setDirty(false);
     };
 
+    /*
+     * R24.6. And once the save has settled, the baseline is read again.
+     *
+     * Taking it on submit alone assumed the save worked. A refused one left
+     * the baseline holding the value the server would not take, the form
+     * reverted to the value it did hold, and Save stayed lit over a form that
+     * differed from nothing. What is on screen after a save settles is what
+     * the server holds, either way, so that is the honest baseline.
+     */
+    /*
+     * Two frames, the same wait the watcher uses. The reading has to happen
+     * after React has put the server's answer into the DOM, and a save that
+     * was refused reverts its fields a frame after the action returns.
+     */
+    let first = 0;
+    let second = 0;
+    first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => {
+        opened = snapshot(element);
+        setDirty(false);
+      });
+    });
+
     element.addEventListener("submit", onSubmit);
     const stop = watch(element, compare);
 
     return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
       element.removeEventListener("submit", onSubmit);
       stop();
     };
-  }, [form]);
+  }, [form, settledCount]);
 
   return dirty;
 }

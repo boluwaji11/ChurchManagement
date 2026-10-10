@@ -4,7 +4,7 @@ import * as React from "react";
 import { Pencil } from "lucide-react";
 import { Banner, Combobox, Field, IconButton, Input } from "@connectapp/ui";
 import { PhoneInput } from "@/components/phone-input";
-import { FormActions, BackToView } from "@/components/form-actions";
+import { FormActions, BackToView, formSettled } from "@/components/form-actions";
 import {
   t, countryList, subdivisionsFor, hasSubdivisions, REGION_LABEL, POSTAL_LABEL,
   TAX_ID_LABEL, TAX_ID_SAMPLE,
@@ -89,6 +89,9 @@ export function ChurchForm({
       setError(result.error);
       setSaved(Boolean(result.saved));
       if (!result.error) onEditing(false);
+      /* R24.6. The form now shows what the server holds, whichever way the
+         save went, so Save goes back to waiting for a change. */
+      formSettled("church-form");
     });
   };
 
