@@ -87,9 +87,6 @@ export const SUBDIVISIONS: Record<string, { code: string; name: string }[]> = {
     ["MH","Meath"],["MN","Monaghan"],["OY","Offaly"],["RN","Roscommon"],["SO","Sligo"],
     ["TA","Tipperary"],["WD","Waterford"],["WH","Westmeath"],["WX","Wexford"],["WW","Wicklow"],
   ].map(([code, name]) => ({ code: code!, name: name! })),
-  GB: [
-    ["ENG","England"],["NIR","Northern Ireland"],["SCT","Scotland"],["WLS","Wales"],
-  ].map(([code, name]) => ({ code: code!, name: name! })),
   NG: [
     ["AB","Abia"],["AD","Adamawa"],["AK","Akwa Ibom"],["AN","Anambra"],["BA","Bauchi"],
     ["BY","Bayelsa"],["BE","Benue"],["BO","Borno"],["CR","Cross River"],["DE","Delta"],
@@ -295,14 +292,24 @@ export function countryList(locale?: string): { code: string; name: string }[] {
     .sort((a, b) => a.name.localeCompare(b.name, locale));
 }
 
-/** What a country calls the line under the city. */
+/**
+ * What a country calls the line under the city.
+ *
+ * The United Kingdom is the one worth explaining. Its subdivisions are England,
+ * Scotland, Wales and Northern Ireland, which are countries, and a form with
+ * "Country" twice on it asks the same question in two places and means
+ * something different each time. None of them goes on a UK envelope either:
+ * Royal Mail has not needed the line since the postcode carried the delivery
+ * office. So the line is the county, it is typed rather than chosen, and it is
+ * as optional as Royal Mail treats it.
+ */
 export const REGION_LABEL: Record<string, string> = {
   US: "State", AU: "State", BR: "State", MX: "State", MY: "State", NG: "State",
   IN: "State", DE: "State",
   CA: "Province", ZA: "Province", NL: "Province", PK: "Province", ID: "Province",
   AR: "Province", CL: "Region", FR: "Region", IT: "Region", ES: "Region",
   NZ: "Region", PH: "Region", TZ: "Region", UG: "Region", ET: "Region",
-  GB: "Country", IE: "County", KE: "County", GH: "Region",
+  GB: "County", IE: "County", KE: "County", GH: "Region",
   JP: "Prefecture", KR: "Province", BD: "Division",
 };
 
