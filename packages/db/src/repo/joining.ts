@@ -30,6 +30,8 @@ export interface JoinTarget {
   tenantId: string;
   slug: string;
   name: string;
+  /** R1.1. The church's own mark, so its door wears it. */
+  logoKey: string | null;
 }
 
 /**
@@ -44,7 +46,7 @@ export async function churchForSelfSignup(slug: string): Promise<JoinTarget | nu
 
   const sql = owner();
   const rows = await sql<JoinTarget[]>`
-    select id as "tenantId", slug, name from tenants
+    select id as "tenantId", slug, name, logo_key as "logoKey" from tenants
     where slug = ${value}
       /* R1.7, R17.1. The address being open is the permission. A church that
          has turned its address on has opened its door, and a second switch

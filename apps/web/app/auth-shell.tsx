@@ -22,6 +22,7 @@ import { Art, type Piece } from "@/components/site/art";
  */
 export function AuthShell({
   title,
+  mark,
   under,
   children,
   footer,
@@ -31,6 +32,8 @@ export function AuthShell({
   width = "max-w-[500px]",
 }: {
   title: string;
+  /** R1.1. The church's mark, on a screen that belongs to one church. */
+  mark?: React.ReactNode;
   /** A line under the heading, where the screen has one. */
   under?: React.ReactNode;
   children: React.ReactNode;
@@ -56,6 +59,9 @@ export function AuthShell({
 
         <div className={cn("relative flex w-full flex-col gap-7", width)}>
           <div className="flex flex-col items-center gap-3 text-center">
+            {/* R1.1. The church's own mark over its own door, so somebody
+                arriving knows whose it is before they read the heading. */}
+            {mark}
             <h1 className="font-display text-[26px] leading-8 text-fg sm:text-[30px] sm:leading-9">
               {title}
             </h1>

@@ -6,6 +6,7 @@ import { t } from "@connectapp/i18n";
 import { SignOutButton } from "@/components/sign-out-button";
 import { currentUser } from "@/lib/session";
 import { AuthShell } from "../../auth-shell";
+import { photoUrls } from "@/lib/photos";
 import { AUTH_BUTTON } from "../../auth-chrome";
 import type { Piece } from "@/components/site/art";
 import { JoinNow } from "./join-now";
@@ -65,9 +66,25 @@ export default async function JoinPage({
 
   const here = `/join/${church.slug}`;
 
+  /* R1.1. The bucket is private, so the mark is served through a link signed
+     for the hour somebody spends on this screen. */
+  const signed = church.logoKey ? await photoUrls([church.logoKey]) : {};
+  const logoUrl = church.logoKey ? (signed[church.logoKey] ?? null) : null;
+
   return (
     <AuthShell
       title={t("join.heading", { name: church.name })}
+      mark={
+        logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt=""
+            aria-hidden
+            className="size-16 rounded-2xl border border-line bg-surface object-contain p-2"
+          />
+        ) : null
+      }
       art={ART}
       width="max-w-[460px]"
       footer={user ? <SignOutButton /> : undefined}
