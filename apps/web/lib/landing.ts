@@ -1,7 +1,6 @@
 import {
   membershipsForUser, canEditPeople, canReadIncidents, type TenantRole,
 } from "@connectapp/db";
-import { churchLanding } from "@/lib/church-address";
 
 /**
  * R18.1, R5.5. Where somebody lands once they are signed in.
@@ -9,21 +8,19 @@ import { churchLanding } from "@/lib/church-address";
  * The same answer whether they just signed in or pressed Sign in on the website
  * with a session already open, so the product opens on one screen rather than
  * two depending on how they arrived.
+ *
+ * A path, on whatever host they signed in on. Sending them across to the
+ * church's own address handed the session to a host the cookie had not been
+ * written for, and that host does the only thing it can with a request
+ * carrying no session: it asks them to sign in. Signing in twice to get in
+ * once. Our host serves the church just as well, and somebody who started at
+ * their church's address never left it.
  */
 export async function landingFor(userId: string): Promise<string> {
   try {
     const memberships = await membershipsForUser(userId);
     if (memberships.length !== 1) return "/choose-church";
-
-    /*
-     * R17.1. Into the church at the church's own address.
-     *
-     * Landing on our host with the church written in the query left somebody
-     * one link away from an address that names them, and every screen after
-     * it carrying the name in the query because the first one did.
-     */
-    const only = memberships[0]!;
-    return churchLanding(only.tenantSlug, landingForRole(only.role));
+    return landingForRole(memberships[0]!.role);
   } catch {
     return "/dashboard";
   }

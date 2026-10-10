@@ -86,8 +86,8 @@ const LIFT =
  */
 export function BrowserFrame({ children }: { children?: React.ReactNode }) {
   return (
-    <div className={cn("overflow-hidden rounded-2xl border border-line-strong bg-surface", LIFT)}>
-      <div className="flex h-[34px] items-center gap-[7px] border-b border-line bg-sunken px-3.5">
+    <div className={cn("overflow-hidden rounded-2xl bg-surface", LIFT)}>
+      <div className="flex h-[34px] items-center gap-[7px] bg-sunken px-3.5">
         <span className="size-2.5 rounded-full bg-line-strong" />
         <span className="size-2.5 rounded-full bg-line-strong" />
         <span className="size-2.5 rounded-full bg-line-strong" />

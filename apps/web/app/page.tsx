@@ -334,7 +334,7 @@ export default async function Site() {
           <Art pieces={PRICE_ART} />
           <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-10 px-6 py-16">
             <SectionTitle className="text-center">{t("site.price.title")}</SectionTitle>
-            <div className="flex w-[min(480px,100%)] flex-col gap-7 rounded-[20px] border border-line-strong bg-canvas p-10">
+            <div className="flex w-[min(480px,100%)] flex-col gap-7 rounded-[20px] bg-canvas p-10">
               <div className="flex flex-wrap items-baseline gap-3">
                 <span className="font-display text-[88px] font-normal leading-none text-fg">
                   {t("site.price.amount")}

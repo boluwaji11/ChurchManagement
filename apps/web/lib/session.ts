@@ -10,6 +10,7 @@ import {
 } from "@connectapp/db";
 import { supabaseServer } from "./supabase/server";
 import { readDemoPass } from "./demo-pass";
+import { readChurchChoice } from "./church-choice";
 
 export interface Session {
   userId: string;
@@ -177,14 +178,17 @@ function nextFrom(path: string | null): string {
 
 export const requireSession = cache(async (asked?: string): Promise<Session> => {
   /*
-   * R1.4, R17.1. The host wins.
+   * R1.4, R17.1. The host wins, then what they picked.
    *
    * A church's own address is the church, so riverside.connectapp.church is
-   * Riverside's whatever a link in the address says. The parameter is how the
-   * product named a church before the addresses existed, and it still answers
-   * on our own host, where there is nothing else to go on.
+   * Riverside's whatever anything else says. On our own host the church comes
+   * from the chooser, which wrote it down, and a reader in one church needs
+   * neither: there is one answer and the memberships below give it.
+   *
+   * Either way the membership is verified against tenant_members before a row
+   * is read, so what names the church decides nothing about who may open it.
    */
-  const slug = (await churchFromHost()) ?? asked;
+  const slug = (await churchFromHost()) ?? asked ?? (await readChurchChoice());
 
   const user = await currentUser();
   if (!user) {

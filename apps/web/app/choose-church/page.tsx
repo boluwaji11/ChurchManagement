@@ -2,8 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Church, Plus } from "lucide-react";
 import { membershipsForUser, resolveTenantBySlug } from "@connectapp/db";
-import { landingForRole } from "@/lib/landing";
-import { churchLanding } from "@/lib/church-address";
+import { chooseChurch } from "./actions";
 import { Banner, Button, LIFT } from "@connectapp/ui";
 import { currentUser } from "@/lib/session";
 import { SignedInAs } from "@/components/signed-in-as";
@@ -49,15 +48,6 @@ export default async function ChooseChurch({
    */
   const asking = asked ? (await resolveTenantBySlug(asked))?.name : undefined;
 
-  /* R17.1. Each church at its own address, resolved here because a link
-     cannot wait on an answer. */
-  const ways = await Promise.all(
-    memberships.map(async (m) => ({
-      ...m,
-      href: await churchLanding(m.tenantSlug, landingForRole(m.role)),
-    })),
-  );
-
   return (
     <AuthShell
       title={memberships.length > 0 ? t("chooseChurch.title") : t("chooseChurch.getIn")}
@@ -90,24 +80,27 @@ export default async function ChooseChurch({
 
       {memberships.length > 0 ? (
         <ul className="flex list-none flex-col gap-2 p-0">
-          {ways.map((m) => (
+          {memberships.map((m) => (
             <li key={m.tenantId}>
-              <Link
-                /* R1.4. The same screen signing in to that church would
-                   open, so picking one out of a list and signing in to it
-                   land in the same place. */
-                href={m.href}
-                className={`group flex items-center justify-between gap-4 rounded-xl border border-line bg-surface p-4 no-underline shadow-sm ${LIFT}`}
-              >
-                <span className="flex items-center gap-3">
-                  <Church className="size-5 text-fg-muted" aria-hidden />
-                  <span className="flex flex-col">
-                    <span className="text-title text-fg">{m.tenantName}</span>
-                    <span className="text-caption text-fg-muted">{t(`role.${m.role}`)}</span>
+              {/* R1.4. Picking one writes the choice down, so every screen
+                  after this knows the church without its name riding in the
+                  query. It opens the screen signing in to that church would. */}
+              <form action={chooseChurch}>
+                <input type="hidden" name="church" value={m.tenantSlug} />
+                <button
+                  type="submit"
+                  className={`group flex w-full cursor-pointer items-center justify-between gap-4 rounded-xl border border-line bg-surface p-4 text-left shadow-sm ${LIFT}`}
+                >
+                  <span className="flex items-center gap-3">
+                    <Church className="size-5 text-fg-muted" aria-hidden />
+                    <span className="flex flex-col">
+                      <span className="text-title text-fg">{m.tenantName}</span>
+                      <span className="text-caption text-fg-muted">{t(`role.${m.role}`)}</span>
+                    </span>
                   </span>
-                </span>
-                <ArrowRight className="size-4 text-fg-subtle transition-transform duration-fast group-hover:translate-x-0.5" />
-              </Link>
+                  <ArrowRight className="size-4 text-fg-subtle transition-transform duration-fast group-hover:translate-x-0.5" />
+                </button>
+              </form>
             </li>
           ))}
         </ul>
