@@ -3,11 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Move, Plus } from "lucide-react";
-import { Banner, Combobox } from "@connectapp/ui";
+import { Move, Plus, X } from "lucide-react";
+import {
+  Banner, Button, Combobox, Field, IconButton, Input, Spinner,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
+} from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Searching } from "@/components/searching";
-import { moveToStage } from "../members/followup-actions";
+import { moveToStage, leaveFollowUp } from "../members/followup-actions";
 import { addToStage, findPeople } from "./actions";
 import { dragShadow } from "@/lib/drag-shadow";
 
@@ -58,6 +61,8 @@ export function Board({
   const [over, setOver] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string>();
+  /** Which card is being taken off, so its own mark spins. */
+  const [leaving, setLeaving] = React.useState<string | null>(null);
 
   const drop = (stageId: string) => {
     setOver(null);
@@ -122,12 +127,33 @@ export function Board({
                   onDragEnd={() => setDragging(null)}
                   className="relative flex cursor-grab flex-col gap-0.5 rounded-md border border-line bg-surface p-3 hover:border-line-strong active:cursor-grabbing"
                 >
-                  <Link
-                    href={`/members/${card.personSlug}?church=${church}`}
-                    className="font-medium text-fg after:absolute after:inset-0 after:content-['']"
-                  >
-                    {card.who}
-                  </Link>
+                  <span className="flex items-start justify-between gap-2">
+                    <Link
+                      href={`/members/${card.personSlug}?church=${church}`}
+                      className="font-medium text-fg after:absolute after:inset-0 after:content-['']"
+                    >
+                      {card.who}
+                    </Link>
+
+                    {/* R5.4. Taking somebody off the board, which the server
+                        will not do without a reason, so the box asks for one. */}
+                    <span className="relative z-10">
+                      <LeaveCard
+                        name={card.who}
+                        pending={pending}
+                        busy={leaving === card.entryId}
+                        onConfirm={(reason) => {
+                          setLeaving(card.entryId);
+                          startTransition(async () => {
+                            const result = await leaveFollowUp(card.entryId, reason, church);
+                            setError(result.error);
+                            setLeaving(null);
+                            router.refresh();
+                          });
+                        }}
+                      />
+                    </span>
+                  </span>
                   <span className="mt-1 text-[12px] text-fg-subtle">{card.owner}</span>
                 </div>
               ))}
@@ -255,5 +281,69 @@ export function DragHint() {
     <span className="hidden items-center gap-1.5 text-[12px] text-fg-subtle sm:flex">
       <Move className="size-3.5" aria-hidden /> {t("board.dragHint")}
     </span>
+  );
+}
+
+/**
+ * R5.4. Taking somebody off the board.
+ *
+ * The same question the record page asks, in the same words: a church that
+ * stops following somebody up has a reason, and the reason is what the next
+ * person reading the record needs.
+ */
+function LeaveCard({
+  name,
+  pending,
+  busy,
+  onConfirm,
+}: {
+  name: string;
+  pending: boolean;
+  busy: boolean;
+  onConfirm: (reason: string) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [reason, setReason] = React.useState("");
+
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setReason("");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={close}>
+      <DialogTrigger asChild>
+        <IconButton
+          label={t("followups.leave")}
+          variant="ghost"
+          className="size-7 min-h-0 [&_svg]:size-4"
+        >
+          {busy ? <Spinner label={t("followups.leave")} /> : <X />}
+        </IconButton>
+      </DialogTrigger>
+      <DialogContent alert title={t("followups.exitTitle", { name })}>
+        <div className="flex flex-col gap-4">
+          <Field label={t("followups.reason")} required>
+            <Input value={reason} onChange={(e) => setReason(e.target.value)} />
+          </Field>
+
+          <DialogFooter>
+            <Button variant="ghost" data-dismiss onClick={() => close(false)}>
+              {t("followups.exitKeep")}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending || reason.trim() === ""}
+              onClick={() => {
+                onConfirm(reason.trim());
+                close(false);
+              }}
+            >
+              {t("followups.exitAction")}
+            </Button>
+          </DialogFooter>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

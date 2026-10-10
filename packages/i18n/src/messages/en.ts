@@ -2322,7 +2322,7 @@ export const en = {
   "board.waiting.other": "{count} days",
   "board.none.title": "Nobody in this one",
   "board.noPipeline": "No pipeline by that name",
-  "board.add": "Add someone",
+  "board.add": "Add member",
   "board.start": "Start follow-up",
   "board.findPerson": "Search members",
   "board.typeName": "Type a name",
