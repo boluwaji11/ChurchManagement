@@ -40,7 +40,7 @@ function headline(entry: TimelineEntry): string {
     case "leftPipeline":
       return t("timeline.leftPipeline", { name });
     case "followUpDone":
-      return name;
+      return t("timeline.followUpDone", { name });
     case "check":
       return t("timeline.check");
   }
@@ -59,7 +59,9 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
   }
 
   return (
-    <ol className="flex flex-col">
+    /* A record of ten years runs to a hundred and twenty entries, so the card
+       keeps its height and the older ones are scrolled to. */
+    <ol className="flex max-h-[520px] flex-col overflow-y-auto pr-1">
       {entries.map((entry, i) => {
         const confidential = entry.kind === "note" && entry.code === "confidential";
         const first = i === 0;

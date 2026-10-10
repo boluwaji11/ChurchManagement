@@ -1809,6 +1809,7 @@ export const en = {
   "timeline.noteConfidential": "Confidential note",
   "timeline.enteredPipeline": "Entered {name}",
   "timeline.leftPipeline": "Finished {name}",
+  "timeline.followUpDone": "Follow-up: {name}",
   "timeline.followUpDone": "{name}",
   "timeline.check": "Background check",
   "timeline.archived": "Archived",
