@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import {
   withTenant, setCustomDomain, setSelfSignup,
   canManageChurch, readDomain, dnsResolver, type DomainFindings,
-  setPortalName,
+  setPortalName, setPortalOpen,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -106,6 +106,34 @@ export async function claimPortalName(
     );
     revalidatePath("/settings/website");
     return { name: saved, free: true };
+  } catch (reason) {
+    return { error: explain(reason) };
+  }
+}
+
+/** R17.1. Turning the church's address on, or off. */
+export async function openPortal(
+  on: boolean,
+  church?: string,
+): Promise<{ error?: string }> {
+  try {
+    const session = await requireSession(church);
+    await withTenant(
+      {
+        tenantId: session.tenantId,
+        role: session.role,
+        userId: session.userId,
+        permissions: session.permissions,
+      },
+      (tx) =>
+        setPortalOpen(
+          tx,
+          { tenantId: session.tenantId, role: session.role, userId: session.userId },
+          on,
+        ),
+    );
+    revalidatePath("/settings/website");
+    return {};
   } catch (reason) {
     return { error: explain(reason) };
   }

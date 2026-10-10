@@ -1016,6 +1016,13 @@
       "when": 1791423000022,
       "tag": "0145_portal_name",
       "breakpoints": true
+    },
+    {
+      "idx": 146,
+      "version": "7",
+      "when": 1791423000023,
+      "tag": "0146_portal_open",
+      "breakpoints": true
     }
   ]
 }

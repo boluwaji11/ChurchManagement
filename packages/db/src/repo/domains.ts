@@ -110,9 +110,11 @@ export async function resolveTenantByHost(
   if (under) {
     /* The name the church chose, or its slug, which answers from the day it
        signs up and goes on answering after a name is chosen. */
+    /* R17.1. A church that has turned its address off is not reachable at
+       it, so the host names nobody. */
     const rows = await owner()<{ id: string; name: string; slug: string }[]>`
       select id, name, slug from tenants
-       where portal_name = ${under} or slug = ${under}
+       where (portal_name = ${under} or slug = ${under}) and portal_open = true
        order by (portal_name = ${under}) desc
        limit 1`;
     return rows[0] ?? null;
@@ -200,4 +202,16 @@ export async function setPortalName(
     .where(eq(tenants.id, actor.tenantId));
 
   return bare;
+}
+
+/** R1.1, R17.1. Turning the church's address on, or off. */
+export async function setPortalOpen(
+  db: Tx,
+  actor: WriteActor,
+  open: boolean,
+): Promise<boolean> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  await db.update(tenants).set({ portalOpen: open }).where(eq(tenants.id, actor.tenantId));
+  return open;
 }

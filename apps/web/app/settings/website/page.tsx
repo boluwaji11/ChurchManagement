@@ -71,6 +71,7 @@ export default async function WebsitePage({
           host={platformHost}
           origin={`${proto}:`}
           selfSignup={standing.approved && (profile?.selfSignup ?? false)}
+          portalOpen={profile?.portalOpen ?? true}
           canEdit={canManageChurch(session)}
         />
 

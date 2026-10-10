@@ -112,6 +112,14 @@ export const tenants = pgTable(
      */
     portalName: text("portal_name"),
     /**
+     * R1.1, R17.1. Whether that address answers.
+     *
+     * Off while a church is still getting ready, and nobody reaches it. Staff
+     * work at the main address either way, so turning it off takes nothing
+     * away from running the week.
+     */
+    portalOpen: boolean("portal_open").notNull().default(true),
+    /**
      * R8.11. What goes on a child's label.
      *
      * The church's own layout rather than the station's, because a parent who

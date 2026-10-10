@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Check, CircleCheck, Globe, X } from "lucide-react";
+import { Check, CircleCheck, Globe } from "lucide-react";
 import {
-  Banner, Button, Card, CardTitle, Field, IconButton, Separator, Switch,
+  Banner, Button, Card, CardTitle, Field, Separator, Switch,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { claimPortalName, setSignup } from "./domain-actions";
+import { claimPortalName, setSignup, openPortal } from "./domain-actions";
 import { Copyable } from "./copyable";
 
 /**
@@ -27,6 +27,7 @@ export function PortalAddress({
   host,
   origin,
   selfSignup,
+  portalOpen,
   canEdit,
 }: {
   church: string;
@@ -40,6 +41,8 @@ export function PortalAddress({
   origin: string;
   /** R1.7. Whether somebody can make an account at this address. */
   selfSignup: boolean;
+  /** R17.1. Whether the address answers at all. */
+  portalOpen: boolean;
   canEdit: boolean;
 }) {
   const [draft, setDraft] = React.useState(name ?? "");
@@ -49,6 +52,7 @@ export function PortalAddress({
   const [error, setError] = React.useState<string>();
   const [working, start] = React.useTransition();
   const [open, setOpen] = React.useState(selfSignup);
+  const [live_, setLive] = React.useState(portalOpen);
 
   const live = taken ?? slug;
   const changed = draft.trim().toLowerCase() !== (taken ?? "");
@@ -85,10 +89,14 @@ export function PortalAddress({
 
         <span
           className="ml-auto flex h-[26px] shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold"
-          style={{ background: "var(--hue-fern-tint)", color: "var(--hue-fern-key)" }}
+          style={
+            live_
+              ? { background: "var(--hue-fern-tint)", color: "var(--hue-fern-key)" }
+              : { background: "var(--color-sunken)", color: "var(--color-fg-muted)" }
+          }
         >
-          <CircleCheck className="size-3.5" aria-hidden />
-          {t("domain.state.live")}
+          {live_ ? <CircleCheck className="size-3.5" aria-hidden /> : null}
+          {live_ ? t("domain.state.live") : t("domain.state.none")}
         </span>
       </div>
 
@@ -140,25 +148,6 @@ export function PortalAddress({
           <Check /> {t("portal.use")}
         </Button>
 
-        {taken ? (
-          <IconButton
-            label={t("domain.remove")}
-            variant="ghost"
-            disabled={!canEdit || working}
-            onClick={() =>
-              start(async () => {
-                const answer = await claimPortalName("", church);
-                setError(answer.error);
-                if (answer.error) return;
-                setTaken(null);
-                setDraft("");
-                setTook(null);
-              })
-            }
-          >
-            <X />
-          </IconButton>
-        ) : null}
       </div>
 
       <Separator />
@@ -169,6 +158,26 @@ export function PortalAddress({
       <Field label={t("portal.current")}>
         <Copyable value={`${origin}//${live}.${host}`} label={t("portal.current")} />
       </Field>
+
+      {/* R17.1. Whether the address answers at all. Off while a church is
+          still getting ready, and staff still work at the main address. */}
+      <label className="flex cursor-pointer items-center gap-3 rounded-lg bg-sunken px-3 py-2.5 text-[length:var(--d-text-body)] text-fg">
+        <Switch
+          checked={live_}
+          disabled={working || !canEdit}
+          onCheckedChange={(on) => {
+            setLive(on);
+            start(async () => {
+              const answer = await openPortal(on, church);
+              if (answer.error) {
+                setLive(!on);
+                setError(answer.error);
+              }
+            });
+          }}
+        />
+        {t("portal.open")}
+      </label>
 
       <label className="flex cursor-pointer items-center gap-3 rounded-lg bg-sunken px-3 py-2.5 text-[length:var(--d-text-body)] text-fg">
         <Switch

@@ -10,6 +10,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { withTenant, owner, closeConnections, type Tx } from "../src/client";
 import {
   slugUnderPlatform, cleanPortalName, portalNameFree, setPortalName,
+  setPortalOpen, resolveTenantByHost,
 } from "../src/repo/domains";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { InvalidInputError, NameTakenError } from "../src/errors";
@@ -115,6 +116,32 @@ describe("taking a name", () => {
   it("cannot be set by a role that cannot manage the church", async () => {
     await expect(
       run(one, (tx) => setPortalName(tx, as(one, "staff"), { name: "onefamily" }), "staff"),
+    ).rejects.toBeInstanceOf(PermissionError);
+  });
+});
+
+/*
+ * R17.1. A church that has turned its address off is not reachable at it.
+ * Staff work at the main address either way, so this takes nothing away from
+ * running the week.
+ */
+describe("turning the address off", () => {
+  it("stops the host naming the church, and turning it on brings it back", async () => {
+    await run(one, (tx) => setPortalName(tx, as(one), { name: "portalswitch" }));
+    expect(await resolveTenantByHost("portalswitch.connectapp.church")).not.toBeNull();
+
+    await run(one, (tx) => setPortalOpen(tx, as(one), false));
+    expect(await resolveTenantByHost("portalswitch.connectapp.church")).toBeNull();
+    // And not by its slug either, since that is the same address.
+    expect(await resolveTenantByHost("portalone.connectapp.church")).toBeNull();
+
+    await run(one, (tx) => setPortalOpen(tx, as(one), true));
+    expect(await resolveTenantByHost("portalswitch.connectapp.church")).not.toBeNull();
+  });
+
+  it("cannot be turned off by a role that cannot manage the church", async () => {
+    await expect(
+      run(one, (tx) => setPortalOpen(tx, as(one, "staff"), false), "staff"),
     ).rejects.toBeInstanceOf(PermissionError);
   });
 });

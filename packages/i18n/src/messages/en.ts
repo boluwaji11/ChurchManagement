@@ -2728,6 +2728,7 @@ export const en = {
   "portal.free": "{name} is yours.",
   "portal.use": "Use this address",
   "portal.current": "Members go here",
+  "portal.open": "Members can reach ConnectApp at this address",
   "portal.error.shape": "Use letters, numbers and hyphens, three characters or more.",
   "portal.error.taken": "Somebody already has that name. Try another.",
   "domain.title": "Members sign in at your own address",

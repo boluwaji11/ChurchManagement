@@ -50,6 +50,8 @@ export interface ChurchProfile {
   customDomain: string | null;
   /** R1.1, R17.1. The name the church chose for its members' address. */
   portalName: string | null;
+  /** R17.1. Whether that address answers. */
+  portalOpen: boolean;
   /**
    * R1.1, R1.5, R13.1. The number the church is registered under.
    *
@@ -106,6 +108,7 @@ export async function getChurch(
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
       customDomain: tenants.customDomain, portalName: tenants.portalName,
+      portalOpen: tenants.portalOpen,
       taxId: tenants.taxId,
     })
     .from(tenants)
@@ -203,6 +206,7 @@ export async function updateChurch(
       website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
       customDomain: tenants.customDomain, portalName: tenants.portalName,
+      portalOpen: tenants.portalOpen,
       taxId: tenants.taxId,
     });
 
