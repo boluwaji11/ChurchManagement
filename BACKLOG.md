@@ -358,7 +358,7 @@ of money and after everything else.
 | HRT-106 | In-context help on every screen | R22.2 | Closed |
 | HRT-213 | Regional spelling, from one catalogue, by the church's country | R22.8 | Closed |
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
-| HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Resolved |
+| HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Built. Waits for the screen it belongs to, see the note below |
 | HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
@@ -739,6 +739,26 @@ no join link, no invitations, no outbound email. A real church is unblocked in a
 the sixty-minute time-to-value metric needs. An abuser gets nothing worth having.
 
 ---
+
+## Where the domain reading belongs, October 2026
+
+HRT-283 reads a church's domain and names the mail provider, the domain
+provider, the sender list and the forgery policy. It was put on the Website
+screen beside the church's own member address, and that was wrong: the member
+address is a name under the domain pointed at us with a CNAME, and the reading
+is about the domain itself and about sending mail as the church. Two jobs on
+one card, and neither read.
+
+The reading is off that screen. Where it belongs:
+
+- **At sign-up (R22.1).** A church gives its website, we read it once and keep
+  what we found. Everything after prefills from it, and it is what tells us
+  whether a provider's records can be written for them or have to be typed.
+- **On the email setup screen (HRT-287).** What we would add, what stays
+  untouched, and whether the domain has verified.
+
+Neither screen exists. The reading, its tests and the provider consoles stay
+where they are until one does.
 
 ## Setting a church up with its own providers, October 2026
 

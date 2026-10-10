@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import {
-  Check, ChevronDown, CircleCheck, Clock, Copy, ExternalLink, Globe, Link2,
+  Check, CircleCheck, Clock, Copy, ExternalLink, Globe, Link2,
   Search, Users,
 } from "lucide-react";
 import {
@@ -13,7 +13,6 @@ import {
   consoleFor, isApex, hostLabel, suggestSubdomain, type DomainFindings,
 } from "@connectapp/db/rules";
 import { saveDomain, setSignup, checkDomain } from "./domain-actions";
-import { DomainReading } from "./domain-reading";
 import { Steps, Step } from "@/components/steps";
 
 /**
@@ -151,8 +150,6 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
   /* HRT-283. What the lookup found, held until the field is typed over. */
   const [found, setFound] = React.useState<DomainFindings | null>(null);
   const [checking, startChecking] = React.useTransition();
-  /* R22.2. The rest of the reading, which is a diagnosis rather than a task. */
-  const [more, setMore] = React.useState(false);
   /* R1.1. What the church's record holds, so it can be taken back off. */
   const [kept, setKept] = React.useState(domain);
 
@@ -421,26 +418,6 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
               </Button>
             </Step>
           </Steps>
-        ) : null}
-
-        {/* R22.2. Everything else we read is a diagnosis rather than a task,
-            so it waits behind a press. */}
-        {found ? (
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={() => setMore(!more)}
-              aria-expanded={more}
-              className="inline-flex cursor-pointer items-center gap-1.5 self-start text-[13px] font-medium text-fg-muted hover:text-fg"
-            >
-              <ChevronDown
-                className={`size-4 transition-transform ${more ? "rotate-180" : ""}`}
-                aria-hidden
-              />
-              {more ? t("domain.less") : t("domain.more")}
-            </button>
-            {more ? <DomainReading found={found} /> : null}
-          </div>
         ) : null}
 
       </Card>
