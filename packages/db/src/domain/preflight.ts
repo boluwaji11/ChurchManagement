@@ -272,12 +272,19 @@ export async function readDomain(
     }
   };
 
+  /*
+   * How the church's mail is set up is a fact about the domain itself, so it
+   * is read there. Where this name points is a fact about this name, so that
+   * is read here.
+   */
+  const apex = apexOf(domain);
+
   const [mx, rootTxt, dmarcTxt, dkimTxt, ns, cname] = await Promise.all([
-    quiet(resolver.mx(domain), []),
-    quiet(resolver.txt(domain), []),
-    quiet(resolver.txt(`_dmarc.${domain}`), []),
-    quiet(resolver.txt(`resend._domainkey.${domain}`), []),
-    quiet(resolver.ns(domain), []),
+    quiet(resolver.mx(apex), []),
+    quiet(resolver.txt(apex), []),
+    quiet(resolver.txt(`_dmarc.${apex}`), []),
+    quiet(resolver.txt(`resend._domainkey.${apex}`), []),
+    quiet(resolver.ns(apex), []),
     quiet(resolver.cname(domain), []),
   ]);
 
@@ -304,7 +311,7 @@ export async function readDomain(
     dmarc,
     dkimTaken,
     pointsHere: expect ? aimedAt(cname, expect) : null,
-    adding: plannedRecords(domain),
+    adding: plannedRecords(apex),
     leaving: [
       ...(mailHosts.length > 0 ? ["mx"] : []),
       ...(spf.length > 0 ? ["spf"] : []),
@@ -394,6 +401,22 @@ export function hostLabel(domain: string): string {
     ? 3
     : 2;
   return labels.length <= apexLabels ? "@" : labels.slice(0, labels.length - apexLabels).join(".");
+}
+
+/**
+ * R1.1. The domain itself, from any name underneath it.
+ *
+ * Everything a church's mail is set up with lives here rather than on a name
+ * under it: the mail servers, the sender list, the forgery policy, and the
+ * nameservers that tell us who their provider is. Reading those against
+ * `members.grace.org` finds nothing at all, which is how a church that is
+ * plainly at GoDaddy came back with no provider named.
+ */
+export function apexOf(domain: string): string {
+  const name = domain.toLowerCase();
+  const labels = name.split(".");
+  const keep = TWO_PART_SUFFIXES.some((suffix) => name.endsWith(`.${suffix}`)) ? 3 : 2;
+  return labels.length <= keep ? name : labels.slice(labels.length - keep).join(".");
 }
 
 /** A name under the church's own domain, for an apex we cannot point here. */

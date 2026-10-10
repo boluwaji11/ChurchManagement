@@ -248,6 +248,13 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
         </div>
         <Separator />
 
+        {/* R22.2. The one sentence this card earns: what pointing an address
+            here actually gets the church. Nothing else on it explains itself
+            without this. */}
+        <p className="text-[length:var(--d-text-body)] text-fg-muted">
+          {t("domain.lede", { ours: accountLink.replace(/^https?:\/\//, "") })}
+        </p>
+
         <div className="flex flex-wrap items-end gap-3">
           <Field label={t("domain.label")} className="min-w-[260px] flex-1">
             <Input
@@ -288,9 +295,9 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
         {/* R1.1. The domain itself cannot carry this record, so the screen
             says what will work rather than what their provider will refuse. */}
         {found && !found.pointsHere && apex ? (
-          <Banner tone="warning" title={t("domain.apex.title")}>
+          <Banner tone="warning" title={t("domain.apex.title", { domain: found.domain })}>
             <div className="flex flex-col items-start gap-2.5">
-              <span>{t("domain.apex.body", { domain: found.domain })}</span>
+              <span>{t("domain.apex.body")}</span>
               <Button
                 type="button"
                 variant="secondary"

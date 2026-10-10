@@ -10,7 +10,7 @@ import { describe, it, expect } from "vitest";
 import {
   readDomain, bareDomain, mailProviderOf, registrarOf,
   spfRecords, dmarcPolicy, plannedRecords, warningsFor, aimedAt,
-  isApex, hostLabel, suggestSubdomain,
+  isApex, hostLabel, suggestSubdomain, apexOf,
   type Resolver,
 } from "../src/domain/preflight";
 
@@ -277,5 +277,62 @@ describe("the domain itself, against a name under it", () => {
   it("offers a name under the church's own domain", () => {
     expect(suggestSubdomain("grace.org")).toBe("members.grace.org");
     expect(suggestSubdomain("grace.co.uk", "my")).toBe("my.grace.co.uk");
+  });
+});
+
+/*
+ * R1.1. The bug this exists to stop coming back: a church plainly at GoDaddy
+ * came back with no provider named, because the nameservers were looked for on
+ * the subdomain they had typed rather than on their domain.
+ */
+describe("reading a name under the church's domain", () => {
+  it("finds the domain itself from any name under it", () => {
+    expect(apexOf("members.grace.org")).toBe("grace.org");
+    expect(apexOf("my.members.grace.org")).toBe("grace.org");
+    expect(apexOf("grace.org")).toBe("grace.org");
+    expect(apexOf("members.grace.co.uk")).toBe("grace.co.uk");
+    expect(apexOf("grace.co.uk")).toBe("grace.co.uk");
+  });
+
+  it("names the provider and the mail from the domain, not from the subdomain", async () => {
+    const resolver: Resolver = {
+      async mx(host) {
+        if (host !== "grace.org") throw new Error("ENODATA");
+        return [{ exchange: "aspmx.l.google.com.", priority: 1 }];
+      },
+      async txt(host) {
+        if (host !== "grace.org") throw new Error("ENODATA");
+        return [["v=spf1 include:_spf.google.com ~all"]];
+      },
+      async ns(host) {
+        if (host !== "grace.org") throw new Error("ENODATA");
+        return ["ns01.domaincontrol.com"];
+      },
+      async cname(host) {
+        if (host !== "members.grace.org") throw new Error("ENODATA");
+        return ["connectapp.church."];
+      },
+    };
+
+    const found = (await readDomain("members.grace.org", resolver, "connectapp.church"))!;
+
+    expect(found.domain).toBe("members.grace.org");
+    expect(found.mailProvider).toBe("Google Workspace");
+    expect(found.registrar).toBe("GoDaddy");
+    expect(found.spf).toContain("v=spf1");
+    // And where the typed name points is still read on the typed name.
+    expect(found.pointsHere).toBe(true);
+  });
+
+  it("puts the sending records on the domain rather than on the subdomain", async () => {
+    const quiet: Resolver = {
+      async mx() { throw new Error("ENODATA"); },
+      async txt() { throw new Error("ENODATA"); },
+      async ns() { throw new Error("ENODATA"); },
+      async cname() { throw new Error("ENODATA"); },
+    };
+    const found = (await readDomain("members.grace.org", quiet))!;
+    expect(found.adding.every((one) => one.host.endsWith("grace.org"))).toBe(true);
+    expect(found.adding.some((one) => one.host.includes("members.grace.org"))).toBe(false);
   });
 });

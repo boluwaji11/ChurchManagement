@@ -2721,8 +2721,9 @@ export const en = {
   // HRT-114. The church's own door: the code it hands out, and who is at it.
   "joining.copy": "Copy",
   "joining.copied": "Copied",
-  "domain.title": "Your own address",
-  "domain.label": "Domain",
+  "domain.title": "Members sign in at your own address",
+  "domain.lede": "Instead of {ours}, members reach their sign-in at an address you own.",
+  "domain.label": "The address members will use",
   "domain.hint": "e.g. members.yourchurch.org",
   // HRT-283, R1.1. Whether the address works yet, and the one thing a church
   // has to do to make it.
@@ -2743,8 +2744,8 @@ export const en = {
   "domain.stepsGeneric": "At your domain provider",
   // R1.1. An apex cannot carry this record, so the screen says so rather than
   // handing a church something its provider will refuse.
-  "domain.apex.title": "Use a name under your domain",
-  "domain.apex.body": "{domain} cannot point here on its own, and your provider will refuse the record. A name underneath it works and leaves your email alone.",
+  "domain.apex.title": "Your website keeps {domain}",
+  "domain.apex.body": "That address is your website, and it stays where it is. Members need a separate address that points at their own sign-in.",
   "domain.apex.use": "Use {suggested}",
   "domain.step.add": "Add this record where your domain lives",
   "domain.step.addAt": "Add this record at {provider}",
