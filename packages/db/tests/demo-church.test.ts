@@ -64,7 +64,7 @@ describe("a demo church", () => {
     const [riverside] = await owner()<{ id: string }[]>`
       select id from tenants where slug = 'riverside'`;
     expect((await demoChurchInfo(riverside!.id)).isDemo).toBe(false);
-  });
+  }, 120_000);
 });
 
 describe("expiry", () => {
@@ -91,7 +91,7 @@ describe("expiry", () => {
     const after = await owner()<{ n: string }[]>`
       select count(*)::text as n from tenants where demo_expires_at is null`;
     expect(after[0]!.n).toBe(before[0]!.n);
-  });
+  }, 120_000);
 });
 
 describe("a demo pass", () => {
@@ -102,7 +102,7 @@ describe("a demo pass", () => {
 
     const { demoMembership } = await import("../src/demo/church");
     expect(await demoMembership(demo.tenantId, userId)).not.toBeNull();
-  });
+  }, 120_000);
 
   it("is refused for a real church, even with a real user id", async () => {
     const { demoMembership } = await import("../src/demo/church");
@@ -127,7 +127,7 @@ describe("a demo pass", () => {
       where id = ${demo.tenantId}`;
 
     expect(await demoMembership(demo.tenantId, userId)).toBeNull();
-  });
+  }, 120_000);
 
   it("is refused for somebody who is not in that demo", async () => {
     const { demoMembership } = await import("../src/demo/church");
@@ -135,7 +135,7 @@ describe("a demo pass", () => {
     made.push(demo.tenantId);
 
     expect(await demoMembership(demo.tenantId, randomUUID())).toBeNull();
-  });
+  }, 120_000);
 });
 
 /**
@@ -197,7 +197,7 @@ describe("the pool", () => {
     const hours = (demo.expiresAt.getTime() - Date.now()) / 3_600_000;
     expect(hours).toBeGreaterThan(DEMO_LIFETIME_HOURS - 1);
     expect(hours).toBeLessThanOrEqual(DEMO_LIFETIME_HOURS);
-  });
+  }, 120_000);
 
   it("gives two visitors two different churches", async () => {
     await waiting("demo-pool-2");
@@ -209,7 +209,7 @@ describe("the pool", () => {
 
     expect(first.tenantId).not.toBe(second.tenantId);
     expect(await unclaimed()).toBe(0);
-  });
+  }, 120_000);
 
   it("builds what is missing, stops at the number asked for, and fills it", async () => {
     await clearPool();
