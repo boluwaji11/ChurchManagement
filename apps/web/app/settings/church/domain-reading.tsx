@@ -2,22 +2,26 @@
 
 import * as React from "react";
 import { Check, Plus } from "lucide-react";
-import { Banner, Separator } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
+import { Banner, Button, Separator } from "@connectapp/ui";
+import { t, plural } from "@connectapp/i18n";
 import type { DomainFindings } from "@connectapp/db/rules";
 
 /**
- * HRT-283, R22.2. What we found, in the order a volunteer worries about it.
+ * HRT-283, R22.2. What we found, written for the person who has to decide.
  *
- * Their email first, because that is the thing they are afraid of losing. Then
- * what we would add, then what we would leave exactly where it is. The last of
- * those is the point of the whole screen, so it is the side that carries the
- * colour.
+ * That person is a volunteer who was once told, by somebody, that touching DNS
+ * breaks the church email. They are not looking for a record name. They are
+ * looking for an answer to "is this going to break our email", and every line
+ * on this screen answers that question in words they already use.
+ *
+ * The record names are here, because whoever actually types them into GoDaddy
+ * needs them exactly. They are behind a press, so they are available without
+ * being the first thing anybody reads.
  */
 function Line({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-0.5 py-2">
-      <dt className="w-24 shrink-0 text-caption text-fg-subtle">{label}</dt>
+      <dt className="w-44 shrink-0 text-caption text-fg-subtle">{label}</dt>
       <dd className="min-w-0 flex-1 break-words text-[length:var(--d-text-body)] text-fg">
         {value}
       </dd>
@@ -47,6 +51,21 @@ function Panel({
   );
 }
 
+function Item({ hue, icon, children }: { hue: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-3">
+      <span
+        aria-hidden
+        className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-md [&_svg]:size-3.5"
+        style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
+      >
+        {icon}
+      </span>
+      <span className="min-w-0 text-[length:var(--d-text-body)] leading-6 text-fg">{children}</span>
+    </li>
+  );
+}
+
 const WARNING_TONE = {
   noMx: "info",
   manySpf: "danger",
@@ -56,7 +75,13 @@ const WARNING_TONE = {
 } as const;
 
 export function DomainReading({ found }: { found: DomainFindings }) {
+  const [showing, setShowing] = React.useState(false);
   const quiet = <span className="text-fg-subtle">{t("domain.noneFound")}</span>;
+
+  /* R22.2. A policy letter means nothing to a volunteer, so it is read out. */
+  const protection = found.dmarc
+    ? t(`domain.dmarc.${found.dmarc}` as never)
+    : quiet;
 
   return (
     <div className="flex flex-col gap-5">
@@ -71,17 +96,8 @@ export function DomainReading({ found }: { found: DomainFindings }) {
             value={found.mailProvider ?? (found.mailHosts[0] ? t("domain.unknownHost") : quiet)}
           />
           <Line label={t("domain.registrar")} value={found.registrar ?? quiet} />
-          <Line
-            label={t("domain.spf")}
-            value={
-              found.spf ? (
-                <code className="break-all font-mono text-[13px]">{found.spf}</code>
-              ) : (
-                quiet
-              )
-            }
-          />
-          <Line label={t("domain.dmarc")} value={found.dmarc ?? quiet} />
+          <Line label={t("domain.spf")} value={found.spf ? t("domain.setUp") : quiet} />
+          <Line label={t("domain.dmarc")} value={protection} />
         </dl>
       </section>
 
@@ -92,42 +108,18 @@ export function DomainReading({ found }: { found: DomainFindings }) {
       ))}
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
-        {/* R22.2. The three records, written the way a registrar's form asks
-            for them, so somebody sees the shape before agreeing to it. */}
-        <Panel title={`${t("domain.adding")} · ${found.adding.length} ${t("domain.records")}`} hue="sky">
+        {/* What changes, said as what it does rather than as what it is. */}
+        <Panel title={plural("domain.records", found.adding.length)} hue="sky">
           <ul className="m-0 flex list-none flex-col gap-3 p-0">
             {found.adding.map((one) => (
-              <li key={`${one.type}-${one.host}`} className="flex items-start gap-3">
-                <span
-                  aria-hidden
-                  className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-md [&_svg]:size-3.5"
-                  style={{ background: "var(--hue-sky-tint)", color: "var(--hue-sky-key)" }}
-                >
-                  <Plus />
-                </span>
-                <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="flex flex-wrap items-baseline gap-2">
-                    <span
-                      className="rounded px-1.5 py-px font-mono text-[11px] font-semibold"
-                      style={{ background: "var(--hue-sky-tint)", color: "var(--hue-sky-key)" }}
-                    >
-                      {one.type}
-                    </span>
-                    <code className="min-w-0 break-all font-mono text-[13px] text-fg">
-                      {one.host}
-                    </code>
-                  </span>
-                  <span className="text-caption text-fg-muted">
-                    {t(`domain.purpose.${one.purpose}` as never)}
-                  </span>
-                </span>
-              </li>
+              <Item key={`${one.type}-${one.host}`} hue="sky" icon={<Plus />}>
+                {t(`domain.purpose.${one.purpose}` as never)}
+              </Item>
             ))}
           </ul>
         </Panel>
 
-        {/* The reassurance, and the reason the records opposite sit where they
-            do. A church reads this side first. */}
+        {/* The answer to the question they actually came with. */}
         <Panel title={t("domain.leaving")} hue="fern">
           {found.leaving.length === 0 ? (
             <p className="text-[length:var(--d-text-body)] text-fg-muted">
@@ -136,22 +128,53 @@ export function DomainReading({ found }: { found: DomainFindings }) {
           ) : (
             <ul className="m-0 flex list-none flex-col gap-3 p-0">
               {found.leaving.map((one) => (
-                <li key={one} className="flex items-start gap-3">
-                  <span
-                    aria-hidden
-                    className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-md [&_svg]:size-3.5"
-                    style={{ background: "var(--hue-fern-tint)", color: "var(--hue-fern-key)" }}
-                  >
-                    <Check />
-                  </span>
-                  <span className="text-[length:var(--d-text-body)] text-fg">
-                    {t(`domain.keep.${one}` as never)}
-                  </span>
-                </li>
+                <Item key={one} hue="fern" icon={<Check />}>
+                  {t(`domain.keep.${one}` as never)}
+                </Item>
               ))}
             </ul>
           )}
         </Panel>
+      </div>
+
+      {/* R22.2. For whoever types them in. Behind a press, because the person
+          deciding and the person typing are usually not the same person. */}
+      <div className="flex flex-col gap-3">
+        <Button
+          type="button"
+          variant="secondary"
+          className="self-start"
+          onClick={() => setShowing(!showing)}
+          aria-expanded={showing}
+        >
+          {showing ? t("domain.hideRecords") : t("domain.showRecords")}
+        </Button>
+
+        {showing ? (
+          <div className="flex flex-col gap-3 rounded-[14px] border border-line bg-sunken p-4">
+            <p className="text-caption text-fg-muted">{t("domain.forYourProvider")}</p>
+            <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+              {found.adding.map((one) => (
+                <li key={`${one.type}-${one.host}`} className="flex flex-wrap items-baseline gap-2">
+                  <span className="rounded bg-fg/[0.08] px-1.5 py-px font-mono text-[11px] font-semibold text-fg">
+                    {one.type}
+                  </span>
+                  <code className="min-w-0 break-all font-mono text-[13px] text-fg">
+                    {one.host}
+                  </code>
+                </li>
+              ))}
+              {found.spf ? (
+                <li className="flex flex-wrap items-baseline gap-2 border-t border-line pt-2.5">
+                  <span className="text-caption text-fg-subtle">SPF</span>
+                  <code className="min-w-0 break-all font-mono text-[13px] text-fg-muted">
+                    {found.spf}
+                  </code>
+                </li>
+              ) : null}
+            </ul>
+          </div>
+        ) : null}
       </div>
     </div>
   );

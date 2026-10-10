@@ -106,8 +106,8 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
    */
   const [open, setOpen] = React.useState(approved && selfSignup);
   const [draft, setDraft] = React.useState(domain ?? "");
-  const [saved, setSaved] = React.useState(domain);
   const [error, setError] = React.useState<string>();
+  /* R1.7. The join switch, which saves on its own. */
   const [pending, start] = React.useTransition();
   /* HRT-283. What the lookup found, held until the field is typed over. */
   const [found, setFound] = React.useState<DomainFindings | null>(null);
@@ -202,28 +202,15 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
               disabled={!approved}
             />
           </Field>
+          {/*
+            HRT-283, R22.2. One press rather than two.
+            It reads the domain and, when the name is a real one, keeps it.
+            Asking somebody to press Check and then Save is asking them to
+            confirm a decision they already made by typing the name, and
+            storing the name changes nothing on its own: the address only
+            starts working once their provider points it here.
+          */}
           <Button
-            variant="secondary"
-            loading={pending}
-            disabled={!approved || draft.trim() === (saved ?? "")}
-            onClick={() =>
-              start(async () => {
-                const back = await saveDomain(draft, slug);
-                setError(back.error);
-                if (!back.error) {
-                  setSaved(back.domain ?? null);
-                  setDraft(back.domain ?? "");
-                }
-              })
-            }
-          >
-            {t("action.save")}
-          </Button>
-
-          {/* HRT-283, R22.2. The reading comes before the change. Nothing
-              here writes, so it is safe to press at any point. */}
-          <Button
-            variant="secondary"
             loading={checking}
             disabled={!approved || !draft.trim() || checking}
             onClick={() =>
@@ -231,8 +218,17 @@ export function OnYourSite({ origin, slug, selfSignup, domain, appHost, approved
                 setError(undefined);
                 setFound(null);
                 const back = await checkDomain(draft, slug);
-                setError(back.error);
-                setFound(back.found ?? null);
+                if (back.error || !back.found) {
+                  setError(back.error);
+                  return;
+                }
+                setFound(back.found);
+
+                // Kept under the name as we read it back, so a pasted address
+                // with a scheme on the front is stored as a domain.
+                const kept = await saveDomain(back.found.domain, slug);
+                setError(kept.error);
+                if (!kept.error) setDraft(kept.domain ?? "");
               })
             }
           >
