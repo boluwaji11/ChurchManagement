@@ -109,6 +109,15 @@
   /* R24.4. A board somebody drags cards across: a tray the cards sit in,
      a step deeper than a sunken panel so white cards read against it. */
   --board: oklch(0.915 0.014 288);
+  /* R24.4. The rail down the side, in the product's own ink.
+     Its own foreground, because everything on it is read against the ink
+     rather than against the canvas: the sections, the church's name, who is
+     signed in. A row that is open goes to white, so the one you are on is the
+     lightest thing on the rail. */
+  --shell: var(--ink-600);
+  --shell-fg: #ffffff;
+  --shell-muted: oklch(0.885 0.040 285);
+  --shell-line: oklch(1 0 0 / 0.16);
   --fg: var(--stone-900);
   --fg-muted: var(--stone-600);
   --fg-subtle: oklch(0.540 0.018 286);
@@ -176,6 +185,15 @@
   /* R24.4. A board somebody drags cards across: a tray the cards sit in,
      a step deeper than a sunken panel so white cards read against it. */
   --board: oklch(0.915 0.014 288);
+  /* R24.4. The rail down the side, in the product's own ink.
+     Its own foreground, because everything on it is read against the ink
+     rather than against the canvas: the sections, the church's name, who is
+     signed in. A row that is open goes to white, so the one you are on is the
+     lightest thing on the rail. */
+  --shell: var(--ink-600);
+  --shell-fg: #ffffff;
+  --shell-muted: oklch(0.885 0.040 285);
+  --shell-line: oklch(1 0 0 / 0.16);
   --fg: var(--stone-900);
   --fg-muted: var(--stone-600);
   --fg-subtle: oklch(0.540 0.018 286);
@@ -221,6 +239,10 @@
     --canvas: oklch(0.238 0.032 286);
     --surface: oklch(0.288 0.034 286);
     --sunken: oklch(0.210 0.029 286);
+    --shell: oklch(0.300 0.082 285);
+    --shell-fg: #ffffff;
+    --shell-muted: oklch(0.830 0.044 285);
+    --shell-line: oklch(1 0 0 / 0.14);
     --board: oklch(0.200 0.034 286);
     --fg: oklch(0.968 0.010 286);
     --fg-muted: oklch(0.790 0.026 286);
@@ -283,6 +305,10 @@
     --canvas: oklch(0.238 0.032 286);
     --surface: oklch(0.288 0.034 286);
     --sunken: oklch(0.210 0.029 286);
+    --shell: oklch(0.300 0.082 285);
+    --shell-fg: #ffffff;
+    --shell-muted: oklch(0.830 0.044 285);
+    --shell-line: oklch(1 0 0 / 0.14);
     --board: oklch(0.200 0.034 286);
     --fg: oklch(0.968 0.010 286);
     --fg-muted: oklch(0.790 0.026 286);
@@ -521,6 +547,10 @@
   --color-surface: var(--surface);
   --color-sunken: var(--sunken);
   --color-board: var(--board);
+  --color-shell: var(--shell);
+  --color-shell-fg: var(--shell-fg);
+  --color-shell-muted: var(--shell-muted);
+  --color-shell-line: var(--shell-line);
   --color-fg: var(--fg);
   --color-fg-muted: var(--fg-muted);
   --color-fg-subtle: var(--fg-subtle);

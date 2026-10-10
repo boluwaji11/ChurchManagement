@@ -99,6 +99,8 @@ export function pairs() {
     const on = (bg) => sem(theme, bg);
 
     // Body text. The thing a person reads.
+    // R24.4. The washed frame is read on as much as any panel: the nav rows
+    // down the rail and the screen's own name across the top.
     for (const bg of ["canvas", "surface", "sunken"]) {
       add(`${theme}: fg on ${bg}`, sem(theme, "fg"), on(bg), 4.5);
       add(`${theme}: fg-muted on ${bg}`, sem(theme, "fg-muted"), on(bg), 4.5);
@@ -107,6 +109,10 @@ export function pairs() {
     // Secondary text. Captions and hints, still read, so still 4.5.
     add(`${theme}: fg-subtle on canvas`, sem(theme, "fg-subtle"), on("canvas"), 4.5);
     add(`${theme}: fg-subtle on surface`, sem(theme, "fg-subtle"), on("surface"), 4.5);
+    /* R24.4. The rail is solid ink with its own foreground, so it is audited
+       as its own pair rather than against the canvas. */
+    add(`${theme}: shell-fg on shell`, sem(theme, "shell-fg"), on("shell"), 4.5);
+    add(`${theme}: shell-muted on shell`, sem(theme, "shell-muted"), on("shell"), 4.5);
 
     // Filled controls.
     add(`${theme}: primary-fg on primary`, sem(theme, "primary-fg"), sem(theme, "primary"), 4.5);

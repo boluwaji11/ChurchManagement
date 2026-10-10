@@ -91,7 +91,9 @@ export function Sidebar({
         // mark stays at the top and signing out stays at the bottom, and only
         // the list of sections scrolls when a short screen cannot hold it.
         "sticky top-0 hidden h-screen shrink-0 flex-col gap-6 overflow-hidden",
-        "border-r border-line bg-sunken md:flex",
+        /* R24.4. The rail is the product's own ink, and everything on it is
+           read against that rather than against the canvas. */
+        "border-r border-shell-line bg-shell text-shell-fg md:flex",
         "motion-safe:transition-[width] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-out)",
         collapsed ? "w-16 px-2.5 py-5" : "w-58 px-3 py-5",
       )}
@@ -106,7 +108,7 @@ export function Sidebar({
           <FlameMark logoUrl={logoUrl} churchName={churchName} />
           {collapsed ? null : (
             <span
-              className="min-w-0 flex-1 font-display font-semibold text-fg [overflow-wrap:anywhere] line-clamp-2"
+              className="min-w-0 flex-1 font-display font-semibold text-shell-fg [overflow-wrap:anywhere] line-clamp-2"
               style={nameSize(churchName)}
             >
               {churchName}
@@ -120,7 +122,7 @@ export function Sidebar({
             onClick={toggle}
             aria-label={toggleLabel}
             aria-expanded={!collapsed}
-            className="grid size-[30px] shrink-0 place-items-center rounded-sm text-fg-muted hover:bg-line"
+            className="grid size-[30px] shrink-0 place-items-center rounded-sm text-shell-muted hover:bg-shell-line hover:text-shell-fg"
           >
             {collapsed ? (
               <PanelLeftOpen className="size-[18px]" />
@@ -165,7 +167,7 @@ export function Sidebar({
                 collapsed ? "justify-center px-0" : "px-2.5",
                 on
                   ? "bg-surface text-fg shadow-sm"
-                  : "text-fg-muted hover:bg-line hover:text-fg",
+                  : "text-shell-muted hover:bg-shell-line hover:text-shell-fg",
               )}
             >
               <span className="grid shrink-0 place-items-center [&_svg]:size-[18px]">
@@ -197,15 +199,15 @@ export function Sidebar({
         <Link
           href={`/settings/profile?church=${church}`}
           className={cn(
-            "flex w-full items-center gap-2.5 rounded-md text-left hover:bg-line",
+            "flex w-full items-center gap-2.5 rounded-md text-left hover:bg-shell-line",
             collapsed ? "justify-center p-1" : "px-1 py-2",
           )}
         >
           <Avatar name={personName} src={photoUrl} id={userId} size="sm" className="size-8 text-[12px] font-semibold" />
           {collapsed ? null : (
             <span className="flex min-w-0 flex-1 flex-col leading-4">
-              <span className="truncate text-[13px] font-medium text-fg">{personName}</span>
-              <span className="truncate text-[12px] text-fg-subtle">{roleName}</span>
+              <span className="truncate text-[13px] font-medium text-shell-fg">{personName}</span>
+              <span className="truncate text-[12px] text-shell-muted">{roleName}</span>
             </span>
           )}
         </Link>
@@ -231,7 +233,7 @@ export function Sidebar({
               disabled={going}
               aria-label={t("action.signOut")}
               className={cn(
-                "flex h-9 items-center gap-2.5 rounded-sm text-[13px] font-medium text-fg-muted hover:bg-line",
+                "flex h-9 items-center gap-2.5 rounded-sm text-[13px] font-medium text-shell-muted hover:bg-shell-line hover:text-shell-fg",
                 collapsed ? "justify-center px-0" : "px-2.5",
               )}
             >
