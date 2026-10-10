@@ -25,6 +25,7 @@ export function PortalAddress({
   name,
   host,
   origin,
+  spanning,
   portalOpen,
   canEdit,
 }: {
@@ -37,6 +38,14 @@ export function PortalAddress({
   host: string;
   /** The scheme, so the address can be handed out whole. */
   origin: string;
+  /**
+   * R1.4. Whether the session cookie reaches every name under our host.
+   *
+   * It does wherever `AUTH_COOKIE_DOMAIN` is set. It cannot on localhost,
+   * where a browser refuses a domain cookie on a single-label host, so a
+   * move to the new name would arrive as a stranger and ask them to sign in.
+   */
+  spanning: boolean;
   /** R17.1. Whether the address answers at all. */
   portalOpen: boolean;
   canEdit: boolean;
@@ -76,14 +85,20 @@ export function PortalAddress({
        * somebody reading a name in the bar they had replaced, on a page that
        * had quietly stopped being reachable there.
        */
+      /*
+       * R1.1, R1.4. The name they were reached at has just stopped being a
+       * name, so this tab cannot stay where it is.
+       *
+       * It goes to the new name where the session reaches it, and to our own
+       * host where it does not. Our host serves the church the action just
+       * wrote down, so either way they carry on from the screen they were on.
+       */
       const moved = answer.name ?? slug;
       const here = typeof window === "undefined" ? "" : window.location.host;
-      /* Only somebody already at a church's address is moved. On our own host
-         this screen is reached with the church on the session, and sending
-         them across would hand it to a host that has not been given one. */
-      if (here.endsWith(`.${host}`) && here !== `${moved}.${host}`) {
-        window.location.href = `${origin}//${moved}.${host}${window.location.pathname}`;
-      }
+      if (!here.endsWith(`.${host}`)) return;
+
+      const to = spanning ? `${moved}.${host}` : host;
+      if (here !== to) window.location.href = `${origin}//${to}${window.location.pathname}`;
     });
 
   return (

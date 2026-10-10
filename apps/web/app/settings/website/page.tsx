@@ -5,6 +5,7 @@ import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
 import { PortalAddress } from "../church/portal-address";
+import { cookieDomain } from "@/lib/cookie-domain";
 import { t } from "@connectapp/i18n";
 import { tabMetadata } from "@/lib/page-metadata";
 
@@ -76,6 +77,8 @@ export default async function WebsitePage({
           name={profile?.portalName ?? null}
           host={platformHost}
           origin={`${proto}:`}
+          /* R1.4. Whether a session survives the move to the new name. */
+          spanning={Boolean(cookieDomain())}
           portalOpen={profile?.portalOpen ?? true}
           canEdit={canManageChurch(session)}
         />

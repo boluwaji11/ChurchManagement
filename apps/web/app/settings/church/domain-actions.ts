@@ -8,6 +8,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { rememberChurch } from "@/lib/church-choice";
 import { explain } from "@/lib/explain";
 
 export interface DomainResult {
@@ -102,6 +103,10 @@ export async function claimPortalName(
           { name: name.trim() || null },
         ),
     );
+    /* R1.4. Renaming moves them off this address, and our own host is where
+       they land when a cookie cannot follow. It serves the church it was told
+       to serve, so it is told here. */
+    await rememberChurch(session.tenantSlug);
     revalidatePath("/settings/website");
     return { name: saved, free: true };
   } catch (reason) {
