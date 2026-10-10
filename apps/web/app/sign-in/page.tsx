@@ -44,14 +44,11 @@ export default async function SignIn({
        * thing somebody does from our own door rather than from a church's,
        * where everybody arriving is a member looking for their sign-in.
        */
+      /* R24.6. The way back to the church's own door, where somebody came
+         from to get here. */
+      back={named ? { href: "/join", label: t("signIn.backTo", { name: named.name }) } : undefined}
       footer={
-        named ? (
-          /* R24.6. The way back to the church's own door, which is where
-             somebody came from to get here. */
-          <Link href="/join" className="font-medium text-primary">
-            {t("signIn.backTo", { name: named.name })}
-          </Link>
-        ) : (
+        named ? undefined : (
           <>
             {t("signIn.volunteer")}{" "}
             <Link href="/checkin/station" className="font-medium text-primary">
