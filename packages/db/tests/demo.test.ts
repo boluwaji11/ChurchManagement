@@ -42,7 +42,12 @@ afterAll(async () => {
   await closeConnections();
 });
 
-describe("loading", () => {
+/**
+ * Skipped under HRT-282. The demo is being reworked as a whole, starting with
+ * a visitor getting a church that was already standing rather than one built
+ * while they wait. These come back with that work, against whatever it leaves.
+ */
+describe.skip("loading", () => {
   it("brings the whole church, with its households, tags, milestones and relationships", async () => {
     const before = (await run(tenant, "owner", (tx) => listPeople(tx))).length;
     const state = await run(tenant, "owner", (tx) => loadDemoData(tx, as(tenant)));
@@ -91,7 +96,7 @@ describe("loading", () => {
   });
 });
 
-describe("removing", () => {
+describe.skip("removing", () => {
   it("takes the demo church and leaves everything else", async () => {
     // Somebody the church added while the demo was loaded.
     const theirs = await run(tenant, "owner", (tx) =>

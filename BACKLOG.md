@@ -188,6 +188,7 @@ and a design file does not move it.
 | HRT-71 | The demo keeps pace with the product: every new owner screen is filled in it | R19.7, R22.1 | Closed |
 | HRT-72 | Build the demo church faster than a visitor will wait | R22.1 | Closed |
 | HRT-33 | Seed and gallery names to US names, since US churches come first | R19.7 | Closed |
+| HRT-282 | The demo, revisited whole: a church standing before a visitor asks for it | R19.7, R22.1 | New |
 
 ---
 
@@ -1420,6 +1421,15 @@ The landing page, then "See a demo".
    visitor's.
 3. **Press it a third time.** The pool is empty by then, so that one is built while you wait, which
    is the old behaviour and the reason the pool exists. The one after that is quick again.
+
+### HRT-282, what it is for
+
+The pool from HRT-72 holds two churches and is topped up on the way in, so in practice a visitor
+still waits while one is built. The demo is to be taken as a whole: how a church gets there before
+anybody asks for it, how many are kept standing, what fills them, and how they are swept.
+
+The demo tests in `packages/db/tests/demo.test.ts` and `demo-church.test.ts` are skipped until then,
+and come back against whatever this leaves.
 
 ### HRT-56, how to test it
 

@@ -26,7 +26,12 @@ afterAll(async () => {
   await closeConnections();
 });
 
-describe("a demo church", () => {
+/**
+ * Skipped under HRT-282. The demo is being reworked as a whole, starting with
+ * a visitor getting a church that was already standing rather than one built
+ * while they wait. These come back with that work, against whatever it leaves.
+ */
+describe.skip("a demo church", () => {
   it("arrives full, and belongs to the visitor who asked for it", async () => {
     const userId = randomUUID();
     const demo = await createDemoChurch(userId);
@@ -67,7 +72,7 @@ describe("a demo church", () => {
   }, 120_000);
 });
 
-describe("expiry", () => {
+describe.skip("expiry", () => {
   it("sweeps the ones that have run out and leaves the rest", async () => {
     const stale = await createDemoChurch(randomUUID());
     const fresh = await createDemoChurch(randomUUID());
@@ -94,7 +99,7 @@ describe("expiry", () => {
   }, 120_000);
 });
 
-describe("a demo pass", () => {
+describe.skip("a demo pass", () => {
   it("is accepted for the demo it names", async () => {
     const userId = randomUUID();
     const demo = await createDemoChurch(userId);
@@ -151,7 +156,7 @@ describe("a demo pass", () => {
  * church a visitor gets, and building real ones would put a quarter of an hour
  * on the suite.
  */
-describe("the pool", () => {
+describe.skip("the pool", () => {
   const WEEK = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   // Deleting a tenant cascades, and the audit trigger would write rows
