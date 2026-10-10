@@ -92,14 +92,17 @@ export default async function CustomReportPage({
       <div className="-mb-3 flex flex-wrap items-center gap-3">
         <h2 className="flex-1 font-display text-[22px] leading-[28px] text-fg">{saved.name}</h2>
 
-        <Link
-          href={`/reports/build?church=${session.tenantSlug}&id=${saved.slug}`}
-          aria-label={t("report.edit")}
-          title={t("report.edit")}
-          className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
-        >
-          <Pencil />
-        </Link>
+        {/* R18.x. Only whoever wrote it may change it, so nobody else is
+            offered the pencil. */}
+        {saved.createdByUserId === session.userId ? (
+          <Link
+            href={`/reports/build?church=${session.tenantSlug}&id=${saved.slug}`}
+            aria-label={t("report.edit")}
+            className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
+          >
+            <Pencil />
+          </Link>
+        ) : null}
 
         <DownloadMenu
           csv={`/reports/custom/${saved.slug}/export?church=${session.tenantSlug}`}

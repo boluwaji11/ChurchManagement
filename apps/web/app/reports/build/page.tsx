@@ -9,6 +9,8 @@ import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { Builder } from "./builder";
+import { Empty } from "@/components/empty";
+import { Button } from "@connectapp/ui";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -61,9 +63,24 @@ export default async function BuildReportPage({
 
   if (id && !saved) notFound();
   /* R18.x. A shared report is read by the church and changed by whoever
-     wrote it, so the builder refuses somebody else's. */
+     wrote it. This is not about the reader's role, so it does not borrow the
+     screen that talks about roles. */
   if (saved && saved.createdByUserId !== session.userId) {
-    return <Denied role={session.role} action="buildReports" church={session.tenantSlug} />;
+    return (
+      <AppShell session={session} title={t("reports.title")}>
+        <Empty
+          icon="noResults"
+          title={t("report.notYours")}
+          action={
+            <Button asChild variant="secondary">
+              <Link href={`/reports/custom/${saved.slug}?church=${session.tenantSlug}`}>
+                {t("report.open")}
+              </Link>
+            </Button>
+          }
+        />
+      </AppShell>
+    );
   }
 
   return (
