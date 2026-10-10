@@ -184,12 +184,10 @@ export function Matrix({
  * before anybody presses it.
  */
 export function ArchivedRoles({
-  church,
   roles,
   permissions,
   mine,
 }: {
-  church: string;
   roles: RoleRow[];
   permissions: string[];
   /** R1.6. What the reader holds, which is the most they can give away. */
@@ -208,7 +206,7 @@ export function ArchivedRoles({
   const bringBack = (id: string) => {
     setDoing(id);
     startTransition(async () => {
-      const result = await putAway(id, false, church);
+      const result = await putAway(id, false);
       setError(result.error);
       if (!result.error) router.refresh();
     });
@@ -387,7 +385,7 @@ export function RoleForm({
                 variant="ghost"
                 className="mr-auto"
                 disabled={pending}
-                onClick={() => run("archive", () => putAway(role.id, true, church))}
+                onClick={() => run("archive", () => putAway(role.id, true))}
               >
                 {doing === "archive" ? (
                   <Spinner label={t("roles.archiveOne", { name: nameOf(role) })} />
@@ -406,8 +404,8 @@ export function RoleForm({
               disabled={pending || !name.trim() || (!taking?.builtin && !role?.builtin && held.length === 0)}
               onClick={() =>
                 run("save", async () => {
-                  if (role) return saveRole(role.id, name, held, church);
-                  if (!taking) return addRole(name, held, church);
+                  if (role) return saveRole(role.id, name, held);
+                  if (!taking) return addRole(name, held);
 
                   /*
                    * Taking a ready-made role up unchanged leaves it tracking
@@ -420,10 +418,10 @@ export function RoleForm({
                     held.every((one) => taking.permissions.includes(one));
 
                   if (!same) {
-                    const written = await saveRole(taking.id, name, held, church);
+                    const written = await saveRole(taking.id, name, held);
                     if (written.error) return written;
                   }
-                  return putAway(taking.id, false, church);
+                  return putAway(taking.id, false);
                 })
               }
             >

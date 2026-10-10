@@ -250,7 +250,7 @@ export default async function GroupPage({
 
         {/* R9.4. The press that fills the roster rides this row with the
             marks rather than a band above it. */}
-        {manage ? <AddMember church={session.tenantSlug} groupId={group.id} /> : null}
+        {manage ? <AddMember groupId={group.id} /> : null}
 
         {/* R9.7, R16.9. The group's own thread, for whoever may write into it:
             the office speaks for the church, and a member writes to the groups
@@ -261,7 +261,6 @@ export default async function GroupPage({
 
         {manage ? (
           <ManageGroup
-            church={session.tenantSlug}
             types={types.map((type) => ({ id: type.id, name: type.name, hue: type.hue }))}
             group={{
               id: group.id,
@@ -362,19 +361,18 @@ export default async function GroupPage({
             <span className="flex flex-wrap items-center gap-3">
               <Badge tone="success"><Check aria-hidden /> {t("find.member")}</Badge>
               <LeaveButton
-                church={session.tenantSlug}
                 groupId={group.id}
                 groupName={group.name}
               />
             </span>
           ) : group.requested === "pending" ? (
-            <AskedButton church={session.tenantSlug} groupId={group.id} />
+            <AskedButton groupId={group.id} />
           ) : group.requested === "declined" ? (
             <Badge tone="neutral">{t("find.declined")}</Badge>
           ) : group.full ? (
             <Badge tone="warning">{t("find.full")}</Badge>
           ) : group.openToJoin ? (
-            <JoinButton church={session.tenantSlug} groupId={group.id} />
+            <JoinButton groupId={group.id} />
           ) : null
         }
         about={group.description}

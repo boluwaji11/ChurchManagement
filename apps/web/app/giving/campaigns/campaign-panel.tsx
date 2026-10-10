@@ -82,7 +82,6 @@ export function CampaignPanel({
           startsOn: starts,
           endsOn: ends || null,
         },
-        church,
       );
       setError(result.error);
       if (!result.error) {

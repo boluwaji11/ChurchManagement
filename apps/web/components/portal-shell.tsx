@@ -103,7 +103,7 @@ export async function PortalShell({
       <Installed />
 
       {/* R22.1. Asked once a browser, in the product's own words. */}
-      <AskPush church={slug} />
+      <AskPush />
 
       <DemoBanner info={shell.demo} />
 
@@ -142,7 +142,6 @@ export async function PortalShell({
           <PortalAccount
             name={session.displayName}
             userId={session.userId}
-            church={slug}
             photoUrl={photoUrl}
           />
         </div>

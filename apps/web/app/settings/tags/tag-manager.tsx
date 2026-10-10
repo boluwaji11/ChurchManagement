@@ -67,7 +67,7 @@ export function TagManager({
             </span>
           ))}
 
-        {canCreate ? <NewTag church={church} taken={tags.map((one) => one.name)} /> : null}
+        {canCreate ? <NewTag taken={tags.map((one) => one.name)} /> : null}
       </div>
     </section>
   );
@@ -84,11 +84,9 @@ const CHIP = "flex h-9 items-center justify-center rounded-full px-3.5 text-labe
  * to read.
  */
 export function NewTag({
-  church,
   filled,
   taken = [],
 }: {
-  church: string;
   filled?: boolean;
   /** R1.13. What this church already keeps, so the library leaves it out. */
   taken?: string[];
@@ -110,7 +108,6 @@ export function NewTag({
     startSaving(async () => {
       setError(undefined);
       const data = new FormData();
-      data.set("church", church);
       data.set("name", name);
       const result = await addTag(data);
       if (result.error) {

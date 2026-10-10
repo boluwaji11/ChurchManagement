@@ -19,11 +19,9 @@ import { useFormError } from "@/lib/form-error";
  * of having been in it stays.
  */
 export function LeaveButton({
-  church,
   groupId,
   groupName,
 }: {
-  church: string;
   groupId: string;
   groupName: string;
 }) {
@@ -62,7 +60,7 @@ export function LeaveButton({
               loading={pending}
               onClick={() =>
                 startTransition(async () => {
-                  const back = await leaveMine(groupId, church);
+                  const back = await leaveMine(groupId);
                   setError(back.error);
                   if (!back.error) {
                     setAsking(false);

@@ -16,7 +16,7 @@ import { requireSession } from "@/lib/session";
  * throwing, because the screen has to keep taking words whatever the last
  * write did.
  */
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   if (!canEditPeople(session)) throw new PermissionError(session.role, "editPerson");
   return {
@@ -29,10 +29,9 @@ async function context(church?: string) {
 
 export async function startMailer(
   name: string,
-  church?: string,
-): Promise<{ slug?: string; error?: string }> {
+  ): Promise<{ slug?: string; error?: string }> {
   try {
-    const ctx = await context(church);
+    const ctx = await context();
     const made = await withTenant(ctx, (tx) => createMailer(tx, ctx, { name }));
     return { slug: made.slug };
   } catch (error) {
@@ -42,10 +41,9 @@ export async function startMailer(
 
 export async function saveMailer(
   patch: MailerPatch,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
-    const ctx = await context(church);
+    const ctx = await context();
     await withTenant(ctx, (tx) => updateMailer(tx, ctx, patch));
     return {};
   } catch (error) {
@@ -57,10 +55,9 @@ export async function saveMailer(
 export async function archiveMailer(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
-    const ctx = await context(church);
+    const ctx = await context();
     await withTenant(ctx, (tx) => setMailerArchived(tx, ctx, id, archived));
     return {};
   } catch (error) {

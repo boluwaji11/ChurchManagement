@@ -75,7 +75,6 @@ export default async function ItemKindsPage({
 
       {manage ? (
         <KindManager
-          church={session.tenantSlug}
           putAway={putAway}
           taken={read.taken}
           kinds={read.rows.map((row) => ({

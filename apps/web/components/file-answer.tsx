@@ -62,7 +62,6 @@ export function FileAnswer({
     const taken: Attached[] = [];
     for (const file of Array.from(chosen).slice(0, most - value.length)) {
       const body = new FormData();
-      body.set("church", churchSlug);
       body.set("form", formSlug);
       body.set("field", field.id);
       body.set("file", file);

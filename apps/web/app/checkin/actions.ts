@@ -15,7 +15,7 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { getChurch } from "@connectapp/db";
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     session,
@@ -37,8 +37,8 @@ export interface ClaimResult {
  * months is asked to choose again rather than checking children in against a
  * configuration nobody maintains.
  */
-export async function claim(stationId: string, church?: string): Promise<ClaimResult> {
-  const { ctx } = await context(church);
+export async function claim(stationId: string): Promise<ClaimResult> {
+  const { ctx } = await context();
   const station = await withTenant(ctx, (tx) => claimStation(tx, stationId));
   return { name: station?.name ?? null };
 }
@@ -93,9 +93,8 @@ export interface FindResult {
 export async function find(
   query: string,
   occurrenceId: string,
-  church?: string,
-): Promise<FindResult> {
-  const { session, ctx } = await context(church);
+  ): Promise<FindResult> {
+  const { session, ctx } = await context();
 
   try {
     return await withTenant(ctx, async (tx) => {
@@ -153,9 +152,8 @@ export async function checkIn(
   occurrenceId: string,
   stationId: string | null,
   entries: CheckinEntry[],
-  church?: string,
-): Promise<CheckinResult> {
-  const { session, actor, ctx } = await context(church);
+  ): Promise<CheckinResult> {
+  const { session, actor, ctx } = await context();
   try {
     return await withTenant(ctx, async (tx) => {
       const visits = await checkInFamily(tx, actor, {
@@ -178,9 +176,8 @@ export async function checkIn(
 export async function undo(
   occurrenceId: string,
   memberId: string,
-  church?: string,
-): Promise<CheckinResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<CheckinResult> {
+  const { actor, ctx } = await context();
   try {
     return await withTenant(ctx, async (tx) => {
       await undoCheckIn(tx, actor, occurrenceId, memberId);
@@ -197,8 +194,8 @@ export interface PickupResult {
 }
 
 /** R8.8. Who the church has recorded as allowed to collect this child. */
-export async function pickup(childId: string, church?: string): Promise<PickupResult> {
-  const { ctx } = await context(church);
+export async function pickup(childId: string): Promise<PickupResult> {
+  const { ctx } = await context();
   try {
     return { members: await withTenant(ctx, (tx) => pickupList(tx, childId)) };
   } catch (error) {
@@ -231,9 +228,8 @@ export async function release(
   code: string,
   collectedBy: string | null,
   override: { kind: OverrideKind; reason: string } | null,
-  church?: string,
-): Promise<ReleaseResult> {
-  const { session, actor, ctx } = await context(church);
+  ): Promise<ReleaseResult> {
+  const { session, actor, ctx } = await context();
   try {
     const result = await withTenant(ctx, (tx) =>
       checkOut(tx, actor, {
@@ -289,9 +285,8 @@ export interface SnapshotResult {
 export async function snapshot(
   stationId: string,
   occurrenceId: string,
-  church?: string,
-): Promise<SnapshotResult> {
-  const { session, actor, ctx } = await context(church);
+  ): Promise<SnapshotResult> {
+  const { session, actor, ctx } = await context();
 
   try {
     return await withTenant(ctx, async (tx) => {
@@ -352,9 +347,8 @@ export interface SyncResult {
 export async function sync(
   stationId: string,
   events: OfflineEvent[],
-  church?: string,
-): Promise<SyncResult> {
-  const { session, actor, ctx } = await context(church);
+  ): Promise<SyncResult> {
+  const { session, actor, ctx } = await context();
   try {
     return {
       result: await withTenant(ctx, (tx) =>
@@ -380,8 +374,8 @@ export interface FloorResult {
  * Counted on every read. A tally that drifts is worse than no tally, because
  * somebody will trust it in the minute they should be walking to the room.
  */
-export async function floor(occurrenceId: string, church?: string): Promise<FloorResult> {
-  const { session, ctx } = await context(church);
+export async function floor(occurrenceId: string): Promise<FloorResult> {
+  const { session, ctx } = await context();
 
   try {
     return await withTenant(ctx, async (tx) => {
@@ -403,9 +397,8 @@ export async function floor(occurrenceId: string, church?: string): Promise<Floo
 export async function place(
   visitId: string,
   roomId: string | null,
-  church?: string,
-): Promise<{ error?: string }> {
-  const { actor, ctx } = await context(church);
+  ): Promise<{ error?: string }> {
+  const { actor, ctx } = await context();
 
   try {
     await withTenant(ctx, (tx) => moveToRoom(tx, actor, visitId, roomId));
@@ -423,9 +416,8 @@ export async function place(
  */
 export async function checkInTo(
   input: { occurrenceId: string; memberId: string; roomId: string },
-  church?: string,
-): Promise<{ error?: string }> {
-  const { session, actor, ctx } = await context(church);
+  ): Promise<{ error?: string }> {
+  const { session, actor, ctx } = await context();
 
   try {
     await withTenant(ctx, (tx) =>

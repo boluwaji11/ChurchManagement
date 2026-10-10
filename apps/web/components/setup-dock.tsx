@@ -72,7 +72,7 @@ export function SetupDock({
     setAsking(false);
     setShut(true);
     startTransition(async () => {
-      await putAway(church);
+      await putAway();
     });
   };
 

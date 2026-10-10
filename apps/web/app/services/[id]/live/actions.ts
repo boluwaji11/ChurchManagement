@@ -6,7 +6,7 @@ import {
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     actor: { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
@@ -27,9 +27,8 @@ export interface LiveResult {
  */
 export async function liveNow(
   occurrenceId: string,
-  church?: string,
-): Promise<LiveState | null> {
-  const { ctx } = await context(church);
+  ): Promise<LiveState | null> {
+  const { ctx } = await context();
   try {
     return await withTenant(ctx, (tx) => liveFor(tx, occurrenceId));
   } catch {
@@ -37,8 +36,8 @@ export async function liveNow(
   }
 }
 
-export async function begin(occurrenceId: string, church?: string): Promise<LiveResult> {
-  const { actor, ctx } = await context(church);
+export async function begin(occurrenceId: string): Promise<LiveResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => startLive(tx, actor, occurrenceId));
     return {};
@@ -50,9 +49,8 @@ export async function begin(occurrenceId: string, church?: string): Promise<Live
 export async function move(
   occurrenceId: string,
   direction: "next" | "back",
-  church?: string,
-): Promise<LiveResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<LiveResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => moveLive(tx, actor, occurrenceId, direction));
     return {};
@@ -64,9 +62,8 @@ export async function move(
 export async function jumpTo(
   occurrenceId: string,
   itemId: string,
-  church?: string,
-): Promise<LiveResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<LiveResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => goLiveTo(tx, actor, occurrenceId, itemId));
     return {};
@@ -75,8 +72,8 @@ export async function jumpTo(
   }
 }
 
-export async function end(occurrenceId: string, church?: string): Promise<LiveResult> {
-  const { actor, ctx } = await context(church);
+export async function end(occurrenceId: string): Promise<LiveResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => stopLive(tx, actor, occurrenceId));
     return {};

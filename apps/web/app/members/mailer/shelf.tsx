@@ -31,12 +31,10 @@ const SEARCHABLE = 5;
  * one asks for its name and nothing else, the way a report does.
  */
 export function Shelf({
-  church,
   mailers,
   putAway = false,
   archivedCount = 0,
 }: {
-  church: string;
   mailers: MailerCard[];
   /** R24.6. Whether this is the list of the ones put away. */
   putAway?: boolean;
@@ -61,7 +59,7 @@ export function Shelf({
     if (!name.trim() || busy) return;
     setWorking(true);
     setError(null);
-    void startMailer(name, church).then((back) => {
+    void startMailer(name).then((back) => {
       if (back.error) {
         setWorking(false);
         setError(back.error);
@@ -141,7 +139,7 @@ export function Shelf({
                     className="size-8 min-h-0 [&_svg]:size-4"
                     onClick={() => {
                       setWorking(true);
-                      void archiveMailer(one.id, false, church).then((back) => {
+                      void archiveMailer(one.id, false).then((back) => {
                         setWorking(false);
                         if (back.error) {
                           setError(back.error);

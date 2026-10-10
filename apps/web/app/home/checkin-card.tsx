@@ -101,7 +101,6 @@ export function CheckinCard({
               const back = await checkInMine(
                 occurrenceId,
                 waiting.map((one) => one.memberId),
-                church,
               );
               setError(back.error ?? null);
               if (!back.error) router.refresh();

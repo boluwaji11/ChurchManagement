@@ -111,7 +111,7 @@ export function Conversation({
   const save = () => {
     if (!editing || !words.trim() || saving) return;
     setSaving(true);
-    void editLine(editing, words, church).then(() => {
+    void editLine(editing, words).then(() => {
       setSaving(false);
       setEditing(null);
       (onChanged ?? onSent)();
@@ -120,7 +120,7 @@ export function Conversation({
 
   const like = (id: string, mine: boolean) => {
     if (mine) return;
-    void markMessage(id, LIKE, church).then(() => (onChanged ?? onSent)());
+    void markMessage(id, LIKE).then(() => (onChanged ?? onSent)());
   };
 
   const tap = (id: string, mine: boolean) => {
@@ -245,7 +245,6 @@ export function Conversation({
                         className="absolute bottom-full left-2 z-20 -mb-1.5 flex items-center gap-0.5 rounded-full border border-line bg-surface px-1 py-0.5 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100"
                       >
                         <LineActions
-                          church={church}
                           id={one.id}
                           mine={one.mine}
                           marks={one.reactions}
@@ -352,7 +351,6 @@ export function Conversation({
                     ) : null}
 
                     <Marks
-                      church={church}
                       id={one.id}
                       marks={one.reactions}
                       mine={one.mine}
@@ -373,7 +371,6 @@ export function Conversation({
                         top edge of the message instead. */}
                     {!one.mine && !one.deleted ? (
                       <LineActions
-                        church={church}
                         id={one.id}
                         mine={false}
                         marks={one.reactions}
@@ -421,7 +418,6 @@ export function Conversation({
       </div>
 
       <Writer
-        church={church}
         to={to}
         onSent={onSent}
         sending={sending}
@@ -441,7 +437,6 @@ export function Conversation({
  * closed laptop and turns up under Drafts rather than disappearing.
  */
 export function Writer({
-  church,
   to,
   onSent,
   sending = false,
@@ -451,7 +446,6 @@ export function Writer({
   answering = null,
   onStopAnswering,
 }: {
-  church: string;
   to: string;
   onSent: () => void;
   sending?: boolean;
@@ -516,10 +510,10 @@ export function Writer({
     if (body === saved.current || posting.current) return;
     pending.current = setTimeout(() => {
       saved.current = body;
-      void keepDraft(to, body, church);
+      void keepDraft(to, body);
     }, 600);
     return () => { if (pending.current) clearTimeout(pending.current); };
-  }, [body, to, church]);
+  }, [body, to]);
 
   /* The box going away keeps what is in it, because closing the panel used to
      cancel the save that had not fired yet. A line on its way out is not a
@@ -527,8 +521,8 @@ export function Writer({
   React.useEffect(() => () => {
     const held = latest.current;
     if (posting.current || held.body === saved.current) return;
-    void keepDraft(held.to, held.body, church);
-  }, [church]);
+    void keepDraft(held.to, held.body);
+  }, []);
 
   /* R16.14. What is going with this line, uploaded as it is chosen so the
      press that sends is only ever sending. */
@@ -544,7 +538,6 @@ export function Writer({
     void Promise.all(
       files.map(async (file) => {
         const form = new FormData();
-        form.set("church", church);
         form.set("purpose", "message");
         form.set("file", file);
         const answer = await fetch("/api/upload", { method: "POST", body: form });
@@ -585,7 +578,6 @@ export function Writer({
     void send(
       to,
       words,
-      church,
       answering?.id ?? null,
       going.map((one) => ({ id: one.id, label: one.label })),
     ).then((back) => {
@@ -602,7 +594,7 @@ export function Writer({
       }
       /* Said plainly rather than left to the send: whatever was written down
          for this recipient has just been sent. */
-      void keepDraft(to, "", church);
+      void keepDraft(to, "");
       onStopAnswering?.();
       onSent();
     });

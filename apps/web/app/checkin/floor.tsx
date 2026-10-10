@@ -53,7 +53,7 @@ export function Floor({
   const [pending, startTransition] = React.useTransition();
 
   const pull = React.useCallback(async () => {
-    const result = await floor(occurrenceId, church);
+    const result = await floor(occurrenceId);
     setError(result.error);
     if (result.board) {
       setData({
@@ -75,7 +75,7 @@ export function Floor({
     if (!visitId) return;
 
     startTransition(async () => {
-      const result = await place(visitId, roomId, church);
+      const result = await place(visitId, roomId);
       setError(result.error);
       await pull();
     });

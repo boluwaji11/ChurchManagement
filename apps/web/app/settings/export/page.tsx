@@ -67,7 +67,7 @@ export default async function ExportPage() {
               <span className="block text-[12px] text-fg-subtle">{t(row.what)}</span>
             </span>
 
-            <DownloadRow church={session.tenantSlug} only={row.only} file={row.file} />
+            <DownloadRow only={row.only} file={row.file} />
           </div>
         ))}
       </section>

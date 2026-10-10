@@ -20,7 +20,7 @@ const field = (data: FormData, name: string) => String(data.get(name) ?? "").tri
  * write one either: a note nobody can open again is not a record.
  */
 export async function addNote(data: FormData): Promise<NoteResult> {
-  const session = await requireSession(field(data, "church") || undefined);
+  const session = await requireSession();
   const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
   const body = field(data, "body");

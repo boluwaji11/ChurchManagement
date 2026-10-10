@@ -47,7 +47,7 @@ export function useFind(
 
       let result;
       try {
-        result = await find(text, service, church);
+        result = await find(text, service);
       } catch {
         if (mine !== ticket.current) return;
         setSearching(false);

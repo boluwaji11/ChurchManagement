@@ -10,7 +10,7 @@ import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   const actor = {
     tenantId: session.tenantId,
@@ -67,8 +67,7 @@ function read(data: FormData): EventInput {
 }
 
 export async function createEventFrom(data: FormData): Promise<EventResult> {
-  const church = String(data.get("church") ?? "") || undefined;
-  const { actor, ctx } = await context(church);
+  const { actor, ctx } = await context();
   try {
     const made = await withTenant(ctx, (tx) => createEvent(tx, actor, read(data)));
     return { id: made.id, slug: made.slug };
@@ -78,9 +77,8 @@ export async function createEventFrom(data: FormData): Promise<EventResult> {
 }
 
 export async function saveEvent(data: FormData): Promise<EventResult> {
-  const church = String(data.get("church") ?? "") || undefined;
   const id = String(data.get("id") ?? "");
-  const { actor, ctx } = await context(church);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => updateEvent(tx, actor, id, read(data)));
     return { id };
@@ -92,9 +90,8 @@ export async function saveEvent(data: FormData): Promise<EventResult> {
 export async function publishEvent(
   id: string,
   status: EventStatus,
-  church?: string,
-): Promise<EventResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<EventResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setEventStatus(tx, actor, id, status));
     return {};
@@ -106,9 +103,8 @@ export async function publishEvent(
 export async function openEventRegistration(
   id: string,
   open: boolean,
-  church?: string,
-): Promise<EventResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<EventResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setEventRegistrationOpen(tx, actor, id, open));
     return {};
@@ -120,9 +116,8 @@ export async function openEventRegistration(
 export async function recolourEvent(
   id: string,
   hue: string,
-  church?: string,
-): Promise<EventResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<EventResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setEventHue(tx, actor, id, hue));
     return {};
@@ -131,8 +126,8 @@ export async function recolourEvent(
   }
 }
 
-export async function clearEventCover(id: string, church?: string): Promise<EventResult> {
-  const { actor, ctx } = await context(church);
+export async function clearEventCover(id: string): Promise<EventResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setEventCover(tx, actor, id, null));
     return {};
@@ -144,9 +139,8 @@ export async function clearEventCover(id: string, church?: string): Promise<Even
 export async function archiveEvent(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<EventResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<EventResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setEventArchived(tx, actor, id, archived));
     return {};
@@ -164,8 +158,7 @@ export interface PersonHit {
 /** R14.1. Who to ask about an event, looked up the way every person field is. */
 export async function findEventContact(
   query: string,
-  church?: string,
-): Promise<PersonHit[]> {
+  ): Promise<PersonHit[]> {
   const session = await requireSession();
   const ctx = {
     tenantId: session.tenantId,
@@ -200,9 +193,8 @@ export async function findEventContact(
 export async function useFormForEvent(
   eventId: string,
   formId: string | null,
-  church?: string,
-): Promise<EventResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<EventResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setEventForm(tx, actor, eventId, formId));
     return {};

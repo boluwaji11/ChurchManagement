@@ -12,7 +12,7 @@ export interface MeetingResult {
   error?: string;
 }
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     actor: { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
@@ -24,9 +24,8 @@ async function context(church?: string) {
 export async function open(
   groupId: string,
   metOn: string,
-  church?: string,
-): Promise<MeetingResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<MeetingResult> {
+  const { actor, ctx } = await context();
   try {
     return await withTenant(ctx, (tx) => openMeeting(tx, actor, { groupId, metOn }));
   } catch (error) {
@@ -37,9 +36,8 @@ export async function open(
 /** R9.7. One submit: who was there, and whether it happened at all. */
 export async function record(
   input: { meetingId: string; presentIds: string[]; notHeld: boolean; note: string | null },
-  church?: string,
-): Promise<MeetingResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<MeetingResult> {
+  const { actor, ctx } = await context();
   try {
     return await withTenant(ctx, (tx) => recordMeeting(tx, actor, input));
   } catch (error) {

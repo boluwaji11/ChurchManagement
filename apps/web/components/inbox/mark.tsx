@@ -66,7 +66,7 @@ export function InboxMark({
   const [writing, setWriting] = React.useState(false);
   const [to, setTo] = React.useState("");
 
-  const { data, refresh } = useInbox(church, {
+  const { data, refresh } = useInbox({
     view,
     key,
     watching: open,
@@ -263,7 +263,7 @@ export function InboxMark({
                   variant="ghost"
                   className="size-8 min-h-0 [&_svg]:size-4"
                   onClick={() => {
-                    void archiveThread(key, !here?.archived, church).then(() => {
+                    void archiveThread(key, !here?.archived).then(() => {
                       back();
                       refresh();
                     });

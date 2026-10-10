@@ -35,10 +35,8 @@ const RULE_PARAMS = [
  * whole directory as a list would be saving the screen it is already on.
  */
 export function SaveView({
-  church,
   params,
 }: {
-  church: string;
   params: URLSearchParams;
 }) {
   const router = useRouter();
@@ -49,7 +47,6 @@ export function SaveView({
 
   const save = () => {
     const data = new FormData();
-    data.set("church", church);
     data.set("name", name);
     for (const key of RULE_PARAMS) {
       const value = params.get(key);
@@ -167,12 +164,10 @@ export function OpenList({
  * server refuses it, so it is not offered.
  */
 export function AddToList({
-  church,
   lists,
   ids,
   onDone,
 }: {
-  church: string;
   lists: ListOption[];
   ids: string[];
   onDone: () => void;
@@ -187,7 +182,6 @@ export function AddToList({
 
   const put = (listId?: string) => {
     const data = new FormData();
-    data.set("church", church);
     if (listId) data.set("listId", listId);
     else data.set("name", name);
     for (const id of ids) data.append("ids", id);

@@ -305,7 +305,6 @@ function FieldSheet({
                       disabled={pending}
                       onClick={() => {
                         const data = new FormData();
-                        data.set("church", church);
                         data.set("id", field.id);
                         setConfirming(false);
                         setDeleting(true);

@@ -23,11 +23,9 @@ import type { GiftRow } from "./rows";
  */
 export function GiftCards({
   rows,
-  church,
   manage,
 }: {
   rows: GiftRow[];
-  church: string;
   /** R13.15, R13.18. Whether this reader may attach or refund. */
   manage: boolean;
 }) {
@@ -89,13 +87,12 @@ export function GiftCards({
 
               <span className="flex items-center gap-1">
                 {manage && gift.memberId === null && !back ? (
-                  <AttachGift church={church} gift={{ id: gift.id, typed: gift.memberName }} />
+                  <AttachGift gift={{ id: gift.id, typed: gift.memberName }} />
                 ) : null}
                 {manage && !back && !gift.inKindDescription
                   && gift.status === "settled"
                   && gift.amountCents > gift.refundedCents ? (
                   <RefundGift
-                    church={church}
                     gift={{
                       id: gift.id,
                       amountCents: gift.amountCents,

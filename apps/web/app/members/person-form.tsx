@@ -71,11 +71,9 @@ export interface PersonFormValues {
  * as a list, and each name opens that person.
  */
 function HouseholdMembers({
-  church,
   self,
   members,
 }: {
-  church: string;
   /** The person being edited, who is not news to the person editing them. */
   self?: string;
   members: HouseholdOption["members"];
@@ -292,7 +290,6 @@ export function PersonForm({
             <div className="flex flex-col gap-1.5">
               <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
               <Contacts
-                church={church}
                 memberId={values!.id!}
                 kind="email"
                 contacts={contacts}
@@ -302,7 +299,6 @@ export function PersonForm({
             <div className="flex flex-col gap-1.5">
               <span className="text-caption text-fg-subtle">{t("contact.phones")}</span>
               <Contacts
-                church={church}
                 memberId={values!.id!}
                 kind="phone"
                 contacts={contacts}
@@ -312,7 +308,6 @@ export function PersonForm({
             <div className="flex flex-col gap-1.5">
               <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
               <Places
-                church={church}
                 memberId={values!.id!}
                 places={places ?? []}
                 canEdit
@@ -450,7 +445,6 @@ export function PersonForm({
               ) : null}
 
               <HouseholdMembers
-                church={church}
                 self={values?.id}
                 members={households.find((h) => h.id === household)?.members ?? []}
               />

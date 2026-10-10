@@ -111,7 +111,6 @@ export default async function RolesPage({
 
       {putAway ? (
         <ArchivedRoles
-          church={session.tenantSlug}
           roles={away}
           permissions={[...PERMISSIONS]}
           mine={mine}

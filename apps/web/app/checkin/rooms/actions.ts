@@ -20,7 +20,7 @@ export interface BoardResult {
  * than no tally, because somebody will trust it in the one minute they should
  * be walking to the room instead.
  */
-export async function board(occurrenceId: string, church?: string): Promise<BoardResult> {
+export async function board(occurrenceId: string): Promise<BoardResult> {
   const session = await requireSession();
   const ctx = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
@@ -60,8 +60,7 @@ export async function report(
     action: string;
     guardianNotified: boolean;
   },
-  church?: string,
-): Promise<ReportResult> {
+  ): Promise<ReportResult> {
   const session = await requireSession();
   const actor = { tenantId: session.tenantId, role: session.role };
   const ctx = { ...actor, userId: session.userId };

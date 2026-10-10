@@ -127,7 +127,7 @@ export default async function EventsPage({
     }
   }
 
-  const action = putAway ? undefined : <NewEventButton church={session.tenantSlug} />;
+  const action = putAway ? undefined : <NewEventButton />;
 
   // R24.17. An empty screen offers the action in the middle, where the eye
   // already is, so the band above it does not say the same thing twice.
@@ -168,14 +168,12 @@ export default async function EventsPage({
               createdAt: one.createdAt.toISOString(),
               card: (
                 <EventCard
-                  church={session.tenantSlug}
                   event={one}
                   coverUrl={covers.get(one.id) ?? null}
                 />
               ),
               row: (
                 <EventRow
-                  church={session.tenantSlug}
                   event={one}
                   coverUrl={covers.get(one.id) ?? null}
                 />

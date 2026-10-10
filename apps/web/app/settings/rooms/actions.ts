@@ -10,8 +10,8 @@ export interface RoomResult {
   error?: string;
 }
 
-async function context(slug: string | undefined) {
-  const session = await requireSession(slug);
+async function context() {
+  const session = await requireSession();
   const h = await headers();
   const forwarded = h.get("x-forwarded-for");
   return {
@@ -46,7 +46,7 @@ const input = (data: FormData) => ({
 });
 
 export async function createRoom(data: FormData): Promise<RoomResult> {
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => addRoom(tx, actor, input(data)));
     revalidatePath("/settings/rooms");
@@ -57,7 +57,7 @@ export async function createRoom(data: FormData): Promise<RoomResult> {
 }
 
 export async function saveRoom(data: FormData): Promise<RoomResult> {
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => updateRoom(tx, actor, field(data, "id"), input(data)));
     revalidatePath("/settings/rooms");
@@ -68,7 +68,7 @@ export async function saveRoom(data: FormData): Promise<RoomResult> {
 }
 
 export async function archiveRoom(data: FormData): Promise<RoomResult> {
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) =>
       setRoomArchived(tx, actor, field(data, "id"), field(data, "archived") === "1"),
@@ -81,7 +81,7 @@ export async function archiveRoom(data: FormData): Promise<RoomResult> {
 }
 
 export async function moveRoom(data: FormData): Promise<RoomResult> {
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   const ids = field(data, "ids").split(",").filter(Boolean);
   try {
     await withTenant(ctx, (tx) => orderRooms(tx, actor, ids));

@@ -180,7 +180,7 @@ export function Desk({
         return;
       }
 
-      const result = await checkIn(service, stationId, entries, church);
+      const result = await checkIn(service, stationId, entries);
       setError(result.error);
       if (result.error) return;
       setCounts(result.counts ?? {});
@@ -222,7 +222,7 @@ export function Desk({
 
     setDoing("settle");
     startTransition(async () => {
-      for (const memberId of unsettled) await undo(service, memberId, church);
+      for (const memberId of unsettled) await undo(service, memberId);
       await again();
       setDone([]);
     });
@@ -235,7 +235,7 @@ export function Desk({
         await station.undoLocally(memberId);
         return;
       }
-      const result = await undo(service, memberId, church);
+      const result = await undo(service, memberId);
       setError(result.error);
       if (result.error) return;
       setCounts(result.counts ?? {});

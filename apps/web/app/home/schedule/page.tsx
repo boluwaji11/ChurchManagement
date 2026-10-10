@@ -85,7 +85,7 @@ export default async function MyServingPage({
                   mark: <DateMark iso={one.occursOn} hue={one.teamHue} />,
                   when: `${one.teamName} ${readableTime(one.startsAt)}`,
                   title: one.positionName,
-                  action: <Respond id={one.id} church={session.tenantSlug} />,
+                  action: <Respond id={one.id} />,
                 }))}
               />
             </Block>
@@ -121,7 +121,6 @@ export default async function MyServingPage({
               server says 29 October and the browser says October 29, and the
               page is rebuilt over a mismatch. */}
           <Away
-            church={session.tenantSlug}
             dates={mine.away.map((one) => ({
               id: one.id,
               startsOn: one.startsOn,

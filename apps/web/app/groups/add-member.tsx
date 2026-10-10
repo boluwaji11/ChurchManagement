@@ -27,7 +27,7 @@ import { findPerson, join, type PersonHit } from "./actions";
  * Everybody joins as a member. Who leads it is set on the group itself, where
  * the question is asked once rather than on every row.
  */
-export function AddMember({ church, groupId }: { church: string; groupId: string }) {
+export function AddMember({ groupId }: { groupId: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [picked, setPicked] = React.useState<PersonHit[]>([]);
@@ -51,7 +51,7 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
     }
     const mine = ++ticket.current;
     setSearching(true);
-    void findPerson(next, church).then((found) => {
+    void findPerson(next).then((found) => {
       if (mine !== ticket.current) return;
       setSearching(false);
       setHits(found);
@@ -84,7 +84,7 @@ export function AddMember({ church, groupId }: { church: string; groupId: string
     if (picked.length === 0) return;
     startSaving(async () => {
       for (const one of picked) {
-        const result = await join(groupId, one.id, "member", church);
+        const result = await join(groupId, one.id, "member");
         if (result.error) {
           setError(result.error);
           return;

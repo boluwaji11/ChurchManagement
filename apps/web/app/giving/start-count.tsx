@@ -24,13 +24,11 @@ import { startCount, amendCount, removeCount } from "./actions";
  * the whole of the control.
  */
 export function StartCount({
-  church,
   today,
   funds,
   count,
   trigger,
 }: {
-  church: string;
   today: string;
   /** R13.9. The causes the money can go to, so a session says which. */
   funds: { id: string; name: string }[];
@@ -92,8 +90,8 @@ export function StartCount({
     startTransition(async () => {
       const input = { name, receivedOn: date, fundId, amountCents: cents, method } as const;
       const result = count
-        ? await amendCount(count.id, input, church)
-        : await startCount(input, church);
+        ? await amendCount(count.id, input)
+        : await startCount(input);
       setError(result.error);
       if (!result.error) {
         /*
@@ -245,7 +243,7 @@ export function StartCount({
               loading={saving}
               onClick={() =>
                 startTransition(async () => {
-                  const result = await removeCount(count!.id, church);
+                  const result = await removeCount(count!.id);
                   setError(result.error);
                   if (!result.error) {
                     setAsking(false);

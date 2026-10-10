@@ -79,7 +79,7 @@ export function StationPicker({
   const choose = (id: string) => {
     setClaiming(id);
     startTransition(async () => {
-      const result = await claim(id, church);
+      const result = await claim(id);
       if (result.name) remember(id);
       else remember(null);
     });

@@ -17,11 +17,9 @@ import { ArchiveDialog, type GroupDraft, type GroupTypeOption } from "../group-f
  * its banner and three tabs without them.
  */
 export function ManageGroup({
-  church,
   group,
   types,
 }: {
-  church: string;
   group: GroupDraft;
   types: GroupTypeOption[];
 }) {
@@ -54,7 +52,6 @@ export function ManageGroup({
         }
         onConfirm={() => {
           const data = new FormData();
-          data.set("church", church);
           data.set("id", group.id);
           data.set("archived", "true");
           startTransition(async () => {

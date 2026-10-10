@@ -149,7 +149,7 @@ export default async function ServicesPage({
           body={t("services.none.body")}
           action={
             canEdit ? (
-              <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
+              <AddService today={now.date} nowTime={now.time} />
             ) : undefined
           }
         />
@@ -162,7 +162,7 @@ export default async function ServicesPage({
              where the view switch already lives. */
           action={
             canEdit ? (
-              <AddService church={session.tenantSlug} today={now.date} nowTime={now.time} />
+              <AddService today={now.date} nowTime={now.time} />
             ) : undefined
           }
         />

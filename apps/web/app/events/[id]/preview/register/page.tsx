@@ -132,7 +132,6 @@ export default async function PreviewRegisterPage({
         return registerFromPreview({
           eventId: event.id,
           party,
-          church: session.tenantSlug,
         });
       }}
       banner={

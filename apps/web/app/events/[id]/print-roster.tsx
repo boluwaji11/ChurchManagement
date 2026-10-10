@@ -15,11 +15,9 @@ import { t } from "@connectapp/i18n";
  * column and asking somebody to fold the paper is not an answer.
  */
 export function PrintRoster({
-  church,
   eventSlug,
   questions,
 }: {
-  church: string;
   eventSlug: string;
   questions: { id: string; label: string }[];
 }) {

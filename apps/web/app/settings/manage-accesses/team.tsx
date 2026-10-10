@@ -199,7 +199,7 @@ export function Team({
                 if (who) {
                   run(
                     `remove:${who.userId}`,
-                    () => removeAccess(who.userId, church),
+                    () => removeAccess(who.userId),
                     t("team.removed", { name: (who.name ?? who.email).split(" ")[0]! }),
                   );
                 }
@@ -348,7 +348,7 @@ export function Team({
                       disabled={pending}
                       onConfirm={() =>
                         run(`withdraw:${invitation.id}`, () =>
-                          withdraw(invitation.id, church),
+                          withdraw(invitation.id),
                         )
                       }
                       trigger={
@@ -539,7 +539,7 @@ export function InvitePerson({
       }
       const mine = ++ticket.current;
       setSearching(true);
-      void invitees(search, church).then((people) => {
+      void invitees(search).then((people) => {
         if (mine !== ticket.current) return;
         setSearching(false);
         setFound(people);
@@ -593,7 +593,6 @@ export function InvitePerson({
           noValidate
           onInput={() => setDirty(true)}
           action={(data) => {
-            data.set("church", church);
             data.set("role", role);
             startTransition(async () => {
               const result = await invite(data);

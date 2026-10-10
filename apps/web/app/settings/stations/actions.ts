@@ -10,8 +10,8 @@ export interface StationResult {
   error?: string;
 }
 
-async function context(slug: string | undefined) {
-  const session = await requireSession(slug);
+async function context() {
+  const session = await requireSession();
   const h = await headers();
   const forwarded = h.get("x-forwarded-for");
   return {
@@ -37,7 +37,7 @@ const input = (data: FormData) => ({
 });
 
 export async function createStation(data: FormData): Promise<StationResult> {
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => addStation(tx, actor, input(data)));
     revalidatePath("/settings/stations");
@@ -48,7 +48,7 @@ export async function createStation(data: FormData): Promise<StationResult> {
 }
 
 export async function saveStation(data: FormData): Promise<StationResult> {
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => updateStation(tx, actor, field(data, "id"), input(data)));
     revalidatePath("/settings/stations");
@@ -59,7 +59,7 @@ export async function saveStation(data: FormData): Promise<StationResult> {
 }
 
 export async function archiveStation(data: FormData): Promise<StationResult> {
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) =>
       setStationArchived(tx, actor, field(data, "id"), field(data, "archived") === "1"),

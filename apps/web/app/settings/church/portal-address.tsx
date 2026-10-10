@@ -61,7 +61,7 @@ export function PortalAddress({
     start(async () => {
       setError(undefined);
       setTook(null);
-      const answer = await claimPortalName(draft, church);
+      const answer = await claimPortalName(draft);
       if (answer.error) {
         setError(answer.error);
         return;
@@ -179,7 +179,7 @@ export function PortalAddress({
           onCheckedChange={(on) => {
             setLive(on);
             start(async () => {
-              const answer = await openPortal(on, church);
+              const answer = await openPortal(on);
               if (answer.error) {
                 setLive(!on);
                 setError(answer.error);

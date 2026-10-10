@@ -251,7 +251,6 @@ export default async function DashboardPage({
           March. */}
       {!setup.complete && !setup.dismissed ? (
         <SetupChecklist
-          church={session.tenantSlug}
           churchName={session.tenantName}
           progress={setup}
         />
@@ -291,8 +290,8 @@ export default async function DashboardPage({
         {/* R18.2. What has been happening, which is the question the number
             above cannot answer on its own. */}
         <Weeks services={weeks} today={now.date} />
-        <ThisWeek church={session.tenantSlug} entries={week} />
-        <FollowUp church={session.tenantSlug} today={now.date} entries={tasks} />
+        <ThisWeek entries={week} />
+        <FollowUp today={now.date} entries={tasks} />
       </div>
     </AppShell>
   );

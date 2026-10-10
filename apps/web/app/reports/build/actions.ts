@@ -10,7 +10,7 @@ import {
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   // A PermissionError, so explain() writes the sentence rather than rethrowing.
   if (!canEditPeople(session) && !canReadIncidents(session)) {
@@ -42,9 +42,9 @@ export interface PreviewResult {
  * same query the saved report will be. A preview drawn from a different code
  * path is a preview that lies on the day it matters.
  */
-export async function preview(spec: ReportSpec, church?: string): Promise<PreviewResult> {
+export async function preview(spec: ReportSpec): Promise<PreviewResult> {
   try {
-    const { ctx } = await context(church);
+    const { ctx } = await context();
     const result = await withTenant(ctx, (tx) => runReport(tx, spec, { limit: SCREEN_LIMIT }));
     return { result };
   } catch (error) {
@@ -61,10 +61,9 @@ export async function preview(spec: ReportSpec, church?: string): Promise<Previe
  */
 export async function previewPage(
   tiles: (ReportSpec & { id: string })[],
-  church?: string,
-): Promise<Record<string, ReportResultish>> {
+  ): Promise<Record<string, ReportResultish>> {
   try {
-    const { ctx } = await context(church);
+    const { ctx } = await context();
     return await withTenant(ctx, async (tx) => {
       const out: Record<string, ReportResultish> = {};
       for (const tile of tiles) {
@@ -95,10 +94,9 @@ export interface SaveResult {
 
 export async function saveReport(
   input: { id?: string; name: string; spec: ReportPage },
-  church?: string,
-): Promise<SaveResult> {
+  ): Promise<SaveResult> {
   try {
-    const { ctx } = await context(church);
+    const { ctx } = await context();
     return await withTenant(ctx, async (tx) => {
       if (input.id) {
         await updateSavedReport(tx, ctx, { id: input.id, name: input.name, spec: input.spec });
@@ -123,10 +121,9 @@ export async function saveReport(
  */
 export async function startReport(
   name: string,
-  church?: string,
-): Promise<SaveResult> {
+  ): Promise<SaveResult> {
   try {
-    const { ctx } = await context(church);
+    const { ctx } = await context();
     const page: ReportPage = {
       tiles: [
         {
@@ -150,10 +147,9 @@ export async function startReport(
 export async function renameReport(
   id: string,
   name: string,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
-    const { ctx } = await context(church);
+    const { ctx } = await context();
     await withTenant(ctx, (tx) => updateSavedReport(tx, ctx, { id, name }));
     return {};
   } catch (error) {
@@ -165,10 +161,9 @@ export async function renameReport(
 export async function shareReport(
   id: string,
   shared: boolean,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
-    const { ctx } = await context(church);
+    const { ctx } = await context();
     await withTenant(ctx, (tx) => setSavedReportShared(tx, ctx, id, shared));
     return {};
   } catch (error) {
@@ -180,10 +175,9 @@ export async function shareReport(
 export async function archiveReport(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
-    const { ctx } = await context(church);
+    const { ctx } = await context();
     await withTenant(ctx, (tx) => setSavedReportArchived(tx, ctx, id, archived));
     return {};
   } catch (error) {

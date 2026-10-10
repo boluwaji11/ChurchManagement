@@ -19,7 +19,7 @@ export interface WeekEntry {
  * a church thinks about its week as a week rather than as three screens. The
  * calendar is where the rest of it lives, and the heading links there.
  */
-export function ThisWeek({ church, entries }: { church: string; entries: WeekEntry[] }) {
+export function ThisWeek({ entries }: { entries: WeekEntry[] }) {
   return (
     <Panel
       title={t("dashboard.thisWeek")}

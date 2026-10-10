@@ -32,7 +32,7 @@ type Tab = "overview" | "registrations";
  * The bucket is private, so nothing here is an address: each one goes through
  * a route that checks who is asking and signs a link that lives five minutes.
  */
-function AnswerFiles({ answer, church }: { answer: unknown; church: string }) {
+function AnswerFiles({ answer }: { answer: unknown }) {
   const keys = Array.isArray(answer) ? (answer as string[]) : [];
   if (keys.length === 0) return null;
 
@@ -191,7 +191,7 @@ export function EventView({
           <IconButton
             label={t("event.restore")}
             disabled={pending}
-            onClick={() => run("restore", () => archiveEvent(event.id, false, church))}
+            onClick={() => run("restore", () => archiveEvent(event.id, false))}
           >
             {doing === "restore" ? (
               <Spinner label={t("event.restore")} />
@@ -217,7 +217,7 @@ export function EventView({
                   onClick={() => {
                     setDoing("archive");
                     startTransition(async () => {
-                      const result = await archiveEvent(event.id, true, church);
+                      const result = await archiveEvent(event.id, true);
                       if (result.error) setError(result.error);
                       else router.push("/events");
                     });
@@ -316,7 +316,7 @@ export function EventView({
             disabled={pending}
             onClick={() =>
               run("registration", () =>
-                openEventRegistration(event.id, !event.registrationOpen, church),
+                openEventRegistration(event.id, !event.registrationOpen),
               )}
           >
             {event.registrationOpen ? t("event.registrationClose") : t("event.registrationReopen")}
@@ -329,7 +329,7 @@ export function EventView({
             variant="secondary"
             loading={doing === "unpublish"}
             disabled={pending}
-            onClick={() => run("unpublish", () => publishEvent(event.id, "draft", church))}
+            onClick={() => run("unpublish", () => publishEvent(event.id, "draft"))}
           >
             {t("event.unpublish")}
           </Button>
@@ -338,7 +338,7 @@ export function EventView({
             type="button"
             loading={doing === "publish"}
             disabled={pending}
-            onClick={() => run("publish", () => publishEvent(event.id, "published", church))}
+            onClick={() => run("publish", () => publishEvent(event.id, "published"))}
           >
             {t("event.publish")}
           </Button>
@@ -438,7 +438,7 @@ export function EventView({
                 <Download />
               </a>
               </Tooltip>
-              <PrintRoster church={church} eventSlug={event.slug} questions={questions} />
+              <PrintRoster eventSlug={event.slug} questions={questions} />
             </div>
 
             {/* R24.6. A registration is a record somebody reads one of, so on
@@ -510,7 +510,7 @@ export function EventView({
                       if (q.kind === "file") {
                         return Array.isArray(answer) && answer.length > 0 ? (
                           <Line key={q.id} label={q.label}>
-                            <AnswerFiles answer={answer} church={church} />
+                            <AnswerFiles answer={answer} />
                           </Line>
                         ) : null;
                       }
@@ -597,7 +597,7 @@ export function EventView({
                       {questions.map((q) => (
                         <Td key={q.id} className="text-fg-muted">
                           {q.kind === "file" ? (
-                            <AnswerFiles answer={one.answers[q.id]} church={church} />
+                            <AnswerFiles answer={one.answers[q.id]} />
                           ) : (
                             answerText(one.answers[q.id])
                           )}

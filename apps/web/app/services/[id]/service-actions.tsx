@@ -18,13 +18,11 @@ import { setCancelled } from "../actions";
  * absent from a service that did not happen.
  */
 export function ServiceActions({
-  church,
   id,
   name,
   date,
   cancelled,
 }: {
-  church: string;
   id: string;
   name: string;
   date: string;
@@ -36,7 +34,6 @@ export function ServiceActions({
 
   const run = (next: boolean) => {
     const data = new FormData();
-    data.set("church", church);
     data.set("id", id);
     data.set("cancelled", next ? "1" : "0");
     startTransition(async () => {

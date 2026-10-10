@@ -20,10 +20,8 @@ export interface ArchivedList {
  * is the directory's own archived view, reached by the link at its foot.
  */
 export function ArchivedLists({
-  church,
   lists,
 }: {
-  church: string;
   lists: ArchivedList[];
 }) {
   const router = useRouter();
@@ -32,7 +30,7 @@ export function ArchivedLists({
 
   const restore = (id: string) =>
     startTransition(async () => {
-      const result = await archiveList(id, false, church);
+      const result = await archiveList(id, false);
       setError(result.error);
       if (!result.error) router.refresh();
     });

@@ -38,14 +38,12 @@ const label = (kind: string) => t(`relationship.kind.${kind}` as never);
  * volunteer scanning this card at the door reads the first line.
  */
 export function Relationships({
-  church,
   memberId,
   rows,
   candidates,
   canEdit,
   canLift,
 }: {
-  church: string;
   memberId: string;
   rows: RelationRow[];
   candidates: Candidate[];
@@ -73,7 +71,6 @@ export function Relationships({
   const submit = () => {
     if (!related || !kind) return;
     const data = new FormData();
-    data.set("church", church);
     data.set("memberId", memberId);
     data.set("relatedMemberId", related);
     data.set("kind", kind);
@@ -93,7 +90,6 @@ export function Relationships({
 
   const remove = (id: string) => {
     const data = new FormData();
-    data.set("church", church);
     data.set("memberId", memberId);
     data.set("id", id);
 

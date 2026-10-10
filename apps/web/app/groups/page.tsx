@@ -116,7 +116,7 @@ export default async function GroupsPage({
    */
   if (!putAway && !type && kinds.length > 0) {
     const landing = (
-      <TypesLanding church={session.tenantSlug} types={kinds} />
+      <TypesLanding types={kinds} />
     );
     /* The kinds are the heading. A title over a list of names that are
        themselves titles says the word twice. */

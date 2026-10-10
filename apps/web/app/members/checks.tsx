@@ -46,14 +46,12 @@ const TONE: Record<string, "success" | "warning" | "danger" | "neutral"> = {
  * 2024 has to stay answerable later.
  */
 export function Checks({
-  church,
   memberId,
   standing,
   expiresOn,
   rows,
   canEdit,
 }: {
-  church: string;
   memberId: string;
   standing: string;
   expiresOn: string | null;
@@ -101,7 +99,6 @@ export function Checks({
       {canEdit ? (
         <div>
           <AddDialog
-            church={church}
             memberId={memberId}
             pending={pending}
             onDone={() => router.refresh()}
@@ -114,13 +111,11 @@ export function Checks({
 }
 
 function AddDialog({
-  church,
   memberId,
   pending,
   onDone,
   onError,
 }: {
-  church: string;
   memberId: string;
   pending: boolean;
   onDone: () => void;
@@ -156,7 +151,6 @@ function AddDialog({
           id={formId}
           noValidate
           action={(data) => {
-            data.set("church", church);
             data.set("memberId", memberId);
             data.set("status", status);
             startTransition(async () => {

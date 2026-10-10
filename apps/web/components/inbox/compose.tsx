@@ -117,7 +117,7 @@ export function Compose({
 
       <div className="flex-1" />
 
-      {to ? <Writer church={church} to={to} onSent={() => onSent(to)} autoFocus /> : null}
+      {to ? <Writer to={to} onSent={() => onSent(to)} autoFocus /> : null}
     </div>
   );
 }

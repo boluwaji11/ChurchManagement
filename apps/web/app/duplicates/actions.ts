@@ -12,8 +12,8 @@ export interface MergeOutcome {
   restored?: number;
 }
 
-async function context(slug: string | undefined) {
-  const session = await requireSession(slug);
+async function context() {
+  const session = await requireSession();
   const h = await headers();
   const forwarded = h.get("x-forwarded-for");
   return {
@@ -46,7 +46,7 @@ export async function merge(data: FormData): Promise<MergeOutcome> {
     if (field(data, `take.${key}`) === "loser") take[key] = "loser";
   }
 
-  const { session, ctx } = await context(field(data, "church") || undefined);
+  const { session, ctx } = await context();
   try {
     const result = await withTenant(ctx, (tx) =>
       mergePeople(tx, { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions }, {
@@ -67,7 +67,7 @@ export async function undo(data: FormData): Promise<MergeOutcome> {
   const mergeId = field(data, "mergeId");
   if (!mergeId) return { error: "merge.error.notFound" };
 
-  const { session, ctx } = await context(field(data, "church") || undefined);
+  const { session, ctx } = await context();
   try {
     const result = await withTenant(ctx, (tx) =>
       undoMerge(tx, { tenantId: session.tenantId, role: session.role }, mergeId),

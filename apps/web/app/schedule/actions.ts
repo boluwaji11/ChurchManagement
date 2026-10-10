@@ -15,7 +15,7 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { pushTo } from "@/lib/push";
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     session,
@@ -36,8 +36,7 @@ export interface TeamResult {
 }
 
 export async function saveTeam(data: FormData): Promise<TeamResult> {
-  const church = field(data, "church") || undefined;
-  const { actor, ctx } = await context(church);
+  const { actor, ctx } = await context();
   const id = field(data, "id");
   const input = {
     name: field(data, "name"),
@@ -56,8 +55,7 @@ export async function saveTeam(data: FormData): Promise<TeamResult> {
 }
 
 export async function archiveTeam(data: FormData): Promise<TeamResult> {
-  const church = field(data, "church") || undefined;
-  const { actor, ctx } = await context(church);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) =>
       setTeamArchived(tx, actor, field(data, "id"), field(data, "archived") === "true"),
@@ -83,9 +81,8 @@ export interface PositionFields {
 export async function savePosition(
   id: string | null,
   input: PositionFields,
-  church?: string,
-): Promise<PositionResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<PositionResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, async (tx) => {
       if (id) await updatePosition(tx, actor, id, input);
@@ -97,8 +94,8 @@ export async function savePosition(
   }
 }
 
-export async function archivePosition(id: string, church?: string): Promise<PositionResult> {
-  const { actor, ctx } = await context(church);
+export async function archivePosition(id: string): Promise<PositionResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setPositionArchived(tx, actor, id, true));
     return {};
@@ -115,9 +112,8 @@ export async function addMember(
   teamId: string,
   memberId: string,
   role: TeamRole,
-  church?: string,
-): Promise<RosterResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<RosterResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => addToTeam(tx, actor, { teamId, memberId, role }));
     return {};
@@ -129,9 +125,8 @@ export async function addMember(
 export async function removeMember(
   teamId: string,
   memberId: string,
-  church?: string,
-): Promise<RosterResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<RosterResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeFromTeam(tx, actor, { teamId, memberId }));
     return {};
@@ -144,9 +139,8 @@ export async function changeRole(
   teamId: string,
   memberId: string,
   role: TeamRole,
-  church?: string,
-): Promise<RosterResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<RosterResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setTeamMemberRole(tx, actor, { teamId, memberId, role }));
     return {};
@@ -159,9 +153,8 @@ export async function changePositions(
   teamId: string,
   memberId: string,
   positionIds: string[],
-  church?: string,
-): Promise<RosterResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<RosterResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) =>
       setTeamMemberPositions(tx, actor, { teamId, memberId, positionIds }),
@@ -179,8 +172,8 @@ export interface PersonHit {
 }
 
 /** R10.1. Finding somebody to put on the team, by the name a leader knows. */
-export async function findPerson(query: string, church?: string): Promise<PersonHit[]> {
-  const { session, ctx } = await context(church);
+export async function findPerson(query: string): Promise<PersonHit[]> {
+  const { session, ctx } = await context();
   try {
     return await withTenant(ctx, async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
@@ -221,9 +214,8 @@ export async function schedule(
   input: {
     occurrenceId: string; teamId: string; positionId: string; memberId: string; anyway: boolean;
   },
-  church?: string,
-): Promise<ScheduleResult> {
-  const { session, actor, ctx } = await context(church);
+  ): Promise<ScheduleResult> {
+  const { session, actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => assign(tx, actor, input));
 
@@ -250,8 +242,8 @@ export async function schedule(
   }
 }
 
-export async function unschedule(id: string, church?: string): Promise<ScheduleResult> {
-  const { actor, ctx } = await context(church);
+export async function unschedule(id: string): Promise<ScheduleResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => unassign(tx, actor, id));
     return {};
@@ -263,9 +255,8 @@ export async function unschedule(id: string, church?: string): Promise<ScheduleR
 /** R10.3. Who could fill this slot, with what the scheduler should know. */
 export async function whoCouldFill(
   input: { teamId: string; positionId: string; occurrenceId: string },
-  church?: string,
-): Promise<PlanCandidate[]> {
-  const { ctx } = await context(church);
+  ): Promise<PlanCandidate[]> {
+  const { ctx } = await context();
   try {
     return await withTenant(ctx, (tx) => candidatesFor(tx, input));
   } catch {
@@ -278,8 +269,7 @@ export interface AvailabilityResult {
 }
 
 export async function saveBlockout(data: FormData): Promise<AvailabilityResult> {
-  const church = field(data, "church") || undefined;
-  const { actor, ctx } = await context(church);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) =>
       addBlockout(tx, actor, {
@@ -295,8 +285,8 @@ export async function saveBlockout(data: FormData): Promise<AvailabilityResult> 
   }
 }
 
-export async function dropBlockout(id: string, church?: string): Promise<AvailabilityResult> {
-  const { actor, ctx } = await context(church);
+export async function dropBlockout(id: string): Promise<AvailabilityResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeBlockout(tx, actor, id));
     return {};
@@ -308,9 +298,8 @@ export async function dropBlockout(id: string, church?: string): Promise<Availab
 export async function saveFrequency(
   memberId: string,
   frequency: ServingFrequency | null,
-  church?: string,
-): Promise<AvailabilityResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<AvailabilityResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setServingPreference(tx, actor, { memberId, frequency }));
     return {};

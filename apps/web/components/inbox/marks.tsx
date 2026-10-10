@@ -69,13 +69,11 @@ function Choices({
  * was said.
  */
 export function ReactButton({
-  church,
   id,
   marks,
   onChanged,
   className,
 }: {
-  church: string;
   id: string;
   marks: Mark[];
   onChanged: () => void;
@@ -88,7 +86,7 @@ export function ReactButton({
     if (busy) return;
     setBusy(true);
     setOpen(false);
-    void markMessage(id, emoji, church).then(() => {
+    void markMessage(id, emoji).then(() => {
       setBusy(false);
       onChanged();
     });
@@ -129,13 +127,11 @@ export function ReactButton({
  * the time never moves.
  */
 export function Marks({
-  church,
   id,
   marks,
   mine,
   onChanged,
 }: {
-  church: string;
   id: string;
   marks: Mark[];
   /** Whether the reader wrote it: their own line is read rather than marked. */
@@ -149,7 +145,7 @@ export function Marks({
     if (busy) return;
     setBusy(true);
     setOpen(false);
-    void markMessage(id, emoji, church).then(() => {
+    void markMessage(id, emoji).then(() => {
       setBusy(false);
       onChanged();
     });

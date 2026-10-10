@@ -88,7 +88,6 @@ function AddPosition({ church, teamId }: { church: string; teamId: string }) {
       const result = await savePosition(
         null,
         { teamId, name: name.trim(), needed: 1, withChildren: false, requiresCheck: false },
-        church,
       );
       setError(result.error);
       if (!result.error) {
@@ -163,7 +162,7 @@ function FillSlot({
   const look = () => {
     setOpen(true);
     startTransition(async () => {
-      setWho(await whoCouldFill({ teamId, positionId, occurrenceId }, church));
+      setWho(await whoCouldFill({ teamId, positionId, occurrenceId }));
     });
   };
 
@@ -171,7 +170,6 @@ function FillSlot({
     startTransition(async () => {
       const result = await schedule(
         { occurrenceId, teamId, positionId, memberId, anyway: true },
-        church,
       );
       setError(result.error);
       if (!result.error) {
@@ -369,7 +367,6 @@ export function ScheduleGrid({
     startTransition(async () => {
       const result = await schedule(
         { occurrenceId, teamId: team.id, positionId, memberId: who.memberId, anyway: false },
-        church,
       );
       setError(result.error);
       router.refresh();
@@ -379,7 +376,7 @@ export function ScheduleGrid({
   /* The promise goes back to the confirmation, which keeps its button busy
      and the box open until the row has actually gone. */
   const take = async (assignmentId: string) => {
-    const result = await unschedule(assignmentId, church);
+    const result = await unschedule(assignmentId);
     setError(result.error);
     router.refresh();
   };

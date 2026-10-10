@@ -14,11 +14,9 @@ import { t } from "@connectapp/i18n";
  * happening and hand the file over when it arrives.
  */
 export function DownloadRow({
-  church,
   only,
   file,
 }: {
-  church: string;
   /** Which table, or nothing for the whole archive. */
   only?: string;
   /** The name the file is saved under. */

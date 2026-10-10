@@ -142,7 +142,7 @@ export async function AppShell({
 
       {/* R22.1. Asked once a browser, in the product's own words, before the
           browser's own prompt appears beside the padlock. */}
-      <AskPush church={session.tenantSlug} />
+      <AskPush />
 
       <Sidebar
         entries={entries}
@@ -172,7 +172,6 @@ export async function AppShell({
           churchName={session.tenantName}
           bell={
             <NotificationBell
-              church={session.tenantSlug}
               unread={counts.unread}
               items={counts.notifications.map((one) => ({
                 id: one.id,

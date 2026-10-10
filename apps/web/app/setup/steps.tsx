@@ -32,14 +32,12 @@ export interface StepView {
  * far along it is, and a list of rows in one box says nothing about order.
  */
 export function Steps({
-  church,
   person,
   steps,
   settled,
   left,
 }: {
-  church: string;
-  /** Whoever made the church, so the welcome is addressed to somebody. */
+  /** Whoever made the so the welcome is addressed to somebody. */
   person?: string;
   steps: StepView[];
   settled: number;
@@ -61,7 +59,7 @@ export function Steps({
   /** R22.1. Done with setup, one way or the other: into the product. */
   const finish = () =>
     startTransition(async () => {
-      const result = await putAway(church);
+      const result = await putAway();
       if (result.error) {
         setError(result.error);
         return;
@@ -167,7 +165,7 @@ export function Steps({
                     <Button
                       variant="ghost"
                       disabled={pending}
-                      onClick={() => run(() => skip(step.step as never, !step.skipped, church))}
+                      onClick={() => run(() => skip(step.step as never, !step.skipped))}
                     >
                       {step.skipped ? t("setup.unskip") : t("setup.skip")}
                     </Button>

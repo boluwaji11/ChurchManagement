@@ -63,7 +63,7 @@ export function useInstall(): (() => void) | null {
  * the permission alone: somebody who said yes on their laptop has not said yes
  * on their phone.
  */
-export function usePush(church: string): {
+export function usePush(): {
   on: boolean;
   busy: boolean;
   toggle: () => void;
@@ -92,7 +92,7 @@ export function usePush(church: string): {
         if (!sub) { setOn(false); return; }
 
         const { known, subscribe } = await import("@/app/home/push-actions");
-        if (await known(sub.endpoint, church)) { setOn(true); return; }
+        if (await known(sub.endpoint)) { setOn(true); return; }
 
         const json = sub.toJSON() as { keys?: { p256dh?: string; auth?: string } };
         if (!json.keys?.p256dh || !json.keys.auth) { setOn(false); return; }
@@ -103,14 +103,13 @@ export function usePush(church: string): {
             auth: json.keys.auth,
             userAgent: navigator.userAgent,
           },
-          church,
         );
         setOn(!result.error);
       } catch {
         setOn(false);
       }
     })();
-  }, [church]);
+  }, []);
 
   if (!ready) return null;
 
@@ -123,7 +122,7 @@ export function usePush(church: string): {
 
         if (existing) {
           const { unsubscribe } = await import("@/app/home/push-actions");
-          await unsubscribe(existing.endpoint, church);
+          await unsubscribe(existing.endpoint);
           await existing.unsubscribe();
           setOn(false);
           return;
@@ -152,7 +151,6 @@ export function usePush(church: string): {
             auth: json.keys.auth,
             userAgent: navigator.userAgent,
           },
-          church,
         );
         setOn(!result.error);
       } finally {

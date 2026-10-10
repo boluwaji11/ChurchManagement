@@ -119,7 +119,6 @@ export default async function MailerPage({
           />
         ) : (
           <Shelf
-            church={session.tenantSlug}
             putAway={putAway}
             archivedCount={read.archivedCount}
             mailers={read.mailers.map((one) => ({

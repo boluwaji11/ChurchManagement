@@ -80,7 +80,6 @@ export function ChurchForm({
   const mayReadTaxId = "taxId" in values;
 
   const save = (data: FormData) => {
-    data.set("church", values.slug);
     data.set("timezone", timezone);
     data.set("country", country);
     data.set("region", region);

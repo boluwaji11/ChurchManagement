@@ -23,7 +23,7 @@ export interface Notice {
  * put away by the member reading it. Theirs alone: the notice stays on the
  * board and on everybody else's feed.
  */
-export function Notices({ church, notices }: { church: string; notices: Notice[] }) {
+export function Notices({ notices }: { notices: Notice[] }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [working, start] = React.useTransition();
@@ -79,7 +79,7 @@ export function Notices({ church, notices }: { church: string; notices: Notice[]
                   disabled={working}
                   onConfirm={() => new Promise<void>((done) => {
                     start(async () => {
-                      const back = await putNoticeAway(one.id, church);
+                      const back = await putNoticeAway(one.id);
                       setError(back.error);
                       router.refresh();
                       done();

@@ -46,7 +46,6 @@ export function GroupBanner({
     setError(undefined);
 
     const data = new FormData();
-    data.set("church", church);
     data.set("purpose", "group_photo");
     data.set("groupId", groupId);
     data.set("file", file);

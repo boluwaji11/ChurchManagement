@@ -20,11 +20,9 @@ import { t } from "@connectapp/i18n";
  * nothing.
  */
 export function YearPicker({
-  church,
   year,
   years,
 }: {
-  church: string;
   year: string;
   /** Newest first, and always holding the year on screen. */
   years: string[];

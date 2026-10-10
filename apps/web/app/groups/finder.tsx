@@ -85,9 +85,8 @@ export interface FinderRequest {
 }
 
 /** R9.2. Putting an archived group back on the lists. */
-async function restore(id: string, church: string): Promise<{ error?: string }> {
+async function restore(id: string): Promise<{ error?: string }> {
   const data = new FormData();
-  data.set("church", church);
   data.set("id", id);
   data.set("archived", "false");
   return archive(data);
@@ -555,7 +554,6 @@ export function Finder({
           .map((band, at, bands) => (
             <GroupBand
               key={band.key}
-              church={church}
               from={from}
               heading={bands.length > 1 ? band.heading() : null}
               rows={band.rows}
@@ -563,7 +561,7 @@ export function Finder({
               rule={at > 0}
               onRestore={
                 putAway
-                  ? (id) => run(() => restore(id, church))
+                  ? (id) => run(() => restore(id))
                   : undefined
               }
               pending={pending}
@@ -584,9 +582,8 @@ export function Finder({
  * carrying a click handler.
  */
 function GroupCard({
-  church, group, from, onRestore, pending,
+  group, from, onRestore, pending,
 }: {
-  church: string;
   group: FinderGroup;
   from: string;
   /** R9.2. Set on the archived view, where a card has one thing to do. */
@@ -679,9 +676,8 @@ function GroupCard({
  * days rather than look at forty pictures.
  */
 function GroupRow({
-  church, group, from, onRestore, pending,
+  group, from, onRestore, pending,
 }: {
-  church: string;
   group: FinderGroup;
   from: string;
   onRestore?: (id: string) => void;
@@ -757,7 +753,6 @@ function GroupRow({
 
 /** One band, which draws as much of itself as anybody has asked for. */
 function GroupBand({
-  church,
   from,
   heading,
   rows,
@@ -766,7 +761,6 @@ function GroupBand({
   onRestore,
   pending,
 }: {
-  church: string;
   from: string;
   heading: string | null;
   rows: FinderGroup[];
@@ -795,7 +789,6 @@ function GroupBand({
           {shown.map((group) => (
             <GroupCard
               key={group.id}
-              church={church}
               group={group}
               from={from}
               onRestore={onRestore}
@@ -808,7 +801,6 @@ function GroupBand({
           {shown.map((group) => (
             <div key={group.id} className="border-b border-line last:border-b-0">
               <GroupRow
-                church={church}
                 group={group}
                 from={from}
                 onRestore={onRestore}

@@ -41,7 +41,7 @@ export async function saveDomain(domain: string, church?: string): Promise<Domai
 }
 
 /** R1.7. Opening or shutting the church's own door to new accounts. */
-export async function setSignup(open: boolean, church?: string): Promise<{ error?: string }> {
+export async function setSignup(open: boolean): Promise<{ error?: string }> {
   try {
     const session = await requireSession();
     await setSelfSignup(session.tenantId, session.role, open);
@@ -62,7 +62,6 @@ export async function setSignup(open: boolean, church?: string): Promise<{ error
  */
 export async function checkDomain(
   domain: string,
-  church?: string,
   /** Our own host, so the reading can say whether the name reaches us yet. */
   expect?: string,
 ): Promise<{ found?: DomainFindings; error?: string }> {
@@ -84,8 +83,7 @@ export async function checkDomain(
  */
 export async function claimPortalName(
   name: string,
-  church?: string,
-): Promise<{ name?: string | null; free?: boolean; error?: string }> {
+  ): Promise<{ name?: string | null; free?: boolean; error?: string }> {
   const session = await requireSession();
   if (!canManageChurch(session)) return { error: t("domain.error.notAllowed") };
 
@@ -114,8 +112,7 @@ export async function claimPortalName(
 /** R17.1. Turning the church's address on, or off. */
 export async function openPortal(
   on: boolean,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
     const session = await requireSession();
     await withTenant(

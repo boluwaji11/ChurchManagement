@@ -14,14 +14,12 @@ import { Places } from "./places";
  * thing.
  */
 export function ChurchSections({
-  church,
   values,
   campus,
   canEdit,
   logo,
   heading,
 }: {
-  church: string;
   values: ChurchValues;
   campus: Campus | null;
   canEdit: boolean;
@@ -43,7 +41,7 @@ export function ChurchSections({
         onEditing={setEditing}
       />
 
-      <Places church={church} campus={campus} canEdit={canEdit} editing={editing} />
+      <Places campus={campus} canEdit={canEdit} editing={editing} />
 
 
     </>

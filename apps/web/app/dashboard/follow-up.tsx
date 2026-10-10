@@ -18,11 +18,9 @@ import { Panel } from "./panel";
  * The board is still where the work is sorted, and the heading links there.
  */
 export function FollowUp({
-  church,
   today,
   entries,
 }: {
-  church: string;
   today: string;
   entries: OpenFollowUp[];
 }) {
@@ -87,7 +85,7 @@ export function FollowUp({
                   setWorking(one.id);
                   setError(null);
                   startTransition(async () => {
-                    const result = await finishStep(one.id, null, church);
+                    const result = await finishStep(one.id, null);
                     setWorking(null);
                     if (result.error) {
                       setError(result.error);

@@ -62,7 +62,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
   const reconcile = React.useCallback(async () => {
     const events = await pendingEvents();
     if (events.length > 0) {
-      const sent = await sync(stationId, events, church);
+      const sent = await sync(stationId, events);
       if (sent.error) return false;
       await forgetEvents(events.map((e) => e.id));
       if (sent.result && sent.result.conflicts.length > 0) {
@@ -74,7 +74,7 @@ export function useStation(stationId: string, occurrenceId: string, church: stri
   }, [stationId, church, countWaiting]);
 
   const pull = React.useCallback(async () => {
-    const fresh = await pullSnapshot(stationId, occurrenceId, church);
+    const fresh = await pullSnapshot(stationId, occurrenceId);
     if (fresh.error || !fresh.snapshot) {
       setOnline(false);
       return;

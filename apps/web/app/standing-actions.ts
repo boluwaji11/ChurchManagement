@@ -9,7 +9,7 @@ import { requireSession } from "@/lib/session";
  * One boolean, read through the session like everything else, so it cannot be
  * asked about a church the caller does not belong to.
  */
-export async function stillWaiting(church?: string): Promise<boolean> {
+export async function stillWaiting(): Promise<boolean> {
   const session = await requireSession();
   const standing = await withTenant(
     { tenantId: session.tenantId, role: session.role },
@@ -26,7 +26,7 @@ export async function stillWaiting(church?: string): Promise<boolean> {
  * was built with is how it finds out, and it carries no information the holder
  * does not already have about themselves.
  */
-export async function accessNow(church?: string): Promise<string> {
+export async function accessNow(): Promise<string> {
   const session = await requireSession();
   return [session.role, ...[...(session.permissions ?? [])].sort()].join("|");
 }

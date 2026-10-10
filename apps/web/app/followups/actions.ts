@@ -7,7 +7,7 @@ import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     session,
@@ -24,9 +24,8 @@ async function context(church?: string) {
 export async function findPeople(
   pipelineId: string,
   search: string,
-  church?: string,
-): Promise<{ id: string; name: string }[]> {
-  const { ctx } = await context(church);
+  ): Promise<{ id: string; name: string }[]> {
+  const { ctx } = await context();
   return withTenant(ctx, (tx) => peopleNotIn(tx, pipelineId, search));
 }
 
@@ -42,9 +41,8 @@ export async function addToStage(
   pipelineId: string,
   memberId: string,
   position: number,
-  church?: string,
-): Promise<{ error?: string }> {
-  const { session, ctx } = await context(church);
+  ): Promise<{ error?: string }> {
+  const { session, ctx } = await context();
   try {
     await withTenant(ctx, async (tx) => {
       const profile = await getChurch(tx, session.tenantId);

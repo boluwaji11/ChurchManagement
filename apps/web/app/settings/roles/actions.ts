@@ -10,7 +10,7 @@ export interface RoleResult {
   error?: string;
 }
 
-async function actor(church?: string) {
+async function actor() {
   const session = await requireSession();
   return { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 }
@@ -19,9 +19,8 @@ async function actor(church?: string) {
 export async function addRole(
   name: string,
   permissions: string[],
-  church?: string,
-): Promise<RoleResult> {
-  const who = await actor(church);
+  ): Promise<RoleResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => createRole(tx, who, name, permissions));
     return {};
@@ -35,9 +34,8 @@ export async function saveRole(
   id: string,
   name: string,
   permissions: string[],
-  church?: string,
-): Promise<RoleResult> {
-  const who = await actor(church);
+  ): Promise<RoleResult> {
+  const who = await actor();
   try {
     await withTenant(who, async (tx) => {
       await renameRole(tx, who, id, name);
@@ -49,8 +47,8 @@ export async function saveRole(
   }
 }
 
-export async function setRoleName(id: string, name: string, church?: string): Promise<RoleResult> {
-  const who = await actor(church);
+export async function setRoleName(id: string, name: string): Promise<RoleResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => renameRole(tx, who, id, name));
     return {};
@@ -63,9 +61,8 @@ export async function setRoleName(id: string, name: string, church?: string): Pr
 export async function putAway(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<RoleResult> {
-  const who = await actor(church);
+  ): Promise<RoleResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => archiveRole(tx, who, id, archived));
     return {};

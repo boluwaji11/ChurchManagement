@@ -77,7 +77,7 @@ export function SchedulePlan({
 
   const take = (id: string) => {
     startTransition(async () => {
-      const result = await unschedule(id, church);
+      const result = await unschedule(id);
       setError(result.error);
       if (!result.error) router.refresh();
     });
@@ -87,7 +87,6 @@ export function SchedulePlan({
     startTransition(async () => {
       const result = await schedule(
         { occurrenceId, teamId, positionId, memberId, anyway },
-        church,
       );
       setError(result.error);
       if (!result.error) router.refresh();
@@ -174,7 +173,6 @@ export function SchedulePlan({
                     ))}
 
                     <AddDialog
-                      church={church}
                       teamId={teamId}
                       positionId={position.id}
                       positionName={position.name}
@@ -196,7 +194,6 @@ export function SchedulePlan({
 
 /** R10.3 to R10.5. Who could fill the slot, and what the scheduler should know. */
 function AddDialog({
-  church,
   teamId,
   positionId,
   positionName,
@@ -204,7 +201,6 @@ function AddDialog({
   already,
   onPick,
 }: {
-  church: string;
   teamId: string;
   positionId: string;
   positionName: string;
@@ -218,11 +214,11 @@ function AddDialog({
   React.useEffect(() => {
     if (!open) return;
     let live = true;
-    whoCouldFill({ teamId, positionId, occurrenceId }, church).then((found) => {
+    whoCouldFill({ teamId, positionId, occurrenceId }).then((found) => {
       if (live) setPeople(found);
     });
     return () => { live = false; };
-  }, [open, teamId, positionId, occurrenceId, church]);
+  }, [open, teamId, positionId, occurrenceId]);
 
   const warningOf = (candidate: PlanCandidate): string | null => {
     const w = candidate.warning;

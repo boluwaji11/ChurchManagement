@@ -17,7 +17,7 @@ import { supabaseServer } from "@/lib/supabase/server";
  * Every address here is a person rather than a row: "office", or whoever the
  * message is for. A link to a conversation is a link to somebody.
  */
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     session,
@@ -34,14 +34,13 @@ async function context(church?: string) {
 export async function send(
   to: string,
   body: string,
-  church?: string,
   /** R16.9. The line this one answers, where it answers one. */
   answering?: string | null,
   /** R16.14. What was uploaded to go with it, in the order it was chosen. */
   files?: { id: string; label?: string | null }[],
 ): Promise<{ key?: string; error?: string }> {
   try {
-    const { session, ctx } = await context(church);
+    const { session, ctx } = await context();
     const { sent, told } = await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
       const [kind, name] = to.includes("/") ? to.split("/") : [null, to];
@@ -86,7 +85,7 @@ export async function messageFileLink(
   /** What to call it once it lands, which is the name it arrived with. */
   name?: string,
 ): Promise<string | null> {
-  const { ctx } = await context(church);
+  const { ctx } = await context();
   const mine = await withTenant(ctx, (tx) => holdsFile(tx, key));
   if (!mine) return null;
 
@@ -102,10 +101,9 @@ export async function messageFileLink(
 export async function archiveThread(
   key: string,
   archived: boolean,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
-    const { session, ctx } = await context(church);
+    const { session, ctx } = await context();
     await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
       const thread = await threadAt(tx, me, key);
@@ -121,10 +119,9 @@ export async function archiveThread(
 export async function keepDraft(
   to: string,
   body: string,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
-    const { session, ctx } = await context(church);
+    const { session, ctx } = await context();
     await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
       await saveDraft(tx, me, to, body);
@@ -136,9 +133,9 @@ export async function keepDraft(
 }
 
 /** R16.9. A draft thrown away. */
-export async function binDraft(to: string, church?: string): Promise<{ error?: string }> {
+export async function binDraft(to: string): Promise<{ error?: string }> {
   try {
-    const { session, ctx } = await context(church);
+    const { session, ctx } = await context();
     await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
       await dropDraft(tx, me, to);
@@ -162,10 +159,9 @@ export interface WriteTo {
 export async function editLine(
   id: string,
   body: string,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
-    const { session, ctx } = await context(church);
+    const { session, ctx } = await context();
     await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
       await editMessage(tx, me, id, body);
@@ -179,10 +175,9 @@ export async function editLine(
 /** R16.9, R2.13. Taking a line back: the words go, the line stays. */
 export async function deleteLine(
   id: string,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
-    const { session, ctx } = await context(church);
+    const { session, ctx } = await context();
     await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
       await deleteMessage(tx, me, id);
@@ -197,10 +192,9 @@ export async function deleteLine(
 export async function markMessage(
   id: string,
   emoji: string,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   try {
-    const { session, ctx } = await context(church);
+    const { session, ctx } = await context();
     await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
       await react(tx, me, id, emoji);
@@ -229,7 +223,7 @@ export async function whoToWriteTo(
   church?: string,
 ): Promise<WriteTo[]> {
   try {
-    const { session, ctx } = await context(church);
+    const { session, ctx } = await context();
     return await withTenant(ctx, async (tx) => {
       const me = await readerFor(tx, session);
 
@@ -266,7 +260,7 @@ export async function whoToWriteTo(
 /** R16.9. Which kinds this reader may address, in the order they are offered. */
 export async function kindsICanWriteTo(church?: string): Promise<WriteKind[]> {
   try {
-    const { session } = await context(church);
+    const { session } = await context();
     return canAnswerMessages(session)
       ? ["member", "group", "team"]
       : ["church", "group", "team"];

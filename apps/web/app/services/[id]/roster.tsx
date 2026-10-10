@@ -29,12 +29,10 @@ const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCa
  * tablet in one hand.
  */
 export function Roster({
-  church,
   occurrenceId,
   members,
   canEdit,
 }: {
-  church: string;
   occurrenceId: string;
   members: RosterPerson[];
   canEdit: boolean;
@@ -75,7 +73,6 @@ export function Roster({
     setError(undefined);
 
     const data = new FormData();
-    data.set("church", church);
     data.set("occurrenceId", occurrenceId);
     data.set("memberId", memberId);
     data.set("present", next ? "1" : "0");
@@ -107,7 +104,6 @@ export function Roster({
     setError(undefined);
 
     const data = new FormData();
-    data.set("church", church);
     data.set("occurrenceId", occurrenceId);
     data.set("present", next ? "1" : "0");
     for (const id of ids) data.append("memberId", id);

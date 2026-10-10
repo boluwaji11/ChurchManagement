@@ -191,7 +191,7 @@ export default async function MemberHomePage({
                     when: `${onDay(one.occursOn)} ${readableTime(one.startsAt)}`,
                     title: one.positionName,
                     detail: one.teamName,
-                    action: <Respond id={one.id} church={at} />,
+                    action: <Respond id={one.id} />,
                   },
                 ]}
               />
@@ -206,7 +206,6 @@ export default async function MemberHomePage({
               written because somebody needs to read it this week, and the
               diary is there whether or not anything was said. */}
           <Notices
-            church={at}
             notices={mine.notices.map((one) => ({
               id: one.id,
               title: one.title,

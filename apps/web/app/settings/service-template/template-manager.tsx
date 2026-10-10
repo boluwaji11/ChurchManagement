@@ -90,7 +90,7 @@ export function TemplateManager({
                   label={t("planTpl.restore")}
                   variant="ghost"
                   disabled={pending}
-                  onClick={() => run(() => archiveTemplate(one.id, false, church))}
+                  onClick={() => run(() => archiveTemplate(one.id, false))}
                 >
                   <Undo2 />
                 </IconButton>
@@ -161,7 +161,7 @@ export function TemplateManager({
               onClick={() => {
                 const one = asking;
                 setAsking(null);
-                if (one) run(() => archiveTemplate(one.id, true, church));
+                if (one) run(() => archiveTemplate(one.id, true));
               }}
             >
               {t("planTpl.archive")}
@@ -239,7 +239,6 @@ function TemplatePanel({
     startTransition(async () => {
       const result = await saveTemplate(
         { id: template?.id, name, items: lines },
-        church,
       );
       setError(result.error);
       if (!result.error) {
@@ -358,7 +357,7 @@ function TemplatePanel({
               />
             </Field>
 
-            <Lines lines={lines} kinds={kinds} church={church} onChange={change} />
+            <Lines lines={lines} kinds={kinds} onChange={change} />
           </div>
         )}
       </SheetContent>
@@ -376,12 +375,10 @@ function TemplatePanel({
 function Lines({
   lines,
   kinds,
-  church,
   onChange,
 }: {
   lines: ShapeLine[];
   kinds: KindOption[];
-  church: string;
   onChange: (next: ShapeLine[]) => void;
 }) {
   const [dragging, setDragging] = React.useState<number | null>(null);

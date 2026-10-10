@@ -41,7 +41,6 @@ export function TeamList({
 
   const setArchived = (id: string, archive: boolean) => {
     const data = new FormData();
-    data.set("church", church);
     data.set("id", id);
     data.set("archived", archive ? "true" : "false");
     startTransition(async () => {

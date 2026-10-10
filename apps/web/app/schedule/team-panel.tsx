@@ -123,7 +123,7 @@ export function TeamPanel({
     (query: string) => {
       const mine = ++ticket.current;
       setSearching(true);
-      void findPerson(query, church).then((found) => {
+      void findPerson(query).then((found) => {
         if (mine !== ticket.current) return;
         setSearching(false);
         setHits(found);
@@ -193,7 +193,6 @@ export function TeamPanel({
                   disabled={saving}
                   onConfirm={() => {
                     const data = new FormData();
-                    data.set("church", church);
                     data.set("id", team.id);
                     data.set("archived", "true");
                     startTransition(async () => {
@@ -340,7 +339,6 @@ export function TeamPanel({
           noValidate
           onInput={() => setDirty(true)}
           action={(data) => {
-            data.set("church", church);
             if (team) data.set("id", team.id);
             startTransition(async () => {
               const result = await saveTeam(data);
@@ -349,7 +347,7 @@ export function TeamPanel({
 
               const teamId = team?.id ?? result.id;
               if (teamId) {
-                for (const id of dropped) await archivePosition(id, church);
+                for (const id of dropped) await archivePosition(id);
 
                 for (const one of positions) {
                   const name = one.name.trim();
@@ -373,16 +371,15 @@ export function TeamPanel({
                       withChildren: one.withChildren,
                       requiresCheck: one.requiresCheck,
                     },
-                    church,
                   );
                 }
               }
 
               if (teamId) {
-                for (const memberId of left) await removeMember(teamId, memberId, church);
+                for (const memberId of left) await removeMember(teamId, memberId);
                 for (const one of people) {
                   if (one.membershipId) continue;
-                  await addMember(teamId, one.memberId, "member", church);
+                  await addMember(teamId, one.memberId, "member");
                 }
               }
 

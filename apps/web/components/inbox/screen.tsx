@@ -50,7 +50,7 @@ export function InboxScreen({
   const [writing, setWriting] = React.useState(false);
   const [to, setTo] = React.useState("");
 
-  const { data, refresh } = useInbox(church, {
+  const { data, refresh } = useInbox({
     view,
     key: open,
     watching: true,
@@ -223,7 +223,7 @@ export function InboxScreen({
                   variant="ghost"
                   className="size-9 min-h-0 [&_svg]:size-4"
                   onClick={() => {
-                    void archiveThread(open, !here?.archived, church).then(() => {
+                    void archiveThread(open, !here?.archived).then(() => {
                       router.push(`${where}`);
                       refresh();
                     });

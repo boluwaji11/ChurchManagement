@@ -55,7 +55,7 @@ export default async function LabelsPage({
         <ArrowLeft className="size-4" /> {t("checkin.title")}
       </Link>
 
-      <LabelLayoutForm church={session.tenantSlug} initial={layout} />
+      <LabelLayoutForm initial={layout} />
     </AppShell>
   );
 }

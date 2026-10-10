@@ -138,7 +138,7 @@ export function WhoServes({
                             <IconButton
                               label={t("plan.remove")}
                               disabled={pending}
-                              onClick={() => run(() => unschedule(entry.assignmentId, church))}
+                              onClick={() => run(() => unschedule(entry.assignmentId))}
                             >
                               <UserMinus />
                             </IconButton>
@@ -162,7 +162,6 @@ export function WhoServes({
                                   memberId,
                                   anyway,
                                 },
-                                church,
                               ),
                             )}
                         />
@@ -203,7 +202,7 @@ function PickDialog({
   React.useEffect(() => {
     if (!open) return;
     let live = true;
-    whoCouldFill({ teamId, positionId, occurrenceId }, church).then((found) => {
+    whoCouldFill({ teamId, positionId, occurrenceId }).then((found) => {
       if (live) setPeople(found);
     });
     return () => { live = false; };

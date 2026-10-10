@@ -32,12 +32,10 @@ export interface KindRow {
  * church writing down "Testimony" has better questions to answer.
  */
 export function KindManager({
-  church,
   kinds,
   taken,
   putAway,
 }: {
-  church: string;
   kinds: KindRow[];
   /** R11.2. Every slug this church keeps, archived ones included. */
   taken: string[];
@@ -79,7 +77,7 @@ export function KindManager({
                   label={t("itemKind.restore")}
                   variant="ghost"
                   disabled={pending}
-                  onClick={() => run(() => archiveKind(one.id, false, church))}
+                  onClick={() => run(() => archiveKind(one.id, false))}
                 >
                   <Undo2 />
                 </IconButton>
@@ -100,19 +98,18 @@ export function KindManager({
           icon="calendar"
           title={t("itemKind.empty.title")}
           body={t("itemKind.empty.body")}
-          action={<KindPanel church={church} pending={pending} taken={taken} />}
+          action={<KindPanel pending={pending} taken={taken} />}
         />
       ) : (
         <>
       <div className="flex justify-end">
-        <KindPanel church={church} pending={pending} taken={taken} />
+        <KindPanel pending={pending} taken={taken} />
       </div>
 
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr))]">
         {live.map((one) => (
           <KindPanel
             key={one.id}
-            church={church}
             pending={pending}
             kind={one}
             taken={taken}
@@ -143,7 +140,7 @@ export function KindManager({
               onClick={() => {
                 const one = asking;
                 setAsking(null);
-                if (one) run(() => archiveKind(one.id, true, church));
+                if (one) run(() => archiveKind(one.id, true));
               }}
             >
               {t("itemKind.archive")}
@@ -157,14 +154,12 @@ export function KindManager({
 
 /** R11.2. Writing a kind down, or changing what it is called. */
 function KindPanel({
-  church,
   pending,
   kind,
   taken = [],
   trigger,
   onArchive,
 }: {
-  church: string;
   pending: boolean;
   kind?: KindRow;
   /** What this church already keeps, so the library leaves it out. */
@@ -203,7 +198,7 @@ function KindPanel({
 
   const save = (input: { name?: string; builtIn?: string } = { name }) =>
     startTransition(async () => {
-      const result = await saveKind({ id: kind?.id, ...input }, church);
+      const result = await saveKind({ id: kind?.id, ...input });
       setError(result.error);
       if (!result.error) {
         close(false);

@@ -53,14 +53,12 @@ const readable = (iso: string) =>
  * months later "we called her" is the record and "done" is not.
  */
 export function FollowUps({
-  church,
   memberId,
   today,
   entries,
   pipelines,
   canEdit,
 }: {
-  church: string;
   memberId: string;
   today: string;
   entries: EntryRow[];
@@ -97,7 +95,6 @@ export function FollowUps({
       {open.map((entry) => (
         <Thread
           key={entry.id}
-          church={church}
           entry={entry}
           today={today}
           canEdit={canEdit}
@@ -127,7 +124,6 @@ export function FollowUps({
       {canEdit ? (
         <div>
           <StartDialog
-            church={church}
             memberId={memberId}
             pipelines={pipelines}
             pending={pending}
@@ -148,7 +144,6 @@ export function FollowUps({
  * is how two open at once stay apart at a glance.
  */
 function Thread({
-  church,
   entry,
   today,
   canEdit,
@@ -156,7 +151,6 @@ function Thread({
   doing,
   run,
 }: {
-  church: string;
   entry: EntryRow;
   today: string;
   canEdit: boolean;
@@ -181,7 +175,7 @@ function Thread({
             pending={pending}
             busy={doing === `leave:${entry.id}`}
             onConfirm={(reason) =>
-              run(`leave:${entry.id}`, () => leaveFollowUp(entry.id, reason, church))
+              run(`leave:${entry.id}`, () => leaveFollowUp(entry.id, reason))
             }
           />
         ) : null}
@@ -195,7 +189,6 @@ function Thread({
           <li key={step.id} className="relative">
             <Marker hue={hue} step={step} today={today} />
             <Step
-              church={church}
               step={step}
               today={today}
               canEdit={canEdit}
@@ -236,13 +229,11 @@ function Marker({ hue, step, today }: { hue: Hue; step: StepRow; today: string }
  * Thursday is not a stage of anything.
  */
 export function PersonTasks({
-  church,
   memberId,
   today,
   tasks,
   canEdit,
 }: {
-  church: string;
   memberId: string;
   today: string;
   tasks: StepRow[];
@@ -281,7 +272,6 @@ export function PersonTasks({
             <li key={task.id}>
               {i > 0 ? <Separator className="my-2" /> : null}
               <Step
-                church={church}
                 step={task}
                 today={today}
                 canEdit={canEdit}
@@ -297,7 +287,6 @@ export function PersonTasks({
       {canEdit ? (
         <div>
           <TaskDialog
-            church={church}
             memberId={memberId}
             pending={pending}
             onDone={() => router.refresh()}
@@ -310,14 +299,12 @@ export function PersonTasks({
 }
 
 function StartDialog({
-  church,
   memberId,
   pipelines,
   pending,
   onDone,
   onError,
 }: {
-  church: string;
   memberId: string;
   pipelines: PipelineOption[];
   pending: boolean;
@@ -371,7 +358,6 @@ function StartDialog({
               disabled={pending || saving || !pipelineId}
               onClick={() => {
                 const data = new FormData();
-                data.set("church", church);
                 data.set("memberId", memberId);
                 data.set("pipelineId", pipelineId);
                 startTransition(async () => {
@@ -394,7 +380,6 @@ function StartDialog({
 }
 
 function Step({
-  church,
   step,
   today,
   canEdit,
@@ -402,7 +387,6 @@ function Step({
   doing,
   run,
 }: {
-  church: string;
   step: StepRow;
   today: string;
   canEdit: boolean;
@@ -440,7 +424,7 @@ function Step({
             label={t("followups.undo")}
             variant="ghost"
             disabled={pending}
-            onClick={() => run(`undo:${step.id}`, () => undoStep(step.id, church))}
+            onClick={() => run(`undo:${step.id}`, () => undoStep(step.id))}
           >
             {doing === `undo:${step.id}` ? (
               <Spinner label={t("followups.undo")} />
@@ -455,7 +439,7 @@ function Step({
                 variant="ghost"
                 loading={doing === `take:${step.id}`}
                 disabled={pending}
-                onClick={() => run(`take:${step.id}`, () => takeStep(step.id, true, church))}
+                onClick={() => run(`take:${step.id}`, () => takeStep(step.id, true))}
               >
                 {t("followups.take")}
               </Button>
@@ -465,7 +449,7 @@ function Step({
               pending={pending}
               busy={doing === `done:${step.id}`}
               onConfirm={(outcome) =>
-                run(`done:${step.id}`, () => finishStep(step.id, outcome, church))
+                run(`done:${step.id}`, () => finishStep(step.id, outcome))
               }
             />
           </span>
@@ -588,13 +572,11 @@ function LeaveDialog({
 }
 
 function TaskDialog({
-  church,
   memberId,
   pending,
   onDone,
   onError,
 }: {
-  church: string;
   memberId: string;
   pending: boolean;
   onDone: () => void;
@@ -615,7 +597,6 @@ function TaskDialog({
           id={formId}
           noValidate
           action={(data) => {
-            data.set("church", church);
             data.set("memberId", memberId);
             startTransition(async () => {
               const result = await addPersonTask(data);

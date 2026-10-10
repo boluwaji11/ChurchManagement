@@ -159,7 +159,7 @@ export function Order({
 
     order.splice(target.after ? at + 1 : at, 0, id);
     if (order.every((one, i) => one === items[i]?.id)) return;
-    run("reorder", () => reorder(planId, order, church));
+    run("reorder", () => reorder(planId, order));
   };
 
   /**
@@ -175,7 +175,7 @@ export function Order({
     const to = from + by;
     if (from === -1 || to < 0 || to >= order.length) return;
     order.splice(to, 0, ...order.splice(from, 1));
-    run(key, () => reorder(planId, order, church));
+    run(key, () => reorder(planId, order));
   };
 
   const run = (key: string, work: () => Promise<{ error?: string }>) => {
@@ -210,7 +210,6 @@ export function Order({
           disabled={pending}
         />
         <TemplateDialog
-          church={church}
           planId={planId}
           empty={timed.length === 0}
         />
@@ -340,7 +339,7 @@ export function Order({
                             <IconButton
                               label={t("order.note.remove")}
                               disabled={pending}
-                              onClick={() => run(`note:${note.id}`, () => dropNote(note.id, church))}
+                              onClick={() => run(`note:${note.id}`, () => dropNote(note.id))}
                               className="size-6"
                             >
                               {doing === `note:${note.id}` ? (
@@ -388,7 +387,7 @@ export function Order({
                           <ArrowDown />
                         )}
                       </IconButton>
-                      <AttachButton church={church} itemId={item.id} />
+                      <AttachButton itemId={item.id} />
                       <NoteDialog church={church} itemId={item.id} />
                       {/* R24.x. The x takes the item off this plan, and asks
                           first. */}
@@ -396,7 +395,7 @@ export function Order({
                         title={t("order.remove.title", { name: item.title })}
                         confirmLabel={t("order.remove")}
                         disabled={pending}
-                        onConfirm={() => run(`item:${item.id}`, () => dropItem(item.id, church))}
+                        onConfirm={() => run(`item:${item.id}`, () => dropItem(item.id))}
                         trigger={
                           <IconButton label={t("order.remove")} disabled={pending}>
                             {doing === `item:${item.id}` ? (
@@ -492,7 +491,6 @@ function ItemDialog({
           description: description || null,
           minutes: Number(minutes),
         },
-        church,
       );
       setError(result.error);
       if (!result.error) {
@@ -612,7 +610,6 @@ function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
     startTransition(async () => {
       const result = await saveNote(
         { itemId, body, teamId: null, positionId: null, memberId: null },
-        church,
       );
       setError(result.error);
       if (!result.error) {
@@ -726,7 +723,7 @@ function Attachment({
  * It goes through the one upload path, which checks the type, the size and the
  * quota in the query layer before any bytes are written.
  */
-function AttachButton({ church, itemId }: { church: string; itemId: string }) {
+function AttachButton({ itemId }: { itemId: string }) {
   const router = useRouter();
   const input = React.useRef<HTMLInputElement>(null);
   const [busy, setBusy] = React.useState(false);
@@ -734,7 +731,6 @@ function AttachButton({ church, itemId }: { church: string; itemId: string }) {
   const send = async (file: File) => {
     setBusy(true);
     const form = new FormData();
-    form.set("church", church);
     form.set("purpose", "plan_item");
     form.set("itemId", itemId);
     form.set("file", file);
@@ -819,7 +815,7 @@ function StartFrom({
   ) => {
     setReading(key);
     startTransition(async () => {
-      const result = await shapeOf(source, church);
+      const result = await shapeOf(source);
       setFailed(result.error);
       if (result.items) setLooking({ label, items: result.items, apply });
     });
@@ -951,7 +947,7 @@ function StartFrom({
                       template.id,
                       template.name,
                       { kind: "template", id: template.id },
-                      () => useTemplate(planId, template.id, church),
+                      () => useTemplate(planId, template.id),
                     ),
                 ),
               )
@@ -979,11 +975,9 @@ function StartFrom({
  * collecting versions of it.
  */
 function TemplateDialog({
-  church,
   planId,
   empty,
 }: {
-  church: string;
   planId: string;
   empty: boolean;
 }) {
@@ -1038,7 +1032,7 @@ function TemplateDialog({
               loading={doing === "keep"}
               disabled={pending || !name.trim()}
               onClick={() =>
-                run("keep", () => keepAsTemplate(planId, name, church), () => close(false))
+                run("keep", () => keepAsTemplate(planId, name), () => close(false))
               }
             >
               {t("action.save")}

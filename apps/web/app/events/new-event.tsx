@@ -6,7 +6,7 @@ import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /** R14.1. The one action this screen carries, in the corner the design gives it. */
-export function NewEventButton({ church }: { church: string }) {
+export function NewEventButton({}: {  }) {
   return (
     <Button asChild>
       <Link href={"/events/new"}>

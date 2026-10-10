@@ -52,7 +52,7 @@ function MatchTag({ state }: { state: string }) {
 }
 
 /** R4.1. The files on one answer, as links that sign themselves when pressed. */
-function Files({ answer, church }: { answer: FormAnswer; church: string }) {
+function Files({ answer }: { answer: FormAnswer }) {
   const keys = Array.isArray(answer) ? answer : [];
   if (keys.length === 0) return null;
 
@@ -156,7 +156,7 @@ export function Responses({
           className="self-start"
           onClick={() =>
             startMatching(async () => {
-              const result = await matchResponses(formId, church);
+              const result = await matchResponses(formId);
               setDone(result.placed ?? 0);
               router.refresh();
             })}
@@ -380,7 +380,7 @@ function Response({
                   }
                 >
                   {field.kind === "file" ? (
-                    <Files answer={row.answers[field.id] ?? null} church={church} />
+                    <Files answer={row.answers[field.id] ?? null} />
                   ) : (
                     said || t("form.responses.blank")
                   )}

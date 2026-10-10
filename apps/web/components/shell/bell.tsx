@@ -47,12 +47,10 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 export function NotificationBell({
   items,
   unread,
-  church,
-}: {
+  }: {
   items: BellItem[];
   unread: number;
-  church: string;
-}) {
+  }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   // The first ten come from the server with the page. Show more appends.
@@ -69,7 +67,7 @@ export function NotificationBell({
   const showMore = () => {
     if (!last || loading) return;
     setLoading(true);
-    void olderThan(last.at, church)
+    void olderThan(last.at)
       .then((next) => setShown((was) => [...was, ...next]))
       .finally(() => setLoading(false));
   };
@@ -77,7 +75,7 @@ export function NotificationBell({
   const open1 = (item: BellItem) => {
     setGoing(item.id);
     startTransition(async () => {
-      await readOne(item.id, church);
+      await readOne(item.id);
       setOpen(false);
       setGoing(null);
       if (item.href) router.push(item.href);
@@ -113,7 +111,7 @@ export function NotificationBell({
                   disabled={working}
                   onClick={() =>
                     startTransition(async () => {
-                      await readAll(church);
+                      await readAll();
                       setOpen(false);
                     })}
                   className="flex cursor-pointer items-center gap-1.5 text-[13px] font-medium text-primary disabled:opacity-60"

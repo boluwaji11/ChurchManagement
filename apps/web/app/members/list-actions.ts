@@ -16,7 +16,7 @@ export interface ListResult {
 
 const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
 
-async function allowed(church?: string) {
+async function allowed() {
   const session = await requireSession();
   // A PermissionError, so explain() writes the sentence rather than rethrowing.
   if (!canEditPeople(session)) throw new PermissionError(session.role, "editPerson");
@@ -26,7 +26,7 @@ async function allowed(church?: string) {
 /** R1.14. The members on screen right now, kept as a list. */
 export async function saveSelection(data: FormData): Promise<ListResult> {
   try {
-    const session = await allowed(field(data, "church") || undefined);
+    const session = await allowed();
     const ids = data.getAll("ids").map(String).filter(Boolean);
     const existing = field(data, "listId");
 
@@ -48,7 +48,7 @@ export async function saveSelection(data: FormData): Promise<ListResult> {
 /** R1.14. The filters on screen right now, kept as a list that answers itself. */
 export async function saveView(data: FormData): Promise<ListResult> {
   try {
-    const session = await allowed(field(data, "church") || undefined);
+    const session = await allowed();
     /* Every filter the directory offers. Five of the ten were being read,
        so a list saved from "joined this year" or from a group came back as
        the whole directory. */
@@ -67,9 +67,9 @@ export async function saveView(data: FormData): Promise<ListResult> {
   }
 }
 
-export async function rename(id: string, name: string, church?: string): Promise<ListResult> {
+export async function rename(id: string, name: string): Promise<ListResult> {
   try {
-    const session = await allowed(church);
+    const session = await allowed();
     await withTenant(session, (tx) => renameList(tx, session, { id, name }));
     revalidatePath("/members");
     return {};
@@ -78,9 +78,9 @@ export async function rename(id: string, name: string, church?: string): Promise
   }
 }
 
-export async function archiveList(id: string, archived: boolean, church?: string): Promise<ListResult> {
+export async function archiveList(id: string, archived: boolean): Promise<ListResult> {
   try {
-    const session = await allowed(church);
+    const session = await allowed();
     await withTenant(session, (tx) => setListArchived(tx, session, { id, archived }));
     revalidatePath("/members");
     return {};
@@ -92,7 +92,7 @@ export async function archiveList(id: string, archived: boolean, church?: string
 /** R1.14. Taking members off a list. Their records are untouched. */
 export async function takeOffList(data: FormData): Promise<ListResult> {
   try {
-    const session = await allowed(field(data, "church") || undefined);
+    const session = await allowed();
     const ids = data.getAll("ids").map(String).filter(Boolean);
     const count = await withTenant(session, (tx) =>
       removeFromList(tx, session, { listId: field(data, "listId"), personIds: ids }),

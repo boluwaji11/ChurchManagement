@@ -8,8 +8,7 @@ import { requireSession } from "@/lib/session";
 /** R13.18. One statement a person, or one a household. */
 export async function chooseStatementsBy(
   by: "person" | "household",
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   const session = await requireSession();
   const who = {
     tenantId: session.tenantId,

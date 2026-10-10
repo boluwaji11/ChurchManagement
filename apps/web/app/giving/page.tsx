@@ -197,7 +197,6 @@ export default async function GivingPage({
   ) : null;
   const startCount = manage ? (
     <StartCount
-      church={session.tenantSlug}
       today={read.today}
       funds={fundList}
       trigger={
@@ -216,7 +215,6 @@ export default async function GivingPage({
             narrowed by it. */}
         <div className="flex flex-wrap items-center justify-end">
           <GivingFilters
-            church={session.tenantSlug}
             now={narrowing}
             funds={fundList}
           />
@@ -310,7 +308,7 @@ export default async function GivingPage({
                    either about to count a plate or about to type in a
                    cheque, and the screen cannot know which. */
                 <div className="flex flex-wrap items-center justify-center gap-2">
-                  <StartCount church={session.tenantSlug} today={read.today} funds={fundList} />
+                  <StartCount today={read.today} funds={fundList} />
                   {/* Both filled here. This is the screen's whole content,
                       so neither of them is the quieter one. */}
                   <GiftPanel
@@ -347,7 +345,6 @@ export default async function GivingPage({
                   <div className="sm:hidden">
                     <CountCards
                       counts={read.counts}
-                      church={session.tenantSlug}
                       today={read.today}
                       funds={fundList}
                       firstFundId={read.funds[0]?.id ?? ""}
@@ -398,7 +395,6 @@ export default async function GivingPage({
                             <td className="min-w-0 px-3 py-3 font-medium text-fg">
                               {manage ? (
                                 <StartCount
-                                  church={session.tenantSlug}
                                   today={read.today}
                                   funds={fundList}
                                   count={{
@@ -510,7 +506,6 @@ export default async function GivingPage({
                   <div className="sm:hidden">
                     <GiftCards
                       rows={giftRows(read.recent)}
-                      church={session.tenantSlug}
                       manage={manage}
                     />
                   </div>
@@ -628,7 +623,6 @@ export default async function GivingPage({
                                 <span className="flex items-center justify-end gap-1">
                                   {manage && gift.memberId === null && !back ? (
                                     <AttachGift
-                                      church={session.tenantSlug}
                                       gift={{ id: gift.id, typed: gift.memberName }}
                                     />
                                   ) : null}
@@ -636,7 +630,6 @@ export default async function GivingPage({
                                     && gift.status === "settled"
                                     && gift.amountCents > gift.refundedCents ? (
                                     <RefundGift
-                                      church={session.tenantSlug}
                                       gift={{
                                         id: gift.id,
                                         amountCents: gift.amountCents,
@@ -860,7 +853,6 @@ export default async function GivingPage({
                     {manage ? (
                       <StopRepeating
                         id={one.id}
-                        church={session.tenantSlug}
                         label={money(one.amountCents)}
                         who={one.name || null}
                       />

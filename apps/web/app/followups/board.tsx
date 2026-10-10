@@ -78,7 +78,7 @@ export function Board({
     const position = stageId === "done" ? stages.length : Number(stageId);
 
     startTransition(async () => {
-      const result = await moveToStage(card.entryId, position, church);
+      const result = await moveToStage(card.entryId, position);
       setError(result.error);
       router.refresh();
     });
@@ -145,7 +145,7 @@ export function Board({
                         onConfirm={(reason) => {
                           setLeaving(card.entryId);
                           startTransition(async () => {
-                            const result = await leaveFollowUp(card.entryId, reason, church);
+                            const result = await leaveFollowUp(card.entryId, reason);
                             setError(result.error);
                             setLeaving(null);
                             router.refresh();
@@ -229,7 +229,7 @@ function AddToStage({
       }
       const mine = ++ticket.current;
       setSearching(true);
-      void findPeople(pipelineId, search, church).then((people) => {
+      void findPeople(pipelineId, search).then((people) => {
         if (mine !== ticket.current) return;
         setSearching(false);
         setPeople(people);
@@ -263,7 +263,7 @@ function AddToStage({
         onChange={(memberId) => {
           if (!memberId) return;
           startSaving(async () => {
-            const result = await addToStage(pipelineId, memberId, position, church);
+            const result = await addToStage(pipelineId, memberId, position);
             onError(result.error);
             if (!result.error) {
               setOpen(false);

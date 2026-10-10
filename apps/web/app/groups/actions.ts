@@ -11,7 +11,7 @@ import { requireSession } from "@/lib/session";
 import { churchNow } from "@/lib/church-now";
 import { supabaseServer } from "@/lib/supabase/server";
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     session,
@@ -63,8 +63,7 @@ function read(data: FormData) {
 }
 
 export async function create(data: FormData): Promise<GroupResult> {
-  const church = field(data, "church") || undefined;
-  const { actor, ctx } = await context(church);
+  const { actor, ctx } = await context();
   try {
     const group = await withTenant(ctx, (tx) => createGroup(tx, actor, read(data)));
     return { id: group.id, slug: group.slug };
@@ -74,8 +73,7 @@ export async function create(data: FormData): Promise<GroupResult> {
 }
 
 export async function save(data: FormData): Promise<GroupResult> {
-  const church = field(data, "church") || undefined;
-  const { actor, ctx } = await context(church);
+  const { actor, ctx } = await context();
   try {
     const group = await withTenant(ctx, (tx) =>
       updateGroup(tx, actor, field(data, "id"), read(data)),
@@ -87,8 +85,7 @@ export async function save(data: FormData): Promise<GroupResult> {
 }
 
 export async function archive(data: FormData): Promise<GroupResult> {
-  const church = field(data, "church") || undefined;
-  const { actor, ctx } = await context(church);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) =>
       setGroupArchived(tx, actor, field(data, "id"), field(data, "archived") === "true"),
@@ -107,9 +104,8 @@ export async function join(
   groupId: string,
   memberId: string,
   role: GroupRole,
-  church?: string,
-): Promise<RosterResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<RosterResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => addToGroup(tx, actor, { groupId, memberId, role }));
     return {};
@@ -121,9 +117,8 @@ export async function join(
 export async function leave(
   groupId: string,
   memberId: string,
-  church?: string,
-): Promise<RosterResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<RosterResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeFromGroup(tx, actor, { groupId, memberId }));
     return {};
@@ -140,9 +135,8 @@ export async function leave(
  */
 export async function leaveMine(
   groupId: string,
-  church?: string,
-): Promise<RosterResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<RosterResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => leaveGroup(tx, actor, { groupId }));
     return {};
@@ -158,8 +152,8 @@ export interface PersonHit {
 }
 
 /** R9.4. Finding somebody to put in the group, by the name a leader knows. */
-export async function findPerson(query: string, church?: string): Promise<PersonHit[]> {
-  const { session, ctx } = await context(church);
+export async function findPerson(query: string): Promise<PersonHit[]> {
+  const { session, ctx } = await context();
   try {
     return await withTenant(ctx, async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
@@ -184,9 +178,8 @@ export interface AskResult {
 export async function ask(
   groupId: string,
   message: string | null,
-  church?: string,
-): Promise<AskResult> {
-  const { ctx } = await context(church);
+  ): Promise<AskResult> {
+  const { ctx } = await context();
   try {
     await withTenant(ctx, (tx) => requestToJoin(tx, ctx, { groupId, message }));
     return {};
@@ -201,8 +194,8 @@ export async function ask(
  * Pressing Join on the wrong group left the asker with nothing to do but
  * wait for a leader to answer a question they no longer wanted asked.
  */
-export async function unask(groupId: string, church?: string): Promise<AskResult> {
-  const { ctx } = await context(church);
+export async function unask(groupId: string): Promise<AskResult> {
+  const { ctx } = await context();
   try {
     await withTenant(ctx, (tx) => withdrawRequest(tx, ctx, groupId));
     return {};
@@ -215,9 +208,8 @@ export async function unask(groupId: string, church?: string): Promise<AskResult
 export async function decide(
   requestId: string,
   approve: boolean,
-  church?: string,
-): Promise<AskResult> {
-  const { ctx } = await context(church);
+  ): Promise<AskResult> {
+  const { ctx } = await context();
   try {
     await withTenant(ctx, (tx) => decideRequest(tx, ctx, { requestId, approve }));
     return {};
@@ -249,9 +241,8 @@ export async function clearGroupPhoto(
 export async function setOpenToJoin(
   id: string,
   open: boolean,
-  church?: string,
-): Promise<GroupResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<GroupResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setGroupOpen(tx, actor, id, open));
     return {};
@@ -264,9 +255,8 @@ export async function setOpenToJoin(
 export async function publishGroup(
   id: string,
   status: "draft" | "published",
-  church?: string,
-): Promise<GroupResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<GroupResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setGroupStatus(tx, actor, id, status));
     return {};

@@ -8,7 +8,7 @@ import { t } from "@connectapp/i18n";
 import { told } from "./actions";
 
 /** R8.13. One press, and the moment it happened is kept with the report. */
-export function Notify({ church, id }: { church: string; id: string }) {
+export function Notify({ id }: { id: string }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
@@ -19,7 +19,7 @@ export function Notify({ church, id }: { church: string; id: string }) {
         disabled={pending}
         onClick={() =>
           startTransition(async () => {
-            const result = await told(id, church);
+            const result = await told(id);
             setError(result.error);
             if (!result.error) router.refresh();
           })

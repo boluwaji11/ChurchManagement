@@ -94,7 +94,7 @@ export function FundManager({
                   label={t("fund.restore")}
                   variant="ghost"
                   disabled={pending}
-                  onClick={() => run(() => archiveFund(fund.id, false, church))}
+                  onClick={() => run(() => archiveFund(fund.id, false))}
                 >
                   <Undo2 />
                 </IconButton>
@@ -163,7 +163,7 @@ export function FundManager({
               onClick={() => {
                 const one = asking;
                 setAsking(null);
-                if (one) run(() => archiveFund(one.id, true, church));
+                if (one) run(() => archiveFund(one.id, true));
               }}
             >
               {t("fund.archive")}
@@ -227,7 +227,6 @@ function FundPanel({
     startTransition(async () => {
       const result = await saveFund(
         { id: fund?.id, name, code: code || null, restricted, description: description || null },
-        church,
       );
       setError(result.error);
       if (!result.error) {

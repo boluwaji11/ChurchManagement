@@ -13,11 +13,9 @@ import { t } from "@connectapp/i18n";
  * year, and a church secretary should not be the way they get it.
  */
 export function MyStatement({
-  church,
   years,
   thisYear,
 }: {
-  church: string;
   /** Newest first. Every year this person has actually given in. */
   years: string[];
   thisYear: string;

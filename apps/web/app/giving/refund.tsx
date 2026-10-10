@@ -21,10 +21,8 @@ import { giveBack } from "./actions";
  * church.
  */
 export function RefundGift({
-  church,
   gift,
 }: {
-  church: string;
   gift: {
     id: string;
     amountCents: number;
@@ -98,7 +96,7 @@ export function RefundGift({
                   return;
                 }
                 startTransition(async () => {
-                  const result = await giveBack(gift.id, cents, church);
+                  const result = await giveBack(gift.id, cents);
                   setError(result.error);
                   if (!result.error) {
                     setOpen(false);

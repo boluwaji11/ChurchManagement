@@ -79,7 +79,6 @@ export function Pipelines({
     steps: Array<{ id: string; name: string; dueDays: number }>,
   ) => {
     const data = new FormData();
-    data.set("church", church);
     data.set("id", row.id);
     data.set("name", row.name);
     data.set("description", row.description ?? "");
@@ -162,7 +161,7 @@ export function Pipelines({
               variant="ghost"
               className="pointer-events-auto"
               disabled={pending}
-              onClick={() => run(() => switchPipeline(row.id, !row.archived, church))}
+              onClick={() => run(() => switchPipeline(row.id, !row.archived))}
             >
               <Power />
             </IconButton>
@@ -548,7 +547,6 @@ function StageForm({
       id={formId}
       noValidate
       action={(data) => {
-        data.set("church", church);
         if (row) data.set("id", row.id);
         data.set("ownerUserId", owner === NOBODY ? "" : owner);
         startTransition(async () => {

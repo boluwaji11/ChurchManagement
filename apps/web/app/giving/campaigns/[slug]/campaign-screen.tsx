@@ -112,7 +112,7 @@ export function CampaignScreen({
               <Button
                 variant="secondary"
                 loading={pending}
-                onClick={() => run(() => closeCampaign(campaign.id, false, church))}
+                onClick={() => run(() => closeCampaign(campaign.id, false))}
               >
                 <Undo2 /> {t("campaigns.reopen")}
               </Button>
@@ -265,7 +265,7 @@ export function CampaignScreen({
               disabled={pending}
               onClick={() => {
                 setAsking(false);
-                run(() => closeCampaign(campaign.id, true, church));
+                run(() => closeCampaign(campaign.id, true));
               }}
             >
               {t("campaigns.close")}
@@ -286,7 +286,7 @@ export function CampaignScreen({
               onClick={() => {
                 const id = removing;
                 setRemoving(null);
-                if (id) run(() => dropPledge(id, campaign.id, church));
+                if (id) run(() => dropPledge(id, campaign.id));
               }}
             >
               {t("pledge.remove")}
@@ -367,7 +367,6 @@ function PledgePanel({ church, campaignId }: { church: string; campaignId: strin
               startTransition(async () => {
                 const result = await savePledge(
                   { campaignId, memberId, amountCents: cents, note: note || null },
-                  church,
                 );
                 setError(result.error);
                 if (!result.error) {
@@ -406,7 +405,7 @@ function PledgePanel({ church, campaignId }: { church: string; campaignId: strin
                 }
                 const mine = ++ticket.current;
                 setSearching(true);
-                void findGiver(query, church).then((found) => {
+                void findGiver(query).then((found) => {
                   if (mine !== ticket.current) return;
                   setSearching(false);
                   setHits(found);

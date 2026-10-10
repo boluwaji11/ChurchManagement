@@ -11,7 +11,7 @@ import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     actor: { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
@@ -33,9 +33,8 @@ export interface ItemFields {
 export async function saveHeader(
   planId: string,
   input: { series: string | null; theme: string | null },
-  church?: string,
-): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => updatePlan(tx, actor, planId, input));
     return {};
@@ -48,9 +47,8 @@ export async function saveItem(
   planId: string,
   id: string | null,
   input: ItemFields,
-  church?: string,
-): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, async (tx) => {
       if (id) await updateItem(tx, actor, id, input);
@@ -62,8 +60,8 @@ export async function saveItem(
   }
 }
 
-export async function dropItem(id: string, church?: string): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+export async function dropItem(id: string): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeItem(tx, actor, id));
     return {};
@@ -76,9 +74,8 @@ export async function shiftItem(
   planId: string,
   id: string,
   direction: "up" | "down",
-  church?: string,
-): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => moveItem(tx, actor, { planId, id, direction }));
     return {};
@@ -92,9 +89,8 @@ export async function shiftItem(
 export async function reorder(
   planId: string,
   ids: string[],
-  church?: string,
-): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => reorderItems(tx, actor, planId, ids));
     return {};
@@ -103,8 +99,8 @@ export async function reorder(
   }
 }
 
-export async function startPlan(occurrenceId: string, church?: string): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+export async function startPlan(occurrenceId: string): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => ensurePlan(tx, actor, occurrenceId));
     return {};
@@ -122,9 +118,8 @@ export async function saveNote(
     positionId: string | null;
     memberId: string | null;
   },
-  church?: string,
-): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => addItemNote(tx, actor, input));
     return {};
@@ -133,8 +128,8 @@ export async function saveNote(
   }
 }
 
-export async function dropNote(id: string, church?: string): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+export async function dropNote(id: string): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeItemNote(tx, actor, id));
     return {};
@@ -149,7 +144,7 @@ export async function dropNote(id: string, church?: string): Promise<PlanResult>
  * A file nothing points at is quota a church is paying for and cannot see.
  */
 export async function dropFile(id: string, church?: string): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+  const { actor, ctx } = await context();
   try {
     const removed = await withTenant(ctx, (tx) => detachFromItem(tx, actor, id));
     if (removed) {
@@ -169,7 +164,7 @@ export async function fileLink(
   /** What to call it once it lands, which is the name it arrived with. */
   name?: string,
 ): Promise<string | null> {
-  const { ctx } = await context(church);
+  const { ctx } = await context();
   // R21.1. Signed only for a key this church's own ledger holds.
   const mine = await withTenant(ctx, (tx) => holdsFile(tx, key));
   if (!mine) return null;
@@ -187,9 +182,8 @@ export async function fileLink(
 export async function keepAsTemplate(
   planId: string,
   name: string,
-  church?: string,
-): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => saveAsTemplate(tx, actor, { planId, name }));
     return {};
@@ -201,9 +195,8 @@ export async function keepAsTemplate(
 export async function renamePlanTemplate(
   id: string,
   name: string,
-  church?: string,
-): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => renameTemplate(tx, actor, id, name));
     return {};
@@ -212,8 +205,8 @@ export async function renamePlanTemplate(
   }
 }
 
-export async function dropTemplate(id: string, church?: string): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+export async function dropTemplate(id: string): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeTemplate(tx, actor, id));
     return {};
@@ -226,9 +219,8 @@ export async function dropTemplate(id: string, church?: string): Promise<PlanRes
 export async function useTemplate(
   planId: string,
   templateId: string,
-  church?: string,
-): Promise<PlanResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<PlanResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => applyTemplate(tx, actor, { planId, templateId }));
     return {};
@@ -240,9 +232,8 @@ export async function useTemplate(
 /** R11.8. What a shape holds, read before it is pushed onto the plan. */
 export async function shapeOf(
   source: { kind: "template"; id: string } | { kind: "plan"; occurrenceId: string },
-  church?: string,
-): Promise<{ items?: ShapeItem[]; error?: string }> {
-  const { ctx } = await context(church);
+  ): Promise<{ items?: ShapeItem[]; error?: string }> {
+  const { ctx } = await context();
   try {
     const items = await withTenant(ctx, (tx) =>
       source.kind === "template"

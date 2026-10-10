@@ -97,7 +97,7 @@ export function EmbeddedPayouts({
       loadConnectAndInitialize({
         publishableKey,
         fetchClientSecret: async () => {
-          const answer = await accountSession(church);
+          const answer = await accountSession();
           if (answer.error || !answer.secret) {
             setError(t("stripe.failed"));
             throw new Error(answer.error ?? "no session");

@@ -127,7 +127,6 @@ export default async function PlanPage({
               only runs to the edges once there are more than fit. */}
           {tabs.length > 1 ? (
             <PlanTabs
-              church={session.tenantSlug}
               current={occurrence.id}
               tabs={tabs.map((one) => ({
                 id: one.id,
@@ -181,7 +180,6 @@ export default async function PlanPage({
         </div>
 
         <PlanSide
-          church={session.tenantSlug}
           occurrenceId={occurrence.slug}
           minutes={minutes}
           endsAt={ends.toLocaleTimeString(undefined, {

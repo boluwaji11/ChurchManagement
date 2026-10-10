@@ -21,12 +21,10 @@ import { addPlace, removePlace, leadWithPlace } from "./contact-actions";
  * family's address away.
  */
 export function Places({
-  church,
   memberId,
   places,
   canEdit,
 }: {
-  church: string;
   memberId: string;
   places: PersonAddress[];
   canEdit: boolean;
@@ -78,7 +76,7 @@ export function Places({
                   label={t("contact.makePrimary")}
                   disabled={pending}
                   onClick={() =>
-                    act(`primary:${one.id}`, () => leadWithPlace(one.id, memberId, church))
+                    act(`primary:${one.id}`, () => leadWithPlace(one.id, memberId))
                   }
                   className="size-8 min-h-0 [&_svg]:size-3.5"
                 >
@@ -93,7 +91,7 @@ export function Places({
                 label={t("contact.remove", { value: one.line1 })}
                 disabled={pending}
                 onClick={() =>
-                  act(`remove:${one.id}`, () => removePlace(one.id, memberId, church))
+                  act(`remove:${one.id}`, () => removePlace(one.id, memberId))
                 }
                 className="size-8 min-h-0 [&_svg]:size-3.5"
               >
@@ -150,7 +148,6 @@ export function Places({
                         country: String(data.get("addressCountry") ?? ""),
                       },
                     },
-                    church,
                   );
                   if (!result.error) close(false);
                   return result;

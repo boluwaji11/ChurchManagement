@@ -77,7 +77,6 @@ export default async function PeoplePage({
         </Link>
 
         <ArchivedLists
-          church={session.tenantSlug}
           lists={lists.map((one) => ({ id: one.id, name: one.name, kind: one.kind }))}
         />
       </AppShell>

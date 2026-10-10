@@ -12,7 +12,6 @@ import type { ServingTeam } from "./who-serves";
  * is edited and both are the reason somebody opened it.
  */
 export function PlanSide({
-  church,
   occurrenceId,
   minutes,
   endsAt,
@@ -20,7 +19,6 @@ export function PlanSide({
   canPrint,
   scheduleHref,
 }: {
-  church: string;
   occurrenceId: string;
   minutes: number;
   endsAt: string;

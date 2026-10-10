@@ -17,12 +17,10 @@ import { clearFormCover, recolourForm } from "../actions";
  * says the church did not think it mattered.
  */
 export function FormCover({
-  church,
   formId,
   hue,
   coverUrl,
 }: {
-  church: string;
   formId: string;
   hue: string;
   coverUrl: string | null;
@@ -53,7 +51,6 @@ export function FormCover({
     setLocal(URL.createObjectURL(picked));
 
     const body = new FormData();
-    body.set("church", church);
     body.set("purpose", "form_cover");
     body.set("formId", formId);
     body.set("file", picked);
@@ -135,7 +132,7 @@ export function FormCover({
             onClick={() => {
               setLocal(null);
               if (file.current) file.current.value = "";
-              run("cover", () => clearFormCover(formId, church));
+              run("cover", () => clearFormCover(formId));
             }}
             className="absolute top-3 right-3 size-8 min-h-0 shadow-sm"
           >
@@ -156,7 +153,7 @@ export function FormCover({
             aria-label={one}
             aria-pressed={hue === one}
             disabled={busy}
-            onClick={() => run(one, () => recolourForm(formId, one, church))}
+            onClick={() => run(one, () => recolourForm(formId, one))}
             className={
               "grid size-9 cursor-pointer place-items-center rounded-full border-2 transition-colors sm:size-6 "
               + (hue === one ? "border-fg" : "border-transparent hover:border-line-strong")

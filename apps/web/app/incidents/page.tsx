@@ -121,7 +121,7 @@ export default async function IncidentsPage({
           body={t("incident.none.body")} action={filing} />
       ) : (
         incidents.map((incident) => (
-          <Report key={incident.id} church={session.tenantSlug} incident={incident} />
+          <Report key={incident.id} incident={incident} />
         ))
       )}
     </AppShell>
@@ -129,7 +129,7 @@ export default async function IncidentsPage({
 }
 
 /** One report: who, when, where, what happened, and whether the parent knows. */
-function Report({ church, incident }: { church: string; incident: Incident }) {
+function Report({ incident }: { incident: Incident }) {
   const hue = incident.roomHue ?? "sky";
   const told = incident.guardianNotified;
 
@@ -193,7 +193,7 @@ function Report({ church, incident }: { church: string; incident: Incident }) {
         </span>
       </div>
 
-      {told ? null : <Notify church={church} id={incident.id} />}
+      {told ? null : <Notify id={incident.id} />}
     </section>
   );
 }

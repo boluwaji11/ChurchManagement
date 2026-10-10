@@ -37,11 +37,9 @@ export interface AnnouncementRow {
  * nothing is queued.
  */
 export function Announcements({
-  church,
   rows,
   putAway,
 }: {
-  church: string;
   rows: AnnouncementRow[];
   /** R24.6. Whether this is the shelf of ones taken off the board. */
   putAway?: boolean;
@@ -62,7 +60,7 @@ export function Announcements({
       <Empty
         icon="inbox"
         title={putAway ? t("announce.archived.none") : t("announce.none")}
-        action={putAway ? undefined : <Writer church={church} pending={pending} />}
+        action={putAway ? undefined : <Writer pending={pending} />}
       />
     );
   }
@@ -73,7 +71,7 @@ export function Announcements({
 
       {putAway ? null : (
         <div className="flex justify-end">
-          <Writer church={church} pending={pending} />
+          <Writer pending={pending} />
         </div>
       )}
 
@@ -119,14 +117,13 @@ export function Announcements({
                   label={t("announce.restore")}
                   variant="ghost"
                   disabled={pending}
-                  onClick={() => run(() => archiveAnnouncement(one.id, false, church))}
+                  onClick={() => run(() => archiveAnnouncement(one.id, false))}
                 >
                   <Undo2 />
                 </IconButton>
               ) : (
                 <>
                   <Writer
-                    church={church}
                     pending={pending}
                     row={one}
                     trigger={
@@ -140,7 +137,7 @@ export function Announcements({
                     body={t("announce.archiveBody")}
                     confirmLabel={t("announce.archive")}
                     disabled={pending}
-                    onConfirm={() => archiveAnnouncement(one.id, true, church).then((back) => {
+                    onConfirm={() => archiveAnnouncement(one.id, true).then((back) => {
                       setError(back.error);
                       router.refresh();
                     })}
@@ -172,12 +169,10 @@ function Mark({ icon, text }: { icon?: React.ReactNode; text: string }) {
 
 /** R16.11. Writing one, or changing one, in the panel from the right. */
 function Writer({
-  church,
   pending,
   row,
   trigger,
 }: {
-  church: string;
   pending: boolean;
   row?: AnnouncementRow;
   trigger?: React.ReactNode;
@@ -214,7 +209,6 @@ function Writer({
   /** R16.11. Published on the way out, or kept back to finish later. */
   const send = (publish: boolean) => {
     const data = new FormData();
-    data.set("church", church);
     if (row) data.set("id", row.id);
     data.set("title", title);
     data.set("body", body);

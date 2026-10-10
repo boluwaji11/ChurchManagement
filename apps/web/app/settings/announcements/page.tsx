@@ -94,7 +94,7 @@ export default async function AnnouncementsPage({
         </Link>
       ) : null}
 
-      <Announcements church={session.tenantSlug} rows={rows} putAway={putAway} />
+      <Announcements rows={rows} putAway={putAway} />
 
       {/* R24.6. The same link every screen with archiving carries. */}
       {!putAway && read.putAwayCount > 0 ? (

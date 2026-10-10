@@ -14,8 +14,7 @@ import { requireSession } from "@/lib/session";
  */
 export async function putNoticeAway(
   id: string,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   const session = await requireSession();
   try {
     await withTenant(

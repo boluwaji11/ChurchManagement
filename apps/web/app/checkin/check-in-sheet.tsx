@@ -27,13 +27,11 @@ export interface Candidate {
  * the attendance in one go.
  */
 export function CheckInSheet({
-  church,
   occurrenceId,
   candidates,
   rooms,
   trigger,
 }: {
-  church: string;
   occurrenceId: string;
   candidates: Candidate[];
   rooms: { id: string; name: string }[];
@@ -70,8 +68,8 @@ export function CheckInSheet({
     startTransition(async () => {
       const result =
         kind === "v"
-          ? await place(id, roomId, church)
-          : await checkInTo({ occurrenceId, memberId: id, roomId }, church);
+          ? await place(id, roomId)
+          : await checkInTo({ occurrenceId, memberId: id, roomId });
 
       setError(result.error);
       if (!result.error) {

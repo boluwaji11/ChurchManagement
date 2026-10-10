@@ -86,12 +86,10 @@ export function PortalTabs({ tabs, church }: { tabs: PortalTab[]; church: string
 export function PortalAccount({
   name,
   userId,
-  church,
   photoUrl,
 }: {
   name: string;
   userId: string;
-  church: string;
   /** R2.9. Their own face, when they have uploaded one. */
   photoUrl?: string | null;
 }) {

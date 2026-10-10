@@ -71,7 +71,7 @@ export function Availability({
           disabled={!canEdit}
           onValueChange={(value) =>
             run(() =>
-              saveFrequency(memberId, value === NONE ? null : (value as ServingFrequency), church))}
+              saveFrequency(memberId, value === NONE ? null : (value as ServingFrequency)))}
         >
           <SelectTrigger aria-label={t("availability.frequency")} className="w-56">
             <SelectValue />
@@ -112,7 +112,7 @@ export function Availability({
                     <IconButton
                       label={t("availability.remove")}
                       disabled={pending}
-                      onClick={() => run(() => dropBlockout(range.id, church))}
+                      onClick={() => run(() => dropBlockout(range.id))}
                     >
                       <X />
                     </IconButton>
@@ -136,7 +136,6 @@ export function Availability({
             id={formId}
             noValidate
             action={(data) => {
-              data.set("church", church);
               data.set("memberId", memberId);
               startTransition(async () => {
                 const result = await saveBlockout(data);

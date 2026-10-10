@@ -177,7 +177,7 @@ export function GroupDetail({
                 variant="ghost"
                 loading={doing === "openToJoin"}
                 disabled={pending}
-                onClick={() => run("openToJoin", () => setOpenToJoin(groupId, !openToJoin, church))}
+                onClick={() => run("openToJoin", () => setOpenToJoin(groupId, !openToJoin))}
                 className="h-[34px] min-h-0 px-2.5 text-[13px] font-medium text-primary hover:underline hover:decoration-primary hover:underline-offset-[3px]"
               >
                 {openToJoin ? <Lock /> : <LockOpen />}
@@ -194,7 +194,7 @@ export function GroupDetail({
               disabled={pending}
               onClick={() =>
                 run("publish", () =>
-                  publishGroup(groupId, status === "draft" ? "published" : "draft", church),
+                  publishGroup(groupId, status === "draft" ? "published" : "draft"),
                 )}
               className={
                 status === "draft"
@@ -442,7 +442,7 @@ export function GroupDetail({
                 setDeciding(null);
                 if (asked) {
                   run(`decide:${asked.id}:${asked.approve ? "yes" : "no"}`, () =>
-                    decide(asked.id, asked.approve, church),
+                    decide(asked.id, asked.approve),
                   );
                 }
               }}
@@ -466,7 +466,7 @@ export function GroupDetail({
               onClick={() => {
                 const who = removing;
                 setRemoving(null);
-                if (who) run(`leave:${who.memberId}`, () => leave(groupId, who.memberId, church));
+                if (who) run(`leave:${who.memberId}`, () => leave(groupId, who.memberId));
               }}
             >
               {t("groups.remove")}
@@ -613,7 +613,7 @@ function Register({
     setDay(next);
     setSaved(false);
     startTransition(async () => {
-      const result = await openMeeting(groupId, next, church);
+      const result = await openMeeting(groupId, next);
       setError(result.error);
       if (result.meeting && result.members) {
         setMeeting(result.meeting);
@@ -647,7 +647,6 @@ function Register({
           notHeld: false,
           note: null,
         },
-        church,
       );
       setError(result.error);
       setSaved(!result.error);

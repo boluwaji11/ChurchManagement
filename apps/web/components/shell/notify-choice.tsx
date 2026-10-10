@@ -17,8 +17,8 @@ import { usePush } from "../portal/installed";
  * is the only honest way: a control that explains why it did nothing is worse
  * than no control.
  */
-export function NotifyChoice({ church }: { church: string }) {
-  const push = usePush(church);
+export function NotifyChoice({}: {  }) {
+  const push = usePush();
   if (!push) return null;
 
   return (

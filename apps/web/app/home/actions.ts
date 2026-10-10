@@ -13,7 +13,7 @@ export interface Done {
 }
 
 /** The signed-in member themselves, and the actor every write here runs as. */
-async function asMember(church?: string) {
+async function asMember() {
   const session = await requireSession();
   const scope = {
     tenantId: session.tenantId,
@@ -35,10 +35,9 @@ export async function answerMine(
   id: string,
   accept: boolean,
   reason: string | null,
-  church?: string,
-): Promise<Done> {
+  ): Promise<Done> {
   try {
-    const { session, scope } = await asMember(church);
+    const { session, scope } = await asMember();
     await withTenant(scope, async (tx) => {
       const self = await personForUser(tx, session.userId);
       if (!self) throw new InvalidInputError("member.error.noRecord");
@@ -61,10 +60,9 @@ export async function addAway(
   startsOn: string,
   endsOn: string,
   reason: string | null,
-  church?: string,
-): Promise<Done> {
+  ): Promise<Done> {
   try {
-    const { session, scope } = await asMember(church);
+    const { session, scope } = await asMember();
     await withTenant(scope, async (tx) => {
       const self = await personForUser(tx, session.userId);
       if (!self) throw new InvalidInputError("member.error.noRecord");
@@ -81,9 +79,9 @@ export async function addAway(
   }
 }
 
-export async function removeAway(id: string, church?: string): Promise<Done> {
+export async function removeAway(id: string): Promise<Done> {
   try {
-    const { session, scope } = await asMember(church);
+    const { session, scope } = await asMember();
     await withTenant(scope, (tx) =>
       removeBlockout(
         tx,
@@ -107,10 +105,9 @@ export async function removeAway(id: string, church?: string): Promise<Done> {
 export async function checkInMine(
   occurrenceId: string,
   memberIds: string[],
-  church?: string,
-): Promise<Done> {
+  ): Promise<Done> {
   try {
-    const { session, scope } = await asMember(church);
+    const { session, scope } = await asMember();
     await withTenant(scope, (tx) =>
       checkInMyChildren(
         tx,

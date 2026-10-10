@@ -15,8 +15,7 @@ import { explain } from "@/lib/explain";
  * out of the money path, and a button here would start to undo it.
  */
 export async function accountSession(
-  church?: string,
-): Promise<{ secret?: string; error?: string }> {
+  ): Promise<{ secret?: string; error?: string }> {
   const session = await requireSession();
   if (!canManageGiving(session)) {
     return { error: explain(new PermissionError(session.role, "manageGiving")) };

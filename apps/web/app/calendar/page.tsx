@@ -85,7 +85,7 @@ interface Entry {
  * One thing on one day, drawn the same in the month grid and in the phone's
  * agenda. R24.6: where it has a page, the whole block opens it.
  */
-function EntryBlock({ entry, church }: { entry: Entry; church: string }) {
+function EntryBlock({ entry }: { entry: Entry }) {
   const body = (
     <>
       <div className="text-[13px] font-medium" style={{ color: `var(--hue-${entry.hue}-key)` }}>
@@ -252,7 +252,7 @@ export default async function CalendarPage({
 
             <div className="flex min-h-[150px] flex-col gap-1.5 pt-2">
               {day.entries.map((entry) => (
-                <EntryBlock key={entry.id} entry={entry} church={session.tenantSlug} />
+                <EntryBlock key={entry.id} entry={entry} />
               ))}
             </div>
           </section>
@@ -277,7 +277,7 @@ export default async function CalendarPage({
               </h3>
               <div className="flex flex-col gap-1.5">
                 {day.entries.map((entry) => (
-                  <EntryBlock key={entry.id} entry={entry} church={session.tenantSlug} />
+                  <EntryBlock key={entry.id} entry={entry} />
                 ))}
               </div>
             </li>

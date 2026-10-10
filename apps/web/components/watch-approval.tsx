@@ -26,7 +26,7 @@ export function WatchApproval({ church }: { church: string }) {
     const ask = async () => {
       if (document.hidden || stopped) return;
       try {
-        if (!(await stillWaiting(church))) router.refresh();
+        if (!(await stillWaiting())) router.refresh();
       } catch {
         // A church that cannot be asked right now is asked again in a minute.
       }

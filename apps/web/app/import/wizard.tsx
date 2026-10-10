@@ -108,7 +108,7 @@ export function ImportWizard({
     setError(undefined);
     try {
       const found = await previewImport({
-        church, ...file, mapping, strategy: next as never, groups: inspection?.groups,
+        ...file, mapping, strategy: next as never, groups: inspection?.groups,
       });
       if (found.error) {
         setError(found.error);
@@ -190,7 +190,6 @@ export function ImportWizard({
 
       {step === "done" && result ? (
         <Done
-          church={church}
           result={result}
           groups={inspection?.groups}
           undoBy={undoBy()}
@@ -652,12 +651,10 @@ function PreviewStep({
 }
 
 function Done({
-  church,
   result,
   groups,
   undoBy,
 }: {
-  church: string;
   result: ImportResult;
   groups?: boolean;
   /** R19.4. The last day this import can be taken back. */
@@ -673,7 +670,6 @@ function Done({
     setPending(true);
     try {
       const data = new FormData();
-      data.set("church", church);
       data.set("batchId", result.batchId);
       data.set("kind", groups ? "groups" : "members");
       const outcome = await undoImport(data);

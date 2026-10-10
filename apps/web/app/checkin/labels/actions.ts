@@ -7,8 +7,7 @@ import { requireSession } from "@/lib/session";
 /** R8.11. The church's label layout, saved. */
 export async function saveLayout(
   layout: LabelLayout,
-  church?: string,
-): Promise<{ error?: string }> {
+  ): Promise<{ error?: string }> {
   const session = await requireSession();
   const actor = { tenantId: session.tenantId, role: session.role };
 

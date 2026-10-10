@@ -146,7 +146,7 @@ export default async function ProfilePage({
             <ThemeChoice current={theme} />
           </div>
 
-          <NotifyChoice church={session.tenantSlug} />
+          <NotifyChoice />
         </div>
       </SettingCard>
     </>

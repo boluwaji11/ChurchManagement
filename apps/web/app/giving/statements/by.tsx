@@ -34,7 +34,7 @@ export function StatementsBy({
           aria-pressed={one === by}
           onClick={() =>
             startTransition(async () => {
-              await chooseStatementsBy(one, church);
+              await chooseStatementsBy(one);
               router.refresh();
             })
           }

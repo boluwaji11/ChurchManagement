@@ -73,7 +73,6 @@ export default async function GroupTypesPage({
 
       {manage ? (
         <TypeManager
-          church={session.tenantSlug}
           putAway={putAway}
           taken={taken}
           types={types.map((one) => ({

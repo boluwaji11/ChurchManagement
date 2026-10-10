@@ -192,7 +192,6 @@ export function Directory({
 
   const act = (fn: (d: FormData) => Promise<BulkResult>, extra: Record<string, string>) => {
     const data = new FormData();
-    data.set("church", church);
     for (const [k, v] of Object.entries(extra)) data.set(k, v);
     for (const id of selected) data.append("ids", id);
 
@@ -215,7 +214,6 @@ export function Directory({
    */
   const restore = (id: string) => {
     const data = new FormData();
-    data.set("church", church);
     data.set("archived", "0");
     data.append("ids", id);
 
@@ -315,7 +313,7 @@ export function Directory({
             narrowing the list: the whole directory saved under a name is the
             screen it is already on. */}
         {canEdit && !viewing && (narrowing > 0 || q !== "") ? (
-          <SaveView church={church} params={params} />
+          <SaveView params={params} />
         ) : null}
 
         {canArchive ? (
@@ -1070,7 +1068,7 @@ function SelectionBar({
       />
 
       {/* R1.14. Onto a list the church keeps, or a new one named here. */}
-      <AddToList church={church} lists={lists} ids={ids} onDone={onClear} />
+      <AddToList lists={lists} ids={ids} onDone={onClear} />
 
       {/* R16.12. Labels for whoever was ticked, which is how a church posts
           to the people it just searched for. */}
@@ -1293,7 +1291,7 @@ function ListBar({
             noValidate
             action={(data) =>
               startTransition(async () => {
-                const result = await rename(list.id, String(data.get("name") ?? ""), church);
+                const result = await rename(list.id, String(data.get("name") ?? ""));
                 setFailed(result.error);
                 if (!result.error) {
                   setRenaming(false);
@@ -1329,7 +1327,7 @@ function ListBar({
               onClick={() => {
                 setArchiving(false);
                 startTransition(async () => {
-                  const result = await archiveList(list.id, true, church);
+                  const result = await archiveList(list.id, true);
                   setFailed(result.error);
                   if (!result.error) router.push("/members");
                 });

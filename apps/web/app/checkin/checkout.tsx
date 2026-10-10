@@ -75,7 +75,7 @@ export function Checkout({
     }
 
     startTransition(async () => {
-      const result = await pickup(childId, church);
+      const result = await pickup(childId);
       setError(result.error);
       setPeople(result.members ?? []);
     });
@@ -107,7 +107,6 @@ export function Checkout({
         code,
         collectedBy,
         override as never,
-        church,
       );
       setError(result.error);
       if (result.released) {

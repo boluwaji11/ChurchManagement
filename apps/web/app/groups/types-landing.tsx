@@ -26,10 +26,8 @@ export interface TypeCard {
  * type, set in Settings. That is why the description field is there.
  */
 export function TypesLanding({
-  church,
   types,
 }: {
-  church: string;
   types: TypeCard[];
 }) {
   return (

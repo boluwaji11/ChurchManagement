@@ -181,7 +181,6 @@ export function EventEditor({
       id="event-form"
       noValidate
       action={(data) => {
-        data.set("church", church);
         if (event) data.set("id", event.id);
         data.set("hue", hue);
 
@@ -204,7 +203,7 @@ export function EventEditor({
             upload.set("file", picture);
             await fetch("/api/upload", { method: "POST", body: upload });
           }
-          if (id && hue !== event?.hue) await recolourEvent(id, hue, church);
+          if (id && hue !== event?.hue) await recolourEvent(id, hue);
 
           setBusy(false);
 
@@ -327,7 +326,7 @@ export function EventEditor({
                   return;
                 }
                 startLinking(async () => {
-                  const result = await useFormForEvent(event.id, formId || null, church);
+                  const result = await useFormForEvent(event.id, formId || null);
                   if (result.error) {
                     setError(result.error);
                   } else {
@@ -452,7 +451,7 @@ export function EventEditor({
                 if (file.current) file.current.value = "";
                 if (event && coverUrl) {
                   startRemoving(async () => {
-                    await clearEventCover(event.id, church);
+                    await clearEventCover(event.id);
                     router.refresh();
                   });
                 }

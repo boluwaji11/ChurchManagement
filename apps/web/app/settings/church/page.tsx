@@ -56,7 +56,6 @@ export default async function SettingsPage({
         {profile ? (
           <ChurchSections
             heading={<SettingsHeading title="settings.tab.church" lede="settings.lede.church" />}
-            church={session.tenantSlug}
             values={profile}
             campus={campus}
             canEdit={canManageChurch(session)}

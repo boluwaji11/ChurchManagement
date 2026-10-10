@@ -137,7 +137,7 @@ export function GroupEditor({
     }
     const mine = ++ticket.current;
     setSearching(true);
-    void findPerson(query, church).then((found) => {
+    void findPerson(query).then((found) => {
       if (mine !== ticket.current) return;
       setSearching(false);
       setHits(found);
@@ -149,7 +149,6 @@ export function GroupEditor({
       id="group-form"
       noValidate
       action={(data) => {
-        data.set("church", church);
         if (group) data.set("id", group.id);
         startTransition(async () => {
           const result = await (group ? save(data) : create(data));
@@ -166,12 +165,12 @@ export function GroupEditor({
           if (id) {
             for (const one of leaders) {
               if (!already.some((x) => x.id === one.id)) {
-                await join(id, one.id, "leader", church);
+                await join(id, one.id, "leader");
               }
             }
             for (const one of already) {
               if (!leaders.some((x) => x.id === one.id)) {
-                await leave(id, one.id, church);
+                await leave(id, one.id);
               }
             }
           }

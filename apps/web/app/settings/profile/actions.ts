@@ -26,7 +26,7 @@ const pick = (data: FormData, name: string): string | null => field(data, name) 
  * in account, so nobody can edit somebody else by changing a value in the form.
  */
 export async function saveProfile(data: FormData): Promise<ProfileResult> {
-  const session = await requireSession(field(data, "church") || undefined);
+  const session = await requireSession();
   const ctx = {
     tenantId: session.tenantId,
     role: session.role,

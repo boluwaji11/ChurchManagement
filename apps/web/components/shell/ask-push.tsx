@@ -20,8 +20,8 @@ const ASKED = "connectapp.push.asked";
  * way it is answered. Afterwards it is a preference, on the profile screen,
  * beside how the product is drawn.
  */
-export function AskPush({ church }: { church: string }) {
-  const push = usePush(church);
+export function AskPush({}: {  }) {
+  const push = usePush();
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {

@@ -208,7 +208,6 @@ function problemGroups(
 const PREVIEW_ROWS = 60;
 
 export async function previewImport(input: {
-  church?: string;
   mapping: Record<string, string>;
   strategy: DuplicateStrategy;
   groups?: boolean;

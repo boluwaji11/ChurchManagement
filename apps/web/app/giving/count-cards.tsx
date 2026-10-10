@@ -28,14 +28,12 @@ export interface CountCard {
  */
 export function CountCards({
   counts,
-  church,
   today,
   funds,
   firstFundId,
   manage,
 }: {
   counts: CountCard[];
-  church: string;
   today: string;
   funds: { id: string; name: string }[];
   /** What a session with no fund of its own opens on. */
@@ -54,7 +52,6 @@ export function CountCards({
             <span className="min-w-0 flex-1 font-medium text-fg">
               {manage ? (
                 <StartCount
-                  church={church}
                   today={today}
                   funds={funds}
                   count={{

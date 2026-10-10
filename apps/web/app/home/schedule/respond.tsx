@@ -12,7 +12,7 @@ import { answerMine } from "../actions";
  * and a reason is what somebody adds when they have one. Declining asks for it
  * because "no" on its own leaves a lead guessing whether to ask again.
  */
-export function Respond({ id, church }: { id: string; church: string }) {
+export function Respond({ id }: { id: string }) {
   const [working, start] = React.useTransition();
   const [asking, setAsking] = React.useState(false);
   const [reason, setReason] = React.useState("");
@@ -26,7 +26,7 @@ export function Respond({ id, church }: { id: string; church: string }) {
 
   const send = (accept: boolean, why: string | null) =>
     start(async () => {
-      const back = await answerMine(id, accept, why, church);
+      const back = await answerMine(id, accept, why);
       setError(back.error ?? null);
       if (!back.error) close();
     });

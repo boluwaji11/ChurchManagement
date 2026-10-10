@@ -161,7 +161,7 @@ export function Kiosk({
         return;
       }
 
-      const result = await checkIn(service, stationId, entries, church);
+      const result = await checkIn(service, stationId, entries);
       setError(result.error);
       if (result.error) return;
       setCodes(result.codes ?? {});

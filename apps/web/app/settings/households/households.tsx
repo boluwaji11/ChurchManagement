@@ -187,14 +187,12 @@ export function HouseholdList({
                     pending={pending}
                     doing={doing}
                     run={run}
-                    church={church}
                   />
                   <ArchiveOne
                     household={household}
                     pending={pending}
                     doing={doing}
                     run={run}
-                    church={church}
                   />
                 </div>
               </div>
@@ -242,7 +240,7 @@ export function HouseholdList({
                   variant="ghost"
                   disabled={pending}
                   onClick={() =>
-                    run(`restore:${household.id}`, () => putAway(household.id, false, church))
+                    run(`restore:${household.id}`, () => putAway(household.id, false))
                   }
                 >
                   {doing === `restore:${household.id}` ? (
@@ -313,7 +311,7 @@ function EditHousehold({
     const same = (Object.keys(was) as (keyof typeof was)[])
       .every((key) => was[key].trim() === where[key].trim());
     if (same) return;
-    run(`address:${household.id}`, () => setAddress(household.id, where, church));
+    run(`address:${household.id}`, () => setAddress(household.id, where));
   };
 
 
@@ -330,7 +328,7 @@ function EditHousehold({
                 onChange={(e) => setName_(e.target.value)}
                 onBlur={() => {
                   if (name.trim() && name.trim() !== household.name) {
-                    run(`name:${household.id}`, () => setName(household.id, name, church));
+                    run(`name:${household.id}`, () => setName(household.id, name));
                   }
                 }}
                 autoComplete="off"
@@ -383,7 +381,7 @@ function EditHousehold({
                       setWhere(next);
                       if (theirs) {
                         run(`address:${household.id}`, () =>
-                          setAddress(household.id, next, church));
+                          setAddress(household.id, next));
                       } else {
                         street.current?.focus();
                       }
@@ -497,7 +495,7 @@ function Members({
     let live = true;
     setLooking(true);
     const timer = setTimeout(async () => {
-      const rows = await freePeople(find, church);
+      const rows = await freePeople(find);
       if (live) {
         setFree(rows.filter((one) => !household.members.some((m) => m.id === one.id)));
         setLooking(false);
@@ -534,7 +532,7 @@ function Members({
                   onClick={() => {
                     onAdded?.(person);
                     setFree((prev) => prev.filter((one) => one.id !== person.id));
-                    run(`putIn:${person.id}`, () => putIn(household.id, person.id, church));
+                    run(`putIn:${person.id}`, () => putIn(household.id, person.id));
                   }}
                   className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-1 py-2 text-left hover:bg-sunken"
                 >
@@ -589,7 +587,7 @@ function Members({
                     onValueChange={(next) => {
                       onRole?.(member.id, next);
                       run(`role:${member.id}`, () =>
-                        setRole(household.id, member.id, next, church),
+                        setRole(household.id, member.id, next),
                       );
                     }}
                   >
@@ -607,7 +605,6 @@ function Members({
                   </Select>
 
                   <TakeOut
-                    church={church}
                     household={household}
                     member={member}
                     pending={pending}
@@ -627,7 +624,6 @@ function Members({
 
 /** R2.1. Taking somebody out asks first: it is a change to two records. */
 function TakeOut({
-  church,
   household,
   member,
   pending,
@@ -635,7 +631,6 @@ function TakeOut({
   run,
   onRemoved,
 }: {
-  church: string;
   household: HouseholdItem;
   member: HouseholdItem["members"][number];
   pending: boolean;
@@ -679,7 +674,7 @@ function TakeOut({
             disabled={pending}
             onClick={() => {
               onRemoved?.(member.id);
-              run(`remove:${member.id}`, () => takeOut(household.id, member.id, church));
+              run(`remove:${member.id}`, () => takeOut(household.id, member.id));
               setOpen(false);
             }}
           >
@@ -693,13 +688,11 @@ function TakeOut({
 
 /** R2.1. Archiving asks first: it takes a family off every screen at once. */
 function ArchiveOne({
-  church,
   household,
   pending,
   doing,
   run,
 }: {
-  church: string;
   household: HouseholdItem;
   pending: boolean;
   doing?: string;
@@ -737,7 +730,7 @@ function ArchiveOne({
             variant="danger"
             disabled={pending}
             onClick={() => {
-              run(`archive:${household.id}`, () => putAway(household.id, true, church));
+              run(`archive:${household.id}`, () => putAway(household.id, true));
               setOpen(false);
             }}
           >
@@ -751,14 +744,12 @@ function ArchiveOne({
 
 /** R2.1. Two records for one family, put back together. */
 function MergeInto({
-  church,
   household,
   others,
   pending,
   doing,
   run,
 }: {
-  church: string;
   household: HouseholdItem;
   others: HouseholdItem[];
   pending: boolean;
@@ -820,7 +811,7 @@ function MergeInto({
             type="button"
             disabled={pending || !into}
             onClick={() => {
-              if (into) run(`merge:${household.id}`, () => fold(household.id, into, church));
+              if (into) run(`merge:${household.id}`, () => fold(household.id, into));
               close(false);
             }}
           >
@@ -868,7 +859,7 @@ export function NewHousehold({ church }: { church: string }) {
 
     let live = true;
     const timer = setTimeout(async () => {
-      const rows = await freePeople(find, church);
+      const rows = await freePeople(find);
       if (live) setFree(rows.filter((one) => !chosen.some((m) => m.id === one.id)));
     }, 200);
     return () => {
@@ -879,20 +870,20 @@ export function NewHousehold({ church }: { church: string }) {
 
   const create = () =>
     startTransition(async () => {
-      const made = await add(name, church);
+      const made = await add(name);
       if (made.error || !made.id) {
         setError(made.error);
         return;
       }
 
       for (const person of chosen) {
-        const put = await putIn(made.id, person.id, church);
+        const put = await putIn(made.id, person.id);
         if (put.error) {
           setError(put.error);
           return;
         }
         if (person.role !== "other") {
-          await setRole(made.id, person.id, person.role, church);
+          await setRole(made.id, person.id, person.role);
         }
       }
 

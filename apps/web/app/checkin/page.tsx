@@ -148,7 +148,6 @@ export default async function CheckinPage({
 
   const action = (
     <CheckInSheet
-      church={session.tenantSlug}
       occurrenceId={data.chosen}
       candidates={[
         ...data.waiting.map((child) => ({

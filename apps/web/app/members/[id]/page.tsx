@@ -238,7 +238,6 @@ export default async function PersonPage({
             {/* The errand this screen is most often opened for, beside the
                 marks that do the other two things to a record. */}
             <NoteForm
-              church={session.tenantSlug}
               memberId={person.id}
               name={display}
               canConfidential={canReadConfidentialNotes(session)}
@@ -281,7 +280,6 @@ export default async function PersonPage({
             <div className="flex flex-col gap-1.5">
               <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
               <Contacts
-                church={session.tenantSlug}
                 memberId={person.id}
                 kind="email"
                 contacts={contacts}
@@ -292,7 +290,6 @@ export default async function PersonPage({
             <div className="flex flex-col gap-1.5">
               <span className="text-caption text-fg-subtle">{t("contact.phones")}</span>
               <Contacts
-                church={session.tenantSlug}
                 memberId={person.id}
                 kind="phone"
                 contacts={contacts}
@@ -304,7 +301,6 @@ export default async function PersonPage({
             <div className="flex flex-col gap-1.5">
               <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
               <Places
-                church={session.tenantSlug}
                 memberId={person.id}
                 places={addresses}
                 canEdit={false}

@@ -27,14 +27,14 @@ function stepsFrom(data: FormData) {
     .filter((step) => step.name !== "");
 }
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 }
 
 /** R5.2. A church putting its own process into its own words. */
 export async function savePipeline(data: FormData): Promise<PipelineResult> {
-  const ctx = await context(field(data, "church") || undefined);
+  const ctx = await context();
 
   const steps = stepsFrom(data);
 
@@ -57,9 +57,8 @@ export async function savePipeline(data: FormData): Promise<PipelineResult> {
 export async function switchPipeline(
   id: string,
   off: boolean,
-  church?: string,
-): Promise<PipelineResult> {
-  const ctx = await context(church);
+  ): Promise<PipelineResult> {
+  const ctx = await context();
   try {
     await withTenant(ctx, (tx) => setPipelineArchived(tx, ctx, id, off));
     return {};
@@ -70,7 +69,7 @@ export async function switchPipeline(
 
 /** R5.2. A stage a church writes for itself. */
 export async function addPipeline(data: FormData): Promise<PipelineResult> {
-  const ctx = await context(field(data, "church") || undefined);
+  const ctx = await context();
   try {
     await withTenant(ctx, (tx) =>
       createPipeline(tx, ctx, {

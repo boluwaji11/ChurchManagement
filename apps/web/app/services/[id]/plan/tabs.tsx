@@ -22,11 +22,9 @@ const STEP = 4;
  * and fifty of these in a year.
  */
 export function PlanTabs({
-  church,
   current,
   tabs,
 }: {
-  church: string;
   current: string;
   tabs: { id: string; slug: string; when: string; name: string }[];
 }) {

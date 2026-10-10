@@ -32,7 +32,7 @@ export interface AwaySpan {
   to: string | null;
 }
 
-export function Away({ dates, church }: { dates: AwaySpan[]; church: string }) {
+export function Away({ dates }: { dates: AwaySpan[] }) {
   const [working, start] = React.useTransition();
   const [adding, setAdding] = React.useState(false);
   const [picked, setPicked] = React.useState<string[]>([]);
@@ -68,7 +68,7 @@ export function Away({ dates, church }: { dates: AwaySpan[]; church: string }) {
   const save = () =>
     start(async () => {
       for (const day of picked) {
-        const back = await addAway(day, day, null, church);
+        const back = await addAway(day, day, null);
         if (back.error) {
           setError(back.error);
           return;
@@ -141,7 +141,7 @@ export function Away({ dates, church }: { dates: AwaySpan[]; church: string }) {
                   confirmLabel={t("home.awayRemoveAction")}
                   disabled={working}
                   onConfirm={() => start(async () => {
-                    const back = await removeAway(one.id, church);
+                    const back = await removeAway(one.id);
                     setError(back.error ?? null);
                   })}
                   trigger={

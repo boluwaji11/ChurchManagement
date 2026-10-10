@@ -18,7 +18,7 @@ const ROLES: TenantRole[] = [
   "owner", "admin", "staff", "pastoral", "finance", "group_leader", "checkin_volunteer", "member",
 ];
 
-async function allowed(church?: string) {
+async function allowed() {
   const session = await requireSession();
   /*
    * A PermissionError and not a plain Error: explain() rethrows anything it
@@ -32,7 +32,7 @@ async function allowed(church?: string) {
 /** R1.7. Inviting somebody, by the address they will sign in with. */
 export async function invite(data: FormData): Promise<TeamResult> {
   try {
-    const session = await allowed(field(data, "church") || undefined);
+    const session = await allowed();
     const email = field(data, "email").toLowerCase();
 
     if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email)) return { error: t("team.error.email") };
@@ -69,9 +69,9 @@ export async function invite(data: FormData): Promise<TeamResult> {
   }
 }
 
-export async function withdraw(id: string, church?: string): Promise<TeamResult> {
+export async function withdraw(id: string): Promise<TeamResult> {
   try {
-    await allowed(church);
+    await allowed();
     await revokeInvitation(id);
     return {};
   } catch (error) {
@@ -117,7 +117,7 @@ export async function changeRole(
   roleId?: string | null,
 ): Promise<TeamResult> {
   try {
-    const session = await allowed(church);
+    const session = await allowed();
 
     /*
      * R1.4. An Owner's row is only an Owner's to change. Admin may run the
@@ -152,9 +152,9 @@ export async function changeRole(
  * An Owner is never put back. There is nobody above them to undo it, and a
  * church whose last Owner was demoted by an Admin has lost its own keys.
  */
-export async function removeAccess(userId: string, church?: string): Promise<TeamResult> {
+export async function removeAccess(userId: string): Promise<TeamResult> {
   try {
-    const session = await allowed(church);
+    const session = await allowed();
 
     const held = await memberRole(session.tenantId, userId);
     if (!held) return { error: t("team.error.gone") };
@@ -176,8 +176,7 @@ export async function removeAccess(userId: string, church?: string): Promise<Tea
 /** R1.7. People in the directory who could be given an account. */
 export async function invitees(
   search: string,
-  church?: string,
-): Promise<{ id: string; name: string; email: string }[]> {
+  ): Promise<{ id: string; name: string; email: string }[]> {
   /*
    * A search box asks this as somebody types, so a refusal comes back as no
    * matches rather than as a rejected promise the field cannot do anything
@@ -185,7 +184,7 @@ export async function invitees(
    */
   let session;
   try {
-    session = await allowed(church);
+    session = await allowed();
   } catch {
     return [];
   }

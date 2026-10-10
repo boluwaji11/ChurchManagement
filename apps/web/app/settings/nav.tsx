@@ -27,7 +27,7 @@ export interface SettingsGroup {
  * screen in the section, so a press always lands somewhere and the keyboard
  * reaches the list through focus rather than through a press.
  */
-export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; church: string }) {
+export function SettingsNav({ groups }: { groups: SettingsGroup[] }) {
   const pathname = usePathname();
   /*
    * The list closes when something in it is chosen.
@@ -57,11 +57,11 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
    * in front of a door.
    */
   const only = groups.length === 1 ? groups[0]! : null;
-  if (only) return <Strip items={only.items} church={church} pathname={pathname} />;
+  if (only) return <Strip items={only.items} pathname={pathname} />;
 
   return (
     <>
-      <Pocket groups={groups} church={church} pathname={pathname} />
+      <Pocket groups={groups} pathname={pathname} />
 
       <nav
         aria-label={t("settings.sections")}
@@ -162,11 +162,9 @@ export function SettingsNav({ groups, church }: { groups: SettingsGroup[]; churc
  */
 function Pocket({
   groups,
-  church,
   pathname,
 }: {
   groups: SettingsGroup[];
-  church: string;
   pathname: string;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -234,12 +232,10 @@ function Pocket({
  */
 function Strip({
   items,
-  church,
   pathname,
   className,
 }: {
   items: SettingsLink[];
-  church: string;
   pathname: string;
   className?: string;
 }) {

@@ -56,7 +56,7 @@ export function Stage({
 
   React.useEffect(() => {
     const poll = setInterval(() => {
-      liveNow(occurrenceId, church).then((found) => {
+      liveNow(occurrenceId).then((found) => {
         if (found) setLive(found);
       });
     }, TICK);
@@ -68,7 +68,7 @@ export function Stage({
     startTransition(async () => {
       const result = await work();
       setError(result.error);
-      const found = await liveNow(occurrenceId, church);
+      const found = await liveNow(occurrenceId);
       if (found) setLive(found);
     });
   };
@@ -162,7 +162,7 @@ export function Stage({
                   className="flex-1 justify-center sm:flex-none"
                   loading={doing === "back"}
                   disabled={pending || at <= 0}
-                  onClick={() => run("back", () => move(occurrenceId, "back", church))}
+                  onClick={() => run("back", () => move(occurrenceId, "back"))}
                 >
                   <ChevronLeft /> {t("live.back")}
                 </Button>
@@ -170,7 +170,7 @@ export function Stage({
                   className="flex-1 justify-center sm:flex-none"
                   loading={doing === "next"}
                   disabled={pending}
-                  onClick={() => run("next", () => move(occurrenceId, "next", church))}
+                  onClick={() => run("next", () => move(occurrenceId, "next"))}
                 >
                   {t("live.next")} <ChevronRight />
                 </Button>
@@ -179,7 +179,7 @@ export function Stage({
                   className="basis-full justify-center sm:basis-auto"
                   loading={doing === "stop"}
                   disabled={pending}
-                  onClick={() => run("stop", () => end(occurrenceId, church))}
+                  onClick={() => run("stop", () => end(occurrenceId))}
                 >
                   <Square /> {t("live.stop")}
                 </Button>
@@ -188,7 +188,7 @@ export function Stage({
               <Button
                 loading={doing === "start"}
                 disabled={pending}
-                onClick={() => run("start", () => begin(occurrenceId, church))}
+                onClick={() => run("start", () => begin(occurrenceId))}
               >
                 <Play /> {t("live.start")}
               </Button>
@@ -230,7 +230,7 @@ export function Stage({
                   <button
                     type="button"
                     disabled={pending}
-                    onClick={() => run(`jump:${item.id}`, () => jumpTo(occurrenceId, item.id, church))}
+                    onClick={() => run(`jump:${item.id}`, () => jumpTo(occurrenceId, item.id))}
                     className={`flex w-full rounded-[var(--d-radius-control)] px-3 py-2.5 text-left hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)] ${tone}`}
                   >
                     {body}

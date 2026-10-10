@@ -164,11 +164,11 @@ export function Builder({
     const ids = form.fields.map((one) => one.id);
     const [moved] = ids.splice(from, 1);
     ids.splice(to, 0, moved!);
-    run(() => orderQuestions(form.id, ids, church));
+    run(() => orderQuestions(form.id, ids));
   };
 
   const shift = (id: string, direction: "up" | "down") =>
-    run(() => shiftQuestion(form.id, id, direction, church));
+    run(() => shiftQuestion(form.id, id, direction));
 
   /*
    * R4.3. The public link, and the snippet that puts the same form inside the
@@ -205,7 +205,7 @@ export function Builder({
           onChange={(e) => setName(e.target.value)}
           onBlur={() => {
             if (name.trim() && name !== form.name) {
-              run(() => saveForm(form.id, { name: name.trim() }, church));
+              run(() => saveForm(form.id, { name: name.trim() }));
             }
           }}
           aria-label={t("form.name")}
@@ -216,7 +216,7 @@ export function Builder({
         <StatusSwitch
           status={form.archivedAt ? "archived" : form.status}
           disabled={pending || Boolean(form.archivedAt)}
-          onPick={(next) => run(() => openOrClose(form.id, next, church))}
+          onPick={(next) => run(() => openOrClose(form.id, next))}
         />
 
         {/* R4.3. A draft has no public link, so neither action is offered
@@ -274,7 +274,7 @@ export function Builder({
           <IconButton
             label={t("form.restore")}
             disabled={pending}
-            onClick={() => run(() => archiveForm(form.id, false, church))}
+            onClick={() => run(() => archiveForm(form.id, false))}
           >
             <ArchiveRestore />
           </IconButton>
@@ -298,7 +298,7 @@ export function Builder({
                   disabled={pending}
                   onClick={() =>
                     startTransition(async () => {
-                      const result = await archiveForm(form.id, true, church);
+                      const result = await archiveForm(form.id, true);
                       if (result.error) setError(result.error);
                       else router.push("/forms");
                     })}
@@ -324,7 +324,6 @@ export function Builder({
       ) : (
       <>
       <FormCover
-        church={church}
         formId={form.id}
         hue={form.hue}
         coverUrl={coverUrl}
@@ -384,7 +383,6 @@ export function Builder({
                               : null,
                             mapsTo: question.target ?? null,
                           },
-                          church,
                         );
                         if (result.error) return result;
                       }
@@ -584,7 +582,6 @@ function Question({
           maxFiles: changes.maxFiles ?? field.maxFiles ?? 1,
           fileKinds: changes.fileKinds ?? field.fileKinds ?? "any",
         },
-        church,
       );
       onError(result.error);
       setKept(!result.error);
@@ -678,7 +675,7 @@ function Question({
             disabled={busy}
             onClick={() =>
               startWriting(async () => {
-                const result = await dropQuestion(field.id, church);
+                const result = await dropQuestion(field.id);
                 onError(result.error);
                 if (!result.error) onDone();
               })}

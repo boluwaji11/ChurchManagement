@@ -9,7 +9,7 @@ import type { BellItem } from "./bell";
 import { requireSession } from "@/lib/session";
 
 /** R24.6. One notification, read, on the way to wherever it points. */
-export async function readOne(id: string, church?: string): Promise<void> {
+export async function readOne(id: string): Promise<void> {
   const session = await requireSession();
   await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
@@ -19,7 +19,7 @@ export async function readOne(id: string, church?: string): Promise<void> {
 }
 
 /** R24.6. The link at the top of the panel. */
-export async function readAll(church?: string): Promise<void> {
+export async function readAll(): Promise<void> {
   const session = await requireSession();
   await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
@@ -29,7 +29,7 @@ export async function readAll(church?: string): Promise<void> {
 }
 
 /** R24.6. The next ten lines, for Show more. */
-export async function olderThan(cursor: string, church?: string): Promise<BellItem[]> {
+export async function olderThan(cursor: string): Promise<BellItem[]> {
   const session = await requireSession();
   const rows = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },

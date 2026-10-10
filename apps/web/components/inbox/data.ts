@@ -97,7 +97,6 @@ const WATCHING = 3000;
 const RESTING = 25000;
 
 export function useInbox(
-  church: string,
   opts: {
     view?: "inbox" | "drafts";
     key?: string | null;
@@ -135,7 +134,7 @@ export function useInbox(
     } catch {
       // A dropped connection is the next poll's problem, not the reader's.
     }
-  }, [church, view, key, reading]);
+  }, [view, key, reading]);
 
   /* What is on screen belongs to the conversation that was asked for. While a
      different one is on its way, the old lines are held rather than cleared:

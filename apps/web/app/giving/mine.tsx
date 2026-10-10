@@ -335,12 +335,10 @@ export async function MyGiving({
                     {/* Stripe's own fields, drawn in a panel on this page. */}
                     <ChangeCard
                       id={one.id}
-                      church={session.tenantSlug}
                       publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""}
                     />
                     <StopRepeating
                       id={one.id}
-                      church={session.tenantSlug}
                       label={money(one.amountCents)}
                     />
                   </span>
@@ -419,7 +417,6 @@ export async function MyGiving({
             title={t("giving.statements")}
           >
             <MyStatement
-              church={session.tenantSlug}
               years={mine.years.length > 0 ? mine.years : [mine.year]}
               thisYear={mine.year}
             />

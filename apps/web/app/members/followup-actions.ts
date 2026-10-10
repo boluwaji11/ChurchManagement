@@ -14,7 +14,7 @@ export interface FollowUpResult {
 
 const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     session,
@@ -24,7 +24,7 @@ async function context(church?: string) {
 
 /** R5.4. Putting somebody in a pipeline by hand. */
 export async function startFollowUp(data: FormData): Promise<FollowUpResult> {
-  const { session, ctx } = await context(field(data, "church") || undefined);
+  const { session, ctx } = await context();
   try {
     await withTenant(ctx, async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
@@ -46,9 +46,8 @@ export async function startFollowUp(data: FormData): Promise<FollowUpResult> {
 export async function finishStep(
   id: string,
   outcome: string | null,
-  church?: string,
-): Promise<FollowUpResult> {
-  const { ctx } = await context(church);
+  ): Promise<FollowUpResult> {
+  const { ctx } = await context();
   try {
     await withTenant(ctx, (tx) => completeFollowUp(tx, ctx, { id, outcome }));
     return {};
@@ -61,9 +60,8 @@ export async function finishStep(
 export async function moveToStage(
   entryId: string,
   position: number,
-  church?: string,
-): Promise<FollowUpResult> {
-  const { ctx } = await context(church);
+  ): Promise<FollowUpResult> {
+  const { ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setEntryStage(tx, ctx, entryId, position));
     return {};
@@ -72,8 +70,8 @@ export async function moveToStage(
   }
 }
 
-export async function undoStep(id: string, church?: string): Promise<FollowUpResult> {
-  const { ctx } = await context(church);
+export async function undoStep(id: string): Promise<FollowUpResult> {
+  const { ctx } = await context();
   try {
     await withTenant(ctx, (tx) => reopenFollowUp(tx, ctx, id));
     return {};
@@ -86,9 +84,8 @@ export async function undoStep(id: string, church?: string): Promise<FollowUpRes
 export async function leaveFollowUp(
   entryId: string,
   reason: string,
-  church?: string,
-): Promise<FollowUpResult> {
-  const { ctx } = await context(church);
+  ): Promise<FollowUpResult> {
+  const { ctx } = await context();
   try {
     await withTenant(ctx, (tx) => exitPipeline(tx, ctx, { entryId, reason }));
     return {};
@@ -99,7 +96,7 @@ export async function leaveFollowUp(
 
 /** R5.6. A thing to do about somebody, attached to no pipeline. */
 export async function addPersonTask(data: FormData): Promise<FollowUpResult> {
-  const { session, ctx } = await context(field(data, "church") || undefined);
+  const { session, ctx } = await context();
   try {
     await withTenant(ctx, (tx) =>
       addTask(tx, ctx, {
@@ -119,9 +116,8 @@ export async function addPersonTask(data: FormData): Promise<FollowUpResult> {
 export async function takeStep(
   id: string,
   mine: boolean,
-  church?: string,
-): Promise<FollowUpResult> {
-  const { session, ctx } = await context(church);
+  ): Promise<FollowUpResult> {
+  const { session, ctx } = await context();
   try {
     await withTenant(ctx, (tx) =>
       assignFollowUp(tx, ctx, { id, assigneeUserId: mine ? session.userId : null }),

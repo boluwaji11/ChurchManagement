@@ -87,7 +87,6 @@ export function IncidentDialog({
                   action: String(data.get("action") ?? ""),
                   guardianNotified: notified,
                 },
-                church,
               );
               setError(result.error);
               if (!result.error) {

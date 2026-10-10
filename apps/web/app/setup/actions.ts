@@ -8,14 +8,14 @@ export interface SetupResult {
   error?: string;
 }
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 }
 
 /** R22.1. "We do not run kids' classes." */
-export async function skip(step: SetupStep, on: boolean, church?: string): Promise<SetupResult> {
-  const ctx = await context(church);
+export async function skip(step: SetupStep, on: boolean): Promise<SetupResult> {
+  const ctx = await context();
   try {
     await withTenant(ctx, (tx) => skipSetupStep(tx, ctx, step, on));
     return {};
@@ -25,8 +25,8 @@ export async function skip(step: SetupStep, on: boolean, church?: string): Promi
 }
 
 /** R22.1. Putting it away. Settings brings it back. */
-export async function putAway(church?: string): Promise<SetupResult> {
-  const ctx = await context(church);
+export async function putAway(): Promise<SetupResult> {
+  const ctx = await context();
   try {
     await withTenant(ctx, (tx) => dismissSetup(tx, ctx, true));
     return {};

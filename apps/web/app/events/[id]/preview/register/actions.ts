@@ -18,8 +18,7 @@ import { explain } from "@/lib/explain";
 export async function registerFromPreview(input: {
   eventId: string;
   party: Registrant[];
-  church?: string;
-}): Promise<{
+  }): Promise<{
   ok: boolean;
   going?: number;
   waiting?: number;

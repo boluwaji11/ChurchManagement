@@ -16,8 +16,8 @@ export interface BulkResult {
   changed?: number;
 }
 
-async function context(slug: string | undefined) {
-  const session = await requireSession(slug);
+async function context() {
+  const session = await requireSession();
   const h = await headers();
   const forwarded = h.get("x-forwarded-for");
   return {
@@ -45,7 +45,7 @@ export async function bulkArchive(data: FormData): Promise<BulkResult> {
   const ids = selection(data);
   if (ids.length === 0) return { changed: 0 };
 
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   try {
     const changed = await withTenant(ctx, (tx) =>
       bulkSetArchived(tx, actor, ids, field(data, "archived") === "1"),
@@ -63,7 +63,7 @@ export async function bulkStatus(data: FormData): Promise<BulkResult> {
   if (ids.length === 0) return { changed: 0 };
   if (!status) return { error: t("error.chooseType") };
 
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   try {
     const changed = await withTenant(ctx, (tx) => bulkSetStatus(tx, actor, ids, status));
     revalidatePath("/members");
@@ -80,7 +80,7 @@ export async function bulkTag(data: FormData): Promise<BulkResult> {
   if (ids.length === 0) return { changed: 0 };
   if (!tagId) return { error: t("error.notFound.tag") };
 
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   try {
     const changed = await withTenant(ctx, (tx) => bulkSetPersonTag(tx, actor, ids, tagId, on));
     revalidatePath("/members");
@@ -99,8 +99,7 @@ export async function bulkTag(data: FormData): Promise<BulkResult> {
  */
 export async function matchingIds(
   params: DirectoryParams,
-  church?: string,
-): Promise<{ ids: string[] }> {
+  ): Promise<{ ids: string[] }> {
   const session = await requireSession();
   const viewer = { role: session.role, userId: session.userId };
 
@@ -113,7 +112,7 @@ export async function matchingIds(
 
 /** R9.4. Putting the members on screen into a group, in one go. */
 export async function bulkAddToGroup(data: FormData): Promise<BulkResult> {
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   const ids = selection(data);
   const groupId = field(data, "groupId");
   if (!groupId || ids.length === 0) return { changed: 0 };

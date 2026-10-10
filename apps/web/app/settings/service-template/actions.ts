@@ -11,7 +11,7 @@ export interface TemplateResult {
   error?: string;
 }
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   const who = {
     tenantId: session.tenantId,
@@ -25,9 +25,8 @@ async function context(church?: string) {
 /** R11.8. Writing a shape down, or changing one. */
 export async function saveTemplate(
   input: { id?: string; name: string; items: ShapeInput[] },
-  church?: string,
-): Promise<TemplateResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<TemplateResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => writeTemplate(tx, actor, input));
     revalidatePath("/settings/service-template");
@@ -41,9 +40,8 @@ export async function saveTemplate(
 export async function archiveTemplate(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<TemplateResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<TemplateResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setTemplateArchived(tx, actor, id, archived));
     revalidatePath("/settings/service-template");

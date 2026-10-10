@@ -19,10 +19,8 @@ import { findGiver, nameGiver, type GiverHit } from "./actions";
  * on no year-end statement. This is the one press that puts that right.
  */
 export function AttachGift({
-  church,
   gift,
 }: {
-  church: string;
   gift: { id: string; typed: string | null };
 }) {
   const router = useRouter();
@@ -90,7 +88,7 @@ export function AttachGift({
                   }
                   const mine = ++ticket.current;
                   setSearching(true);
-                  void findGiver(query, church).then((found) => {
+                  void findGiver(query).then((found) => {
                     if (mine !== ticket.current) return;
                     setSearching(false);
                     setHits(found);
@@ -109,7 +107,7 @@ export function AttachGift({
               loading={pending}
               onClick={() =>
                 startTransition(async () => {
-                  const result = await nameGiver(gift.id, memberId, church);
+                  const result = await nameGiver(gift.id, memberId);
                   setError(result.error);
                   if (!result.error) {
                     close(false);

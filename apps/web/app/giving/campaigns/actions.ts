@@ -12,7 +12,7 @@ export interface CampaignResult {
   id?: string;
 }
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   const who = {
     tenantId: session.tenantId,
@@ -34,9 +34,8 @@ export async function saveCampaign(
     startsOn: string;
     endsOn?: string | null;
   },
-  church?: string,
-): Promise<CampaignResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<CampaignResult> {
+  const { actor, ctx } = await context();
   try {
     const { id } = await withTenant(ctx, (tx) => writeCampaign(tx, actor, input));
     revalidatePath("/giving/campaigns");
@@ -50,9 +49,8 @@ export async function saveCampaign(
 export async function closeCampaign(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<CampaignResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<CampaignResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setCampaignArchived(tx, actor, id, archived));
     revalidatePath("/giving/campaigns");
@@ -65,9 +63,8 @@ export async function closeCampaign(
 /** R13.16. One household's commitment. */
 export async function savePledge(
   input: { campaignId: string; memberId: string; amountCents: number; note?: string | null },
-  church?: string,
-): Promise<CampaignResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<CampaignResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => writePledge(tx, actor, input));
     revalidatePath("/giving/campaigns/[slug]", "page");
@@ -80,9 +77,8 @@ export async function savePledge(
 export async function dropPledge(
   id: string,
   campaignId: string,
-  church?: string,
-): Promise<CampaignResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<CampaignResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removePledge(tx, actor, id));
     revalidatePath("/giving/campaigns/[slug]", "page");

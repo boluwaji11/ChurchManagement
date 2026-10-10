@@ -171,7 +171,6 @@ export function Mailer({
           fontSize: size,
           body: letter,
         },
-        church,
       ).then((back) => {
         if (!live) return;
         setSaving(false);
@@ -280,7 +279,7 @@ export function Mailer({
               loading={away}
               onClick={() => {
                 setPutting(true);
-                void archiveMailer(saved.id, true, church).then((back) => {
+                void archiveMailer(saved.id, true).then((back) => {
                   setPutting(false);
                   if (back.error) {
                     setAsking(false);

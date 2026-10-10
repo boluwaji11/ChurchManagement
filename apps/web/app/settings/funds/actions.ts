@@ -9,7 +9,7 @@ export interface FundResult {
   error?: string;
 }
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   const who = {
     tenantId: session.tenantId,
@@ -23,9 +23,8 @@ async function context(church?: string) {
 /** R13.9. Writing a fund down, or changing one. */
 export async function saveFund(
   input: { id?: string; name: string; code?: string | null; restricted?: boolean; description?: string | null },
-  church?: string,
-): Promise<FundResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<FundResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => writeFund(tx, actor, input));
     revalidatePath("/settings/funds");
@@ -40,9 +39,8 @@ export async function saveFund(
 export async function archiveFund(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<FundResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<FundResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setFundArchived(tx, actor, id, archived));
     revalidatePath("/settings/funds");

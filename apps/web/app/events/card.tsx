@@ -13,11 +13,9 @@ import { longDate, readableTime } from "@/lib/dates";
  * one of these screens has read both.
  */
 export function EventCard({
-  church,
   event,
   coverUrl,
 }: {
-  church: string;
   event: ChurchEvent;
   coverUrl: string | null;
 }) {
@@ -110,11 +108,9 @@ const STATE_HUE: Record<string, string> = {
  * here, laid along a line instead of down a column.
  */
 export function EventRow({
-  church,
   event,
   coverUrl,
 }: {
-  church: string;
   event: ChurchEvent;
   coverUrl: string | null;
 }) {

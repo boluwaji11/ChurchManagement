@@ -8,7 +8,7 @@ import { t } from "@connectapp/i18n";
 import { ask } from "../actions";
 
 /** R9.5. Asking, from the group's own page. */
-export function JoinButton({ church, groupId }: { church: string; groupId: string }) {
+export function JoinButton({ groupId }: { groupId: string }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
@@ -20,7 +20,7 @@ export function JoinButton({ church, groupId }: { church: string; groupId: strin
         disabled={pending}
         onClick={() =>
           startTransition(async () => {
-            const result = await ask(groupId, null, church);
+            const result = await ask(groupId, null);
             setError(result.error);
             if (!result.error) router.refresh();
           })

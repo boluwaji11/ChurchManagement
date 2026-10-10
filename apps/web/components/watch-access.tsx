@@ -23,7 +23,7 @@ export function WatchAccess({ church, access }: { church: string; access: string
     const ask = async () => {
       if (document.hidden || stopped) return;
       try {
-        if ((await accessNow(church)) !== access) router.refresh();
+        if ((await accessNow()) !== access) router.refresh();
       } catch {
         // Asked again in a minute. A session that has gone is handled by the
         // redirect every page already performs.

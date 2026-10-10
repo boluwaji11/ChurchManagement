@@ -42,7 +42,6 @@ export function ChurchLogo({
     setBusy(true);
     setError(undefined);
     const data = new FormData();
-    data.set("church", church);
     data.set("purpose", "logo");
     data.set("file", file);
 
@@ -61,7 +60,6 @@ export function ChurchLogo({
 
   const remove = () => {
     const data = new FormData();
-    data.set("church", church);
     startTransition(async () => {
       const result = await clearLogo(data);
       setError(result.error);

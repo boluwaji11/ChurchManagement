@@ -36,12 +36,10 @@ export interface TypeRow {
  * church changes it in the panel where it changes the name.
  */
 export function TypeManager({
-  church,
   types,
   taken,
   putAway,
 }: {
-  church: string;
   types: TypeRow[];
   /** R9.1. Every name this church keeps, archived ones included. */
   taken: string[];
@@ -82,7 +80,7 @@ export function TypeManager({
                   label={t("groupType.restore")}
                   variant="ghost"
                   disabled={pending}
-                  onClick={() => run(() => archiveType(one.id, false, church))}
+                  onClick={() => run(() => archiveType(one.id, false))}
                 >
                   <Undo2 />
                 </IconButton>
@@ -103,22 +101,21 @@ export function TypeManager({
           icon="group"
           title={t("groupType.empty.title")}
           body={t("groupType.empty.body")}
-          action={<TypeDialog church={church} pending={pending} taken={taken} />}
+          action={<TypeDialog pending={pending} taken={taken} />}
         />
       ) : (
         <>
           <div className="flex justify-end">
-            <TypeDialog church={church} pending={pending} taken={taken} />
+            <TypeDialog pending={pending} taken={taken} />
           </div>
 
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr))]">
             {live.map((one) => (
               <TypeDialog
                 key={one.id}
-                church={church}
                 pending={pending}
                 type={one}
-                onArchive={() => run(() => archiveType(one.id, true, church))}
+                onArchive={() => run(() => archiveType(one.id, true))}
                 trigger={
                   <button
                     type="button"
@@ -142,14 +139,12 @@ export function TypeManager({
 
 /** R9.1. Writing a kind down, or changing one. */
 function TypeDialog({
-  church,
   pending,
   type,
   taken = [],
   trigger,
   onArchive,
 }: {
-  church: string;
   pending: boolean;
   /** Given when an existing kind is being changed. */
   type?: TypeRow;
@@ -294,7 +289,6 @@ function TypeDialog({
             noValidate
             onInput={() => setDirty(true)}
             action={(data) => {
-              data.set("church", church);
               data.set("hue", hue);
               if (type) data.set("id", type.id);
               startTransition(async () => {

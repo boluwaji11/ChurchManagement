@@ -171,7 +171,7 @@ export default function InboxGallery() {
               className="relative rounded-2xl rounded-bl-sm border border-line bg-surface px-3.5 pb-4 pt-2 text-[15px] leading-6"
             >
               A line with marks on it
-              <Marks church="" id={`gallery-${at}`} marks={set} mine={false} onChanged={nothing} />
+              <Marks id={`gallery-${at}`} marks={set} mine={false} onChanged={nothing} />
             </span>
           ))}
         </div>
@@ -184,7 +184,6 @@ export default function InboxGallery() {
         <div className="flex flex-wrap items-center gap-6">
           <span className="flex items-center gap-2 rounded-full border border-line bg-surface px-2 py-1">
             <ReactButton
-              church=""
               id="gallery-react"
               marks={[]}
               onChanged={nothing}
@@ -203,7 +202,6 @@ export default function InboxGallery() {
         <div className="flex flex-wrap items-center gap-8">
           <span className="group flex items-center gap-0.5 rounded-full border border-line bg-surface px-1 py-0.5 shadow-sm">
             <LineActions
-              church=""
               id="gallery-mine"
               mine
               marks={[]}
@@ -215,7 +213,6 @@ export default function InboxGallery() {
 
           <span className="group flex items-center gap-1 text-[11px] text-fg-subtle tabular-nums">
             <LineActions
-              church=""
               id="gallery-theirs"
               mine={false}
               marks={[]}

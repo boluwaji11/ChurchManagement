@@ -103,7 +103,6 @@ export function ProfileForm({
     setBusy(true);
     setError(undefined);
     const data = new FormData();
-    data.set("church", church);
     data.set("purpose", "person_photo");
     data.set("file", chosen);
     try {
@@ -327,7 +326,6 @@ export function ProfileForm({
         id="profile-form"
         noValidate
         action={(data) => {
-          data.set("church", church);
           startTransition(async () => {
             const result = await saveProfile(data);
             setError(result.error);

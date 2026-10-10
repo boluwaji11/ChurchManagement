@@ -80,7 +80,6 @@ export default async function RosterPage({
         {canManageServices(session) ? (
           <div className="flex flex-wrap items-center gap-2">
             <ServiceActions
-              church={session.tenantSlug}
               id={occurrence.id}
               name={occurrence.name}
               date={readable(occurrence.occursOn)}
@@ -96,7 +95,6 @@ export default async function RosterPage({
       </div>
 
       <Roster
-        church={session.tenantSlug}
         occurrenceId={occurrence.id}
         canEdit={canManageServices(session)}
         members={roster.map((r) => ({

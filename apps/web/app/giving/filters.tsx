@@ -26,11 +26,9 @@ import {
  * in again.
  */
 export function GivingFilters({
-  church,
   now,
   funds,
 }: {
-  church: string;
   now: Narrowing;
   funds: { id: string; name: string }[];
 }) {
@@ -56,7 +54,6 @@ export function GivingFilters({
 
   const apply = (one: Narrowing) => {
     const next = new URLSearchParams(params.toString());
-    next.set("church", church);
     const set = (key: string, value: string) => {
       if (value) next.set(key, value);
       else next.delete(key);

@@ -10,7 +10,7 @@ import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
   return { actor, ctx: actor };
@@ -35,7 +35,7 @@ export async function newForm(
   church?: string,
   template?: string,
 ): Promise<FormResult> {
-  const { actor, ctx } = await context(church);
+  const { actor, ctx } = await context();
   const from = template ? templateFor(template) : undefined;
 
   try {
@@ -75,9 +75,8 @@ export async function newForm(
 export async function saveForm(
   id: string,
   input: FormInput,
-  church?: string,
-): Promise<FormResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<FormResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => updateForm(tx, actor, id, input));
     return {};
@@ -90,9 +89,8 @@ export async function saveForm(
 export async function openOrClose(
   id: string,
   status: FormStatus,
-  church?: string,
-): Promise<FormResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<FormResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setFormStatus(tx, actor, id, status));
     return {};
@@ -104,9 +102,8 @@ export async function openOrClose(
 export async function archiveForm(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<FormResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<FormResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setFormArchived(tx, actor, id, archived));
     return {};
@@ -119,9 +116,8 @@ export async function saveQuestion(
   formId: string,
   id: string | null,
   input: FormFieldInput,
-  church?: string,
-): Promise<FormResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<FormResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, async (tx) => {
       if (id) await updateFormField(tx, actor, id, input);
@@ -133,8 +129,8 @@ export async function saveQuestion(
   }
 }
 
-export async function dropQuestion(id: string, church?: string): Promise<FormResult> {
-  const { actor, ctx } = await context(church);
+export async function dropQuestion(id: string): Promise<FormResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeFormField(tx, actor, id));
     return {};
@@ -147,9 +143,8 @@ export async function dropQuestion(id: string, church?: string): Promise<FormRes
 export async function orderQuestions(
   formId: string,
   ids: string[],
-  church?: string,
-): Promise<FormResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<FormResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => reorderFormFields(tx, actor, formId, ids));
     return {};
@@ -162,9 +157,8 @@ export async function shiftQuestion(
   formId: string,
   id: string,
   direction: "up" | "down",
-  church?: string,
-): Promise<FormResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<FormResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => moveFormField(tx, actor, { formId, id, direction }));
     return {};
@@ -188,9 +182,8 @@ export async function shiftQuestion(
  */
 export async function matchResponses(
   formId: string,
-  church?: string,
-): Promise<FormResult & { placed?: number; waiting?: number }> {
-  const { actor, ctx } = await context(church);
+  ): Promise<FormResult & { placed?: number; waiting?: number }> {
+  const { actor, ctx } = await context();
   if (!canManageChurch(actor.role)) return { error: t("forbidden.denied") };
 
   try {
@@ -209,8 +202,8 @@ export async function matchResponses(
 }
 
 /** R4.1. Takes the picture off a form. Putting one on goes through the upload route. */
-export async function clearFormCover(formId: string, church?: string): Promise<FormResult> {
-  const { actor, ctx } = await context(church);
+export async function clearFormCover(formId: string): Promise<FormResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setFormCover(tx, actor, formId, null));
     return {};
@@ -223,9 +216,8 @@ export async function clearFormCover(formId: string, church?: string): Promise<F
 export async function recolourForm(
   formId: string,
   hue: string,
-  church?: string,
-): Promise<FormResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<FormResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setFormHue(tx, actor, formId, hue));
     return {};

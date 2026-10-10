@@ -16,11 +16,9 @@ import { t } from "@connectapp/i18n";
  * in after a moment, so a board that answers at once flashes nothing.
  */
 export function PipelinePicker({
-  church,
   pipelines,
   current,
 }: {
-  church: string;
   pipelines: { key: string; name: string }[];
   current: string;
 }) {

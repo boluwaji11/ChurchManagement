@@ -86,7 +86,7 @@ export default async function StatementsPage({
         <BackLink href={"/giving"} label={t("giving.count.back")} />
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <YearPicker church={session.tenantSlug} year={read.year} years={read.years} />
+          <YearPicker year={read.year} years={read.years} />
 
           <div className="flex flex-wrap items-center gap-3">
             {/* R13.18. The church's own choice, where it is felt. */}

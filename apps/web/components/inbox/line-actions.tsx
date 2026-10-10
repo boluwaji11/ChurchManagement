@@ -21,7 +21,6 @@ import type { Mark } from "./data";
  * stays put where there is none.
  */
 export function LineActions({
-  church,
   id,
   mine,
   marks,
@@ -30,7 +29,6 @@ export function LineActions({
   onChanged,
   quiet = false,
 }: {
-  church: string;
   id: string;
   /** Whether the reader wrote it: only then may it be changed or taken back. */
   mine: boolean;
@@ -58,7 +56,6 @@ export function LineActions({
           two are the same errand. Nobody marks their own. */}
       {mine ? null : (
         <ReactButton
-          church={church}
           id={id}
           marks={marks}
           onChanged={onChanged}
@@ -104,7 +101,7 @@ export function LineActions({
               loading={busy}
               onClick={() => {
                 setBusy(true);
-                void deleteLine(id, church).then(() => {
+                void deleteLine(id).then(() => {
                   setBusy(false);
                   setAsking(false);
                   onChanged();

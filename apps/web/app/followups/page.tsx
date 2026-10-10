@@ -126,7 +126,6 @@ export default async function FollowUpsPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         {pipelines.length > 1 ? (
           <PipelinePicker
-            church={session.tenantSlug}
             pipelines={pipelines.map((one) => ({ key: one.key, name: one.name }))}
             current={pipeline?.key ?? ""}
           />

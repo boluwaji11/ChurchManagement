@@ -360,7 +360,7 @@ of money and after everything else.
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
 | HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Built. Waits for the screen it belongs to, see the note below |
 | HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
-| HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | New |
+| HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Active. The query parameter is gone, the DNS and the two paths are left |
 | HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
@@ -751,13 +751,23 @@ because a name that shadowed another church's slug would take that church's
 address away from it. The slug answers from the day a church signs up, so every
 church has an address before it picks one.
 
-Built and tested. **HRT-288** is what is left, and until it is done the address
-resolves but the links do not use it:
+Built and tested. **HRT-288** is what is left:
 
 - Wildcard DNS on `*.connectapp.church` and a certificate for it.
 - `/join/<slug>` and `/g/<slug>` take the church in the path, so on a church's
   own address the slug is said twice. The host should name the church and the
-  path should drop it, which is also what takes `?church=` off every screen.
+  path should drop it.
+
+`?church=` came off every link and every screen in October 2026. It was how the
+product named a church before churches had addresses, and it had reached 282
+links across 148 screens. The church now comes from the host where one names it,
+and from the chooser's record where our own host serves it. The record is a
+cookie, which selects: the membership is still verified against `tenant_members`
+on every request, so a cookie somebody edits by hand opens the chooser.
+
+Signing in on our own host stays on our own host. It used to send the reader on
+to the church's own address, handing the session to a host the cookie had not
+been written for, and that host asks them to sign in again.
 
 The church's own domain (R1.1 `custom_domain`) still resolves in the data
 layer and has no screen. It was on the Website page and was the cause of a long

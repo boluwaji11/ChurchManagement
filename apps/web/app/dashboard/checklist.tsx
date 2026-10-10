@@ -22,11 +22,9 @@ import { putAway } from "@/app/setup/actions";
  * It closes, and once closed it lives in Settings until there is nothing left.
  */
 export function SetupChecklist({
-  church,
   churchName,
   progress,
 }: {
-  church: string;
   churchName: string;
   progress: SetupProgress;
 }) {
@@ -55,7 +53,7 @@ export function SetupChecklist({
           onClick={() => {
             setGone(true);
             startTransition(async () => {
-              await putAway(church);
+              await putAway();
               router.refresh();
             });
           }}

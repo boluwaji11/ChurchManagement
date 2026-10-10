@@ -25,11 +25,9 @@ const REPEATS = ["never", "weekly", "fortnightly", "monthly"] as const;
  * "every week" will stop saying it.
  */
 export function AddService({
-  church,
   today,
   nowTime,
 }: {
-  church: string;
   /** The church's own date, so a service cannot be planned into yesterday. */
   today: string;
   nowTime: string;
@@ -82,7 +80,6 @@ export function AddService({
           id="add-service"
           noValidate
           action={(data) => {
-            data.set("church", church);
             data.set("repeat", repeat);
             startTransition(async () => {
               const result = await addGathering(data);

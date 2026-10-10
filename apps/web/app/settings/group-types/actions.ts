@@ -14,7 +14,7 @@ export interface TypeResult {
 
 const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     actor: { tenantId: session.tenantId, role: session.role },
@@ -29,7 +29,7 @@ async function context(church?: string) {
 
 /** R9.1. Writing a kind of group down, or changing one. */
 export async function saveType(data: FormData): Promise<TypeResult> {
-  const { actor, ctx } = await context(field(data, "church") || undefined);
+  const { actor, ctx } = await context();
   const id = field(data, "id");
   const input = {
     name: field(data, "name"),
@@ -59,9 +59,8 @@ export async function saveType(data: FormData): Promise<TypeResult> {
 export async function archiveType(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<TypeResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<TypeResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setGroupTypeArchived(tx, actor, id, archived));
     revalidatePath("/settings/group-types");
@@ -72,8 +71,8 @@ export async function archiveType(
 }
 
 /** R9.1. The order they appear in everywhere a kind is chosen. */
-export async function reorderTypes(ids: string[], church?: string): Promise<TypeResult> {
-  const { actor, ctx } = await context(church);
+export async function reorderTypes(ids: string[]): Promise<TypeResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => reorderGroupTypes(tx, actor, ids));
     revalidatePath("/settings/group-types");

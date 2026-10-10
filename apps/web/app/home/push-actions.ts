@@ -19,8 +19,7 @@ export async function publicKey(): Promise<string | null> {
 /** R17.11. This browser saying where to reach it. */
 export async function subscribe(
   input: PushRegistration,
-  church?: string,
-): Promise<PushResult> {
+  ): Promise<PushResult> {
   try {
     const session = await requireSession();
     await withTenant(
@@ -44,7 +43,7 @@ export async function subscribe(
 }
 
 /** R17.11. And turning it off again. */
-export async function unsubscribe(endpoint: string, church?: string): Promise<PushResult> {
+export async function unsubscribe(endpoint: string): Promise<PushResult> {
   try {
     const session = await requireSession();
     await withTenant(
@@ -70,7 +69,7 @@ export async function unsubscribe(endpoint: string, church?: string): Promise<Pu
  * was dropped when a send came back 404. The control read the browser alone and
  * said notifications were on while nothing could reach this machine.
  */
-export async function known(endpoint: string, church?: string): Promise<boolean> {
+export async function known(endpoint: string): Promise<boolean> {
   try {
     const session = await requireSession();
     return await withTenant(

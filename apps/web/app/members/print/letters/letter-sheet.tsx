@@ -13,7 +13,7 @@ import { Markdown } from "@/components/markdown";
  * The page's own margins are set to nothing and the margin is put on the
  * page's content instead. That is the one way to stop the browser printing
  * its own header and footer, which is how a letter from a church ends up with
- * `localhost:4488/members/print/letters?church=...` across the bottom of it.
+ * `localhost:4488/members/print/letters?font=...` across the bottom of it.
  */
 export interface LetterHead {
   church: string;

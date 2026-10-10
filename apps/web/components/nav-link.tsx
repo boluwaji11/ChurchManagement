@@ -14,11 +14,9 @@ import { Opening } from "./opening";
  */
 export function NavLink({
   href,
-  church,
   label,
 }: {
   href: string;
-  church: string;
   label: string;
 }) {
   const pathname = usePathname();

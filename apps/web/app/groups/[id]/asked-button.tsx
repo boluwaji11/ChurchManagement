@@ -17,7 +17,7 @@ import { unask } from "../actions";
  * wanted asked. Hovering turns it into the press that takes it back, and it
  * asks first, the way everything else that undoes something does.
  */
-export function AskedButton({ church, groupId }: { church: string; groupId: string }) {
+export function AskedButton({ groupId }: { groupId: string }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [over, setOver] = React.useState(false);
@@ -33,7 +33,7 @@ export function AskedButton({ church, groupId }: { church: string; groupId: stri
         disabled={working}
         onConfirm={() => new Promise<void>((done) => {
           start(async () => {
-            const back = await unask(groupId, church);
+            const back = await unask(groupId);
             setError(back.error);
             router.refresh();
             done();

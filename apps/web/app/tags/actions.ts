@@ -16,8 +16,8 @@ export interface TagResult {
   id?: string;
 }
 
-async function context(slug: string | undefined) {
-  const session = await requireSession(slug);
+async function context() {
+  const session = await requireSession();
   const h = await headers();
   const forwarded = h.get("x-forwarded-for");
   return {
@@ -36,11 +36,10 @@ async function context(slug: string | undefined) {
 const field = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
 
 export async function addTag(data: FormData): Promise<TagResult> {
-  const slug = field(data, "church") || undefined;
   const name = field(data, "name");
   if (!name) return { error: t("error.enterName") };
 
-  const { actor, ctx } = await context(slug);
+  const { actor, ctx } = await context();
   try {
     const tag = await withTenant(ctx, (tx) => createTag(tx, actor, { name }));
     revalidatePath("/tags");
@@ -52,14 +51,13 @@ export async function addTag(data: FormData): Promise<TagResult> {
 }
 
 export async function saveTag(data: FormData): Promise<TagResult> {
-  const slug = field(data, "church") || undefined;
   const id = field(data, "id");
   const name = field(data, "name");
   const hue = field(data, "hue") as TagHue;
   if (!id) return { error: t("error.notFound.tag") };
   if (!name) return { error: t("error.enterName") };
 
-  const { actor, ctx } = await context(slug);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, async (tx) => {
       await renameTag(tx, actor, id, name);
@@ -74,11 +72,10 @@ export async function saveTag(data: FormData): Promise<TagResult> {
 }
 
 export async function removeTag(data: FormData): Promise<TagResult> {
-  const slug = field(data, "church") || undefined;
   const id = field(data, "id");
   if (!id) return { error: t("error.notFound.tag") };
 
-  const { actor, ctx } = await context(slug);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => deleteTag(tx, actor, id));
     revalidatePath("/tags");
@@ -90,12 +87,11 @@ export async function removeTag(data: FormData): Promise<TagResult> {
 }
 
 export async function foldTag(data: FormData): Promise<TagResult> {
-  const slug = field(data, "church") || undefined;
   const fromId = field(data, "fromId");
   const intoId = field(data, "intoId");
   if (!fromId || !intoId) return { error: t("error.chooseMergeTarget") };
 
-  const { actor, ctx } = await context(slug);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => mergeTags(tx, actor, { fromId, intoId }));
     revalidatePath("/tags");
@@ -108,13 +104,12 @@ export async function foldTag(data: FormData): Promise<TagResult> {
 
 /** Applies or removes one tag on one person. */
 export async function togglePersonTag(data: FormData): Promise<TagResult> {
-  const slug = field(data, "church") || undefined;
   const memberId = field(data, "memberId");
   const tagId = field(data, "tagId");
   const on = field(data, "on") === "1";
   if (!memberId || !tagId) return { error: t("error.tagNotApplied") };
 
-  const { actor, ctx } = await context(slug);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setPersonTag(tx, actor, memberId, tagId, on));
     revalidatePath(`/members/${memberId}`);
@@ -127,13 +122,12 @@ export async function togglePersonTag(data: FormData): Promise<TagResult> {
 
 /** Creates a tag and puts it on a person, which is how most tags get made. */
 export async function addTagToPerson(data: FormData): Promise<TagResult> {
-  const slug = field(data, "church") || undefined;
   const memberId = field(data, "memberId");
   const name = field(data, "name");
   if (!memberId) return { error: t("error.tagNotApplied") };
   if (!name) return { error: t("error.enterName") };
 
-  const { actor, ctx } = await context(slug);
+  const { actor, ctx } = await context();
   try {
     const id = await withTenant(ctx, async (tx) => {
       const tag = await createTag(tx, actor, { name });

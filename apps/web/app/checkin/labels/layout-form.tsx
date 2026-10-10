@@ -23,10 +23,8 @@ const ROWS: { key: Toggle; label: string }[] = [
 
 /** R8.11. The layout, with the label drawn beside it as it is changed. */
 export function LabelLayoutForm({
-  church,
   initial,
 }: {
-  church: string;
   initial: LabelLayout;
 }) {
   const [layout, setLayout] = React.useState(initial);
@@ -37,7 +35,7 @@ export function LabelLayoutForm({
   const change = (next: LabelLayout) => {
     setLayout(next);
     startTransition(async () => {
-      const result = await saveLayout(next, church);
+      const result = await saveLayout(next);
       setError(result.error);
       setKept(!result.error);
     });

@@ -11,7 +11,7 @@ export interface KindResult {
   error?: string;
 }
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   const who = {
     tenantId: session.tenantId,
@@ -25,9 +25,8 @@ async function context(church?: string) {
 /** R11.2. A kind this church runs, or the church's word over one of ours. */
 export async function saveKind(
   input: { id?: string; name?: string; builtIn?: string },
-  church?: string,
-): Promise<KindResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<KindResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) =>
       input.id
@@ -45,9 +44,8 @@ export async function saveKind(
 export async function archiveKind(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<KindResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<KindResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setItemKindArchived(tx, actor, id, archived));
     revalidatePath("/settings/service-type");

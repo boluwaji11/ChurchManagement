@@ -64,7 +64,6 @@ export function RoomManager({
   ) => {
     setDoing(key);
     const data = new FormData();
-    data.set("church", church);
     for (const [k, v] of Object.entries(fields)) data.set(k, v);
     startTransition(async () => {
       const result = await fn(data);
@@ -140,7 +139,7 @@ export function RoomManager({
           icon="room"
           title={t("rooms.none.title")}
           body={t("rooms.none.body")}
-          action={<AddRoom church={church} />}
+          action={<AddRoom />}
         />
       ) : (
         <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr))]">
@@ -426,7 +425,7 @@ export function RoomSheet({
  * A new room is six fields rather than a name in a box, because a room nobody
  * gave an age band to is a room the station cannot route a child into.
  */
-export function AddRoom({ church }: { church: string }) {
+export function AddRoom({}: {  }) {
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
 
@@ -441,7 +440,6 @@ export function AddRoom({ church }: { church: string }) {
       }
       onSave={(fields) => {
         const data = new FormData();
-        data.set("church", church);
         for (const [k, v] of Object.entries(fields)) data.set(k, v);
         startTransition(async () => {
           await createRoom(data);

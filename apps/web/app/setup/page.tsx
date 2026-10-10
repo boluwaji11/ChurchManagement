@@ -76,7 +76,6 @@ export default async function SetupPage({
           <AuthSteps at={3} />
 
           <Steps
-            church={session.tenantSlug}
             person={session.displayName.split(" ")[0] || undefined}
             settled={progress.settled}
             left={progress.left}

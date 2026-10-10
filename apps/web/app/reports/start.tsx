@@ -16,7 +16,7 @@ import { startReport } from "./build/actions";
  * already exists and never carries a box for the name above the page it is
  * arranging.
  */
-export function StartReport({ church }: { church: string }) {
+export function StartReport({}: {  }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
@@ -35,7 +35,7 @@ export function StartReport({ church }: { church: string }) {
     if (!name.trim() || busy) return;
     setWorking(true);
     setError(null);
-    void startReport(name, church).then((back) => {
+    void startReport(name).then((back) => {
       if (back.error) {
         setWorking(false);
         setError(back.error);

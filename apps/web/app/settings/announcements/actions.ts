@@ -12,7 +12,7 @@ export interface AnnounceResult {
   error?: string;
 }
 
-async function actor(church?: string) {
+async function actor() {
   const session = await requireSession();
   return {
     tenantId: session.tenantId,
@@ -38,7 +38,7 @@ function read(data: FormData) {
 }
 
 export async function saveAnnouncement(data: FormData): Promise<AnnounceResult> {
-  const who = await actor(field(data, "church") || undefined);
+  const who = await actor();
   const id = field(data, "id");
 
   try {
@@ -59,9 +59,8 @@ export async function saveAnnouncement(data: FormData): Promise<AnnounceResult> 
 export async function archiveAnnouncement(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<AnnounceResult> {
-  const who = await actor(church);
+  ): Promise<AnnounceResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => setAnnouncementArchived(tx, who, id, archived));
     revalidatePath("/settings/announcements");

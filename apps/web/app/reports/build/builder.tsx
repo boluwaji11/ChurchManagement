@@ -110,7 +110,7 @@ export function Builder({
     let live = true;
     setRunning(true);
     const timer = setTimeout(() => {
-      void previewPage(page.tiles, church).then((answer) => {
+      void previewPage(page.tiles).then((answer) => {
         if (!live) return;
         setResults(answer);
         setRunning(false);
@@ -133,7 +133,7 @@ export function Builder({
     let live = true;
     const timer = setTimeout(() => {
       setSaving(true);
-      void saveReport({ id: saved.id, name: saved.name, spec: page }, church).then((back) => {
+      void saveReport({ id: saved.id, name: saved.name, spec: page }).then((back) => {
         if (!live) return;
         setSaving(false);
         if (back.error) {

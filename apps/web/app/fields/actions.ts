@@ -15,8 +15,8 @@ export interface FieldResult {
   id?: string;
 }
 
-async function context(slug: string | undefined) {
-  const session = await requireSession(slug);
+async function context() {
+  const session = await requireSession();
   const h = await headers();
   const forwarded = h.get("x-forwarded-for");
   return {
@@ -44,13 +44,12 @@ function done() {
 }
 
 export async function addField(data: FormData): Promise<FieldResult> {
-  const slug = field(data, "church") || undefined;
   const label = field(data, "label");
   const type = field(data, "type") as CustomFieldType;
   if (!label) return { error: t("error.enterName") };
   if (!type) return { error: t("error.chooseType") };
 
-  const { actor, ctx } = await context(slug);
+  const { actor, ctx } = await context();
   try {
     const made = await withTenant(ctx, (tx) =>
       createCustomField(tx, actor, {
@@ -69,13 +68,12 @@ export async function addField(data: FormData): Promise<FieldResult> {
 }
 
 export async function saveField(data: FormData): Promise<FieldResult> {
-  const slug = field(data, "church") || undefined;
   const id = field(data, "id");
   const label = field(data, "label");
   if (!id) return { error: t("error.notFound.field") };
   if (!label) return { error: t("error.enterName") };
 
-  const { actor, ctx } = await context(slug);
+  const { actor, ctx } = await context();
   try {
     const type = field(data, "type");
     await withTenant(ctx, (tx) =>
@@ -95,11 +93,10 @@ export async function saveField(data: FormData): Promise<FieldResult> {
 }
 
 export async function removeField(data: FormData): Promise<FieldResult> {
-  const slug = field(data, "church") || undefined;
   const id = field(data, "id");
   if (!id) return { error: t("error.notFound.field") };
 
-  const { actor, ctx } = await context(slug);
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => deleteCustomField(tx, actor, id));
     done();

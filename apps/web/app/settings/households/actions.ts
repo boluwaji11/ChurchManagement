@@ -16,7 +16,7 @@ export interface HouseholdResult {
   id?: string;
 }
 
-async function actor(church?: string) {
+async function actor() {
   const session = await requireSession();
   return {
     tenantId: session.tenantId,
@@ -27,8 +27,8 @@ async function actor(church?: string) {
 }
 
 /** R2.1. A new family, named before anybody is put in it. */
-export async function add(name: string, church?: string): Promise<HouseholdResult> {
-  const who = await actor(church);
+export async function add(name: string): Promise<HouseholdResult> {
+  const who = await actor();
   try {
     const made = await withTenant(who, (tx) => createHousehold(tx, who, name));
     return { id: made.id };
@@ -41,9 +41,8 @@ export async function add(name: string, church?: string): Promise<HouseholdResul
 export async function setName(
   id: string,
   name: string,
-  church?: string,
-): Promise<HouseholdResult> {
-  const who = await actor(church);
+  ): Promise<HouseholdResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => renameHousehold(tx, who, id, name));
     return {};
@@ -68,9 +67,8 @@ export async function setAddress(
     region?: string;
     postalCode?: string;
   },
-  church?: string,
-): Promise<HouseholdResult> {
-  const who = await actor(church);
+  ): Promise<HouseholdResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => setHouseholdAddress(tx, who, id, input));
     revalidatePath("/settings/households");
@@ -84,9 +82,8 @@ export async function setAddress(
 export async function putAway(
   id: string,
   archived: boolean,
-  church?: string,
-): Promise<HouseholdResult> {
-  const who = await actor(church);
+  ): Promise<HouseholdResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => setHouseholdArchived(tx, who, id, archived));
     return {};
@@ -98,9 +95,8 @@ export async function putAway(
 /** R2.1. People a church could put into a household: those in none. */
 export async function freePeople(
   search: string,
-  church?: string,
-): Promise<{ id: string; slug: string; name: string }[]> {
-  const who = await actor(church);
+  ): Promise<{ id: string; slug: string; name: string }[]> {
+  const who = await actor();
   return withTenant(who, (tx) => peopleWithoutHousehold(tx, search));
 }
 
@@ -108,9 +104,8 @@ export async function freePeople(
 export async function putIn(
   householdId: string,
   memberId: string,
-  church?: string,
-): Promise<HouseholdResult> {
-  const who = await actor(church);
+  ): Promise<HouseholdResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => addToHousehold(tx, who, householdId, memberId));
     return {};
@@ -124,9 +119,8 @@ export async function setRole(
   householdId: string,
   memberId: string,
   role: string,
-  church?: string,
-): Promise<HouseholdResult> {
-  const who = await actor(church);
+  ): Promise<HouseholdResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => setHouseholdRole(tx, who, householdId, memberId, role));
     return {};
@@ -139,9 +133,8 @@ export async function setRole(
 export async function takeOut(
   householdId: string,
   memberId: string,
-  church?: string,
-): Promise<HouseholdResult> {
-  const who = await actor(church);
+  ): Promise<HouseholdResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => removeFromHousehold(tx, who, householdId, memberId));
     return {};
@@ -154,9 +147,8 @@ export async function takeOut(
 export async function fold(
   fromId: string,
   intoId: string,
-  church?: string,
-): Promise<HouseholdResult> {
-  const who = await actor(church);
+  ): Promise<HouseholdResult> {
+  const who = await actor();
   try {
     await withTenant(who, (tx) => mergeHouseholds(tx, who, fromId, intoId));
     return {};

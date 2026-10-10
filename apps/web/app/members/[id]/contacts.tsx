@@ -23,13 +23,11 @@ import { addOne, removeOne, leadWithOne } from "./contact-actions";
  * as closing their account and would not.
  */
 export function Contacts({
-  church,
   memberId,
   kind,
   contacts,
   canEdit,
 }: {
-  church: string;
   memberId: string;
   kind: ContactKind;
   contacts: PersonContact[];
@@ -94,7 +92,7 @@ export function Contacts({
                   label={t("contact.makePrimary")}
                   disabled={pending}
                   onClick={() =>
-                    act(`primary:${one.id}`, () => leadWithOne(one.id, memberId, church))
+                    act(`primary:${one.id}`, () => leadWithOne(one.id, memberId))
                   }
                   className="size-8 min-h-0 [&_svg]:size-3.5"
                 >
@@ -110,7 +108,7 @@ export function Contacts({
                   label={t("contact.remove", { value: one.value })}
                   disabled={pending}
                   onClick={() =>
-                    act(`remove:${one.id}`, () => removeOne(one.id, memberId, church))
+                    act(`remove:${one.id}`, () => removeOne(one.id, memberId))
                   }
                   className="size-8 min-h-0 [&_svg]:size-3.5"
                 >
@@ -161,7 +159,7 @@ export function Contacts({
             className="h-9 min-h-0 px-3 text-[13px]"
             onClick={() =>
               act("add", async () => {
-                const result = await addOne({ memberId, kind, label, value }, church);
+                const result = await addOne({ memberId, kind, label, value });
                 if (!result.error) {
                   setValue("");
                   setAdding(false);

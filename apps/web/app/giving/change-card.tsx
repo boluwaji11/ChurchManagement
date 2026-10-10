@@ -16,11 +16,9 @@ import { startCardChange } from "./actions";
  */
 export function ChangeCard({
   id,
-  church,
   publishableKey,
 }: {
   id: string;
-  church: string;
   /** The platform's own key. It identifies, it does not authorise. */
   publishableKey: string;
 }) {
@@ -38,7 +36,7 @@ export function ChangeCard({
         disabled={pending}
         onClick={() =>
           startTransition(async () => {
-            const answer = await startCardChange(id, church);
+            const answer = await startCardChange(id);
             if (answer.error || !answer.secret || !answer.accountId) {
               setError(t("stripe.failed"));
               setOpen(true);

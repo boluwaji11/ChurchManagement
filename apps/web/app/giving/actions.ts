@@ -18,7 +18,7 @@ export interface GivingResult {
   id?: string;
 }
 
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   const who = {
     tenantId: session.tenantId,
@@ -42,9 +42,8 @@ export async function startCount(
     counterOneId?: string | null;
     counterTwoId?: string | null;
   },
-  church?: string,
-): Promise<GivingResult & { slug?: string }> {
-  const { actor, ctx } = await context(church);
+  ): Promise<GivingResult & { slug?: string }> {
+  const { actor, ctx } = await context();
   try {
     const made = await withTenant(ctx, async (tx) => {
       const batch = await openBatch(tx, actor, input);
@@ -76,9 +75,8 @@ export async function saveCount(
     counterOneId?: string | null;
     counterTwoId?: string | null;
   },
-  church?: string,
-): Promise<GivingResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<GivingResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => updateBatch(tx, actor, id, input));
     revalidatePath(`/giving/counts/${id}`);
@@ -101,9 +99,8 @@ export async function addGift(
     note?: string | null;
     inKindDescription?: string | null;
   },
-  church?: string,
-): Promise<GivingResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<GivingResult> {
+  const { actor, ctx } = await context();
   try {
     const { id } = await withTenant(ctx, (tx) => recordGift(tx, actor, input));
     revalidatePath("/giving");
@@ -118,9 +115,8 @@ export async function addGift(
 export async function dropGift(
   id: string,
   batchId: string | null,
-  church?: string,
-): Promise<GivingResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<GivingResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeGift(tx, actor, id));
     revalidatePath("/giving");
@@ -141,9 +137,8 @@ export async function dropGift(
 export async function giveBack(
   id: string,
   cents: number,
-  church?: string,
-): Promise<GivingResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<GivingResult> {
+  const { actor, ctx } = await context();
   try {
     const gift = await withTenant(ctx, (tx) => giftCharge(tx, id));
     if (!gift) return { error: "gift.error.missing" };
@@ -182,9 +177,8 @@ export async function giveBack(
 export async function nameGiver(
   id: string,
   memberId: string | null,
-  church?: string,
-): Promise<GivingResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<GivingResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => attachGift(tx, actor, id, memberId));
     revalidatePath("/giving");
@@ -200,7 +194,7 @@ export interface GiverHit {
 }
 
 /** R13.12. Who gave, looked up as the treasurer types the name. */
-export async function findGiver(query: string, church?: string): Promise<GiverHit[]> {
+export async function findGiver(query: string): Promise<GiverHit[]> {
   const session = await requireSession();
   const ctx = {
     tenantId: session.tenantId,
@@ -234,7 +228,7 @@ export async function findGiver(query: string, church?: string): Promise<GiverHi
  * A member may stop their own. Anybody who runs the church's giving may stop
  * any of them, because a treasurer is asked to.
  */
-export async function stopRepeating(id: string, church?: string): Promise<GivingResult> {
+export async function stopRepeating(id: string): Promise<GivingResult> {
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
   const session = await requireSession();
@@ -284,8 +278,7 @@ export async function stopRepeating(id: string, church?: string): Promise<Giving
  */
 export async function startCardChange(
   id: string,
-  church?: string,
-): Promise<{ secret?: string; accountId?: string; error?: string }> {
+  ): Promise<{ secret?: string; accountId?: string; error?: string }> {
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
 
   const session = await requireSession();
@@ -342,9 +335,8 @@ export async function amendCount(
     amountCents: number;
     method: GiftMethod;
   },
-  church?: string,
-): Promise<GivingResult> {
-  const { actor, ctx } = await context(church);
+  ): Promise<GivingResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => amendBatch(tx, actor, id, input));
     revalidatePath("/giving");
@@ -355,8 +347,8 @@ export async function amendCount(
 }
 
 /** R13.10. Taking a counting session off the record, with what it held. */
-export async function removeCount(id: string, church?: string): Promise<GivingResult> {
-  const { actor, ctx } = await context(church);
+export async function removeCount(id: string): Promise<GivingResult> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeBatch(tx, actor, id));
     revalidatePath("/giving");

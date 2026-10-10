@@ -124,7 +124,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
       <PortalShell session={session} tab={t("nav.settings")}>
         <PortalTitle title={t("nav.settings")} />
         <div className="flex flex-col gap-6 -mt-4">
-          <SettingsNav groups={groups} church={session.tenantSlug} />
+          <SettingsNav groups={groups} />
           <div className="flex min-w-0 flex-col gap-5">{children}</div>
         </div>
       </PortalShell>
@@ -134,7 +134,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   return (
     <AppShell session={session} title={t("nav.settings")}>
       <div className="flex flex-col gap-6 -mt-4">
-        <SettingsNav groups={groups} church={session.tenantSlug} />
+        <SettingsNav groups={groups} />
 
         <div className="flex min-w-0 flex-col gap-5">{children}</div>
       </div>

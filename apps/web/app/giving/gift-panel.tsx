@@ -102,7 +102,7 @@ export function GiftPanel({
     }
     const mine = ++ticket.current;
     setSearching(true);
-    void findGiver(query, church).then((found) => {
+    void findGiver(query).then((found) => {
       if (mine !== ticket.current) return;
       setSearching(false);
       setHits(found);
@@ -130,7 +130,6 @@ export function GiftPanel({
           note: note || null,
           inKindDescription: inKind || null,
         },
-        church,
       );
       setError(result.error);
       if (result.error) return;

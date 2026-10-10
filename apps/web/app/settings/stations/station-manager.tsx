@@ -50,7 +50,6 @@ export function StationManager({
 
   const act = (fn: (d: FormData) => Promise<{ error?: string }>, fields: Record<string, string>) => {
     const data = new FormData();
-    data.set("church", church);
     for (const [k, v] of Object.entries(fields)) data.set(k, v);
     startTransition(async () => {
       const result = await fn(data);

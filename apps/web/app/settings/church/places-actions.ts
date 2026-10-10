@@ -12,8 +12,7 @@ export interface PlaceResult {
 export async function renameSite(
   id: string,
   name: string,
-  church?: string,
-): Promise<PlaceResult> {
+  ): Promise<PlaceResult> {
   const session = await requireSession();
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
   try {

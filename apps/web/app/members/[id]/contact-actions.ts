@@ -10,7 +10,7 @@ import { requireSession } from "@/lib/session";
 import { explain } from "@/lib/explain";
 
 /** R2.4. The three things a church does to a list of contacts. */
-async function context(church?: string) {
+async function context() {
   const session = await requireSession();
   return {
     actor: {
@@ -31,9 +31,8 @@ async function context(church?: string) {
 
 export async function addOne(
   input: { memberId: string; kind: ContactKind; label: string; value: string },
-  church?: string,
-): Promise<{ error?: string }> {
-  const { actor, ctx, slug } = await context(church);
+  ): Promise<{ error?: string }> {
+  const { actor, ctx, slug } = await context();
   try {
     await withTenant(ctx, (tx) =>
       addContact(tx, actor, input.memberId, {
@@ -53,9 +52,8 @@ export async function addOne(
 export async function removeOne(
   id: string,
   memberId: string,
-  church?: string,
-): Promise<{ error?: string }> {
-  const { actor, ctx } = await context(church);
+  ): Promise<{ error?: string }> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeContact(tx, actor, id));
     revalidatePath(`/members/${memberId}`);
@@ -68,9 +66,8 @@ export async function removeOne(
 export async function leadWithOne(
   id: string,
   memberId: string,
-  church?: string,
-): Promise<{ error?: string }> {
-  const { actor, ctx } = await context(church);
+  ): Promise<{ error?: string }> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => makeContactPrimary(tx, actor, id));
     revalidatePath(`/members/${memberId}`);
@@ -82,9 +79,8 @@ export async function leadWithOne(
 
 export async function addPlace(
   input: { memberId: string; label: string; values: Record<string, string> },
-  church?: string,
-): Promise<{ error?: string }> {
-  const { actor, ctx } = await context(church);
+  ): Promise<{ error?: string }> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) =>
       addAddress(tx, actor, input.memberId, {
@@ -107,9 +103,8 @@ export async function addPlace(
 export async function removePlace(
   id: string,
   memberId: string,
-  church?: string,
-): Promise<{ error?: string }> {
-  const { actor, ctx } = await context(church);
+  ): Promise<{ error?: string }> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeAddress(tx, actor, id));
     revalidatePath(`/members/${memberId}`);
@@ -122,9 +117,8 @@ export async function removePlace(
 export async function leadWithPlace(
   id: string,
   memberId: string,
-  church?: string,
-): Promise<{ error?: string }> {
-  const { actor, ctx } = await context(church);
+  ): Promise<{ error?: string }> {
+  const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => makeAddressPrimary(tx, actor, id));
     revalidatePath(`/members/${memberId}`);

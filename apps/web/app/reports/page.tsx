@@ -191,7 +191,7 @@ export default async function ReportsPage({
           says its own name twice reads as a page nobody laid out. */}
       {putAway ? null : (
         <div className="flex flex-wrap items-center justify-end gap-3">
-          <StartReport church={session.tenantSlug} />
+          <StartReport />
         </div>
       )}
 

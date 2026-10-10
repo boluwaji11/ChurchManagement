@@ -135,7 +135,7 @@ export function SavedReports({
                       onSelect={() => {
                         setOnCard(one.id);
                         setWorking(true);
-                        void archiveReport(one.id, false, church).then((result) => {
+                        void archiveReport(one.id, false).then((result) => {
                           setWorking(false);
                           if (result.error) {
                             setError(result.error);
@@ -174,7 +174,7 @@ export function SavedReports({
                           onSelect={() => {
                             setOnCard(one.id);
                             setWorking(true);
-                            void shareReport(one.id, !one.shared, church).then((result) => {
+                            void shareReport(one.id, !one.shared).then((result) => {
                               setWorking(false);
                               if (result.error) {
                                 setError(result.error);
@@ -224,7 +224,7 @@ export function SavedReports({
               onClick={() => {
                 if (!naming) return;
                 setWorking(true);
-                void renameReport(naming.id, name, church).then((result) => {
+                void renameReport(naming.id, name).then((result) => {
                   setWorking(false);
                   if (result.error) {
                     setNaming(null);
@@ -272,7 +272,7 @@ export function SavedReports({
               onClick={() => {
                 if (!asking) return;
                 setWorking(true);
-                void archiveReport(asking.id, true, church).then((result) => {
+                void archiveReport(asking.id, true).then((result) => {
                   setWorking(false);
                   if (result.error) {
                     setAsking(null);

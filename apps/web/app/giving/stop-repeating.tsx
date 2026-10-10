@@ -19,12 +19,10 @@ import { stopRepeating } from "./actions";
  */
 export function StopRepeating({
   id,
-  church,
   label,
   who,
 }: {
   id: string;
-  church: string;
   /** What this gift is, so the confirmation names it. */
   label: string;
   /** Whose it is, where somebody else is stopping it. */
@@ -73,7 +71,7 @@ export function StopRepeating({
               loading={pending}
               onClick={() =>
                 startTransition(async () => {
-                  const result = await stopRepeating(id, church);
+                  const result = await stopRepeating(id);
                   setError(result.error);
                   if (!result.error) {
                     setOpen(false);

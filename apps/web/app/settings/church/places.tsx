@@ -19,12 +19,10 @@ import { renameSite } from "./places-actions";
  * where a place is the thing somebody reserves a room inside.
  */
 export function Places({
-  church,
   campus,
   canEdit,
   editing,
 }: {
-  church: string;
   campus: Campus | null;
   canEdit: boolean;
   /** Driven by the pencil on Details, so one press opens the whole page. */
@@ -39,7 +37,7 @@ export function Places({
 
   const save = () =>
     startTransition(async () => {
-      const result = await renameSite(campus.id, site, church);
+      const result = await renameSite(campus.id, site);
       setError(result.error);
       if (!result.error) router.refresh();
     });
