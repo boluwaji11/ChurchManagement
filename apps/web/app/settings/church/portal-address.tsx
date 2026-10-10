@@ -1,13 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Check, CircleCheck, Globe } from "lucide-react";
+import { Check, CircleCheck, ExternalLink, Globe } from "lucide-react";
 import {
   Banner, Button, Card, CardTitle, Field, Separator, Switch,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { claimPortalName, setSignup, openPortal } from "./domain-actions";
-import { Copyable } from "./copyable";
 
 /**
  * R1.1, R17.1. Where a congregation signs in.
@@ -96,7 +95,7 @@ export function PortalAddress({
           }
         >
           {live_ ? <CircleCheck className="size-3.5" aria-hidden /> : null}
-          {live_ ? t("domain.state.live") : t("domain.state.none")}
+          {live_ ? t("domain.state.live") : t("portal.state.off")}
         </span>
       </div>
 
@@ -155,8 +154,18 @@ export function PortalAddress({
       {/* R1.7, R17.1. The address itself, to paste on the church's own site.
           It is the sign-in and the sign-up both, so the card that used to
           carry a second link to the same place has gone. */}
+      {/* R17.1. A link, because the one thing anybody does with it is open
+          it. Copying the words off the screen still works. */}
       <Field label={t("portal.current")}>
-        <Copyable value={`${origin}//${live}.${host}`} label={t("portal.current")} />
+        <a
+          href={`${origin}//${live}.${host}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex w-fit max-w-full items-center gap-1.5 break-all font-mono text-[13px] font-medium text-primary no-underline hover:underline"
+        >
+          {live}.{host}
+          <ExternalLink className="size-3.5 shrink-0" aria-hidden />
+        </a>
       </Field>
 
       {/* R17.1. Whether the address answers at all. Off while a church is
