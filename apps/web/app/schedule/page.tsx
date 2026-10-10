@@ -221,7 +221,13 @@ export default async function ServingPage({
       <ServingViews
         church={session.tenantSlug}
         canManage={canManage}
-        focus={params.service}
+        /* R10.3. Named by the service's own address rather than its id, and
+           turned back into one here, where the month is already in hand. */
+        focus={
+          params.service
+            ? data.services.find((one) => one.slug === params.service)?.id
+            : undefined
+        }
         heading={
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>

@@ -194,7 +194,7 @@ export default async function PlanPage({
           canPrint={plan.items.length > 0}
           /* R10.3. The board for the month this service falls in, opened on
              its own column. */
-          scheduleHref={`/schedule?church=${session.tenantSlug}&at=${occurrence.occursOn.slice(0, 7)}&service=${occurrence.id}`}
+          scheduleHref={`/schedule?church=${session.tenantSlug}&at=${occurrence.occursOn.slice(0, 7)}&service=${occurrence.slug}`}
         />
       </div>
     </AppShell>
