@@ -30,12 +30,13 @@ export function PlanTabs({
   current: string;
   tabs: { id: string; slug: string; when: string; name: string }[];
 }) {
+  const box = React.useRef<HTMLDivElement>(null);
   const row = React.useRef<HTMLDivElement>(null);
   const [fits, setFits] = React.useState(LEAST);
   const [more, setMore] = React.useState(0);
 
   React.useEffect(() => {
-    const el = row.current;
+    const el = box.current;
     if (!el) return;
 
     /*
@@ -46,9 +47,7 @@ export function PlanTabs({
     const measure = () => {
       const widest = Math.max(
         180,
-        ...([...el.children] as HTMLElement[])
-          .filter((child) => child.dataset.tab !== undefined)
-          .map((child) => child.offsetWidth),
+        ...[...el.querySelectorAll<HTMLElement>("[data-tab]")].map((tab) => tab.offsetWidth),
       );
       const room = el.clientWidth * 0.8;
       setFits(Math.min(MOST, Math.max(LEAST, Math.floor(room / (widest + 8)))));
@@ -71,12 +70,15 @@ export function PlanTabs({
   const shown = Math.min(tabs.length, fitted + more);
 
   return (
-    <div className="flex items-center gap-3">
+    <div ref={box} className="flex items-center justify-center gap-3">
       <div className="relative min-w-0 flex-1">
         <div
           ref={row}
-          className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex items-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
+          {/* Centred while the row is short, and scrolled from its start once
+              it is longer than the space it has. */}
+          <div className="mx-auto flex w-max items-center gap-2">
           {tabs.map((one, i) => (
             <Link
               key={one.id}
@@ -97,6 +99,7 @@ export function PlanTabs({
               <span className="whitespace-nowrap font-semibold text-fg">{one.name}</span>
             </Link>
           ))}
+          </div>
         </div>
 
         {/* Each arrow shows itself only while there is something that way. */}
