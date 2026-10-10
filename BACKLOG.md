@@ -608,9 +608,9 @@ church actually asks.
 | HRT-187 | The first-time visitor funnel, with conversion rates and elapsed time at each step | R18.3 | Closed |
 | HRT-188 | Growth and retention: new, returning, lapsed, net change by month | R18.4 | Closed |
 | HRT-189 | Group participation and group health | R18.6 | Built, its tests have not run: Docker is down on this machine |
-| HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | New |
-| HRT-191 | Milestone and demographic lists | R18.8 | New |
-| HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | New |
+| HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | Built, its tests have not run: Docker is down on this machine |
+| HRT-191 | Milestone and demographic lists | R18.8 | Built, its tests have not run: Docker is down on this machine |
+| HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | Built, its tests have not run: Docker is down on this machine |
 | HRT-193 | CSV and PDF on every report | R18.10 | Closed |
 | HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
 | HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Closed |
@@ -763,7 +763,7 @@ What it settles for now:
 
 | | |
 |---|---|
-| **Active** | **HRT-205** the command palette on Cmd+K (R24.6) |
+| **Active** | Nothing. HRT-205 is the next row. |
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |

@@ -6,6 +6,8 @@ import {
   givingTotals, givingByMonth, givingByFund, lapsedGivers, firstTimeGivers,
   groupParticipation, groupHealth, groupMeetingsByMonth,
   servingCoverage, coverageByTeam, servingLoad, expiringChecks,
+  milestoneCounts, milestoneList, newMembers,
+  connectedness, connectednessSummary,
   canEditPeople, canReadIncidents, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
@@ -39,7 +41,8 @@ export function standing(one: VisitorRow): "connected" | "returned" | "once" {
 }
 
 export const BUILT_IN = [
-  "attendance", "growth", "visitors", "groups", "serving", "giving",
+  "attendance", "growth", "visitors", "groups", "serving", "milestones",
+  "connected", "giving",
 ] as const;
 export type BuiltIn = (typeof BUILT_IN)[number];
 
@@ -225,6 +228,119 @@ export async function sheetFor(
             every,
           ],
           csv: every,
+        };
+      }
+
+      if (which === "milestones") {
+        const [counts, list, joined] = await Promise.all([
+          milestoneCounts(tx, range),
+          milestoneList(tx, range),
+          newMembers(tx, range),
+        ]);
+
+        const kindName = (kind: string) => t(`milestone.kind.${kind}` as never);
+
+        /* The grid a church works through is who joined: it is the list that
+           gets read out at a members' meeting. */
+        const who = table(
+          t("reports.milestones.whoJoined"),
+          [
+            t("reports.serving.person"), t("reports.milestones.joinedOn"),
+            t("reports.milestones.firstVisit"), t("reports.milestones.took"),
+          ],
+          [false, false, false, true],
+          joined.map((one) => [
+            one.name,
+            shortDate(one.membershipDate),
+            one.firstVisitOn ? shortDate(one.firstVisitOn) : "",
+            one.daysToJoin === null || one.daysToJoin < 0 ? "" : String(one.daysToJoin),
+          ]),
+        );
+
+        return {
+          ...frame,
+          title: t("reports.milestones.title"),
+          figures: [
+            figure(
+              t("reports.milestones.joined"),
+              String(joined.length),
+              t("reports.milestones.inWindow"),
+            ),
+            ...counts.slice(0, 3).map((one) =>
+              figure(kindName(one.kind), String(one.count), t("reports.milestones.inWindow"))),
+          ],
+          blocks: [
+            who,
+            table(
+              t("reports.milestones.everyOne"),
+              [
+                t("reports.serving.person"), t("reports.milestones.kind"),
+                t("reports.milestones.when"),
+              ],
+              [false, false, false],
+              list.map((one) => [one.name, kindName(one.kind), shortDate(one.occurredOn)]),
+            ),
+          ],
+          csv: who,
+        };
+      }
+
+      if (which === "connected") {
+        const [summary, people] = await Promise.all([
+          connectednessSummary(tx, range),
+          connectedness(tx, range),
+        ]);
+
+        const yes = t("reports.connected.yes");
+        const no = t("reports.connected.no");
+
+        /* R18.9. Four boxes a person either has or has not, written out so a
+           church can sort the file by the column it cares about. */
+        const everyone = table(
+          t("reports.connected.title"),
+          [
+            t("reports.serving.person"), t("reports.connected.attends"),
+            t("reports.connected.gives"), t("reports.connected.serves"),
+            t("reports.connected.inGroup"), t("reports.connected.shape"),
+          ],
+          [false, false, false, false, false, true],
+          people.map((one) => [
+            one.name,
+            one.attends ? yes : no,
+            one.gives ? yes : no,
+            one.serves ? yes : no,
+            one.inGroup ? yes : no,
+            String(one.score),
+          ]),
+        );
+
+        const of = { of: String(summary.counted) };
+
+        return {
+          ...frame,
+          title: t("reports.connected.title"),
+          figures: [
+            figure(t("reports.connected.attends"), String(summary.attends),
+              t("reports.connected.ofCounted", of)),
+            figure(t("reports.connected.gives"), String(summary.gives),
+              t("reports.connected.ofCounted", of)),
+            figure(t("reports.connected.serves"), String(summary.serves),
+              t("reports.connected.ofCounted", of)),
+            figure(t("reports.connected.inGroup"), String(summary.inGroup),
+              t("reports.connected.ofCounted", of)),
+          ],
+          blocks: [
+            table(
+              t("reports.connected.shape"),
+              [t("reports.connected.shape"), t("reports.serving.person")],
+              [false, true],
+              summary.bands.map((count, at) => [
+                plural("reports.connected.band", at), String(count),
+              ]),
+            ),
+            everyone,
+          ],
+          csv: everyone,
         };
       }
 
