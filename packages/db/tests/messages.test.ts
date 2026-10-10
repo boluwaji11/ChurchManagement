@@ -447,3 +447,94 @@ describe("what a tick says", () => {
     expect(line?.readByOthers).toBe(false);
   });
 });
+
+/**
+ * HRT-280. What is sent with a line (R16.14).
+ *
+ * The bytes are already in the ledger when the line is written: the upload
+ * path checks the type, the size and the church's quota before anything is
+ * stored, so this is only about what the line carries and what happens to it
+ * when the line is taken back.
+ */
+describe("what is sent with a line", () => {
+  /** A row in the ledger, as the upload path would have left one. */
+  const stored = async (name: string): Promise<string> => {
+    const [row] = await owner()<{ id: string }[]>`
+      insert into stored_files (tenant_id, bucket, key, purpose, content_type, bytes)
+      values (${tenant}, 'church', ${`inbox/message/${name}`}, 'message', 'image/png', 1024)
+      returning id`;
+    return row!.id;
+  };
+
+  it("carries the files it was sent with, in the order they were chosen", async () => {
+    const first = await stored(`one-${Date.now()}.png`);
+    const second = await stored(`two-${Date.now()}.png`);
+
+    const made = await run((tx) =>
+      sendMessage(tx, office, {
+        to: { office: false, slug },
+        body: "The rota, and the hall.",
+        files: [
+          { id: first, label: "rota.png" },
+          { id: second, label: "hall.png" },
+        ],
+      }));
+
+    const said = await run((tx) => messagesIn(tx, office, made.threadId));
+    const line = said.find((one) => one.id === made.id);
+    expect(line?.files.map((f) => f.label)).toEqual(["rota.png", "hall.png"]);
+    expect(line?.files[0]!.contentType).toBe("image/png");
+  });
+
+  it("takes a line that is only a file", async () => {
+    const only = await stored(`only-${Date.now()}.png`);
+    const made = await run((tx) =>
+      sendMessage(tx, office, {
+        to: { office: false, slug },
+        body: "",
+        files: [{ id: only, label: "notice.png" }],
+      }));
+
+    const said = await run((tx) => messagesIn(tx, office, made.threadId));
+    expect(said.find((one) => one.id === made.id)?.files).toHaveLength(1);
+  });
+
+  it("refuses a line with neither words nor a file", async () => {
+    await expect(
+      run((tx) => sendMessage(tx, office, { to: { office: false, slug }, body: "   " })),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+  });
+
+  it("lets go of them when the line is taken back", async () => {
+    const one = await stored(`gone-${Date.now()}.png`);
+    const made = await run((tx) =>
+      sendMessage(tx, office, {
+        to: { office: false, slug },
+        body: "Never mind.",
+        files: [{ id: one, label: "draft.png" }],
+      }));
+
+    await run((tx) => deleteMessage(tx, office, made.id));
+
+    const said = await run((tx) => messagesIn(tx, office, made.threadId));
+    expect(said.find((row) => row.id === made.id)?.files).toEqual([]);
+
+    /* The bytes stay in the ledger, where the quota and the audit can still
+       see them. */
+    const [held] = await owner()<{ n: string }[]>`
+      select count(*)::text as n from stored_files where id = ${one}`;
+    expect(held!.n).toBe("1");
+  });
+
+  it("ignores a file this church does not hold", async () => {
+    const made = await run((tx) =>
+      sendMessage(tx, office, {
+        to: { office: false, slug },
+        body: "Nothing attached.",
+        files: [{ id: "00000000-0000-4000-8000-000000000000", label: "ghost.png" }],
+      }));
+
+    const said = await run((tx) => messagesIn(tx, office, made.threadId));
+    expect(said.find((one) => one.id === made.id)?.files).toEqual([]);
+  });
+});
