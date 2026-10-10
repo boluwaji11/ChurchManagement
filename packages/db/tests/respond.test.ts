@@ -6,7 +6,7 @@
  * somebody who said yes on Monday can say no on Thursday.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { withTenant, closeConnections, type Tx } from "../src/client";
+import { withTenant, owner, closeConnections, type Tx } from "../src/client";
 import { servingRequestFor, answerServingRequest } from "../src/repo/respond";
 import { assign, assignmentsForTeam } from "../src/repo/schedule";
 import { seedTeams, listTeams, getTeam, addToTeam } from "../src/repo/serving";
@@ -40,8 +40,10 @@ beforeAll(async () => {
   const coming = await run((tx) =>
     addSpecialService(tx, as(), { name: "Morning", occursOn: "2030-05-05", startsAt: "10:00" }),
   );
+  /* R10.3. Nobody is put on a date that has gone, so the service is written
+     ahead, filled, and then moved back to where this test needs it. */
   const gone = await run((tx) =>
-    addSpecialService(tx, as(), { name: "Last year", occursOn: "2020-05-05", startsAt: "10:00" }),
+    addSpecialService(tx, as(), { name: "Last year", occursOn: "2030-05-06", startsAt: "10:00" }),
   );
 
   await run((tx) =>
@@ -54,6 +56,9 @@ beforeAll(async () => {
       occurrenceId: gone.id, teamId: worship, positionId: keys, memberId: person,
     }),
   );
+
+  await owner()`
+    update service_occurrences set occurs_on = '2020-05-05' where id = ${gone.id}`;
 
   const rows = await run((tx) => assignmentsForTeam(tx, worship, [coming.id, gone.id]));
   token = rows.find((r) => r.occurrenceId === coming.id)!.token;

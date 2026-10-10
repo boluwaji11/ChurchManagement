@@ -11,6 +11,7 @@ import { withTenant, closeConnections, type Tx } from "../src/client";
 import { publicChurch, publicGroups, publicGroup } from "../src/repo/public-groups";
 import {
   createGroup, updateGroup, setGroupArchived, addToGroup, seedGroupTypes, listGroupTypes,
+  setGroupStatus,
 } from "../src/repo/groups";
 import { createPerson } from "../src/repo/members";
 import { approveChurch } from "../src/repo/provisional";
@@ -36,6 +37,9 @@ const group = async (name: string, over: Record<string, unknown> = {}) => {
   const made = await run((tx) =>
     createGroup(tx, as(), { name, typeId: kind, ...over } as never),
   );
+  /* R9.5. A group is written first and published when the church is ready.
+     These tests are about what the world sees, so they publish. */
+  await run((tx) => setGroupStatus(tx, as(), made.id, "published"));
   return made.id;
 };
 
@@ -72,9 +76,10 @@ beforeAll(async () => {
   await withTenant({ tenantId: provisional, role: "owner" }, async (tx) => {
     await seedGroupTypes(tx, { tenantId: provisional, role: "owner" });
     const [theirs] = await listGroupTypes(tx);
-    await createGroup(tx, { tenantId: provisional, role: "owner" }, {
+    const theirGroup = await createGroup(tx, { tenantId: provisional, role: "owner" }, {
       name: "Should not show", typeId: theirs!.id, listed: true,
     } as never);
+    await setGroupStatus(tx, { tenantId: provisional, role: "owner" }, theirGroup.id, "published");
   });
 });
 

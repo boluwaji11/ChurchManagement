@@ -67,11 +67,12 @@ beforeAll(async () => {
       select ${tenant}, 'House ' || g from generate_series(1, ${SIZE / 4}) g`;
 
     await sql`
-      insert into members (tenant_id, first_name, last_name, lifecycle_status)
+      insert into members (tenant_id, first_name, last_name, lifecycle_status, slug)
       select ${tenant},
              (array['Sarah','Michael','Grace','Daniel','Ruth','Tobias','Amara','Noah'])[1 + (g % 8)],
              'Surname' || g,
-             'member'
+             'member',
+             'searchtest-' || g
         from generate_series(1, ${SIZE}) g`;
 
     await sql`

@@ -69,11 +69,11 @@ beforeAll(async () => {
   await run((tx) => addToGroup(tx, as(), { groupId: tuesday, memberId: leader, role: "leader" }));
 
   closed = (await run((tx) => createGroup(tx, as(), {
-    name: "Elders", dayOfWeek: 1, location: "The Vestry", openToJoin: false,
+    name: "Elders", typeId: smallType, dayOfWeek: 1, location: "The Vestry", openToJoin: false,
   }))).id;
 
   await run((tx) => createGroup(tx, as(), {
-    name: "Private thing", listed: false, dayOfWeek: 4,
+    name: "Private thing", typeId: smallType, listed: false, dayOfWeek: 4,
   }));
 });
 
@@ -209,7 +209,7 @@ describe("answering (R9.6)", () => {
   });
 
   it("keeps a declined answer, rather than letting it disappear", async () => {
-    const other = await run((tx) => createGroup(tx, as(), { name: "Thursday men", dayOfWeek: 4 }));
+    const other = await run((tx) => createGroup(tx, as(), { name: "Thursday men", typeId: smallType, dayOfWeek: 4 }));
     await run((tx) => addToGroup(tx, as(), { groupId: other.id, memberId: leader, role: "leader" }));
 
     const asked = await run((tx) => requestToJoin(tx, asSeeker, { groupId: other.id }), "member");
