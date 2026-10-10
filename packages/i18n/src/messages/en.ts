@@ -2723,7 +2723,7 @@ export const en = {
   "joining.copied": "Copied",
   // R1.1, R17.1. The name a church chooses for its members' address.
   "portal.title": "Where members sign in",
-  "portal.lede": "Pick the address your congregation uses to reach ConnectApp.",
+  "portal.lede": "Pick the address to reach ConnectApp.",
   "portal.label": "Your address",
   "portal.free": "{name} is yours.",
   "portal.use": "Use this address",
