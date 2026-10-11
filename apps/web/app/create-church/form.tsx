@@ -182,11 +182,8 @@ export function CreateChurchForm() {
         <input type="hidden" name="country" value={country} />
       </Field>
 
-      {/* R22.1, R22.2. The question the rest of setting up turns on.
-          A church with a site is read: what its mail is already doing, who
-          answers for its domain, and which records we would add. A church
-          without one is owed a page of ours, which is HRT-285 and is not
-          built, so the answer is kept and nothing is promised. */}
+      {/* R22.1, R22.2. The answer guides domain setup and whether the church
+          can publish a homepage through HRT-285 after approval. */}
       <Field label={t("createChurch.hasWebsite")} required>
         <RadioGroup
           name="hasWebsite"

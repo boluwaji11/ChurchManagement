@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { siteTheme } from "@/lib/theme";
-import { churchFromHost } from "@/lib/session";
+import { churchFromHost, currentUser } from "@/lib/session";
+import { membershipsForUser, publicWebsite } from "@connectapp/db";
+import { landingForRole } from "@/lib/landing";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -35,11 +37,20 @@ import {
 import { StartDemoButton } from "./demo/start";
 import { HeroTypewriter } from "./hero-typewriter";
 import { SupportMessage } from "@/components/site/support-message";
+import { ChurchWebsitePage } from "@/components/church-website";
+import { signWebsiteMedia } from "@/lib/website-media";
 
 export const dynamic = "force-dynamic";
 
-/** R17.1. The product's own front page. */
-export const metadata = { title: `${t("app.name")} - ${t("site.hero.title")}` };
+/** R17.1. The product or the church whose address was opened. */
+export async function generateMetadata() {
+  const church = await churchFromHost();
+  if (church) {
+    const website = await publicWebsite(church);
+    if (website) return { title: website.churchName };
+  }
+  return { title: `${t("app.name")} - ${t("site.hero.title")}` };
+}
 
 /**
  * The ConnectApp website: the page somebody reads before they are anybody.
@@ -121,7 +132,17 @@ export default async function Site() {
    * how to name a church and take somebody in.
    */
   const church = await churchFromHost();
-  if (church) redirect("/join");
+  if (church) {
+    const user = await currentUser();
+    if (user) {
+      const memberships = await membershipsForUser(user.id);
+      const membership = memberships.find((one) => one.tenantSlug === church);
+      if (membership) redirect(landingForRole(membership.role));
+    }
+    const website = await publicWebsite(church);
+    if (website) return <ChurchWebsitePage website={await signWebsiteMedia(website)} />;
+    redirect("/join");
+  }
 
   const { chosen } = await siteTheme();
 

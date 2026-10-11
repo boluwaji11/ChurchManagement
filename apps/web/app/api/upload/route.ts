@@ -4,6 +4,7 @@ import {
   withTenant, assertCanStore, recordFile, setChurchLogo, attachToItem, setGroupPhoto,
   setFormCover, setEventCover, canManageEvents,
   canManageChurch, canManageServices, canManageGroups,
+  canManageWebsite,
   type UploadPurpose,
   setOwnPhoto,
 } from "@connectapp/db";
@@ -18,6 +19,8 @@ const EXTENSION: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
   "image/gif": "gif",
   "image/heic": "heic",
   "application/pdf": "pdf",
@@ -118,6 +121,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: t("event.error.missing") }, { status: 400 });
     }
   }
+  if (purpose === "website_media" && !canManageWebsite(session)) {
+    return NextResponse.json({ error: t("error.permission.manageWebsite") }, { status: 403 });
+  }
   /*
    * R16.14. Anybody who may write into a conversation may send a file with a
    * line. Which conversation it belongs to is decided when the line is sent,
@@ -157,6 +163,11 @@ export async function POST(request: Request) {
     .upload(key, file, { contentType, upsert: false });
 
   if (upload.error) {
+    return NextResponse.json({ error: t("storage.error.failed") }, { status: 502 });
+  }
+  const signed = await supabase.storage.from("church").createSignedUrl(key, 3600);
+  if (signed.error || !signed.data.signedUrl) {
+    await supabase.storage.from("church").remove([key]);
     return NextResponse.json({ error: t("storage.error.failed") }, { status: 502 });
   }
 
@@ -201,5 +212,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: explain(error) }, { status: 400 });
   }
 
-  return NextResponse.json({ key, id: (stored as { id: string } | null)?.id ?? null });
+  return NextResponse.json({
+    key,
+    signedUrl: signed.data.signedUrl,
+    id: (stored as { id: string } | null)?.id ?? null,
+  });
 }

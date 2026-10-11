@@ -92,11 +92,18 @@ export async function listFiles(db: Tx, purpose?: UploadPurpose): Promise<Stored
  * answers from the church this transaction is set to, so a key belonging to
  * anybody else reads as missing.
  */
-export async function holdsFile(db: Tx, key: string): Promise<boolean> {
+export async function holdsFile(
+  db: Tx,
+  key: string,
+  purpose?: UploadPurpose,
+): Promise<boolean> {
   const [held] = await db
     .select({ id: storedFiles.id })
     .from(storedFiles)
-    .where(eq(storedFiles.key, key))
+    .where(and(
+      eq(storedFiles.key, key),
+      ...(purpose ? [eq(storedFiles.purpose, purpose)] : []),
+    ))
     .limit(1);
   return Boolean(held);
 }

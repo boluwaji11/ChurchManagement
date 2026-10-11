@@ -1,8 +1,25 @@
 import {
-  pgTable, uuid, text, boolean, integer, bigint, date, timestamp, uniqueIndex, index,
+  pgTable, uuid, text, boolean, integer, bigint, date, timestamp, uniqueIndex, index, jsonb,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { hue, tenantRole } from "./enums";
+
+export type WebsiteSectionType =
+  | "hero" | "story" | "banner" | "image" | "video" | "services" | "contact";
+
+export interface WebsiteSection {
+  id: string;
+  type: WebsiteSectionType;
+  title: string;
+  body: string;
+  imageUrl: string | null;
+  imageKey?: string | null;
+  videoUrl: string | null;
+  videoKey?: string | null;
+  alt: string;
+  linkLabel?: string | null;
+  linkUrl?: string | null;
+}
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const created = () => timestamp("created_at", { withTimezone: true }).defaultNow().notNull();
@@ -165,6 +182,17 @@ export const tenants = pgTable(
   },
   (t) => [uniqueIndex("tenants_slug_key").on(t.slug)],
 );
+
+/**
+ * HRT-285. Structured configuration for the church's public homepage.
+ */
+export const churchWebsites = pgTable("church_websites", {
+  tenantId: uuid("tenant_id").primaryKey().references(() => tenants.id, { onDelete: "cascade" }),
+  published: boolean("published").notNull().default(false),
+  layout: text("layout").notNull().default("gathering"),
+  sections: jsonb("sections").$type<WebsiteSection[]>().notNull().default(sql`'[]'::jsonb`),
+  updatedAt: updated(),
+});
 
 /**
  * R1.1. When the church gathers.

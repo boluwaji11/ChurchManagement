@@ -367,7 +367,7 @@ of money and after everything else.
 | HRT-213 | Regional spelling, from one catalogue, by the church's country | R22.8 | Closed |
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
 | HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Resolved |
-| HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
+| HRT-285 | A church publishes a configurable public homepage and sends signed-in members to their role's starting page | R1.1, R22.1 | Active |
 | HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Resolved |
 | HRT-292 | Leaving a church, and the one owner who cannot | R1.4 | Resolved |
 | HRT-293 | Closing an account, and handing a church to somebody else first | R1.4, R21.9 | New |
@@ -980,9 +980,9 @@ one is owed a page of ours, the other is owed the question. Every church that
 signed up before this holds null, and answering for them would offer a page to
 churches that already have a site.
 
-Only Path A has a destination. A church that says no is recorded and nothing
-is promised, because HRT-285 is the page and it is not built. The screen does
-not say "we will build you one" until it can.
+Only Path A has a destination. A church that says no is recorded, and after
+approval the Website editor can publish its homepage. Sign-up records the
+answer without promising publication before approval.
 
 ## Leaving a church, and closing an account, October 2026
 
@@ -1078,8 +1078,11 @@ What it settles for now:
 - **Act 2 is already a story.** HRT-251 (Stripe Accounts v2) is the in-product onboarding the
   narrative describes.
 - **No Entri in v1.** $249 a month against a step each church performs once.
-- **No website builder.** HRT-285 is the page underneath the need, generated from the record we
-  already keep.
+- **A curated homepage editor.** HRT-285 provides a dedicated, permission-gated Website area with
+  designed layouts and structured content for one page. Church facts and service times come from
+  existing records; photos and short clips can be uploaded, and secure media links are supported.
+  Sections can link to a secure external address or a public ConnectApp form, group, or event.
+  Public pages require approval and publication. Giving links remain deferred.
 - **Twilio Connect returns a subaccount, and a Primary Business Profile cannot live on one.** That
   spike runs before HRT-286 is written.
 - Messaging stays deferred. HRT-286 and HRT-287 wait with HRT-87, HRT-123 and HRT-126.
@@ -1106,6 +1109,18 @@ production pages and confirm page performance measurements begin appearing there
 
 Open `/design/type` and compare the same headline, staff list row and check-in label under Current,
 Source, IBM Plex, Atkinson and System. The platform pages should keep their existing fonts.
+
+### HRT-285, how to test it
+
+As Owner or Admin, open Website from the left navigation and confirm the app sidebar and top bar
+remain visible. For a new site, choose a design, then select a section in the preview and edit it.
+Add sections from the editor menu, move them by dragging and by keyboard, upload a photo or short
+video, and add a button linking to an external site or a public ConnectApp form, group, or event.
+Save as a draft and check that the church address still opens the existing join screen. After approval,
+publish the homepage and check its public address in a signed-out browser. Sign in as a member and
+confirm the same address opens the member portal; sign in as staff and confirm it opens the staff
+starting page. Grant `website.manage` to a custom role and confirm that role sees the editor; remove
+the permission and confirm it no longer appears.
 
 ### HRT-300, how to test it
 
