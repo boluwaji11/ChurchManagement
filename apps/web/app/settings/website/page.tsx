@@ -95,7 +95,7 @@ export default async function WebsitePage({
           on the right. One column is about where members reach ConnectApp,
           the other is about what the church hands to its own visitors, and
           stacking them put the second where nobody scrolled. */}
-      <div className="grid max-w-[1120px] items-start gap-5 lg:grid-cols-2">
+      <div className="grid max-w-[1120px] gap-5 lg:grid-cols-2">
         <PortalAddress
           church={session.tenantSlug}
           slug={session.tenantSlug}
@@ -110,7 +110,7 @@ export default async function WebsitePage({
 
         {/* R9.5, R13.5. What goes on the site the church already has, behind
             a rule, because the two columns answer different questions. */}
-        <section className="flex flex-col gap-4 lg:border-l lg:border-line lg:pl-8">
+        <section className="flex h-full flex-col gap-4 lg:border-l lg:border-line lg:pl-8">
           <h3 className="m-0 font-display text-[17px] leading-6 text-fg">
             {t("site.onYourSite")}
           </h3>

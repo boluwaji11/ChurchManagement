@@ -387,6 +387,7 @@ export const SITE_BUILDERS = [
   "webflow",
   "godaddy",
   "shopify",
+  "code",
   "other",
 ] as const;
 
