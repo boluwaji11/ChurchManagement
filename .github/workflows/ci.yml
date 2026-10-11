@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, production]
   pull_request:
 
 # A second push to the same branch cancels the first. Nobody reads a run that is
