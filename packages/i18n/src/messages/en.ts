@@ -465,6 +465,7 @@ export const en = {
   "members.archivedBadge": "Archived",
 
   "directory.search": "Search",
+  "directory.views": "Member list views",
   "directory.searchPlaceholder": "Search members",
   "directory.filterStatus": "Status",
   "directory.filterTag": "Tag",
@@ -560,6 +561,7 @@ export const en = {
 
   // One person
   "person.details": "Details",
+  "person.panelSections": "Member record sections",
   "person.more": "More",
   "date.open": "Open the calendar",
   "date.clear": "Clear",

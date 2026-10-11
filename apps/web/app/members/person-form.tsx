@@ -114,16 +114,22 @@ function HouseholdMembers({
 }
 
 function FormCard({
+  id,
   title,
   note,
   children,
 }: {
+  id?: string;
   title: string;
   note?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5">
+    <section
+      id={id}
+      data-member-panel-section={id ? "" : undefined}
+      className="scroll-mt-4 flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
+    >
       <div>
         <span className="text-[15px] font-bold text-fg">{title}</span>
         {note ? <span className="block text-[13px] text-fg-subtle">{note}</span> : null}
@@ -193,6 +199,13 @@ export function PersonForm({
     if (hasErrors(found)) {
       const first = Object.keys(found)[0];
       const el = first ? formRef.current?.elements.namedItem(first) : null;
+      if (el instanceof HTMLElement) {
+        const section = el.closest<HTMLElement>("[data-member-panel-section]")?.id;
+        if (section) {
+          window.dispatchEvent(new CustomEvent("member-panel-section", { detail: section }));
+          window.requestAnimationFrame(() => el.focus());
+        }
+      }
       if (el instanceof HTMLElement) el.focus();
       return;
     }
@@ -227,7 +240,7 @@ export function PersonForm({
           number, and putting it in the same grid made it read as one. */}
       <div className="flex flex-wrap items-start gap-6">
         <div className="flex min-w-0 flex-[3_1_420px] flex-col gap-5">
-      <FormCard title={t("personForm.section.details")}>
+      <FormCard id="details" title={t("personForm.section.details")}>
         <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
           <Field label={t("personForm.firstName")} error={errors.firstName} required>
             <Input name="firstName" defaultValue={values?.firstName ?? ""} autoComplete="off" autoFocus={!editing} />
@@ -285,7 +298,7 @@ export function PersonForm({
       {/* R2.4. Every way of reaching them, each a list. The lists write as
           they are pressed, so they sit outside the form that saves the rest. */}
       {editing && contacts ? (
-        <FormCard title={t("person.contact")}>
+        <FormCard id="contact" title={t("person.contact")}>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
@@ -318,7 +331,7 @@ export function PersonForm({
       ) : null}
 
       {customFields.length > 0 ? (
-        <FormCard title={t("person.more")}>
+        <FormCard id="custom" title={t("person.more")}>
           <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
             <CustomFieldInputs fields={customFields} values={customValues} errors={errors} />
           </div>
@@ -327,7 +340,7 @@ export function PersonForm({
 
       {/* Status as pills rather than a dropdown. Four values a church picks
           between every day, all visible, one press each. */}
-      <FormCard title={t("personForm.status")}>
+      <FormCard id="status" title={t("personForm.status")}>
         <input type="hidden" name="lifecycleStatus" value={status} />
         <div className="flex flex-wrap gap-2">
           {lifecycleOptions().map((o) => (
@@ -352,7 +365,7 @@ export function PersonForm({
       {/* R2.x. Tags, as the design puts them: under the status, on the same
           card, one press each. */}
       {tags.length > 0 ? (
-        <FormCard title={t("person.tags")}>
+        <FormCard id="tags" title={t("person.tags")}>
           <input type="hidden" name="tagIds" value={chosenTags.join(",")} />
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => {
@@ -386,7 +399,7 @@ export function PersonForm({
         </div>
 
         <div className="flex min-w-0 flex-[2_1_280px] flex-col gap-5 md:border-l md:border-line md:pl-6">
-          <FormCard title={t("personForm.household")}>
+          <FormCard id="household" title={t("personForm.household")}>
             <div className="flex flex-col gap-3.5">
               <Field label={t("personForm.householdWhich")}>
                 <Select name="householdId" value={household} onValueChange={setHousehold}>

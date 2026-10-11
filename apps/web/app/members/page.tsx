@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import {
-  withTenant, listPeople, countPeople, countArchivedPeople, listTagsWithCounts, findDuplicateClusters,
+  withTenant, listPeople, countPeople, listTagsWithCounts, findDuplicateClusters,
   canEditPeople, canArchivePeople, canReadIncidents,
   listSavedLists, countArchivedSavedLists, resolveList, listGroups,
   PER_PAGE,
@@ -85,7 +85,7 @@ export default async function PeoplePage({
 
   const {
     members, tags, groups, duplicates, matching, lists, viewing,
-    archivedPeople, archivedLists,
+    archivedLists,
   } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
@@ -103,8 +103,7 @@ export default async function PeoplePage({
        * apiece, and the round trip is the expensive part.
        */
       const [
-        lists, members, matching, tags, groups, clusters,
-        archivedPeople, archivedLists,
+        lists, members, matching, tags, groups, clusters, archivedLists,
       ] = await Promise.all([
         canEditPeople(session) ? listSavedLists(tx) : [],
         // R9.3. Who is asking goes to the query layer, which decides what they
@@ -114,8 +113,6 @@ export default async function PeoplePage({
         listTagsWithCounts(tx),
         listGroups(tx),
         canArchivePeople(session) ? findDuplicateClusters(tx) : [],
-        // R2.4, R1.14. What is behind each of the two links at the foot.
-        canArchivePeople(session) ? countArchivedPeople(tx) : 0,
         canEditPeople(session) ? countArchivedSavedLists(tx) : 0,
       ]);
 
@@ -127,13 +124,13 @@ export default async function PeoplePage({
         tags,
         groups,
         duplicates: clusters.length,
-        archivedPeople,
         archivedLists,
       };
     },
   );
 
   const canEdit = canEditPeople(session);
+  const canArchive = canArchivePeople(session);
   // R2.9. Every face on the list, signed in one round trip.
   const faces = await photoUrls(members.map((one) => one.photoKey));
 
@@ -152,21 +149,11 @@ export default async function PeoplePage({
         <Flash message={t("person.archived.title")} />
       ) : null}
 
-      {/* R2.4. The way back to the live directory, on the archived view. */}
-      {putAway ? (
-        <Link
-          href={"/members"}
-          className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
-        >
-          <ArrowLeft className="size-4" /> {t("members.archived.back")}
-        </Link>
-      ) : null}
-
       <Directory
         church={session.tenantSlug}
         putAway={putAway}
         canEdit={canEdit}
-        canArchive={canArchivePeople(session)}
+        canArchive={canArchive}
         page={page}
         perPage={PER_PAGE}
         matching={matching}
@@ -189,17 +176,8 @@ export default async function PeoplePage({
         }))}
       />
 
-      {!putAway && archivedPeople > 0 ? (
-        <Link
-          href={"/members?show=archived"}
-          className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
-        >
-          {plural("members.archived", archivedPeople)}
-        </Link>
-      ) : null}
-
       {/* R1.14. A saved list could be put away and then reached by nothing. */}
-      {!putAway && archivedLists > 0 ? (
+      {!putAway && canEdit && archivedLists > 0 ? (
         <Link
           href={"/members?lists=archived"}
           className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
