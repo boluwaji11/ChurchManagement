@@ -126,8 +126,9 @@ Until that answer exists, HRT-286 stays unwritten.
   pre-flight, two records with copy buttons and a walkthrough for the registrar
   we detected gets a church through it. Revisit when donation coverage is above
   1.0 and we can count how many churches stall there.
-- **A website builder.** The need underneath it is somewhere to put the Give
-  button, which is HRT-285, one generated page per church.
+- **Open-ended website authoring.** HRT-285 provides one public homepage assembled from designed
+  sections. Churches can edit and reorder them. Arbitrary layouts and multi-page authoring remain
+  out of scope.
 
 ## What to supply when the accounts exist
 

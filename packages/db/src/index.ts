@@ -1,4 +1,5 @@
 export * as schema from "./schema/index";
+export type { WebsiteSection, WebsiteSectionType } from "./schema/tenancy";
 export { owner, appDb, withTenant, closeConnections, sql, type Db, type Tx, type TenantContext } from "./client";
 export {
   TENANT_ROLES, type TenantRole, PERMISSIONS, PERMISSION_GROUPS, ROLE_PERMISSIONS,
@@ -78,6 +79,7 @@ export * from "./repo/label-layout";
 export * from "./repo/campuses";
 export * from "./repo/provisional";
 export * from "./repo/public-groups";
+export * from "./repo/website";
 export * from "./repo/public-forms";
 export * from "./repo/form-matching";
 export * from "./repo/public-events";

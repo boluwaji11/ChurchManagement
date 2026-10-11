@@ -1,11 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Users, UserPlus, Baby, Calendar, CalendarHeart, ListMusic, HandHeart, CircleDot,
-  ClipboardList, Settings, Home, LayoutDashboard, ChartNoAxesColumn, HandCoins,
+  ClipboardList, Settings, Home, LayoutDashboard, ChartNoAxesColumn, HandCoins, Globe,
   MessageSquare,
 } from "lucide-react";
 import {
-  canAnswerMessages, canCheckIn, canEditPeople, canFollowUp, canManageServices,
+  can, canAnswerMessages, canCheckIn, canEditPeople, canFollowUp, canManageServices,
   canReadIncidents,
   canLeadTeams, canManageChurch, canManageEvents, canManageGiving,
   canReadGivingAmounts, type Who,
@@ -160,6 +160,10 @@ export function navFor(role: Who): NavEntry[] {
   // Owner and Admin build them.
   if (canManageChurch(role)) {
     out.push({ label: t("form.title"), href: "/forms", icon: ClipboardList });
+  }
+
+  if (can(role, "website.manage")) {
+    out.push({ label: t("nav.website"), href: "/website", icon: Globe });
   }
 
   /*

@@ -25,3 +25,4 @@ export * from "./domain/preflight";
 export * from "./messaging/contract";
 // R17.1. Reading a church out of a host, which is pure.
 export * from "./repo/portal-rules";
+export * from "./repo/website-rules";

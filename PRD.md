@@ -279,7 +279,7 @@ Saying no is most of the work. These are out, and each one has a reason.
 | Not building | Why |
 |---|---|
 | General ledger, accounts payable, payroll | Export to QuickBooks. Accounting software is a product, not a feature, and churches already have one. |
-| Website builder or CMS | Crowded, low differentiation, high support burden. Integrate instead. |
+| Open-ended, multi-page website builder | HRT-285 gives a church one public homepage with designed sections it can add, remove, reorder and edit. Arbitrary layouts and multi-page site authoring remain out of scope. |
 | Native branded iOS and Android apps | A good PWA covers the member use case. App store review cycles for hundreds of white-label builds is a full-time job we do not have. |
 | Livestreaming platform | YouTube and Facebook already do this for free and better. |
 | Multi-site and denominational rollups (v1) | Different product, different buyer, and that buyer has a budget. |
