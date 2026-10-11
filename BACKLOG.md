@@ -940,9 +940,7 @@ question. GitHub's shape is the right one to borrow:
   The owner transfers it or ends it, and the screen says which churches are in
   the way before anything is confirmed.
 - **Transfer is its own act**, to a named person who already has access, and
-  both sides are told. An owner who has stopped answering email is the case the
-  design has to survive, so a church with no reachable owner needs a path that
-  does not depend on them.
+  both sides are told.
 - **Ending a church is not deleting its data.** R21.9 retention and the DSAR
   path decide what actually goes, and the export has to be offered first,
   because a church that cannot get its records out is a church we have locked
@@ -960,8 +958,15 @@ Settled, October 2026:
 - **Giving history is held for a year** on the same clock, because a treasurer
   needs January's statements whatever the church decided in August.
 
-What is still open: how a church with no reachable owner is handed on, and
-what the person asking us to close one has to show to prove they may.
+- **Asking is the whole of it.** Somebody writes to us and we take it from
+  there. Nothing to prove on a form, nothing to upload.
+- **A church whose only owner has gone** is the same path. Only an owner can
+  make another owner, so when the one owner leaves, dies or stops answering
+  email, the church is locked out of its own records and no screen it can
+  reach will fix that. It is a conversation with us, like closing.
+
+What is left is the shape of the asking: where somebody writes to, and what we
+do at our end once they have.
 
 ## Where the domain reading belongs, October 2026
 
