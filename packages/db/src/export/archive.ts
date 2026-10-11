@@ -64,6 +64,7 @@ const TABLES = [
   "forms",
   "form_fields",
   "form_submissions",
+  "church_websites",
   "stored_files",
   "demo_records",
   "tenant_members",

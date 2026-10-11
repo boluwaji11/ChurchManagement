@@ -134,7 +134,7 @@ export function SupportMessage() {
                 ref={emailInput}
                 type="email"
                 autoComplete="email"
-                placeholder="e.g. you@church.org"
+                placeholder={t("site.support.emailExample")}
                 value={email}
                 maxLength={254}
                 disabled={sending}

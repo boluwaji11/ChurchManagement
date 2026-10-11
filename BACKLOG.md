@@ -63,6 +63,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-200 | Land the redesign handoff, reconcile its tokens against ours | R24.1, R24.4 | Closed |
 | HRT-201 | The shell: collapsible sidebar, a top bar with one action, bottom tabs on a phone | R24.6, R24.14 | Closed |
 | HRT-202 | Navigation scoped to the role, one sidebar per persona | R1.3, R24.6 | Resolved |
+| HRT-303 | Group the staff sidebar into expandable sections with a warm, clear active state | R24.6 | Resolved |
 | HRT-203 | The dashboard: setup checklist, reorderable tiles, attendance over time | R18.1, R22.1 | Closed |
 | HRT-204 | People: the filter drawer, inline search, CSV export, pagination | R2.14, R19.4 | Closed |
 | HRT-205 | The command palette on Cmd+K, and no search box in the top bar | R24.6 | New |
@@ -367,7 +368,7 @@ of money and after everything else.
 | HRT-213 | Regional spelling, from one catalogue, by the church's country | R22.8 | Closed |
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
 | HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Resolved |
-| HRT-285 | A church publishes a configurable public homepage and sends signed-in members to their role's starting page | R1.1, R22.1 | Active |
+| HRT-285 | A church publishes a configurable public homepage and sends signed-in members to their role's starting page | R1.1, R22.1 | Resolved |
 | HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Resolved |
 | HRT-292 | Leaving a church, and the one owner who cannot | R1.4 | Resolved |
 | HRT-293 | Closing an account, and handing a church to somebody else first | R1.4, R21.9 | New |
@@ -1121,6 +1122,13 @@ publish the homepage and check its public address in a signed-out browser. Sign 
 confirm the same address opens the member portal; sign in as staff and confirm it opens the staff
 starting page. Grant `website.manage` to a custom role and confirm that role sees the editor; remove
 the permission and confirm it no longer appears.
+
+### HRT-303, how to test it
+
+As Owner or Admin on a desktop, confirm the left navigation groups related pages under expandable
+headings, opens the group containing the current page, and keeps Settings and your profile at the
+bottom. Collapse the sidebar and confirm every page remains reachable by its icon and tooltip.
+Check the mobile tab bar separately; it should keep its existing layout.
 
 ### HRT-300, how to test it
 

@@ -77,17 +77,17 @@ function DesignCard({
     gathering: (
       <div className="h-full bg-[#faf7f1] text-[#25231f]">
         <div className="flex items-center justify-between border-b border-[#e6dfd3] px-4 py-2">
-          <span className="font-display text-[10px] font-semibold">Riverside Church</span>
+          <span className="font-display text-[10px] font-semibold">{t("website.preview.church")}</span>
           <span className="flex gap-3 text-[6px] text-[#625f58]">
-            <span>About</span><span>Services</span><span>Contact</span>
+            <span>{t("website.preview.about")}</span><span>{t("website.preview.services")}</span><span>{t("website.preview.contact")}</span>
           </span>
         </div>
         <div className="grid h-[calc(100%-29px)] grid-cols-[1fr_0.9fr] items-center gap-3 px-5 py-3">
           <div className="flex flex-col items-start gap-2">
-            <span className="text-[6px] font-semibold uppercase tracking-[0.18em] text-[#8a5a36]">A place to belong</span>
-            <span className="font-display text-[19px] leading-[1.05]">Faith for<br />everyday life.</span>
-            <span className="max-w-36 text-[7px] leading-3 text-[#625f58]">Find a welcoming community and a place to grow.</span>
-            <span className="rounded bg-[#8a5a36] px-2 py-1 text-[6px] font-semibold text-white">Plan a visit</span>
+            <span className="text-[6px] font-semibold uppercase tracking-[0.18em] text-[#8a5a36]">{t("website.example.heading")}</span>
+            <span className="font-display text-[19px] leading-[1.05]">{t("website.preview.gathering.title")}</span>
+            <span className="max-w-36 text-[7px] leading-3 text-[#625f58]">{t("website.preview.gathering.body")}</span>
+            <span className="rounded bg-[#8a5a36] px-2 py-1 text-[6px] font-semibold text-white">{t("website.example.linkLabel")}</span>
           </div>
           <div className="relative h-full min-h-24 overflow-hidden rounded-xl bg-gradient-to-br from-[#c4d2b5] via-[#91aa84] to-[#4e6c59]">
             <span className="absolute -bottom-8 left-1/4 size-28 rounded-full bg-[#e7c995]/80" />
@@ -101,33 +101,33 @@ function DesignCard({
     community: (
       <div className="h-full bg-[#f5f4ef] text-[#262b25]">
         <div className="flex items-center justify-between px-4 py-2">
-          <span className="font-display text-[10px] font-semibold">Riverside Church</span>
+          <span className="font-display text-[10px] font-semibold">{t("website.preview.church")}</span>
           <span className="flex gap-3 text-[6px] text-[#5f675e]">
-            <span>Our church</span><span>Get involved</span><span>Visit</span>
+            <span>{t("website.preview.community.nav1")}</span><span>{t("website.preview.community.nav2")}</span><span>{t("website.preview.visit")}</span>
           </span>
         </div>
         <div className="mx-2 flex h-[calc(100%-29px)] flex-col items-center justify-center rounded-lg bg-[#354d3c] px-5 text-center text-white">
-          <span className="mb-2 text-[6px] font-semibold uppercase tracking-[0.2em] text-[#d7c494]">You are welcome here</span>
-          <span className="font-display text-[19px] leading-[1.05]">Life is better<br />together.</span>
-          <span className="mt-2 max-w-48 text-[7px] leading-3 text-white/80">Come as you are. Find your people and grow in faith.</span>
-          <span className="mt-3 rounded bg-[#e1c68c] px-2 py-1 text-[6px] font-semibold text-[#262b25]">Find your place</span>
+          <span className="mb-2 text-[6px] font-semibold uppercase tracking-[0.2em] text-[#d7c494]">{t("website.preview.community.eyebrow")}</span>
+          <span className="font-display text-[19px] leading-[1.05]">{t("website.preview.community.title")}</span>
+          <span className="mt-2 max-w-48 text-[7px] leading-3 text-white/80">{t("website.preview.community.body")}</span>
+          <span className="mt-3 rounded bg-[#e1c68c] px-2 py-1 text-[6px] font-semibold text-[#262b25]">{t("website.preview.community.button")}</span>
         </div>
       </div>
     ),
     classic: (
       <div className="h-full bg-[#fffdf8] text-[#292720]">
         <div className="flex items-center justify-between border-b border-[#e5e0d4] px-4 py-2">
-          <span className="font-display text-[10px] font-semibold">Riverside Church</span>
+          <span className="font-display text-[10px] font-semibold">{t("website.preview.church")}</span>
           <span className="flex gap-3 text-[6px] text-[#625f58]">
-            <span>Welcome</span><span>Who we are</span><span>Visit</span>
+            <span>{t("website.preview.welcome")}</span><span>{t("website.preview.whoWeAre")}</span><span>{t("website.preview.visit")}</span>
           </span>
         </div>
         <div className="grid h-[calc(100%-29px)] grid-cols-[0.95fr_1.05fr] gap-3 px-4 py-3">
           <div className="flex flex-col justify-center gap-2">
-            <span className="text-[6px] font-semibold uppercase tracking-[0.15em] text-[#6d7155]">Welcome to Riverside</span>
-            <span className="font-display text-[18px] leading-[1.05]">A church for<br />the whole family.</span>
-            <span className="text-[7px] leading-3 text-[#625f58]">Worship, friendship and hope for every season.</span>
-            <span className="w-fit border-b border-[#6d7155] pb-0.5 text-[6px] font-semibold text-[#51583d]">See service times</span>
+            <span className="text-[6px] font-semibold uppercase tracking-[0.15em] text-[#6d7155]">{t("website.preview.classic.eyebrow")}</span>
+            <span className="font-display text-[18px] leading-[1.05]">{t("website.preview.classic.title")}</span>
+            <span className="text-[7px] leading-3 text-[#625f58]">{t("website.preview.classic.body")}</span>
+            <span className="w-fit border-b border-[#6d7155] pb-0.5 text-[6px] font-semibold text-[#51583d]">{t("website.preview.services")}</span>
           </div>
           <div className="relative overflow-hidden bg-gradient-to-br from-[#d7c7a4] via-[#8c9b73] to-[#435c47]">
             <span className="absolute -bottom-10 left-1/3 size-28 rounded-full bg-[#f3dda8]/80" />
