@@ -43,6 +43,7 @@ const atkinson = Atkinson_Hyperlegible_Next({
   weight: "variable",
   display: "swap",
   preload: false,
+  adjustFontFallback: false,
 });
 const fraunces = Fraunces({
   subsets: ["latin"],
