@@ -140,11 +140,13 @@ describe("what a volunteer is warned about", () => {
     expect(out.map((one) => one.code)).toContain("dkimTaken");
   });
 
-  it("mentions a strict DMARC policy, and carries which one", () => {
+  /* A strict policy is good news, and a warning that reports good news is a
+     warning people learn to skim. The reading has a row for it. */
+  it("says nothing about a strict DMARC policy", () => {
     const out = warningsFor({
       mailHosts: ["aspmx.l.google.com"], spfCount: 1, dkimTaken: false, dmarc: "reject",
     });
-    expect(out).toContainEqual({ code: "dmarcStrict", detail: "reject" });
+    expect(out).toEqual([]);
   });
 });
 

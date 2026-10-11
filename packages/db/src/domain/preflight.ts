@@ -34,7 +34,6 @@ export interface DomainWarning {
     | "noMx"
     | "manySpf"
     | "dkimTaken"
-    | "dmarcStrict"
     | "lookupFailed";
   /** Whatever we read, for the line that quotes it back. */
   detail?: string;
@@ -203,11 +202,11 @@ export function warningsFor(findings: {
   // whatever put it there from sending.
   if (findings.dkimTaken) out.push({ code: "dkimTaken" });
 
-  // A strict policy is a good thing and a thing to mention, because it is why
-  // the key goes at the root rather than on a subdomain.
-  if (findings.dmarc === "reject" || findings.dmarc === "quarantine") {
-    out.push({ code: "dmarcStrict", detail: findings.dmarc });
-  }
+  /*
+   * A strict DMARC policy used to be listed here. It is good news, and a
+   * warning that reports good news teaches a reader to skim warnings. What
+   * the policy is already has a row of its own in the reading.
+   */
 
   return out;
 }

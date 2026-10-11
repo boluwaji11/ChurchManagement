@@ -70,7 +70,6 @@ const WARNING_TONE = {
   noMx: "info",
   manySpf: "danger",
   dkimTaken: "danger",
-  dmarcStrict: "info",
   lookupFailed: "info",
 } as const;
 
