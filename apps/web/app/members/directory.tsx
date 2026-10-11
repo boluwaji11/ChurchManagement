@@ -7,13 +7,15 @@ import { FilterDrawer, SortDrawer } from "@/components/filter-drawer";
 import { MultiSelect } from "@/components/multi-select";
 import { ResizableTable } from "@/components/resizable-columns";
 import { Download as FileDownload } from "@/components/download";
-import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Tag, CheckCircle2, ListMinus } from "lucide-react";
+import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Tag, CheckCircle2, ListMinus, ChevronDown } from "lucide-react";
 import {
   Avatar, Button, Field, Input, Textarea, Checkbox, Banner, HueDot, Tooltip,
   IconButton,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Switch,
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
   Tabs, TabsList, TabsTrigger,
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator,
   cn, type Hue,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
@@ -260,15 +262,41 @@ export function Directory({
 
   return (
     <>
-      <div className="flex flex-col gap-3">
-        {/* What you can do to the list, then the box that narrows it. The
-            tools read from the left, and the thing this screen is for sits at
-            the far end where the eye finishes.
+      <nav
+        aria-label={t("directory.views")}
+        className="grid w-fit max-w-full grid-flow-col auto-cols-fr items-center gap-1 rounded-xl border border-line bg-sunken p-1"
+      >
+        <Link
+          href="/members"
+          aria-current={!putAway ? "page" : undefined}
+          className={cn(
+            "inline-flex min-h-9 items-center justify-center rounded-lg px-4 text-center text-[13px] font-medium transition-colors",
+            !putAway
+              ? "bg-primary text-primary-fg shadow-sm"
+              : "text-fg-muted hover:bg-surface hover:text-fg",
+          )}
+        >
+          {t("members.title")}
+        </Link>
+        {canArchive ? (
+          <Link
+            href="/members?show=archived"
+            aria-current={putAway ? "page" : undefined}
+            className={cn(
+              "inline-flex min-h-9 items-center justify-center rounded-lg px-4 text-center text-[13px] font-medium transition-colors",
+              putAway
+                ? "bg-primary text-primary-fg shadow-sm"
+                : "text-fg-muted hover:bg-surface hover:text-fg",
+            )}
+          >
+            {t("members.archived.title")}
+          </Link>
+        ) : null}
+      </nav>
 
-            None of it is on the archived view: the filter counts are counts of
-            the live directory, and importing, printing and adding somebody are
-            things done to it. The search box stays, because an archived
-            directory is still looked up by name. */}
+      <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-3">
+        {/* Live-directory tools stay off the archived view. The search box
+            remains available there, because archived members are looked up too. */}
         {putAway ? null : (
         <div className="flex flex-wrap items-center gap-2">
         {/* The box that narrows the list leads: it is what somebody reaches
@@ -277,7 +305,7 @@ export function Directory({
           value={search}
           onChange={setSearch}
           placeholder={t("directory.searchPlaceholder")}
-          className="max-w-[260px] [&_input]:border-line [&_input]:shadow-none hover:[&_input]:border-line-strong"
+          className="min-w-[220px] max-w-[320px] flex-1 [&_input]:border-line [&_input]:shadow-none hover:[&_input]:border-line-strong"
         />
 
         {/* R2.14. The other question a long list raises, asked in the same
@@ -318,68 +346,69 @@ export function Directory({
           <SaveView params={params} />
         ) : null}
 
-        {canArchive ? (
-          <ToolButton href={"/duplicates"} label={t("merge.title")}>
-            <Copy />
-            {duplicates > 0 ? (
-              <span
-                aria-hidden
-                className="absolute -top-0.5 -right-0.5 grid h-[16px] min-w-[16px] place-items-center rounded-full bg-danger px-1 text-[10px] font-semibold leading-none text-white tabular-nums"
-              >
-                {duplicates}
-              </span>
-            ) : null}
-          </ToolButton>
-        ) : null}
-
-        <ToolButton href={"/members/celebrations"} label={t("celebrations.open")}>
-          <Cake />
-        </ToolButton>
-
-        <ToolButton
-          href={"/members/print"}
-          target="_blank"
-          label={t("members.printAll")}
-        >
-          <Printer />
-        </ToolButton>
-
-        {/* R16.12. The other half of communication: the half that needs no
-            provider and sends nothing. */}
-        <ToolButton href={"/members/mailer"} label={t("post.title")}>
-          <Mail />
-        </ToolButton>
-
         {/* R19.x, R24.6. The server builds this one, which takes a moment on
             a directory of any size, so it is asked for in the page and the
             Working panel holds the screen until the file lands. */}
-        <Tooltip content={t("directory.exportView")}>
-          <span className="inline-flex">
-          <FileDownload
-            href={exportHref}
-            file="members.csv"
-            label={t("directory.exporting")}
-            title={t("directory.exportFailed")}
-            name={t("directory.exportView")}
-            className={TOOL_SHAPE}
-          >
-            <Download />
-          </FileDownload>
-          </span>
-        </Tooltip>
-
-        {canEdit ? (
-          <ToolButton href={"/import"} label={t("import.title")}>
-            <Upload />
-          </ToolButton>
-        ) : null}
+        <FileDownload
+          href={exportHref}
+          file="members.csv"
+          label={t("directory.exporting")}
+          title={t("directory.exportFailed")}
+          name={t("directory.exportView")}
+          className="inline-flex h-9 items-center gap-2 rounded-lg border border-line px-3 text-[13px] font-medium text-fg hover:bg-sunken"
+        >
+          <Download /> {t("directory.exportView")}
+        </FileDownload>
 
         <span className="flex-1" />
 
-        {/* R24.6. The one thing this screen is for, at the far end of the row
-            where the eye finishes reading it. The tools beside it are marks
-            rather than worded buttons, which is what keeps the row to one
-            line and this press where it was left. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" className="relative shrink-0">
+              {t("action.more")}
+              {canArchive && duplicates > 0 ? (
+                <span className="absolute -right-2 -top-2 grid min-h-5 min-w-5 place-items-center rounded-full border-2 border-surface bg-danger px-1 text-[11px] font-semibold leading-none text-white tabular-nums">
+                  {duplicates}
+                </span>
+              ) : null}
+              <ChevronDown aria-hidden />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {canArchive ? (
+              <DropdownMenuItem asChild>
+                <Link href="/duplicates">
+                  <Copy /> {t("merge.title")}
+                  {duplicates > 0 ? (
+                    <span className="ml-auto rounded-full bg-danger-soft px-1.5 text-[11px] font-semibold text-danger-text">
+                      {duplicates}
+                    </span>
+                  ) : null}
+                </Link>
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem asChild>
+              <Link href="/members/celebrations"><Cake /> {t("celebrations.open")}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/members/print" target="_blank"><Printer /> {t("members.printAll")}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/members/mailer"><Mail /> {t("post.title")}</Link>
+            </DropdownMenuItem>
+            {canEdit ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/import"><Upload /> {t("import.title")}</Link>
+                </DropdownMenuItem>
+              </>
+            ) : null}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* R24.6. The action this directory exists to support stays at the end
+            of the row, beside its list tools. */}
         {canEdit ? (
           <Button asChild className="shrink-0">
             <Link href={"/members/new"}>
@@ -387,11 +416,11 @@ export function Directory({
             </Link>
           </Button>
         ) : null}
+
         </div>
         )}
 
-        {/* An archived directory keeps the box and nothing else: the counts
-            and the tools are about the live one. */}
+        {/* An archived directory keeps the search box. */}
         {putAway ? (
           <SearchField
             value={search}
@@ -725,31 +754,6 @@ const SORTS = [
     falling: t("directory.sort.newest"),
   },
 ];
-
-const TOOL_SHAPE =
-  "relative grid size-[var(--d-tap)] place-items-center rounded-md text-fg-muted"
-  + " hover:bg-sunken hover:text-fg [&_svg]:size-[18px]";
-
-function ToolButton({
-  href,
-  target,
-  label,
-  children,
-}: {
-  href: string;
-  target?: string;
-  /** What it does, for the tooltip and for whoever is listening. */
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Tooltip content={label}>
-      <Link href={href} target={target} aria-label={label} className={TOOL_SHAPE}>
-        {children}
-      </Link>
-    </Tooltip>
-  );
-}
 
 /** The one way to reach somebody, for the card a phone reads. */
 const reachOn = (row: Row): string | null => row.primaryEmail ?? row.primaryPhone ?? null;

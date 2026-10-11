@@ -181,6 +181,25 @@ and a design file does not move it.
 | HRT-42 | Date field and calendar of our own, replacing the browser's | R24.x | Closed |
 | HRT-26 | Background check status and expiry tracking | R2.10, R21.11 | Closed |
 | HRT-27 | Birthdays and anniversaries list, by month and week | R2.11 | Closed |
+| HRT-304 | Refresh the Members list with clear live/archive views and grouped secondary actions | R2.14, R24.6 | Resolved |
+| HRT-305 | Open member records and the new-member form in a sectioned panel over the directory | R2.1, R2.4, R2.15, R24.6 | Resolved |
+
+### HRT-305, how to test it
+
+Open Members and select a person. Their record opens in a panel above the still-visible directory,
+with sections in the left navigation and one section shown at a time. Move between sections, edit
+the record, and close the panel. Open Add a member and confirm the form uses the same panel and
+section navigation. Save both forms, check permissions and the unsaved-changes prompt, open a
+direct member URL to confirm it remains a page, and repeat at phone width.
+
+### HRT-304, how to test it
+
+Open Members as an Owner or Admin. Confirm the live and archived views are easy to switch between,
+the labels are centered and have no counts, the search and filter controls remain available,
+secondary tools are grouped under More, and a duplicate count appears on More when duplicates need
+review. Export shows its working state, More comes before Add a member, and Add a member remains
+the primary action. Check the list at desktop and phone widths, then open a member from both the
+table and the mobile card.
 
 ### F19. Data portability
 

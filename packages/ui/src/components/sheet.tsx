@@ -24,6 +24,7 @@ export function SheetContent({
   width = "440px",
   children,
   className,
+  bodyClassName,
 }: {
   title: string;
   closeLabel: string;
@@ -32,6 +33,7 @@ export function SheetContent({
   width?: string;
   children: React.ReactNode;
   className?: string;
+  bodyClassName?: string;
 }) {
   return (
     <P.Portal>
@@ -75,7 +77,9 @@ export function SheetContent({
           </P.Close>
         </div>
 
-        <div className="flex flex-1 flex-col gap-4 overflow-auto p-4 sm:p-6">{children}</div>
+        <div className={cn("flex flex-1 flex-col gap-4 overflow-auto p-4 sm:p-6", bodyClassName)}>
+          {children}
+        </div>
 
         {footer ? (
           /*

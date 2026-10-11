@@ -194,6 +194,18 @@ purple ink background and light foreground; selected links use a solid white sur
 foreground text. The collapsed rail keeps every link reachable through its icon and tooltip. The
 mobile tab bar keeps its existing flat navigation.
 
+The first page-level pass applies the supplied table references to Members only. Live and archived
+members become adjacent, purple-selected views with centered labels above the list. Search, saved
+lists, sort and filters stay in the toolbar, while less frequent tools move into a labeled More
+menu. A duplicate count on More calls attention to pairs waiting for review. Export remains a
+direct, progress-aware action, and Add a member follows More as the primary action. The purple rail
+and other screens are unchanged while this page is reviewed.
+
+Selecting a member from the directory opens their record in a wide right-side panel, with the
+directory still visible behind it. A left-side section menu shows one part of the record at a time.
+Add and edit use the same panel treatment and keep their save action in the pinned footer. Direct
+member links continue to open the full-page record.
+
 Three of these moved our own tokens, because the tokens were the thing that was off: `--radius-sm`
 went from 6px to 8px, office density went from 32px taps and 20px icons to 40px and 16px, and every
 Lucide icon now draws at 1.75 through one rule in the base layer.
