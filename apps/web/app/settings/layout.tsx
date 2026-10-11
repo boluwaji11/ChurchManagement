@@ -37,6 +37,9 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         ? [
             { href: "/settings/church", label: t("settings.tab.church") },
             { href: "/settings/website", label: t("settings.tab.website") },
+            /* HRT-283, R22.2. The church's own domain, which is a different
+               thing from the address members sign in at. */
+            { href: "/settings/domain", label: t("settings.tab.domain") },
             /* R16.11. What the church tells everybody, which sits with the
                rest of how the church speaks for itself. */
             { href: "/settings/announcements", label: t("announce.title") },

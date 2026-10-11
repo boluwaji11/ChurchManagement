@@ -359,7 +359,7 @@ of money and after everything else.
 | HRT-106 | In-context help on every screen | R22.2 | Closed |
 | HRT-213 | Regional spelling, from one catalogue, by the church's country | R22.8 | Closed |
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
-| HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Built. Waits for the screen it belongs to, see the note below |
+| HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Resolved |
 | HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
 | HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Resolved |
 | HRT-292 | Leaving a church, and the one owner who cannot | R1.4 | Resolved |
@@ -895,11 +895,19 @@ What is already built, from HRT-283:
   refuses and which would take down its website and its Google Workspace mail.
   `suggestSubdomain` offers `members.church.org` instead.
 
-What is left:
+The screen arrived in October 2026, at `/settings/domain`, its own entry
+after Website rather than a second card on it: two cards both saying where
+members sign in was what caused the long afternoon the first time. It reads
+live on every load, because a church changes its email provider and a reading
+kept from sign-up would then describe a domain that no longer exists.
 
-- **A screen.** It was on the Website page once and came off: two cards both
-  saying where members sign in was the cause of a long afternoon. It comes back
-  as its own thing, after the name under our host, for the church that asks.
+It shows what is there and stops. `DomainReading` takes `plan={false}`, so the
+records we would add are not drawn: they are for sending mail as the church,
+nothing in the product sends mail, and a church reading a list of changes we
+would make is a church being offered something it cannot have. The plan comes
+back with HRT-287.
+
+What is left:
 - **The certificate.** A name we do not own needs one issued per church on
   demand, which is a different piece of work from the wildcard on our own
   domain and the reason this is not simply the same feature twice.

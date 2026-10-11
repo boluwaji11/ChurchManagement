@@ -74,7 +74,22 @@ const WARNING_TONE = {
   lookupFailed: "info",
 } as const;
 
-export function DomainReading({ found }: { found: DomainFindings }) {
+export function DomainReading({
+  found,
+  /**
+   * Whether to show what we would add.
+   *
+   * The records are for sending mail as the church, and nothing in the
+   * product sends mail yet. A church reading a list of changes we would make
+   * is a church being offered something it cannot have, so the plan waits for
+   * the screen that can act on it (HRT-287). The reading itself stands on its
+   * own: it tells a church what its domain is set up with today.
+   */
+  plan = true,
+}: {
+  found: DomainFindings;
+  plan?: boolean;
+}) {
   const [showing, setShowing] = React.useState(false);
   const quiet = <span className="text-fg-subtle">{t("domain.noneFound")}</span>;
 
@@ -107,6 +122,7 @@ export function DomainReading({ found }: { found: DomainFindings }) {
         </Banner>
       ))}
 
+      {plan ? (
       <div className="grid items-start gap-4 lg:grid-cols-2">
         {/* What changes, said as what it does rather than as what it is. */}
         <Panel title={plural("domain.records", found.adding.length)} hue="sky">
@@ -136,9 +152,11 @@ export function DomainReading({ found }: { found: DomainFindings }) {
           )}
         </Panel>
       </div>
+      ) : null}
 
       {/* R22.2. For whoever types them in. Behind a press, because the person
           deciding and the person typing are usually not the same person. */}
+      {plan ? (
       <div className="flex flex-col gap-3">
         <Button
           type="button"
@@ -176,6 +194,7 @@ export function DomainReading({ found }: { found: DomainFindings }) {
           </div>
         ) : null}
       </div>
+      ) : null}
     </div>
   );
 }

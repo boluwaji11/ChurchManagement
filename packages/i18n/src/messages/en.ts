@@ -731,6 +731,8 @@ export const en = {
   "church.taxId": "Tax ID",
   // HRT-283, R22.2. Reading a church's domain before anything is changed.
   "domain.check": "Check domain information",
+  "domain.none": "No website on this church's record.",
+  "domain.addOne": "Add one",
   "domain.reading": "What this domain is set up with today",
   "domain.mail": "Email provider",
   "domain.registrar": "Domain provider",
@@ -1114,6 +1116,7 @@ export const en = {
   "area.services": "services",
   "area.teams": "teams",
   "settings.tab.website": "Website",
+  "settings.tab.domain": "Your domain",
   "settings.tab.household": "My household",
   "settings.tab.roles": "Roles",
   "settings.lede.website": "Manage how members access ConnectApp",
