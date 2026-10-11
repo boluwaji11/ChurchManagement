@@ -180,6 +180,38 @@ describe.skipIf(!HAS_ACCOUNTS)("the church's own website (R22.1, R22.2)", () => 
   });
 });
 
+describe.skipIf(!HAS_ACCOUNTS)("the fork at sign-up (R22.1)", () => {
+  const fork = async (input: { website?: string; hasWebsite?: boolean | null }) => {
+    const church = await createChurch({
+      name: `${PREFIX} Fork ${randomUUID().slice(0, 8)}`,
+      timezone: "America/Chicago",
+      user: newcomer("fork"),
+      ...input,
+    });
+    const [row] = await owner()<{ website: string | null; has_website: boolean | null }[]>`
+      select website, has_website from tenants where id = ${church.tenantId}`;
+    return row!;
+  };
+
+  it("keeps a yes with the address it came with", async () => {
+    expect(await fork({ hasWebsite: true, website: "northsidechapel.example" }))
+      .toEqual({ website: "northsidechapel.example", has_website: true });
+  });
+
+  it("keeps a no, which is what tells us to offer them a page", async () => {
+    expect(await fork({ hasWebsite: false }))
+      .toEqual({ website: null, has_website: false });
+  });
+
+  it("leaves a church nobody asked unanswered, rather than reading it as no", async () => {
+    expect(await fork({})).toEqual({ website: null, has_website: null });
+  });
+
+  it("refuses a yes with no address, because the address is the answer", async () => {
+    await expect(fork({ hasWebsite: true })).rejects.toThrow();
+  });
+});
+
 describe.skipIf(!HAS_ACCOUNTS)("a new church is isolated from the first moment", () => {
   it("cannot see the seeded church, and the seeded church cannot see it", async () => {
     const user = newcomer("isolated");

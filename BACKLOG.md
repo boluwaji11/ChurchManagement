@@ -365,6 +365,7 @@ of money and after everything else.
 | HRT-292 | Leaving a church, and the one owner who cannot | R1.4 | Resolved |
 | HRT-293 | Closing an account, and handing a church to somebody else first | R1.4, R21.9 | New |
 | HRT-294 | The church's website, asked once at sign-up | R22.1, R22.2 | Resolved |
+| HRT-295 | The fork at sign-up: does the church have a website | R22.1, R22.2 | Resolved |
 | HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | New |
 | HRT-291 | The church's own domain: members.church.org and give.church.org, with the screen to set one up | R1.1, R22.2 | New |
 
@@ -923,12 +924,20 @@ Website settings screen writes are the same shape. Before this, settings would
 have stored `https://www.church.org/` and sign-up `church.org`, which is one
 column holding two spellings of one church.
 
-What this does not do yet is fork. The narrative behind HRT-283 to HRT-287
-splits here: a church with a site gets the reading and the records to add, a
-church without one is offered a page. Neither destination exists, so both arms
-of the question would lead to the same next screen, and a fork that forks
-nothing is decoration. The question comes back as a fork when HRT-285 gives
-the second arm somewhere to go.
+HRT-295 then made it a fork. "Does your church have a website?" is asked
+outright, the address is asked for only when the answer is yes, and a yes with
+no address is refused, because the address is the whole of what the answer is
+for.
+
+`has_website` is a nullable boolean rather than an empty `website` column,
+because a church that said no and a church nobody asked lead different ways:
+one is owed a page of ours, the other is owed the question. Every church that
+signed up before this holds null, and answering for them would offer a page to
+churches that already have a site.
+
+Only Path A has a destination. A church that says no is recorded and nothing
+is promised, because HRT-285 is the page and it is not built. The screen does
+not say "we will build you one" until it can.
 
 ## Leaving a church, and closing an account, October 2026
 

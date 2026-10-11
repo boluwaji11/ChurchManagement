@@ -4,7 +4,7 @@ import * as React from "react";
 import { Church } from "lucide-react";
 import { useFormStatus } from "react-dom";
 import {
-  Button, Input, Field, Banner, Working, Combobox,
+  Button, Input, Field, Banner, Working, Combobox, RadioGroup, RadioItem,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t, countryList } from "@connectapp/i18n";
@@ -105,6 +105,10 @@ export function CreateChurchForm() {
   const [name, setName] = React.useState("");
   const [zone, setZone] = React.useState(FALLBACK);
   const [country, setCountry] = React.useState("US");
+  /* R22.1. The fork. Unanswered until they say, because a church that has a
+     site and a church that has not been asked are not the same church. */
+  const [hasSite, setHasSite] = React.useState<"" | "yes" | "no">("");
+  const [website, setWebsite] = React.useState("");
   const [nameError, setNameError] = React.useState<string>();
   const [error, setError] = React.useState<string>();
 
@@ -176,15 +180,36 @@ export function CreateChurchForm() {
         <input type="hidden" name="country" value={country} />
       </Field>
 
-      {/* R22.1, R22.2. Asked once, at the start.
-          What a church is already on decides what its mail is set up to do,
-          whether a record can be written for them or has to be typed, and
-          whether they need a page of ours at all. Every screen that would
-          ask again reads this instead. A church with no site leaves it
-          empty and is offered one later. */}
-      <Field label={t("createChurch.website")}>
-        <Input name="website" type="url" inputMode="url" autoComplete="url" />
+      {/* R22.1, R22.2. The question the rest of setting up turns on.
+          A church with a site is read: what its mail is already doing, who
+          answers for its domain, and which records we would add. A church
+          without one is owed a page of ours, which is HRT-285 and is not
+          built, so the answer is kept and nothing is promised. */}
+      <Field label={t("createChurch.hasWebsite")} required>
+        <RadioGroup
+          name="hasWebsite"
+          value={hasSite}
+          onValueChange={(value) => setHasSite(value as "yes" | "no")}
+          className="flex-row gap-6"
+        >
+          <RadioItem value="yes">{t("common.yes")}</RadioItem>
+          <RadioItem value="no">{t("common.no")}</RadioItem>
+        </RadioGroup>
       </Field>
+
+      {hasSite === "yes" ? (
+        <Field label={t("createChurch.website")} required>
+          <Input
+            name="website"
+            type="url"
+            inputMode="url"
+            autoComplete="url"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            autoFocus
+          />
+        </Field>
+      ) : null}
 
       <Field label={t("createChurch.timezone")}>
         <Select name="timezone" value={zone} onValueChange={setZone}>
@@ -199,7 +224,13 @@ export function CreateChurchForm() {
         </Select>
       </Field>
 
-      <Submit ready={name.trim() !== "" && country !== ""} />
+      <Submit
+        ready={
+          name.trim() !== ""
+          && country !== ""
+          && (hasSite === "no" || (hasSite === "yes" && website.trim() !== ""))
+        }
+      />
     </form>
   );
 }

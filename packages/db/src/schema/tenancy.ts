@@ -42,6 +42,13 @@ export const tenants = pgTable(
     email: text("email"),
     website: text("website"),
     /**
+     * R22.1, R22.2. Whether they told us they have one.
+     *
+     * Null is "never asked", which every church from before the question
+     * holds. False is a church that said no and is owed a page of ours.
+     */
+    hasWebsite: boolean("has_website"),
+    /**
      * R7.6. How many held services somebody misses in a row before the church
      * wants to know. Three by default, which is roughly a month of services.
      */

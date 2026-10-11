@@ -299,6 +299,7 @@ export const en = {
   "createChurch.searchZone": "Search timezones",
   "createChurch.name": "Church name",
   "createChurch.timezone": "Timezone",
+  "createChurch.hasWebsite": "Does your church have a website?",
   "createChurch.website": "Church website",
   "createChurch.error.website": "That is not a web address.",
   "createChurch.submit": "Create it",

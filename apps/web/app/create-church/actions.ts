@@ -25,6 +25,9 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
   const timezone = String(data.get("timezone") ?? "");
   const country = String(data.get("country") ?? "");
   const website = String(data.get("website") ?? "");
+  /* R22.1. Unanswered stays unanswered: a radio nobody touched is not a no. */
+  const asked = String(data.get("hasWebsite") ?? "");
+  const hasWebsite = asked === "yes" ? true : asked === "no" ? false : null;
 
   let slug: string;
   try {
@@ -33,6 +36,7 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
       timezone,
       country,
       website,
+      hasWebsite,
       user: {
         id: user.id,
         email: user.email,

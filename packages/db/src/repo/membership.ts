@@ -384,6 +384,13 @@ export async function createChurch(input: {
    * every screen that would ask reads this instead.
    */
   website?: string | null;
+  /**
+   * R22.1. Whether they say they have one at all.
+   *
+   * Kept apart from the address, because a church that answered "no" and a
+   * church nobody asked are different states and lead different ways.
+   */
+  hasWebsite?: boolean | null;
   user: {
     id: string;
     email: string;
@@ -402,6 +409,16 @@ export async function createChurch(input: {
    * alternative is a field that looks accepted and silently holds nothing.
    */
   const website = cleanWebsite(input.website);
+  /*
+   * A church that says it has a site has to give it, because the address is
+   * the whole of what the answer is for. Saying no and typing one anyway is
+   * the form being used in a way the screen does not offer, so the address
+   * is what we believe.
+   */
+  const hasWebsite = website ? true : input.hasWebsite ?? null;
+  if (input.hasWebsite === true && !website) {
+    throw new InvalidInputError("createChurch.error.website");
+  }
   if (name.length < 2) throw new InvalidInputError("error.churchNameShort");
   if (name.length > 120) throw new InvalidInputError("error.churchNameLong");
 
@@ -433,8 +450,8 @@ export async function createChurch(input: {
     }
 
     const [tenant] = await tx<{ id: string }[]>`
-      insert into tenants (slug, name, timezone, country, website)
-      values (${slug}, ${name}, ${timezone}, ${country}, ${website})
+      insert into tenants (slug, name, timezone, country, website, has_website)
+      values (${slug}, ${name}, ${timezone}, ${country}, ${website}, ${hasWebsite})
       returning id`;
     if (!tenant) throw new Error("Tenant insert returned no row.");
 
