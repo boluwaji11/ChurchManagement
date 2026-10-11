@@ -67,3 +67,6 @@ next-env.d.ts
 
 # Hearth Stage lives in its own repository, in this folder.
 /Stage/
+
+# Vercel
+.vercel
