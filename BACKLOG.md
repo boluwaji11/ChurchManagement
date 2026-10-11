@@ -366,7 +366,7 @@ of money and after everything else.
 | HRT-293 | Closing an account, and handing a church to somebody else first | R1.4, R21.9 | New |
 | HRT-294 | The church's website, asked once at sign-up | R22.1, R22.2 | Resolved |
 | HRT-295 | The fork at sign-up: does the church have a website | R22.1, R22.2 | Resolved |
-| HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | New |
+| HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | The pieces are built. The steps for each site builder are not |
 | HRT-291 | The church's own domain: members.church.org and give.church.org, with the screen to set one up | R1.1, R22.2 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
@@ -860,6 +860,25 @@ leaves the church to work out where it goes. What it should be:
 - **The steps for the site they actually built it on.** Adding an embed is a
   different few presses at Wix, Squarespace, WordPress and Weebly, and "paste
   this into your website" is the instruction a volunteer gets stuck on.
+
+Built in October 2026: giving as a button and the group finder as a frame, on
+the Website screen, both on the short address through `publicLink`, so a
+snippet and the route it points at cannot disagree.
+
+Giving is a button rather than a frame, and that settles the question the
+paragraph above left open. The giving page carries Stripe's own checkout, and
+nesting a payment frame inside ours inside the church's page is three deep
+before anybody has typed a card number. It is also what a church asks for: a
+Give button on the home page, not a donation form halfway down it. Nothing had
+to be tried, because the frame was the wrong shape for it either way.
+
+A form and an event hand out their own snippet from their own screen, which is
+where somebody is standing when they decide to embed that one. The Website
+screen carries only what is church-wide.
+
+`/g/embed` answers on a church's own address, a static segment beside
+`/g/[slug]`, so a group named "embed" is unreachable at the short path. The
+same trade `/e/[slug]/register` already carries.
 
 Which means capturing the **site builder**, which is not always the DNS
 provider: a church can buy the name at GoDaddy and build the site on Squarespace.

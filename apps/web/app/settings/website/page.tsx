@@ -5,6 +5,8 @@ import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
 import { PortalAddress } from "../church/portal-address";
+import { OnYourSite } from "../church/on-your-site";
+import { publicLink } from "@/lib/church-address";
 import { cookieDomain } from "@/lib/cookie-domain";
 import { t } from "@connectapp/i18n";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -63,6 +65,14 @@ export default async function WebsitePage({
   const under = slugUnderPlatform(host);
   const platformHost = under ? host.slice(under.length + 1) : host;
 
+  /* R9.5, R17.1. Built on the server through the one helper, so what a church
+     pastes into its own site and what the route answers on cannot disagree. */
+  const [giving, groups, groupsFrame] = await Promise.all([
+    publicLink(session.tenantSlug, "give"),
+    publicLink(session.tenantSlug, "g"),
+    publicLink(session.tenantSlug, "g", "/embed"),
+  ]);
+
   return (
     <>
       <SettingsHeading title="settings.tab.website" lede="settings.lede.website" />
@@ -83,6 +93,8 @@ export default async function WebsitePage({
           canEdit={canManageChurch(session)}
         />
 
+        {/* R9.5, R13.5. What goes on the site the church already has. */}
+        <OnYourSite giving={giving} groups={groups} groupsFrame={groupsFrame} />
       </div>
     </>
   );
