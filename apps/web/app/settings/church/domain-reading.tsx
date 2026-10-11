@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Check, Plus } from "lucide-react";
-import { Banner, Button, Separator } from "@connectapp/ui";
+import { Banner, Button } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import type { DomainFindings } from "@connectapp/db/rules";
 
@@ -108,8 +108,6 @@ export function DomainReading({
 
   return (
     <div className="flex flex-col gap-5">
-      <Separator />
-
       {found.warnings.map((one) => (
         <Banner key={one.code} tone={WARNING_TONE[one.code]}>
           {t(`domain.warn.${one.code}` as never, { detail: one.detail ?? "" })}
