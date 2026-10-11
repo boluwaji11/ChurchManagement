@@ -2835,7 +2835,6 @@ export const en = {
   "site.title": "On your website",
   "site.account": "My account link",
   "site.account.open": "Let somebody new create their own account here",
-  "site.onYourSite": "Embed ConnectApp pages",
   "site.builder": "Where your website is built",
   "site.step.page": "Page",
   "site.step.site": "Website",

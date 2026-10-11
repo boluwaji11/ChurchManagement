@@ -110,10 +110,9 @@ export default async function WebsitePage({
 
         {/* R9.5, R13.5. What goes on the site the church already has, behind
             a rule, because the two columns answer different questions. */}
+        {/* R24.6. No heading: the trail's first step already says what the
+            column is for, and a title above it said it twice. */}
         <section className="flex h-full flex-col gap-4 lg:border-l lg:border-line lg:pl-8">
-          <h3 className="m-0 font-display text-[17px] leading-6 text-fg">
-            {t("site.onYourSite")}
-          </h3>
           <OnYourSite
             giving={giving}
             groups={groups}
