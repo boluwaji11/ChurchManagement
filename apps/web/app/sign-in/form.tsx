@@ -85,7 +85,7 @@ function MagicLinkForm({ next, email }: { next?: string; email?: string }) {
     (data: FormData): Errors => ({ email: check(String(data.get("email") ?? ""), validEmail) }),
     [],
   );
-  const { formRef, errors, pending, action, revalidate } = useValidatedForm(validate, sendMagicLink);
+  const { formRef, errors, pending, ready, action, revalidate } = useValidatedForm(validate, sendMagicLink);
 
   return (
     <form ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-4">
@@ -100,7 +100,7 @@ function MagicLinkForm({ next, email }: { next?: string; email?: string }) {
           className={AUTH_INPUT}
         />
       </Field>
-      <Button type="submit" full loading={pending} className={AUTH_BUTTON}>
+      <Button type="submit" full disabled={!ready} loading={pending} className={AUTH_BUTTON}>
         <Mail /> {t("signIn.sendLink")}
       </Button>
     </form>
@@ -115,7 +115,7 @@ function PasswordForm({ next, email }: { next?: string; email?: string }) {
     }),
     [],
   );
-  const { formRef, errors, pending, action, revalidate } = useValidatedForm(validate, signInWithPassword);
+  const { formRef, errors, pending, ready, action, revalidate } = useValidatedForm(validate, signInWithPassword);
 
   return (
     <form ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-4">
@@ -138,7 +138,7 @@ function PasswordForm({ next, email }: { next?: string; email?: string }) {
           className={AUTH_INPUT}
         />
       </Field>
-      <Button type="submit" full loading={pending} className={AUTH_BUTTON}>
+      <Button type="submit" full disabled={!ready} loading={pending} className={AUTH_BUTTON}>
         <KeyRound /> {t("signIn.submit")}
       </Button>
 
