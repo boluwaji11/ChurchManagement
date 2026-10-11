@@ -189,10 +189,10 @@ Taken from `ConnectApp A - Warm Office.dc.html` rather than approximated.
 
 The staff navigation is grouped by the work it supports: Overview, People, Gatherings and Church.
 Each heading expands one set of links, and the current page opens its group. Settings stays above
-the signed-in person's profile at the bottom of the sidebar. The rail has an opaque surface-token
-background, with the canvas reserved for the profile row; selected links use the primary soft surface
-and semantic primary text. The collapsed rail keeps every link reachable through its icon and tooltip.
-The mobile tab bar keeps its existing flat navigation.
+the signed-in person's profile at the bottom of the sidebar. The rail keeps its original opaque
+purple ink background and light foreground; selected links use a solid white surface with semantic
+foreground text. The collapsed rail keeps every link reachable through its icon and tooltip. The
+mobile tab bar keeps its existing flat navigation.
 
 Three of these moved our own tokens, because the tokens were the thing that was off: `--radius-sm`
 went from 6px to 8px, office density went from 32px taps and 20px icons to 40px and 16px, and every
