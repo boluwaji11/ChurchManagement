@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { siteTheme } from "@/lib/theme";
-import { churchFromHost } from "@/lib/session";
+import { churchFromHost, currentUser } from "@/lib/session";
+import { membershipsForUser, publicWebsite } from "@connectapp/db";
+import { landingForRole } from "@/lib/landing";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -33,11 +35,22 @@ import {
   Tile,
 } from "@/components/site/kit";
 import { StartDemoButton } from "./demo/start";
+import { HeroTypewriter } from "./hero-typewriter";
+import { SupportMessage } from "@/components/site/support-message";
+import { ChurchWebsitePage } from "@/components/church-website";
+import { signWebsiteMedia } from "@/lib/website-media";
 
 export const dynamic = "force-dynamic";
 
-/** R17.1. The product's own front page. */
-export const metadata = { title: `${t("app.name")} - ${t("site.hero.title")}` };
+/** R17.1. The product or the church whose address was opened. */
+export async function generateMetadata() {
+  const church = await churchFromHost();
+  if (church) {
+    const website = await publicWebsite(church);
+    if (website) return { title: website.churchName };
+  }
+  return { title: `${t("app.name")} - ${t("site.hero.title")}` };
+}
 
 /**
  * The ConnectApp website: the page somebody reads before they are anybody.
@@ -119,7 +132,17 @@ export default async function Site() {
    * how to name a church and take somebody in.
    */
   const church = await churchFromHost();
-  if (church) redirect("/join");
+  if (church) {
+    const user = await currentUser();
+    if (user) {
+      const memberships = await membershipsForUser(user.id);
+      const membership = memberships.find((one) => one.tenantSlug === church);
+      if (membership) redirect(landingForRole(membership.role));
+    }
+    const website = await publicWebsite(church);
+    if (website) return <ChurchWebsitePage website={await signWebsiteMedia(website)} />;
+    redirect("/join");
+  }
 
   const { chosen } = await siteTheme();
 
@@ -132,11 +155,12 @@ export default async function Site() {
         <section className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-6 pb-10 pt-20 text-center">
           <Art pieces={HERO_ART} />
           <h1 className="m-0 max-w-[14ch] text-balance font-display text-[clamp(44px,6.4vw,76px)] font-normal leading-[1.04] tracking-[-0.015em]">
-            {t("site.hero.title")}
+            {t("site.hero.title")}{" "}
+            <HeroTypewriter
+              freeText={t("site.hero.free")}
+              alwaysText={t("site.hero.always")}
+            />
           </h1>
-          <p className="m-0 max-w-[40ch] text-balance text-[19px] leading-[30px] text-fg-muted">
-            {t("site.hero.sub")}
-          </p>
           <div className="mt-2 flex flex-wrap justify-center gap-3">
             <Start />
             <StartDemoButton className={SITE_CTA_QUIET} />
@@ -197,7 +221,6 @@ export default async function Site() {
                 className="hidden w-[280px] shrink-0 self-center lg:block"
               />
               <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-4 text-[17px] leading-[28px] text-fg-muted">
-                <p className="m-0">{t("site.why.gave")}</p>
                 <p className="m-0">{t("site.why.ours")}</p>
               </div>
             </div>
@@ -384,6 +407,7 @@ export default async function Site() {
         </section>
       </main>
 
+      <SupportMessage />
       <SiteFooter theme={chosen} />
     </div>
   );

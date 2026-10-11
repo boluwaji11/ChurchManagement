@@ -223,14 +223,14 @@ and adding a third is a safety problem.
 
 ## 4. Typography
 
-A serif for display, a neutral sans for UI, a mono for codes. The serif is what stops this looking
-like every other dashboard.
+A serif for display, a sans for UI, and a mono for codes, all from IBM Plex. The shared family gives
+the platform one voice across headings, working screens, and the codes volunteers read aloud.
 
 | Role | Face | Notes |
 |---|---|---|
-| Display | **Fraunces** variable | Headings, page titles, marketing. Low `wonk`, moderate `soft`. Warm and distinctive without being precious. Alternate: Instrument Serif. |
-| UI and body | **Inter** variable | Everything functional. Tabular figures enabled for tables and currency. |
-| Mono | **JetBrains Mono** | **Security codes, giving amounts in tables, batch totals.** Chosen because 0 and O, 1 and l are unambiguous, which matters when a volunteer reads a pickup code aloud. |
+| Display | **IBM Plex Serif** | Headings, page titles, and marketing. A sturdy serif that gives headings a distinct hierarchy. |
+| UI and body | **IBM Plex Sans** variable | Everything functional. Tabular figures enabled for tables and currency. |
+| Mono | **IBM Plex Mono** | **Security codes, giving amounts in tables, batch totals.** Codes stay monospaced and the character pairs remain easy to distinguish when read aloud. |
 
 Self-hosted through `next/font`. No render-blocking third party font request, no layout shift.
 
@@ -240,15 +240,15 @@ Office mode. Station and portal scale from the same ratio.
 
 | Token | Size / line | Use |
 |---|---|---|
-| `display-lg` | 44 / 48, Fraunces | Page hero, empty states |
-| `display` | 32 / 38, Fraunces | Page title |
-| `heading` | 22 / 28, Fraunces | Section heading |
-| `title` | 17 / 24, Inter 600 | Card and dialog title |
-| `body` | 14 / 20, Inter 400 | Default |
-| `body-lg` | 16 / 24, Inter 400 | Portal default, long form |
-| `label` | 13 / 16, Inter 500 | Form labels, table headers |
-| `caption` | 12 / 16, Inter 400 | Helper text, timestamps |
-| `code` | 14 / 20, JetBrains Mono | Codes, IDs |
+| `display-lg` | 44 / 48, IBM Plex Serif | Page hero, empty states |
+| `display` | 32 / 38, IBM Plex Serif | Page title |
+| `heading` | 22 / 28, IBM Plex Serif | Section heading |
+| `title` | 17 / 24, IBM Plex Sans 600 | Card and dialog title |
+| `body` | 14 / 20, IBM Plex Sans 400 | Default |
+| `body-lg` | 16 / 24, IBM Plex Sans 400 | Portal default, long form |
+| `label` | 13 / 16, IBM Plex Sans 500 | Form labels, table headers |
+| `caption` | 12 / 16, IBM Plex Sans 400 | Helper text, timestamps |
+| `code` | 14 / 20, IBM Plex Mono | Codes, IDs |
 
 **Never lighter than 400 for body text.** Thin weights on a warm background at 13px is how you lock
 out a 70 year old volunteer.
@@ -376,7 +376,7 @@ durations rather than reinventing them.
 | Components | **shadcn/ui** on **Radix primitives**. Accessible focus management, keyboard behaviour, and ARIA that we do not have to get right ourselves. Copied in and owned, not a dependency we cannot edit. |
 | Icons | **Lucide** |
 | Motion | **Motion** for components, **View Transitions API** for routes |
-| Fonts | Fraunces, Inter, JetBrains Mono, self-hosted via `next/font` |
+| Fonts | IBM Plex Serif, IBM Plex Sans, IBM Plex Mono, self-hosted via `next/font` |
 | Charts | Minimal, one accent colour, no gradients, no 3D, direct labels over legends where they fit |
 | Forms | React Hook Form plus Zod, with the same schema validating on the server |
 | Tables | TanStack Table, virtualised above 200 rows |

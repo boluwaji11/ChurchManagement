@@ -3,6 +3,13 @@
 R16.9, R17.1. The part of communication a church can run with no provider,
 no credentials and nothing resold: a message written here and read here.
 
+The public website has a separate support contact form. It sends messages to
+`support@connectapp.church` through the configured Gmail Workspace mailbox and
+limits submissions through Upstash Redis. SMTP authenticates as the mailbox
+owner and uses the support address as its From address. Add the support address
+as a Gmail send-as alias for the authenticated mailbox. Keep credentials in the
+deployment environment; `.env.example` lists the required names.
+
 ## Why this and not email
 
 F16 is deferred because email, SMTP and SMS all mean holding somebody's

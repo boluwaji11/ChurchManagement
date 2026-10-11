@@ -3,7 +3,7 @@
 A design note, dated 9 October 2026. Nothing here is approved and nothing here is built. It exists
 so the decisions below are argued once and can be read again when the work is asked for.
 
-The source is a narrative of one church's first hour (Pastor Sarah, Grace Community), an
+The source is a narrative of one church's first hour (Pastor Sarah, Fairview Church), an
 architecture sketch, and a blueprint for verifying a sending domain. This note says which parts
 hold, which parts are wrong, and what the work would actually be.
 
@@ -107,12 +107,12 @@ domain. We leave it off, always.
 
 So the correct shape:
 
-- Register the **root** domain, `gracecommunity.org`.
+- Register the **root** domain, `fairviewchurch.org`.
 - DKIM TXT at the root, `resend._domainkey`.
 - Resend's SPF and return-path MX on `send.`, applied as Resend generates them.
 - Inbound stays off.
 
-The church then sends as `sarah@gracecommunity.org` with DKIM alignment, their Workspace inbox is
+The church then sends as `sarah@fairviewchurch.org` with DKIM alignment, their Workspace inbox is
 untouched, and DMARC passes on alignment at the root. The `mail.` subdomain in the narrative and the
 Reply-To header it needs both become unnecessary, because the From address is already the real one.
 
@@ -120,22 +120,16 @@ Reply-To stays in the design as the fallback for a church whose DNS we cannot re
 
 ### Act 5, the website
 
-This is the part to cut.
+The first website deliverable is one public homepage at the church's ConnectApp address. A church
+can assemble it from designed sections, edit their content, and add or reorder sections. The
+available sections cover a welcome, text, banners, images, video embeds, service times, and contact
+details. Images come from secure web addresses, and videos embed from YouTube or Vimeo.
 
-A website builder is a second product. It carries a page editor, a media library, SEO, custom
-domains, certificates at scale, abuse and takedown handling, and public traffic. The cost of every
-other thing we run scales with the number of churches. The cost of this one scales with the number
-of *visitors*, which is the one shape a donation-funded platform cannot absorb. The market is also
-full: Wix, Squarespace, Subsplash, Tithe.ly Sites, Nucleus.
-
-The need underneath it is real and much smaller. **A church with no website needs somewhere to put
-the Give button.** It does not need a content management system.
-
-We are close to that already. HRT-239 built a giving page a church links to. Extend it into one
-generated public page per church, drawn from the record we already keep: name, logo, brand hue,
-address, service times, a way to make contact, Give. No editor, no media, no promises about search
-ranking. One page at `connectapp.church/<slug>`. If the church later builds a real site, they link
-to it from there and nothing is wasted.
+The scope is a homepage with a section library. Multiple pages, arbitrary layout authoring, custom
+domains, certificate management, video hosting, search-ranking promises, and a general media library
+remain out of scope. Public publication follows church approval. The Website permission controls
+who can edit and publish. A signed-in member of that church opens their member portal, and other
+church roles open their role's starting screen.
 
 For a church that already has a site, the embed snippet from the narrative is cheap and worth
 having, and the pre-flight from Act 1 already knows which registrar's instructions to show.

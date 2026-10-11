@@ -50,8 +50,8 @@ describe.skipIf(!HAS_ACCOUNTS)("slugs", () => {
   });
 
   it("derives the slug from the name", async () => {
-    const church = await start("Grace Community");
-    expect(church.slug).toBe("hrt32-grace-community");
+    const church = await start("Fairview Church");
+    expect(church.slug).toBe("hrt32-fairview-church");
   });
 
   it("suffixes rather than colliding when the name is taken", async () => {
@@ -145,6 +145,70 @@ describe("what is refused", () => {
         createChurch({ name, timezone: "America/Chicago", user: newcomer("short") }),
       ).rejects.toThrow(InvalidInputError);
     }
+  });
+});
+
+describe.skipIf(!HAS_ACCOUNTS)("the church's own website (R22.1, R22.2)", () => {
+  const site = async (website?: string) => {
+    const church = await createChurch({
+      name: `${PREFIX} Site ${randomUUID().slice(0, 8)}`,
+      timezone: "America/Chicago",
+      website,
+      user: newcomer("site"),
+    });
+    const [row] = await owner()<{ website: string | null }[]>`
+      select website from tenants where id = ${church.tenantId}`;
+    return row!.website;
+  };
+
+  it("keeps what the church typed, as the bare domain", async () => {
+    expect(await site("fairviewchurch.org")).toBe("fairviewchurch.org");
+  });
+
+  it("reads one church out of three spellings of its address", async () => {
+    expect(await site("https://www.fairviewchurch.org/about?x=1"))
+      .toBe("fairviewchurch.org");
+  });
+
+  it("holds nothing for a church that has no site", async () => {
+    expect(await site()).toBeNull();
+    expect(await site("   ")).toBeNull();
+  });
+
+  it("refuses something that is not an address, rather than keeping it", async () => {
+    await expect(site("our church")).rejects.toThrow();
+  });
+});
+
+describe.skipIf(!HAS_ACCOUNTS)("the fork at sign-up (R22.1)", () => {
+  const fork = async (input: { website?: string; hasWebsite?: boolean | null }) => {
+    const church = await createChurch({
+      name: `${PREFIX} Fork ${randomUUID().slice(0, 8)}`,
+      timezone: "America/Chicago",
+      user: newcomer("fork"),
+      ...input,
+    });
+    const [row] = await owner()<{ website: string | null; has_website: boolean | null }[]>`
+      select website, has_website from tenants where id = ${church.tenantId}`;
+    return row!;
+  };
+
+  it("keeps a yes with the address it came with", async () => {
+    expect(await fork({ hasWebsite: true, website: "northsidechapel.example" }))
+      .toEqual({ website: "northsidechapel.example", has_website: true });
+  });
+
+  it("keeps a no, which is what tells us to offer them a page", async () => {
+    expect(await fork({ hasWebsite: false }))
+      .toEqual({ website: null, has_website: false });
+  });
+
+  it("leaves a church nobody asked unanswered, rather than reading it as no", async () => {
+    expect(await fork({})).toEqual({ website: null, has_website: null });
+  });
+
+  it("refuses a yes with no address, because the address is the answer", async () => {
+    await expect(fork({ hasWebsite: true })).rejects.toThrow();
   });
 });
 

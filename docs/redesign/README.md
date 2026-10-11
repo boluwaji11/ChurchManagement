@@ -174,10 +174,10 @@ Taken from `ConnectApp A - Warm Office.dc.html` rather than approximated.
 
 | Part | The design |
 |---|---|
-| Sidebar | 232px, 64px collapsed. 20px padding, 12px at the sides (10px collapsed). 24px between its three blocks. `--c12` behind it, hairline on the right. 200ms on `cubic-bezier(0.16, 1, 0.3, 1)`. |
-| Brand | A 32px ember square, 10px radius, white flame at 16px. "ConnectApp" in Fraunces 18/20 over the church's name at 12px. |
+| Sidebar | 232px, 64px collapsed. 16px vertical padding, 12px at the sides (10px collapsed), 16px between the brand, links and account areas. Warm surface behind it, hairline on the right. 200ms on `cubic-bezier(0.16, 1, 0.3, 1)`. |
+| Brand | The church's mark and name at the top, sized to fit the church name. |
 | Collapse toggle | 30px square, 8px radius, `panel-left-close` and `panel-left-open` at 18px. |
-| Nav row | 36px tall, **8px radius**, 2px between rows, 10px gap, 10px side padding, 13px at weight 500, icon 18px. Current row is `--surface` with `--c1` and a 1px/3px shadow; the rest are `--c6`. Count right-aligned at 12px. |
+| Nav row | 36px tall, **8px radius**, 4px between rows, 10px gap, 10px side padding, 13px at weight 500, icon 18px. Current row uses the primary soft surface, semantic primary text and a light shadow; the rest use muted text. |
 | Person row | 10px radius, hairline border, `--surface`. 32px round avatar on its hue, name 13px/500, role 12px, `chevrons-up-down` at 16px. |
 | Sign out | 36px, 8px radius, `--c6`, `log-out` at 18px. |
 | Top bar | 14px padding, 24px at the sides, hairline under, canvas behind, 12px gaps. Title in Fraunces **20/24**. Action 36px, 14px side padding, 10px radius. |
@@ -186,6 +186,13 @@ Taken from `ConnectApp A - Warm Office.dc.html` rather than approximated.
 | Office density | 40px buttons and inputs, 36px rows, 16px icons inside a control, 14px side padding, 10px radius. |
 | Icons | Lucide at **1.75 stroke**, 16px in a control and 18px in the navigation. |
 | Radius | 8 for small controls and menu rows, 10 for buttons and inputs, 12 to 14 for cards, full for pills. |
+
+The staff navigation is grouped by the work it supports: Overview, People, Gatherings and Church.
+Each heading expands one set of links, and the current page opens its group. Settings stays above
+the signed-in person's profile at the bottom of the sidebar. The rail keeps its original opaque
+purple ink background and light foreground; selected links use a solid white surface with semantic
+foreground text. The collapsed rail keeps every link reachable through its icon and tooltip. The
+mobile tab bar keeps its existing flat navigation.
 
 Three of these moved our own tokens, because the tokens were the thing that was off: `--radius-sm`
 went from 6px to 8px, office density went from 32px taps and 20px icons to 40px and 16px, and every

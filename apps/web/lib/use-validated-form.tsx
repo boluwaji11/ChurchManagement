@@ -15,6 +15,11 @@ export type Errors = Record<string, string | undefined>;
  *
  * Errors appear on submit, then follow along as the field is corrected. Nagging
  * somebody mid-typing before they have finished is not help.
+ *
+ * `ready` is the other half of that and runs from the first keystroke: the
+ * button stays dark until the form could actually be sent. Saying nothing
+ * while somebody types, and still letting them press a button that cannot
+ * work, is the worst of both.
  */
 export function useValidatedForm(
   validate: (data: FormData) => Errors,
@@ -24,11 +29,19 @@ export function useValidatedForm(
   const [errors, setErrors] = React.useState<Errors>({});
   const [submitted, setSubmitted] = React.useState(false);
   const [pending, setPending] = React.useState(false);
+  const [ready, setReady] = React.useState(false);
 
   const revalidate = React.useCallback(() => {
-    if (!submitted || !formRef.current) return;
-    setErrors(validate(new FormData(formRef.current)));
+    if (!formRef.current) return;
+    const found = validate(new FormData(formRef.current));
+    setReady(!Object.values(found).some(Boolean));
+    // What is wrong is said once they have asked to send it, and not before.
+    if (submitted) setErrors(found);
   }, [submitted, validate]);
+
+  /* A form whose fields are all optional can be sent as it stands, so the
+     first answer is read before anybody types. */
+  React.useEffect(revalidate, [revalidate]);
 
   const action = async (data: FormData) => {
     setSubmitted(true);
@@ -50,5 +63,5 @@ export function useValidatedForm(
     }
   };
 
-  return { formRef, errors, pending, action, revalidate };
+  return { formRef, errors, pending, ready, action, revalidate };
 }

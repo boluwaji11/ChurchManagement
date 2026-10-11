@@ -84,7 +84,7 @@ So:
 - SPF and the return-path MX on `send.`, exactly as Resend generates them.
 - Inbound off, always.
 
-The church then sends as `sarah@gracecommunity.org` with the signature aligned
+The church then sends as `sarah@fairviewchurch.org` with the signature aligned
 to the address a member reads, DMARC passes on that alignment, and their
 Workspace inbox is untouched. The `mail.` subdomain and the Reply-To header it
 needs are both unnecessary, because the From address is already the real one.
@@ -126,8 +126,9 @@ Until that answer exists, HRT-286 stays unwritten.
   pre-flight, two records with copy buttons and a walkthrough for the registrar
   we detected gets a church through it. Revisit when donation coverage is above
   1.0 and we can count how many churches stall there.
-- **A website builder.** The need underneath it is somewhere to put the Give
-  button, which is HRT-285, one generated page per church.
+- **Open-ended website authoring.** HRT-285 provides one public homepage assembled from designed
+  sections. Churches can edit and reorder them. Arbitrary layouts and multi-page authoring remain
+  out of scope.
 
 ## What to supply when the accounts exist
 

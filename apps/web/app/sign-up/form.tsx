@@ -26,7 +26,7 @@ export function SignUpForm({ next }: { next?: string }) {
     }),
     [],
   );
-  const { formRef, errors, pending, action, revalidate } = useValidatedForm(validate, signUp);
+  const { formRef, errors, pending, ready, action, revalidate } = useValidatedForm(validate, signUp);
 
   return (
     <form
@@ -64,7 +64,7 @@ export function SignUpForm({ next }: { next?: string }) {
         />
       </Field>
 
-      <Button type="submit" full loading={pending} className={AUTH_BUTTON}>
+      <Button type="submit" full disabled={!ready} loading={pending} className={AUTH_BUTTON}>
         <UserPlus /> {t("signUp.submit")}
       </Button>
 

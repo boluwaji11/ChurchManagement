@@ -5,6 +5,7 @@ import { PermissionError, type TenantRole } from "../roles";
 import { can, rolesWith, type Who } from "../permissions";
 import { InvalidInputError } from "../errors";
 import { LOOKS_LIKE_EMAIL } from "./form-rules";
+import { bareDomain } from "../domain/preflight";
 import type { WriteActor } from "./members";
 
 /**
@@ -21,6 +22,22 @@ import type { WriteActor } from "./members";
  * Settings reshape the church for everyone in it, so they stay with Owner and
  * Admin. Staff edit members; they do not rename the church.
  */
+/**
+ * R22.1, R22.2. A church's own website, stored one way wherever it is given.
+ *
+ * Blank is an answer: plenty of churches have no site, and one of them is the
+ * reason HRT-285 exists. Anything else has to be a domain, because every
+ * screen downstream reads it as one, and fairviewchurch.org,
+ * www.fairviewchurch.org and https://fairviewchurch.org/about are the same
+ * church three times over.
+ */
+export function cleanWebsite(raw: string | null | undefined): string | null {
+  if (!raw?.trim()) return null;
+  const domain = bareDomain(raw);
+  if (!domain) throw new InvalidInputError("createChurch.error.website");
+  return domain;
+}
+
 export const CAN_MANAGE_CHURCH: readonly TenantRole[] = rolesWith("church.manage");
 export const canManageChurch = (role: Who): boolean => can(role, "church.manage");
 
@@ -40,6 +57,8 @@ export interface ChurchProfile {
   /** R1.1. Where somebody reading a public page writes to. */
   email: string | null;
   website: string | null;
+  /** R9.5. Where the church's website is built, once it has told us. */
+  siteBuilder: string | null;
   brandHue: string;
   logoKey: string | null;
   /** R1.7. Null when the church has switched joining off. */
@@ -105,7 +124,8 @@ export async function getChurch(
       timezone: tenants.timezone, addressLine1: tenants.addressLine1,
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
-      website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
+      website: tenants.website, siteBuilder: tenants.siteBuilder,
+      brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
       customDomain: tenants.customDomain, portalName: tenants.portalName,
       portalOpen: tenants.portalOpen,
@@ -193,7 +213,13 @@ export async function updateChurch(
       country,
       phone: trim(input.phone),
       email,
-      website: trim(input.website),
+      /*
+       * R22.2. The same shape sign-up stores, so one column holds one answer.
+       * Every screen that reads a church's website expects a bare domain, and
+       * a settings form that saved https://www.church.org/ would give them a
+       * second spelling of the same site to handle.
+       */
+      website: cleanWebsite(input.website),
       ...(input.brandHue ? { brandHue: input.brandHue as never } : {}),
       updatedAt: new Date(),
     })
@@ -203,7 +229,8 @@ export async function updateChurch(
       timezone: tenants.timezone, addressLine1: tenants.addressLine1,
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
-      website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
+      website: tenants.website, siteBuilder: tenants.siteBuilder,
+      brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
       customDomain: tenants.customDomain, portalName: tenants.portalName,
       portalOpen: tenants.portalOpen,

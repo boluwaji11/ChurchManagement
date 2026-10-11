@@ -34,7 +34,6 @@ export interface DomainWarning {
     | "noMx"
     | "manySpf"
     | "dkimTaken"
-    | "dmarcStrict"
     | "lookupFailed";
   /** Whatever we read, for the line that quotes it back. */
   detail?: string;
@@ -163,7 +162,7 @@ export function dmarcPolicy(txt: readonly string[]): string | null {
 /**
  * R22.2, R16.1. The three records a sending domain needs, and no others.
  *
- * The DKIM key goes at the root, so mail leaves as `sarah@gracecommunity.org`
+ * The DKIM key goes at the root, so mail leaves as `sarah@fairviewchurch.org`
  * with the signature aligned to the address a member reads. The SPF record and
  * the return path that carries bounces go on a `send.` subdomain of their own,
  * which is why the church's existing mail keeps working: their root MX, the one
@@ -203,11 +202,11 @@ export function warningsFor(findings: {
   // whatever put it there from sending.
   if (findings.dkimTaken) out.push({ code: "dkimTaken" });
 
-  // A strict policy is a good thing and a thing to mention, because it is why
-  // the key goes at the root rather than on a subdomain.
-  if (findings.dmarc === "reject" || findings.dmarc === "quarantine") {
-    out.push({ code: "dmarcStrict", detail: findings.dmarc });
-  }
+  /*
+   * A strict DMARC policy used to be listed here. It is good news, and a
+   * warning that reports good news teaches a reader to skim warnings. What
+   * the policy is already has a row of its own in the reading.
+   */
 
   return out;
 }
@@ -279,13 +278,21 @@ export async function readDomain(
    */
   const apex = apexOf(domain);
 
-  const [mx, rootTxt, dmarcTxt, dkimTxt, ns, cname] = await Promise.all([
+  const [mx, rootTxt, dmarcTxt, dkimTxt, ns, cname, wildTxt] = await Promise.all([
     quiet(resolver.mx(apex), []),
     quiet(resolver.txt(apex), []),
     quiet(resolver.txt(`_dmarc.${apex}`), []),
     quiet(resolver.txt(`resend._domainkey.${apex}`), []),
     quiet(resolver.ns(apex), []),
     quiet(resolver.cname(domain), []),
+    /*
+     * A name nobody would ever create, so whatever answers it is a wildcard
+     * answering for everything. A domain with `* TXT` replies to every lookup
+     * under it, and without this the DKIM check reads that reply as a record
+     * somebody put there deliberately and warns about a conflict that is not
+     * there.
+     */
+    quiet(resolver.txt(`_connectapp-wildcard-probe.${apex}`), []),
   ]);
 
   // A TXT record arrives in pieces, because a record longer than 255
@@ -299,7 +306,11 @@ export async function readDomain(
     .map((one) => one.exchange.replace(/\.$/, ""));
   const spf = spfRecords(flat(rootTxt));
   const dmarc = dmarcPolicy(flat(dmarcTxt));
-  const dkimTaken = flat(dkimTxt).length > 0;
+  const atDkim = flat(dkimTxt);
+  const wildcard = flat(wildTxt);
+  const fromWildcard =
+    wildcard.length > 0 && atDkim.every((one) => wildcard.includes(one));
+  const dkimTaken = atDkim.length > 0 && !fromWildcard;
 
   return {
     domain,
@@ -333,6 +344,55 @@ export async function readDomain(
  * domain's records, because the path to a single domain carries an account id
  * we do not have.
  */
+/**
+ * R9.5. The site builders a church's nameservers give away.
+ *
+ * Only some do. A church on Wix or Squarespace usually points the whole name
+ * at them, and then the nameservers say so outright. A church that bought at
+ * GoDaddy and built on anything says nothing here, which is why this is a
+ * guess the church confirms rather than an answer.
+ */
+const BUILDER_NS: [string, string][] = [
+  ["wixdns.net", "wix"],
+  ["squarespacedns.com", "squarespace"],
+  ["wordpress.com", "wordpress"],
+  ["weebly.com", "weebly"],
+  ["webflow.com", "webflow"],
+  ["shopifydns.com", "shopify"],
+  ["myshopify.com", "shopify"],
+  ["godaddysites.com", "godaddy"],
+];
+
+/** The builder a set of nameservers names, or null when they name none. */
+export function builderFromNameservers(nameservers: readonly string[]): string | null {
+  const names = nameservers.map((one) => one.toLowerCase().replace(/\.$/, ""));
+  for (const [suffix, builder] of BUILDER_NS) {
+    if (names.some((one) => one === suffix || one.endsWith(`.${suffix}`))) return builder;
+  }
+  return null;
+}
+
+/**
+ * R9.5. Every builder the steps are written for.
+ *
+ * Ids rather than names, because the name is a word on a screen and belongs in
+ * the catalogue with every other word. "other" is last and is what a church
+ * with a hand-written site picks.
+ */
+export const SITE_BUILDERS = [
+  "wix",
+  "squarespace",
+  "wordpress",
+  "weebly",
+  "webflow",
+  "godaddy",
+  "shopify",
+  "code",
+  "other",
+] as const;
+
+export type SiteBuilder = (typeof SITE_BUILDERS)[number];
+
 export const DNS_CONSOLE: Record<string, string> = {
   "GoDaddy": "https://dcc.godaddy.com/control/portfolio",
   "Cloudflare": "https://dash.cloudflare.com/",

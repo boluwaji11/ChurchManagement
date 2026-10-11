@@ -12,7 +12,7 @@ export const SheetClose = P.Close;
 /**
  * R24.6. A form that comes in from the right.
  *
- * 440px over a dim, the title in Fraunces at 22 with a close square beside it,
+ * 440px over a dim, the title in IBM Plex Serif at 22 with a close square beside it,
  * the body scrolling on its own, and the actions pinned to the bottom. The
  * screen behind stays in view, which is the point: you are adding to the thing
  * you were just looking at.

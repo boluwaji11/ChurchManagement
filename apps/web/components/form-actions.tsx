@@ -88,6 +88,7 @@ export function FormActions({
   form,
   label,
   pending = false,
+  disabled = false,
 }: {
   /** The id of the form this commits. */
   form: string;
@@ -100,6 +101,8 @@ export function FormActions({
    * true it says so and refuses a second press.
    */
   pending?: boolean;
+  /** A form-specific rule that still needs to be satisfied. */
+  disabled?: boolean;
 }) {
   const dirty = useDirty(form);
   const full = useAnswered(form);
@@ -111,7 +114,7 @@ export function FormActions({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button type="submit" form={form} disabled={!dirty || !full || working}>
+      <Button type="submit" form={form} disabled={!dirty || !full || working || disabled}>
         {working ? (
           <span
             aria-hidden

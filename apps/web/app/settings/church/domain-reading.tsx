@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import { Check, Plus } from "lucide-react";
-import { Banner, Button, Separator } from "@connectapp/ui";
+import { Banner, Button } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
+import { DomainHelp } from "./domain-help";
 import type { DomainFindings } from "@connectapp/db/rules";
 
 /**
@@ -70,25 +71,64 @@ const WARNING_TONE = {
   noMx: "info",
   manySpf: "danger",
   dkimTaken: "danger",
-  dmarcStrict: "info",
   lookupFailed: "info",
 } as const;
 
-export function DomainReading({ found }: { found: DomainFindings }) {
+export function DomainReading({
+  found,
+  /**
+   * Whether to show what we would add.
+   *
+   * The records are for sending mail as the church, and nothing in the
+   * product sends mail yet. A church reading a list of changes we would make
+   * is a church being offered something it cannot have, so the plan waits for
+   * the screen that can act on it (HRT-287). The reading itself stands on its
+   * own: it tells a church what its domain is set up with today.
+   */
+  plan = true,
+  fix,
+}: {
+  found: DomainFindings;
+  plan?: boolean;
+  /**
+   * Where to go when the reading says the address itself looks wrong.
+   *
+   * The screen owns its own routes, so it hands the link down rather than
+   * this component knowing where a church profile lives.
+   */
+  fix?: React.ReactNode;
+}) {
   const [showing, setShowing] = React.useState(false);
   const quiet = <span className="text-fg-subtle">{t("domain.noneFound")}</span>;
 
   /* R22.2. A policy letter means nothing to a volunteer, so it is read out. */
   const protection = found.dmarc
     ? t(`domain.dmarc.${found.dmarc}` as never)
-    : quiet;
+    : t("domain.dmarc.absent");
 
   return (
     <div className="flex flex-col gap-5">
-      <Separator />
+      {found.warnings.map((one) => (
+        <Banner key={one.code} tone={WARNING_TONE[one.code]}>
+          {t(`domain.warn.${one.code}` as never, { detail: one.detail ?? "" })}
+          {/* Only this one is about the address being wrong, and it is the one
+              worth offering a way out of. */}
+          {one.code === "noMx" && fix ? <> {fix}</> : null}
+        </Banner>
+      ))}
+
+      {/* The name itself, under anything wrong with it. Whoever opened this
+          screen already knows which church they are in; what they are checking
+          is which address we read. */}
+      <p className="m-0 font-mono text-[length:var(--d-text-body)] text-fg">{found.domain}</p>
 
       <section className="flex flex-col gap-1">
-        <h3 className="font-display text-[17px] leading-6 text-fg">{t("domain.reading")}</h3>
+        <div className="flex items-center gap-1">
+          <h3 className="m-0 font-display text-[17px] leading-6 text-fg">{t("domain.reading")}</h3>
+          {/* R22.2. What the two mail rows are for. A church meets SPF and
+              DMARC once, and the words for them are nobody's words. */}
+          <DomainHelp found={found} />
+        </div>
 
         <dl className="m-0 flex flex-col divide-y divide-line">
           <Line
@@ -96,17 +136,19 @@ export function DomainReading({ found }: { found: DomainFindings }) {
             value={found.mailProvider ?? (found.mailHosts[0] ? t("domain.unknownHost") : quiet)}
           />
           <Line label={t("domain.registrar")} value={found.registrar ?? quiet} />
-          <Line label={t("domain.spf")} value={found.spf ? t("domain.setUp") : quiet} />
+          {/* R22.2. What the record means, rather than whether there is one.
+              "Set up" told a reader nothing, and the absence is the half worth
+              knowing: a domain with no SPF is a domain anybody can send as. */}
+          <Line
+            label={t("domain.spf")}
+            value={found.spf ? t("domain.spf.limited") : t("domain.spf.anyone")}
+          />
           <Line label={t("domain.dmarc")} value={protection} />
         </dl>
       </section>
 
-      {found.warnings.map((one) => (
-        <Banner key={one.code} tone={WARNING_TONE[one.code]}>
-          {t(`domain.warn.${one.code}` as never, { detail: one.detail ?? "" })}
-        </Banner>
-      ))}
 
+      {plan ? (
       <div className="grid items-start gap-4 lg:grid-cols-2">
         {/* What changes, said as what it does rather than as what it is. */}
         <Panel title={plural("domain.records", found.adding.length)} hue="sky">
@@ -136,9 +178,11 @@ export function DomainReading({ found }: { found: DomainFindings }) {
           )}
         </Panel>
       </div>
+      ) : null}
 
       {/* R22.2. For whoever types them in. Behind a press, because the person
           deciding and the person typing are usually not the same person. */}
+      {plan ? (
       <div className="flex flex-col gap-3">
         <Button
           type="button"
@@ -176,6 +220,7 @@ export function DomainReading({ found }: { found: DomainFindings }) {
           </div>
         ) : null}
       </div>
+      ) : null}
     </div>
   );
 }

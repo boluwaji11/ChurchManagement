@@ -26,7 +26,7 @@ export async function generateMetadata({
 /**
  * R4.1. The forms a church has built.
  *
- * Built to docs/redesign/design: a tile per form, the name in Fraunces, and
+ * Built to docs/redesign/design: a tile per form, the name in IBM Plex Serif, and
  * under it the two numbers somebody opening this screen came for. Whether it is
  * taking answers, and how many it has.
  *

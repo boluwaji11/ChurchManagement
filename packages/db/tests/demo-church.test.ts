@@ -179,7 +179,7 @@ describe.skip("the pool", () => {
   const waiting = async (slug: string): Promise<string> => {
     const [row] = await owner()<{ id: string }[]>`
       insert into tenants (slug, name, timezone, demo_expires_at)
-      values (${slug}, 'Grace Community Church', 'America/Chicago', ${WEEK()})
+      values (${slug}, 'Fairview Church', 'America/Chicago', ${WEEK()})
       returning id`;
     return row!.id;
   };

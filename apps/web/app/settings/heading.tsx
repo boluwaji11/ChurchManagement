@@ -5,7 +5,7 @@ import { t } from "@connectapp/i18n";
 /**
  * R24.6. What this section is, and the one line that says what it is for.
  *
- * The design gives every settings section a 28px Fraunces title with a sentence
+ * The design gives every settings section a 28px IBM Plex Serif title with a sentence
  * under it. A settings screen is the one place a church meets a word like
  * "pipeline" or "station" for the first time, so the sentence earns its place
  * here where it would not on a screen somebody opens daily.

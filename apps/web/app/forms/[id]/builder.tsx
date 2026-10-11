@@ -196,7 +196,7 @@ export function Builder({
 
       <FormViews view={view} />
 
-      {/* The name is written where it is read, at 28px in Fraunces over a
+      {/* The name is written where it is read, at 28px in IBM Plex Serif over a
           dashed rule that says it can be typed in. */}
       <div className="flex flex-wrap items-center gap-3">
         <input

@@ -1,8 +1,25 @@
 import {
-  pgTable, uuid, text, boolean, integer, bigint, date, timestamp, uniqueIndex, index,
+  pgTable, uuid, text, boolean, integer, bigint, date, timestamp, uniqueIndex, index, jsonb,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { hue, tenantRole } from "./enums";
+
+export type WebsiteSectionType =
+  | "hero" | "story" | "banner" | "image" | "video" | "services" | "contact";
+
+export interface WebsiteSection {
+  id: string;
+  type: WebsiteSectionType;
+  title: string;
+  body: string;
+  imageUrl: string | null;
+  imageKey?: string | null;
+  videoUrl: string | null;
+  videoKey?: string | null;
+  alt: string;
+  linkLabel?: string | null;
+  linkUrl?: string | null;
+}
 
 const pk = () => uuid("id").primaryKey().defaultRandom();
 const created = () => timestamp("created_at", { withTimezone: true }).defaultNow().notNull();
@@ -41,6 +58,18 @@ export const tenants = pgTable(
     /** R1.1. Where somebody reading a public page writes to. */
     email: text("email"),
     website: text("website"),
+    /**
+     * R22.1, R22.2. Whether they told us they have one.
+     *
+     * Null is "never asked", which every church from before the question
+     * holds. False is a church that said no and is owed a page of ours.
+     */
+    hasWebsite: boolean("has_website"),
+    /**
+     * R9.5. Where that website is built, which is not always who sold them
+     * the name. Free text: a church on something obscure still has a site.
+     */
+    siteBuilder: text("site_builder"),
     /**
      * R7.6. How many held services somebody misses in a row before the church
      * wants to know. Three by default, which is roughly a month of services.
@@ -153,6 +182,17 @@ export const tenants = pgTable(
   },
   (t) => [uniqueIndex("tenants_slug_key").on(t.slug)],
 );
+
+/**
+ * HRT-285. Structured configuration for the church's public homepage.
+ */
+export const churchWebsites = pgTable("church_websites", {
+  tenantId: uuid("tenant_id").primaryKey().references(() => tenants.id, { onDelete: "cascade" }),
+  published: boolean("published").notNull().default(false),
+  layout: text("layout").notNull().default("gathering"),
+  sections: jsonb("sections").$type<WebsiteSection[]>().notNull().default(sql`'[]'::jsonb`),
+  updatedAt: updated(),
+});
 
 /**
  * R1.1. When the church gathers.

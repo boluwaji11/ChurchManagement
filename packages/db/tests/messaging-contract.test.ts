@@ -50,7 +50,7 @@ describe("how a registration moves", () => {
 
 describe("whether a registration can honestly be submitted", () => {
   const church = {
-    legalName: "Grace Community Church",
+    legalName: "Fairview Church",
     taxId: "12-3456789",
     hasAddress: true,
     consented: 40,
