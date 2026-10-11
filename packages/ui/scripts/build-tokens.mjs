@@ -172,9 +172,9 @@ for (const name of Object.keys(colour.status)) {
 for (const k of Object.keys(colour.semantic.light)) w(`  --color-${k}: var(--${k});`);
 w();
 w(`  /* Faces. Display serif for hierarchy, sans for work, mono for codes read aloud. */`);
-w(`  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;`);
-w(`  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;`);
-w(`  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", monospace;`);
+w(`  --font-display: var(--font-ibm-plex-serif), "IBM Plex Serif", Georgia, "Times New Roman", serif;`);
+w(`  --font-sans: var(--font-ibm-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;`);
+w(`  --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, "SF Mono", monospace;`);
 w();
 w(`  /* Type scale. Never lighter than 400 for body. */`);
 for (const [name, t] of Object.entries(scale.type)) {

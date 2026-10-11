@@ -5,7 +5,7 @@ import { FlameMark } from "../brand";
  * R24.6. The bar across the top of a page.
  *
  * 14px of padding with 24px at the sides, a hairline under it, the canvas
- * behind it, and 12px between its parts. The page's own name is Fraunces at 28px
+ * behind it, and 12px between its parts. The page's own name is IBM Plex Serif at 28px
  * over a 34px line and takes the room that is left. It is set larger than a
  * heading on the page under it, so the screen somebody is on reads louder than
  * a block within it.

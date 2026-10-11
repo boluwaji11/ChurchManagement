@@ -26,12 +26,10 @@ export interface LetterFace {
 
 export const LETTER_FACE: Record<LetterFont, LetterFace> = {
   /**
-   * The product's own face, which is what every other screen is set in and
-   * what a letter is set in until somebody chooses otherwise. Word names it
-   * and substitutes on a machine that does not hold it, which is why the
-   * other five are faces that machine already has.
+   * The saved `inter` key stays for existing letter preferences. New letters
+   * use IBM Plex Sans, the product's interface face.
    */
-  inter: { name: "Inter", css: "var(--font-inter), Inter, system-ui, sans-serif" },
+  inter: { name: "IBM Plex Sans", css: "var(--font-ibm-plex-sans), 'IBM Plex Sans', system-ui, sans-serif" },
   georgia: { name: "Georgia", css: "Georgia, 'Times New Roman', serif" },
   times: { name: "Times New Roman", css: "'Times New Roman', Times, serif" },
   garamond: { name: "Garamond", css: "Garamond, 'EB Garamond', Georgia, serif" },

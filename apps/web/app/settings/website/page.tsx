@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { withTenant, getChurch, canManageChurch, readDomain, dnsResolver } from "@connectapp/db";
+import { withTenant, getChurch, isApproved, canManageChurch, readDomain, dnsResolver } from "@connectapp/db";
 import { slugUnderPlatform, builderFromNameservers } from "@connectapp/db/rules";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
@@ -42,12 +42,15 @@ export default async function WebsitePage({
     return <Denied role={session.role} action="editChurch" church={session.tenantSlug} />;
   }
 
-  const { profile } = await withTenant(
+  const { profile, approved } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
-    async (tx) => ({
-      profile: await getChurch(tx, session.tenantId),
-      // R1.1. Every address on this screen is refused until the church is approved.
-    }),
+    async (tx) => {
+      const [profile, approved] = await Promise.all([
+        getChurch(tx, session.tenantId),
+        isApproved(tx, session.tenantId),
+      ]);
+      return { profile, approved };
+    },
   );
 
   // R9.5. The address a church pastes into its own site, as this request saw it.
@@ -95,7 +98,7 @@ export default async function WebsitePage({
           on the right. One column is about where members reach ConnectApp,
           the other is about what the church hands to its own visitors, and
           stacking them put the second where nobody scrolled. */}
-      <div className="grid max-w-[1120px] gap-5 lg:grid-cols-2">
+      <div className="grid max-w-[1120px] items-start gap-5 lg:grid-cols-2">
         <PortalAddress
           church={session.tenantSlug}
           slug={session.tenantSlug}
@@ -105,6 +108,7 @@ export default async function WebsitePage({
           /* R1.4. Whether a session survives the move to the new name. */
           spanning={Boolean(cookieDomain())}
           portalOpen={profile?.portalOpen ?? true}
+          approved={approved}
           canEdit={canManageChurch(session)}
         />
 
@@ -113,14 +117,20 @@ export default async function WebsitePage({
         {/* R24.6. No heading: the trail's first step already says what the
             column is for, and a title above it said it twice. */}
         <section className="flex h-full flex-col gap-4 lg:border-l lg:border-line lg:pl-8">
-          <OnYourSite
-            giving={giving}
-            groups={groups}
-            groupsFrame={groupsFrame}
-            join={join}
-            builder={profile?.siteBuilder ?? null}
-            guessed={guessed}
-          />
+          <div
+            aria-disabled={!approved}
+            inert={!approved}
+            className={approved ? undefined : "opacity-50"}
+          >
+            <OnYourSite
+              giving={giving}
+              groups={groups}
+              groupsFrame={groupsFrame}
+              join={join}
+              builder={profile?.siteBuilder ?? null}
+              guessed={guessed}
+            />
+          </div>
         </section>
       </div>
     </>

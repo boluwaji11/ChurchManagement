@@ -40,7 +40,7 @@ export function EmptyState({
       <div className="flex max-w-sm flex-col gap-1.5">
         {/* R24.17. Body text rather than a heading. An empty screen is saying
             there is nothing here yet, which is a quiet sentence. Set in
-            Fraunces at heading weight it read as an announcement, and the one
+            IBM Plex Serif at heading weight it read as an announcement, and the one
             thing on an empty screen that should carry weight is the action
             under it. */}
         <h3 className="text-[15px] font-normal text-fg-muted">{title}</h3>

@@ -228,6 +228,66 @@ async function questionRows(formId: string | null): Promise<FormFieldDef[]> {
 }
 
 /** R14.2. The event behind a public link, with its questions. */
+/** R14.2, R9.5. One event on the church's own what's-on page. */
+export interface ListedEvent {
+  id: string;
+  slug: string;
+  name: string;
+  hue: string;
+  coverKey: string | null;
+  startsOn: string;
+  startsAt: string | null;
+  endsOn: string | null;
+  location: string | null;
+  city: string | null;
+  takesRegistrations: boolean;
+  capacity: number | null;
+  showCapacity: boolean;
+  going: number;
+}
+
+/**
+ * R14.2, R9.5. What this church has coming up, for anybody at all.
+ *
+ * The same gate one event's own page passes: published, not archived, and the
+ * church approved and not a demo. An event that has already finished comes
+ * off, because a what's-on page is about what is on.
+ *
+ * `today` is the church's own date rather than the server's, so an event
+ * running today is still listed at eleven at night somewhere else.
+ */
+export async function publicEvents(slug: string, today: string): Promise<ListedEvent[]> {
+  if (!SLUG.test(slug)) return [];
+  const church = await publicChurch(slug);
+  if (!church) return [];
+
+  return owner()<ListedEvent[]>`
+    select e.id,
+           e.slug,
+           e.name,
+           e.hue::text as hue,
+           e.cover_key as "coverKey",
+           to_char(e.starts_on, 'YYYY-MM-DD') as "startsOn",
+           e.starts_at as "startsAt",
+           to_char(e.ends_on, 'YYYY-MM-DD') as "endsOn",
+           e.location,
+           e.city,
+           e.takes_registrations as "takesRegistrations",
+           e.capacity,
+           e.show_capacity as "showCapacity",
+           (select count(*) from event_registrations r
+             where r.event_id = e.id and r.state = 'going')::int as going
+      from events e
+      join tenants t on t.id = e.tenant_id
+     where t.slug = ${slug}
+       and t.approved_at is not null
+       and t.demo_expires_at is null
+       and e.archived_at is null
+       and e.status = 'published'
+       and coalesce(e.ends_on, e.starts_on) >= ${today}::date
+     order by e.starts_on, e.starts_at nulls first, e.name`;
+}
+
 export async function publicEvent(
   churchSlug: string,
   eventSlug: string,

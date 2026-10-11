@@ -72,12 +72,18 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-254 | One way to reach an archived record, on every screen that has them | R24.6, R2.9 | Closed |
 | HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | Closed |
 | HRT-222 | The ConnectApp website: the page a church reads before it is anybody | R22.1, R24.6 | Closed |
+| HRT-298 | Update the landing page story and invite churches to the pilot | R22.1, R22.2 | Resolved |
 | HRT-223 | The church code comes out: a church is named by its address, not a secret | R1.7, R22.1 | Closed |
 | HRT-224 | Onboarding: a welcome, the five things in the order one unblocks the next | R22.1, R22.3 | Closed |
 | HRT-225 | The setup dock: the path follows whoever is walking it, on any screen | R22.1, R22.3 | Closed |
 | HRT-226 | A church writes its own vocabulary: group types and teams start empty, teams configured in Settings | R9.1, R10.1 | Closed |
 | HRT-227 | The ConnectApp admin portal: churches, approval, archive, the operators and the log | R21.x, R22.x | Closed |
 | HRT-234 | Speed: Turbopack in development, one trip to the database per frame, pipelined reads. [docs/performance.md](docs/performance.md) | R24.11 | Closed |
+| HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
+| HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Resolved |
+| HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Resolved |
+| HRT-301 | Alternate the landing-page "for free" and "always" typewriter phrases | R22.1, R24.6 | Resolved |
+| HRT-302 | Send landing-page support messages to the support inbox and link the footer contribution page | R22.1 | Resolved |
 | HRT-235 | Plan templates are configured in Settings, with ready-made shapes, and the plan screen starts from them | R11.8 | Closed |
 | HRT-236 | The kinds of plan item are a list the church keeps, in its own words | R11.2 | Closed |
 | HRT-237 | Giving: the funds, the counting session with dual control, and what came in | R13.9 to R13.15, R13.21 | Closed |
@@ -139,6 +145,7 @@ and a design file does not move it.
 | HRT-262 | The household address: a screen that sets it, and the settings menu on a phone | R2.4, R24.6 | Closed |
 | HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Closed |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Closed |
+| HRT-296 | Enable the member portal address after church approval | R1.1, R17.1 | Resolved |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
@@ -1081,7 +1088,7 @@ What it settles for now:
 
 | | |
 |---|---|
-| **Active** | Nothing. HRT-205 is the next row. HRT-293 is written up and unstarted: it needs a call on who may end a church. |
+| **Last built** | **HRT-302**, the landing-page support form and footer links. |
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |
@@ -1089,6 +1096,44 @@ What it settles for now:
 | **Next** | **HRT-218** was asked for by name and is built. A report builder was a PRD non-goal, and the note under F18 says what was built instead and what guards it. Then **HRT-189** group participation, **HRT-190** volunteer coverage and expiring checks, **HRT-191** milestone and demographic lists, and R18.9 the connectedness indicator, which together finish F18. Then HRT-152's sibling **HRT-153** notification on submit. **HRT-202** navigation scoped to the role and **HRT-205** the palette are still owed from the redesign. Still waiting: **HRT-87** and **HRT-123** on messaging, **HRT-34** on households having a page, **HRT-39** on a church outgrowing the export. **HRT-123** is skipped: with messaging deferred there are no church-supplied credentials to encrypt. F16 messaging, finance and the children's paperwork stay deferred until asked for. | **HRT-126** waits on a church having a messaging provider set up, the same as HRT-87. R10.7 was cut. |
 | **Order after that** | **1.0**: F4 forms, F17 portal, F6 pastoral care, F15 calendar, F14 events, F18 reporting, F20 API. Then **0.9** the children's ministry paperwork. Then **0.3** money, last, which also releases the stories held back from 1.0. Songs and the Stage contract are deferred until asked for. |
 | **Waiting on somebody else** | **HRT-87** group messaging and **HRT-126** serving reminders both wait on a church having a messaging provider set up. **HRT-13** MFA stays deferred. |
+
+### HRT-297, how to test it
+
+Deploy the web app to Vercel, then open the project's Speed Insights dashboard. Visit a few
+production pages and confirm page performance measurements begin appearing there.
+
+### HRT-299, how to test it
+
+Open `/design/type` and compare the same headline, staff list row and check-in label under Current,
+Source, IBM Plex, Atkinson and System. The platform pages should keep their existing fonts.
+
+### HRT-300, how to test it
+
+Open the web app and admin portal. Confirm headings use IBM Plex Serif, interface text uses IBM Plex
+Sans, and codes use IBM Plex Mono. In `/design/type`, confirm IBM Plex is labeled as the current
+system and the alternatives still render.
+
+### HRT-301, how to test it
+
+Open the public landing page with motion enabled. Confirm "for free" types first, then "always"
+types after it clears, and the phrases keep alternating at a readable pace. Confirm the underline
+follows each phrase, the blinking cursor tracks the last typed character, and the layout stays in
+place. Turn on reduced motion and reload: "for free" appears immediately without animation.
+
+### HRT-302, how to test it
+
+Configure `SUPPORT_SMTP_USER`, `SUPPORT_SMTP_APP_PASSWORD`,
+`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in `.env.local` or the deployment
+environment. Open the floating message button on the public landing page. Confirm the panel closes
+when the page outside it is tapped. Enter a name and church name, which are optional, with an email
+and message, then submit. Confirm a message arrives at `support@connectapp.church` with the entered
+details, and replying reaches the visitor's address. Confirm repeated submissions are rate limited.
+The footer support email is underlined, and "Support Our Work" opens its Stripe page in another tab.
+
+### HRT-298, how to test it
+
+Open the public landing page. Confirm the pilot banner links to church sign-up, the headline is
+bold and underlined, and the updated copy appears in the "Why we built this" section.
 
 ### HRT-255, how to test it
 

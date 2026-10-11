@@ -33,6 +33,8 @@ import {
   Tile,
 } from "@/components/site/kit";
 import { StartDemoButton } from "./demo/start";
+import { HeroTypewriter } from "./hero-typewriter";
+import { SupportMessage } from "@/components/site/support-message";
 
 export const dynamic = "force-dynamic";
 
@@ -132,11 +134,12 @@ export default async function Site() {
         <section className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-6 px-6 pb-10 pt-20 text-center">
           <Art pieces={HERO_ART} />
           <h1 className="m-0 max-w-[14ch] text-balance font-display text-[clamp(44px,6.4vw,76px)] font-normal leading-[1.04] tracking-[-0.015em]">
-            {t("site.hero.title")}
+            {t("site.hero.title")}{" "}
+            <HeroTypewriter
+              freeText={t("site.hero.free")}
+              alwaysText={t("site.hero.always")}
+            />
           </h1>
-          <p className="m-0 max-w-[40ch] text-balance text-[19px] leading-[30px] text-fg-muted">
-            {t("site.hero.sub")}
-          </p>
           <div className="mt-2 flex flex-wrap justify-center gap-3">
             <Start />
             <StartDemoButton className={SITE_CTA_QUIET} />
@@ -197,7 +200,6 @@ export default async function Site() {
                 className="hidden w-[280px] shrink-0 self-center lg:block"
               />
               <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-4 text-[17px] leading-[28px] text-fg-muted">
-                <p className="m-0">{t("site.why.gave")}</p>
                 <p className="m-0">{t("site.why.ours")}</p>
               </div>
             </div>
@@ -384,6 +386,7 @@ export default async function Site() {
         </section>
       </main>
 
+      <SupportMessage />
       <SiteFooter theme={chosen} />
     </div>
   );
