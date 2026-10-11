@@ -50,8 +50,25 @@ for (const [name, v] of Object.entries(colour.status)) {
   w(`  --${name}-text: ${v.text};`);
 }
 w();
+
+/* What a semantic colour is for, where the name does not say it. Written here
+   because tokens.css is generated, and a comment typed into it goes on the next
+   run. */
+const NOTE = {
+  board: `/* R24.4. A board somebody drags cards across: a tray the cards sit in,
+     a step deeper than a sunken panel so white cards read against it. */`,
+  shell: `/* R24.4. The rail down the side, in the product's own ink.
+     Its own foreground, because everything on it is read against the ink
+     rather than against the canvas: the sections, the church's name, who is
+     signed in. A row that is open goes to white, so the one you are on is the
+     lightest thing on the rail. */`,
+};
+
 w(`  /* Semantic, light. Components reference only these. */`);
-for (const [k, v] of Object.entries(colour.semantic.light)) w(`  --${k}: ${resolve(v)};`);
+for (const [k, v] of Object.entries(colour.semantic.light)) {
+  if (NOTE[k]) w(`  ${NOTE[k]}`);
+  w(`  --${k}: ${resolve(v)};`);
+}
 w(`}`);
 w();
 
@@ -94,7 +111,10 @@ for (const [name, v] of Object.entries(colour.status)) {
   w(`  --${name}-soft: ${v.soft};`);
   w(`  --${name}-text: ${v.text};`);
 }
-for (const [k, v] of Object.entries(colour.semantic.light)) w(`  --${k}: ${resolve(v)};`);
+for (const [k, v] of Object.entries(colour.semantic.light)) {
+  if (NOTE[k]) w(`  ${NOTE[k]}`);
+  w(`  --${k}: ${resolve(v)};`);
+}
 lightSpectrumPairs.forEach(w);
 w(`}`);
 w();
@@ -185,11 +205,35 @@ w(`@layer base {
   @keyframes connectapp-slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
   @keyframes connectapp-pop { from { opacity: 0; scale: 0.97; } to { opacity: 1; scale: 1; } }
   @keyframes connectapp-rise { from { opacity: 0; translate: 0 4px; } to { opacity: 1; translate: 0 0; } }
+  /* R16.9. The message mark, when something has just arrived in it. Twice and
+     then still: a mark that bounces forever is a mark people learn to ignore,
+     and reduced motion flattens it to nothing. */
+  @keyframes connectapp-nudge {
+    0%, 100% { translate: 0 0; }
+    15% { translate: 0 -6px; }
+    30% { translate: 0 0; }
+    45% { translate: 0 -3px; }
+    60% { translate: 0 0; }
+  }
+
   @keyframes connectapp-shake {
     0%, 100% { translate: 0 0; }
     20% { translate: -5px 0; }
     45% { translate: 4px 0; }
     70% { translate: -2px 0; }
+  }
+
+  /*
+   * R16.9. A mark against a message, drawn the same way on every machine.
+   *
+   * The emoji face first and the body face after it, so a chip holding a
+   * mark and a number keeps the product's own digits.
+   */
+  .emoji {
+    font-family: var(--font-emoji), "Noto Color Emoji", "Apple Color Emoji",
+      "Segoe UI Emoji", sans-serif;
+    font-variant-emoji: emoji;
+    line-height: 1;
   }
 
   html {

@@ -109,15 +109,6 @@
   /* R24.4. A board somebody drags cards across: a tray the cards sit in,
      a step deeper than a sunken panel so white cards read against it. */
   --board: oklch(0.915 0.014 288);
-  /* R24.4. The rail down the side, in the product's own ink.
-     Its own foreground, because everything on it is read against the ink
-     rather than against the canvas: the sections, the church's name, who is
-     signed in. A row that is open goes to white, so the one you are on is the
-     lightest thing on the rail. */
-  --shell: var(--ink-600);
-  --shell-fg: #ffffff;
-  --shell-muted: oklch(0.928 0.030 285);
-  --shell-line: oklch(1 0 0 / 0.16);
   --fg: var(--stone-900);
   --fg-muted: var(--stone-600);
   --fg-subtle: oklch(0.540 0.018 286);
@@ -132,6 +123,15 @@
   --ring: var(--ink-500);
   --selection: var(--ink-100);
   --overlay: oklch(0.198 0.009 75 / 0.45);
+  /* R24.4. The rail down the side, in the product's own ink.
+     Its own foreground, because everything on it is read against the ink
+     rather than against the canvas: the sections, the church's name, who is
+     signed in. A row that is open goes to white, so the one you are on is the
+     lightest thing on the rail. */
+  --shell: var(--ink-600);
+  --shell-fg: #ffffff;
+  --shell-muted: oklch(0.928 0.030 285);
+  --shell-line: oklch(1 0 0 / 0.16);
 }
 
 :root {
@@ -185,15 +185,6 @@
   /* R24.4. A board somebody drags cards across: a tray the cards sit in,
      a step deeper than a sunken panel so white cards read against it. */
   --board: oklch(0.915 0.014 288);
-  /* R24.4. The rail down the side, in the product's own ink.
-     Its own foreground, because everything on it is read against the ink
-     rather than against the canvas: the sections, the church's name, who is
-     signed in. A row that is open goes to white, so the one you are on is the
-     lightest thing on the rail. */
-  --shell: var(--ink-600);
-  --shell-fg: #ffffff;
-  --shell-muted: oklch(0.928 0.030 285);
-  --shell-line: oklch(1 0 0 / 0.16);
   --fg: var(--stone-900);
   --fg-muted: var(--stone-600);
   --fg-subtle: oklch(0.540 0.018 286);
@@ -208,6 +199,15 @@
   --ring: var(--ink-500);
   --selection: var(--ink-100);
   --overlay: oklch(0.198 0.009 75 / 0.45);
+  /* R24.4. The rail down the side, in the product's own ink.
+     Its own foreground, because everything on it is read against the ink
+     rather than against the canvas: the sections, the church's name, who is
+     signed in. A row that is open goes to white, so the one you are on is the
+     lightest thing on the rail. */
+  --shell: var(--ink-600);
+  --shell-fg: #ffffff;
+  --shell-muted: oklch(0.928 0.030 285);
+  --shell-line: oklch(1 0 0 / 0.16);
   --hue-rose-tint: var(--hue-rose-100);
   --hue-rose-key: var(--hue-rose-700);
   --hue-coral-tint: var(--hue-coral-100);
@@ -239,10 +239,6 @@
     --canvas: oklch(0.238 0.032 286);
     --surface: oklch(0.288 0.034 286);
     --sunken: oklch(0.210 0.029 286);
-    --shell: oklch(0.202 0.058 285);
-    --shell-fg: #ffffff;
-    --shell-muted: oklch(0.888 0.034 285);
-    --shell-line: oklch(1 0 0 / 0.14);
     --board: oklch(0.200 0.034 286);
     --fg: oklch(0.968 0.010 286);
     --fg-muted: oklch(0.790 0.026 286);
@@ -258,6 +254,10 @@
     --ring: var(--ink-300);
     --selection: oklch(0.380 0.074 286);
     --overlay: oklch(0.140 0.028 286 / 0.65);
+    --shell: oklch(0.202 0.058 285);
+    --shell-fg: #ffffff;
+    --shell-muted: oklch(0.888 0.034 285);
+    --shell-line: oklch(1 0 0 / 0.14);
     --success: oklch(0.582 0.132 155);
     --success-soft: oklch(0.268 0.058 155);
     --success-text: oklch(0.828 0.108 155);
@@ -305,10 +305,6 @@
     --canvas: oklch(0.238 0.032 286);
     --surface: oklch(0.288 0.034 286);
     --sunken: oklch(0.210 0.029 286);
-    --shell: oklch(0.202 0.058 285);
-    --shell-fg: #ffffff;
-    --shell-muted: oklch(0.888 0.034 285);
-    --shell-line: oklch(1 0 0 / 0.14);
     --board: oklch(0.200 0.034 286);
     --fg: oklch(0.968 0.010 286);
     --fg-muted: oklch(0.790 0.026 286);
@@ -324,6 +320,10 @@
     --ring: var(--ink-300);
     --selection: oklch(0.380 0.074 286);
     --overlay: oklch(0.140 0.028 286 / 0.65);
+    --shell: oklch(0.202 0.058 285);
+    --shell-fg: #ffffff;
+    --shell-muted: oklch(0.888 0.034 285);
+    --shell-line: oklch(1 0 0 / 0.14);
     --success: oklch(0.582 0.132 155);
     --success-soft: oklch(0.268 0.058 155);
     --success-text: oklch(0.828 0.108 155);
@@ -547,10 +547,6 @@
   --color-surface: var(--surface);
   --color-sunken: var(--sunken);
   --color-board: var(--board);
-  --color-shell: var(--shell);
-  --color-shell-fg: var(--shell-fg);
-  --color-shell-muted: var(--shell-muted);
-  --color-shell-line: var(--shell-line);
   --color-fg: var(--fg);
   --color-fg-muted: var(--fg-muted);
   --color-fg-subtle: var(--fg-subtle);
@@ -565,6 +561,10 @@
   --color-ring: var(--ring);
   --color-selection: var(--selection);
   --color-overlay: var(--overlay);
+  --color-shell: var(--shell);
+  --color-shell-fg: var(--shell-fg);
+  --color-shell-muted: var(--shell-muted);
+  --color-shell-line: var(--shell-line);
 
   /* Faces. Display serif for hierarchy, sans for work, mono for codes read aloud. */
   --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
@@ -658,6 +658,19 @@
     70% { translate: -2px 0; }
   }
 
+  /*
+   * R16.9. A mark against a message, drawn the same way on every machine.
+   *
+   * The emoji face first and the body face after it, so a chip holding a
+   * mark and a number keeps the product's own digits.
+   */
+  .emoji {
+    font-family: var(--font-emoji), "Noto Color Emoji", "Apple Color Emoji",
+      "Segoe UI Emoji", sans-serif;
+    font-variant-emoji: emoji;
+    line-height: 1;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     color-scheme: light dark;
@@ -681,19 +694,6 @@
   [data-density]:not(html) {
     font-size: var(--d-text-body);
     line-height: var(--d-leading-body);
-  }
-
-  /*
-   * R16.9. A mark against a message, drawn the same way on every machine.
-   *
-   * The emoji face first and the body face after it, so a chip holding a
-   * mark and a number keeps the product's own digits.
-   */
-  .emoji {
-    font-family: var(--font-emoji), "Noto Color Emoji", "Apple Color Emoji",
-      "Segoe UI Emoji", sans-serif;
-    font-variant-emoji: emoji;
-    line-height: 1;
   }
 
   /* Tabular figures everywhere a number is compared to another number. */

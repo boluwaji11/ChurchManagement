@@ -1,3 +1,4 @@
+import { Blank } from "@/components/blank";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -36,8 +37,8 @@ export default async function ChurchPage({ params }: { params: Promise<{ id: str
     { label: "Last seen", value: <Since at={church.lastActivity} /> },
     { label: "Members", value: church.members },
     { label: "Accounts", value: church.accounts },
-    { label: "Owner", value: church.ownerName ?? "—" },
-    { label: "Owner's address", value: church.ownerEmail ?? "—" },
+    { label: "Owner", value: church.ownerName ?? <Blank /> },
+    { label: "Owner's address", value: church.ownerEmail ?? <Blank /> },
   ];
 
   return (

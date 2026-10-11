@@ -5,6 +5,9 @@
  * matches what the server sent. An operator reading "4 minutes ago" wants the
  * shape of it rather than the second.
  */
+
+import { Blank } from "@/components/blank";
+
 export function Since({ at }: { at: Date | string | null }) {
   if (!at) return <>never</>;
 
@@ -39,7 +42,7 @@ export function Since({ at }: { at: Date | string | null }) {
 
 /** The date itself, for a column where the exact day is the point. */
 export function On({ at }: { at: Date | string | null }) {
-  if (!at) return <>—</>;
+  if (!at) return <Blank />;
   const when = typeof at === "string" ? new Date(at) : at;
   return (
     <>

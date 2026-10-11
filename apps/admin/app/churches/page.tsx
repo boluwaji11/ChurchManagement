@@ -1,3 +1,4 @@
+import { Blank } from "@/components/blank";
 import Link from "next/link";
 import { ArrowRight, Search } from "lucide-react";
 import { platform } from "@connectapp/db";
@@ -103,7 +104,7 @@ export default async function ChurchesPage({
                 <span className="flex min-w-[180px] flex-1 flex-col gap-0.5">
                   <span className="text-[13px] text-fg">{church.ownerName ?? "No owner"}</span>
                   <span className="truncate text-[12px] text-fg-subtle">
-                    {church.ownerEmail ?? "—"}
+                    {church.ownerEmail ?? <Blank />}
                   </span>
                 </span>
 

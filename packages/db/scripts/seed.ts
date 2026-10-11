@@ -130,8 +130,10 @@ async function main() {
 
       for (const [first, last, role, dob, status] of h.members) {
         const [person] = await sql<{ id: string }[]>`
-          insert into members (tenant_id, campus_id, first_name, last_name, date_of_birth, lifecycle_status)
-          values (${tid}, ${campus!.id}, ${first!}, ${last!}, ${dob!}, ${status!}::lifecycle_status)
+          insert into members (tenant_id, campus_id, slug, first_name, last_name, date_of_birth, lifecycle_status)
+          values (${tid}, ${campus!.id},
+                  hearth_free_member_slug(${tid}::uuid, ${`${first!} ${last!}`}),
+                  ${first!}, ${last!}, ${dob!}, ${status!}::lifecycle_status)
           returning id`;
         const pid = person!.id;
         personCount++;
@@ -152,7 +154,7 @@ async function main() {
 
         if (tagIds.length && personCount % 2 === 0) {
           await sql`
-            insert into person_tags (tenant_id, member_id, tag_id)
+            insert into member_tags (tenant_id, member_id, tag_id)
             values (${tid}, ${pid}, ${tagIds[personCount % tagIds.length]!})`;
         }
       }
