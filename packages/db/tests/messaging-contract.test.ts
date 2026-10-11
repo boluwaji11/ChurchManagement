@@ -137,7 +137,7 @@ describe("whether somebody may be contacted", () => {
 
 describe("a credential", () => {
   it("is never written down, not even its first characters", () => {
-    expect(maskCredential("AC7f3b19ac0e4d4f8aa9a0f0b0c1d2e3f4")).toBe("set");
+    expect(maskCredential("ACzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")).toBe("set");
     expect(maskCredential(null)).toBe("not set");
     expect(maskCredential("   ")).toBe("not set");
   });
