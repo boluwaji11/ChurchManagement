@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { withTenant, getChurch, canManageChurch, readDomain, dnsResolver } from "@connectapp/db";
+import { ArrowRight } from "lucide-react";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -60,7 +61,18 @@ export default async function DomainPage() {
             <code className="font-mono text-fg">{found.domain}</code>
           </p>
           {/* R22.2. The plan belongs to the screen that can act on it. */}
-          <DomainReading found={found} plan={false} />
+          <DomainReading
+            found={found}
+            plan={false}
+            fix={
+              <Link
+                href="/settings/church"
+                className="inline-flex items-center gap-1 font-medium text-primary underline-offset-2 hover:underline"
+              >
+                {t("domain.churchProfile")} <ArrowRight className="size-[14px]" aria-hidden />
+              </Link>
+            }
+          />
         </>
       )}
     </>

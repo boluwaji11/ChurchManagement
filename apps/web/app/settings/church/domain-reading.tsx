@@ -86,9 +86,17 @@ export function DomainReading({
    * own: it tells a church what its domain is set up with today.
    */
   plan = true,
+  fix,
 }: {
   found: DomainFindings;
   plan?: boolean;
+  /**
+   * Where to go when the reading says the address itself looks wrong.
+   *
+   * The screen owns its own routes, so it hands the link down rather than
+   * this component knowing where a church profile lives.
+   */
+  fix?: React.ReactNode;
 }) {
   const [showing, setShowing] = React.useState(false);
   const quiet = <span className="text-fg-subtle">{t("domain.noneFound")}</span>;
@@ -101,6 +109,15 @@ export function DomainReading({
   return (
     <div className="flex flex-col gap-5">
       <Separator />
+
+      {found.warnings.map((one) => (
+        <Banner key={one.code} tone={WARNING_TONE[one.code]}>
+          {t(`domain.warn.${one.code}` as never, { detail: one.detail ?? "" })}
+          {/* Only this one is about the address being wrong, and it is the one
+              worth offering a way out of. */}
+          {one.code === "noMx" && fix ? <> {fix}</> : null}
+        </Banner>
+      ))}
 
       <section className="flex flex-col gap-1">
         <h3 className="font-display text-[17px] leading-6 text-fg">{t("domain.reading")}</h3>
@@ -116,11 +133,6 @@ export function DomainReading({
         </dl>
       </section>
 
-      {found.warnings.map((one) => (
-        <Banner key={one.code} tone={WARNING_TONE[one.code]}>
-          {t(`domain.warn.${one.code}` as never, { detail: one.detail ?? "" })}
-        </Banner>
-      ))}
 
       {plan ? (
       <div className="grid items-start gap-4 lg:grid-cols-2">
