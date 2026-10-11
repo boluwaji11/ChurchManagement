@@ -103,7 +103,7 @@ export function DomainReading({
   /* R22.2. A policy letter means nothing to a volunteer, so it is read out. */
   const protection = found.dmarc
     ? t(`domain.dmarc.${found.dmarc}` as never)
-    : quiet;
+    : t("domain.dmarc.absent");
 
   return (
     <div className="flex flex-col gap-5">
@@ -130,7 +130,13 @@ export function DomainReading({
             value={found.mailProvider ?? (found.mailHosts[0] ? t("domain.unknownHost") : quiet)}
           />
           <Line label={t("domain.registrar")} value={found.registrar ?? quiet} />
-          <Line label={t("domain.spf")} value={found.spf ? t("domain.setUp") : quiet} />
+          {/* R22.2. What the record means, rather than whether there is one.
+              "Set up" told a reader nothing, and the absence is the half worth
+              knowing: a domain with no SPF is a domain anybody can send as. */}
+          <Line
+            label={t("domain.spf")}
+            value={found.spf ? t("domain.spf.limited") : t("domain.spf.anyone")}
+          />
           <Line label={t("domain.dmarc")} value={protection} />
         </dl>
       </section>
