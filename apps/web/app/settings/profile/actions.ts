@@ -1,14 +1,16 @@
 "use server";
 
 import {
-  withTenant, updateOwnProfile, setOwnPhoto, setAccountName,
+  withTenant, updateOwnProfile, setOwnPhoto, setAccountName, leaveChurch,
   listCustomFields, setOwnCustomValues, coerceCustomValue,
   type CustomValue,
 } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
+import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/session";
+import { forgetChurch } from "@/lib/church-choice";
 
 export interface ProfileResult {
   error?: string;
@@ -127,4 +129,24 @@ export async function clearPhoto(church?: string): Promise<ProfileResult> {
   } catch (error) {
     return { error: explain(error) };
   }
+}
+
+/**
+ * R1.4. Leaving the church this session is in.
+ *
+ * The church is taken from the session rather than from the form, so nobody
+ * can walk somebody else out by changing a value. The chooser is where they
+ * land: it reads the memberships they have left and says what to do with none.
+ */
+export async function leaveThisChurch(): Promise<ProfileResult> {
+  const session = await requireSession();
+
+  try {
+    await leaveChurch(session.tenantId, session.userId);
+  } catch (error) {
+    return { error: explain(error) };
+  }
+
+  await forgetChurch();
+  redirect("/choose-church");
 }

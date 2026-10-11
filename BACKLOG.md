@@ -361,7 +361,9 @@ of money and after everything else.
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
 | HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Built. Waits for the screen it belongs to, see the note below |
 | HRT-285 | A church with no website gets one page: who they are, when they meet, and Give | R1.1, R13.5 | New |
-| HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Active. The paths are done, the DNS and the certificate are left |
+| HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Resolved |
+| HRT-292 | Leaving a church, and the one owner who cannot | R1.4 | Resolved |
+| HRT-293 | Closing an account, and handing a church to somebody else first | R1.4, R21.9 | New |
 | HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | New |
 | HRT-291 | The church's own domain: members.church.org and give.church.org, with the screen to set one up | R1.1, R22.2 | New |
 
@@ -753,12 +755,19 @@ because a name that shadowed another church's slug would take that church's
 address away from it. The slug answers from the day a church signs up, so every
 church has an address before it picks one.
 
-Built and tested. **HRT-288** is what is left, and it is not code:
+Built and tested. **HRT-288** closed the last of it in October 2026, and that
+part was not code. The domain is registered through Vercel and the project
+holds both `connectapp.church` and `*.connectapp.church`, so the wildcard
+record and the wildcard certificate are one setting rather than a step per
+church. Proved against a subdomain that has never existed: it serves a
+certificate issued for `*.connectapp.church` with no warning.
 
-- Wildcard DNS on `*.connectapp.church`.
-- A wildcard certificate for it. Without one every church's address shows a
-  security warning, which is worse than having no address, so the two ship
-  together.
+The deploy is `apps/web` alone. `vercel.json` builds from the repo root,
+because the app depends on three workspace packages and a root directory of
+`apps/web` would install none of them. `PLATFORM_HOST` and
+`AUTH_COOKIE_DOMAIN` are what make a church's address and ours one session,
+and neither can be exercised on localhost, where a cookie is host-only in both
+directions whatever is set.
 
 The slug came out of the public paths in October 2026. On a church's own
 address `/give`, `/g`, `/g/<group>`, `/join` and `/give/thanks` answer, and the
@@ -900,6 +909,49 @@ What is left:
   note above describes, and this is what makes it necessary rather than
   convenient.
 
+## Leaving a church, and closing an account, October 2026
+
+HRT-292. A member could be written into a church's records and never get out
+again. There was no `leaveChurch`, nothing in settings, and the only way out
+was an administrator taking the access away.
+
+It is on the profile screen, in the card that already names the church and the
+role, because that is where somebody reads which church they are in. The write
+is the one an administrator already makes, with the same guard: the record the
+church holds is left alone, and only the access ends. They come off every list.
+Their record stays.
+
+The one person who cannot leave is the last owner. A church with no owner is a
+church nobody can administer, and the members it belongs to cannot fix it
+themselves, so the button is dark and says what to do instead. That is the same
+rule `setMemberRole` and `removeMember` already enforced, read out loud on the
+screen rather than thrown at a press.
+
+What found it: the door at `/join` ran the join on mount. Opening a church's
+address while signed in to another church wrote a membership and a visitor
+record with nothing pressed. Fixed in the same pass; joining is a press.
+
+HRT-293. Closing an account is the question underneath, and it is not the same
+question. GitHub's shape is the right one to borrow:
+
+- **An account is not a church.** Closing one is about the person. The churches
+  they belong to carry on.
+- **A church with one owner blocks the close**, the way an organization does.
+  The owner transfers it or ends it, and the screen says which churches are in
+  the way before anything is confirmed.
+- **Transfer is its own act**, to a named person who already has access, and
+  both sides are told. An owner who has stopped answering email is the case the
+  design has to survive, so a church with no reachable owner needs a path that
+  does not depend on them.
+- **Ending a church is not deleting its data.** R21.9 retention and the DSAR
+  path decide what actually goes, and the export has to be offered first,
+  because a church that cannot get its records out is a church we have locked
+  in.
+
+None of that is built. The open questions are who may end a church, how long
+its records are held afterwards, and what happens to giving history, which a
+treasurer needs in January whatever the church decided in August.
+
 ## Where the domain reading belongs, October 2026
 
 HRT-283 reads a church's domain and names the mail provider, the domain
@@ -943,7 +995,7 @@ What it settles for now:
 
 | | |
 |---|---|
-| **Active** | Nothing. HRT-205 is the next row. |
+| **Active** | Nothing. HRT-205 is the next row. HRT-293 is written up and unstarted: it needs a call on who may end a church. |
 | **0.2 still owed** | Nothing. R2.9 was cut. Safeguarding paperwork moved to the children's ministry pass (0.9). Blocked by later releases: R8.17 the two-adult rule waits on serving (0.4), R9.8 group messaging waits on a provider being set up with the church. R3.1 was cut. |
 | **Audit, October 2026** | Every 0.1 and 0.2 requirement checked against the board, twice. The first pass found R1.14 (**HRT-110**, built), R8.12 (**HRT-112**, built), R1.2 (**HRT-111**, in the schema with no screen) and account creation (**HRT-109**, built). The second pass found that one wildcard tag, `R2.x` on HRT-40, was hiding four more: **R2.9**, **R2.11**, **R2.14** and **R2.15**, none of them built. `scripts/check-backlog.mjs` now fails CI when a 0.1 or 0.2 requirement has no story naming it, and a wildcard no longer counts. |
 | **Was owed** | R19.5 the three importers and R22.1 to R22.3 onboarding, both built. R21.10 and R21.11 moved to the children's ministry pass. |

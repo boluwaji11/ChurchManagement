@@ -1,7 +1,7 @@
 import { themeFor } from "@connectapp/db";
 import {
   withTenant, personForUser, getPerson, getPersonForEdit, listCampuses, anniversaryOf,
-  listCustomFields, getCustomValues,
+  listCustomFields, getCustomValues, anotherOwns,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -10,6 +10,7 @@ import { Church, SunMoon } from "lucide-react";
 import { SettingsHeading } from "../heading";
 import { SettingCard, Details, Detail } from "../card";
 import { ProfileForm } from "./profile-form";
+import { LeaveChurch } from "./leave-church";
 import { toAddress } from "@/lib/address";
 import { ThemeChoice } from "../theme";
 import { NotifyChoice } from "@/components/shell/notify-choice";
@@ -46,6 +47,9 @@ export default async function ProfilePage({
   /* R24.x. What they chose, from their account rather than from this
      browser, so the card answers the same on every device they sign in on. */
   const theme = ((await themeFor(session.userId)) ?? "system") as Theme;
+  /* R1.4. The last owner cannot leave, and the card says so rather than
+     letting them find out by pressing. */
+  const alone = !(await anotherOwns(session.tenantId, session.userId));
 
   const result = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
@@ -126,6 +130,7 @@ export default async function ProfilePage({
         icon={<Church />}
         title={t("settings.profile.church")}
         lede={session.tenantName}
+        action={<LeaveChurch name={session.tenantName} alone={alone} />}
       >
         <Details>
           <Detail label={t("settings.profile.churchName")}>{session.tenantName}</Detail>

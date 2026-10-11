@@ -155,7 +155,7 @@ export {
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
   createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone, linkOrCreatePerson, setAccountName,
-  listTeam, listInvitations, setMemberRole, memberRole, removeMember,
+  listTeam, listInvitations, setMemberRole, memberRole, removeMember, leaveChurch, anotherOwns,
   RESERVED_SLUGS,
   type Membership, type TeamMember, type PendingInvitation,
 } from "./repo/membership";

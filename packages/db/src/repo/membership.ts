@@ -691,3 +691,39 @@ export async function removeMember(tenantId: string, userId: string): Promise<vo
   if (Number(count?.n ?? 0) === 0) throw new InvalidInputError("team.error.lastOwner");
   await sql`delete from tenant_members where tenant_id = ${tenantId} and user_id = ${userId}`;
 }
+
+/**
+ * R1.4. Whether somebody else owns this church.
+ *
+ * Asked before the screen draws, so the one person who cannot leave reads why
+ * rather than meeting a refusal on the press.
+ */
+export async function anotherOwns(tenantId: string, userId: string): Promise<boolean> {
+  const [count] = await owner()<{ n: string }[]>`
+    select count(*)::text as n from tenant_members
+     where tenant_id = ${tenantId} and role = 'owner' and user_id <> ${userId}`;
+  return Number(count?.n ?? 0) > 0;
+}
+
+/**
+ * R1.4. Walking out of a church of your own accord.
+ *
+ * The same write an administrator makes when they take somebody's access
+ * away, with the same guard on the last owner, and the record the church
+ * holds is left where it is. They come off every list. Their record stays.
+ *
+ * The actor is set on the transaction because this connection is the owner
+ * one, which never sets it, and a membership that ends with a null actor in
+ * the log is the one question the log exists to answer.
+ */
+export async function leaveChurch(tenantId: string, userId: string): Promise<void> {
+  const sql = owner();
+  if (!(await anotherOwns(tenantId, userId))) {
+    throw new InvalidInputError("team.error.lastOwner");
+  }
+  await sql.begin(async (tx) => {
+    await tx`select set_config('app.user_id', ${userId}, true)`;
+    await tx`select set_config('app.role', 'member', true)`;
+    await tx`delete from tenant_members where tenant_id = ${tenantId} and user_id = ${userId}`;
+  });
+}
