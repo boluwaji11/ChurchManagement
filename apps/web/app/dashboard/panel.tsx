@@ -4,7 +4,7 @@ import Link from "next/link";
 /**
  * R24.6. One of the three panels under the tiles.
  *
- * A Fraunces heading, one quiet thing on the right, and whatever the panel is
+ * An IBM Plex Serif heading, one quiet thing on the right, and whatever the panel is
  * for underneath. Written once so the three cannot drift apart.
  */
 export function Panel({

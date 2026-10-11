@@ -14,6 +14,20 @@
 }
 
 /*
+ * R24.x. Anything pressable shows the hand.
+ *
+ * Tailwind v4 stopped setting this, so a button reverts to the arrow the
+ * browser draws for text. The component library carries `cursor-pointer`, but
+ * a plain <button> written in a screen does not, and the two then disagree
+ * about whether the same gesture is a gesture. Disabled keeps the arrow,
+ * because nothing is going to happen.
+ */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+/*
  * R24.6. A remembered email and password look like every other field.
  *
  * Chrome paints its own background over anything it filled in, in a colour it
@@ -72,4 +86,52 @@ select:-webkit-autofill {
       transparent 70%
     );
   background-attachment: fixed;
+}
+
+.site-hero-typewriter {
+  display: inline-grid;
+  vertical-align: baseline;
+}
+
+.site-hero-typewriter__sizer,
+.site-hero-typewriter__line {
+  grid-area: 1 / 1;
+  justify-self: start;
+  white-space: nowrap;
+}
+
+.site-hero-typewriter__sizer {
+  display: grid;
+  visibility: hidden;
+}
+
+.site-hero-typewriter__line {
+  justify-self: start;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.12em;
+}
+
+.site-hero-typewriter__cursor {
+  display: inline-block;
+  width: 0.035em;
+  height: 0.82em;
+  margin-left: 0.04em;
+  background: currentColor;
+  animation: site-hero-caret-blink 1s steps(2, end) infinite;
+}
+
+@keyframes site-hero-caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-hero-typewriter__cursor {
+    display: none;
+    visibility: hidden;
+    animation: none;
+  }
 }

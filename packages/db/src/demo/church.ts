@@ -46,7 +46,7 @@ const suffix = () => Math.random().toString(36).slice(2, 8);
  * the whole point. The Owner role they get is over a church that holds nothing
  * but invented members and disappears tomorrow.
  */
-const DEMO_NAME = "Grace Community Church";
+const DEMO_NAME = "Fairview Church";
 
 /**
  * Builds one demo church and leaves it unclaimed.

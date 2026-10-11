@@ -5,6 +5,7 @@ import {
 } from "../src/roles";
 import { canManageHouseholds } from "../src/roles";
 import { canManageChurch } from "../src/repo/church";
+import { canManageWebsite } from "../src/repo/website";
 import { canManageRooms } from "../src/repo/rooms";
 import { canManageStations } from "../src/repo/stations";
 import { canCheckIn } from "../src/repo/checkin";
@@ -33,6 +34,7 @@ const EXPECTED: Record<string, readonly string[]> = {
   canReadConfidentialNotes: ["owner", "pastoral"],
   canReadGivingAmounts: ["owner", "finance"],
   canManageChurch: ["owner", "admin"],
+  canManageWebsite: ["owner", "admin"],
   canManageCustomFields: ["owner", "admin"],
   canManageTags: ["owner", "admin"],
   canManageRooms: ["owner", "admin"],
@@ -50,7 +52,7 @@ const EXPECTED: Record<string, readonly string[]> = {
 
 const CHECKS = {
   canEditPeople, canArchivePeople, canManageHouseholds, canReadConfidentialNotes, canReadGivingAmounts,
-  canManageChurch, canManageCustomFields, canManageTags, canManageRooms,
+  canManageChurch, canManageWebsite, canManageCustomFields, canManageTags, canManageRooms,
   canManageStations, canCheckIn, canReadIncidents, canFileIncident, canSeeChecks,
   canFollowUp, canManageGroups, canManageServices, canManageTeams, canLeadTeams,
 };
@@ -70,6 +72,10 @@ describe("the permission matrix", () => {
 
   it("gives a member none", () => {
     expect(ROLE_PERMISSIONS.member).toEqual([]);
+  });
+
+  it("recognises a custom role granted website access", () => {
+    expect(canManageWebsite({ role: "member", permissions: ["website.manage"] })).toBe(true);
   });
 
   it("names a role in every grant", () => {

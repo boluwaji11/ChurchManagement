@@ -52,6 +52,7 @@ export const PERMISSIONS = [
   "church.manage",
   "church.fields",
   "church.tags",
+  "website.manage",
 
   // R8.x. Check-in, which is safety-critical.
   "checkin.rooms",
@@ -123,6 +124,7 @@ export const PERMISSION_GROUPS = [
     ],
   },
   { key: "church", permissions: ["church.manage", "church.fields", "church.tags"] },
+  { key: "website", permissions: ["website.manage"] },
   { key: "money", permissions: ["giving.amounts", "giving.manage"] },
 ] as const satisfies readonly { key: string; permissions: readonly Permission[] }[];
 
@@ -139,6 +141,7 @@ const GRANTS: Record<Exclude<TenantRole, "owner">, readonly Permission[]> = {
   admin: [
     "members.edit", "members.archive", "members.households",
     "church.manage", "church.fields", "church.tags",
+    "website.manage",
     "checkin.rooms", "checkin.stations", "checkin.run", "checkin.supervise",
     "checkin.incidents", "checkin.checks",
     "followups.manage", "groups.manage", "services.manage", "events.manage",

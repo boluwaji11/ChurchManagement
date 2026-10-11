@@ -38,8 +38,9 @@ non-technical volunteer, it is cut or deferred.** Rock RMS costs nothing and nee
 is the failure we are avoiding, and it is a failure of accumulated features, not of any single one.
 
 Please check [PRD section 6](PRD.md) before proposing a feature. Some things are refused on purpose:
-general ledger accounting, a website builder, native mobile apps, livestreaming, multi-site, a workflow
-automation engine, and a custom report builder. Each has a reason listed.
+general ledger accounting, multi-page website authoring, native mobile apps, livestreaming, multi-site,
+a workflow automation engine, and a custom report builder. Each has a reason listed. HRT-285 covers
+the bounded church homepage.
 
 Settled decisions, not open for relitigation: no paid tier ever, hosted SaaS only in v1, Stripe
 Connect at a zero platform fee, bring-your-own email and SMS credentials, AGPL-3.0, and Supabase as

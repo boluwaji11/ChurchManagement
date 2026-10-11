@@ -1,8 +1,105 @@
+import {
+  Atkinson_Hyperlegible_Next,
+  Fraunces,
+  Inter,
+  IBM_Plex_Mono,
+  IBM_Plex_Serif,
+  JetBrains_Mono,
+  Source_Sans_3,
+  Source_Serif_4,
+} from "next/font/google";
 import { CodeDisplay } from "@connectapp/ui";
 import { PageTitle, Section } from "@/components/section";
 
 /** The gallery is a tool for us, so it names itself plainly. */
 export const metadata = { title: "Design · type" };
+
+const sourceSans = Source_Sans_3({
+  subsets: ["latin"],
+  weight: "variable",
+  display: "swap",
+  preload: false,
+});
+const sourceSerif = Source_Serif_4({
+  subsets: ["latin"],
+  weight: "variable",
+  display: "swap",
+  preload: false,
+});
+const plexSerif = IBM_Plex_Serif({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  display: "swap",
+  preload: false,
+});
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+  preload: false,
+});
+const atkinson = Atkinson_Hyperlegible_Next({
+  subsets: ["latin"],
+  weight: "variable",
+  display: "swap",
+  preload: false,
+});
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  display: "swap",
+  preload: false,
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: "variable",
+  display: "swap",
+  preload: false,
+});
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+  preload: false,
+});
+
+const FONT_OPTIONS = [
+  {
+    name: "IBM Plex",
+    description: "IBM Plex Sans · IBM Plex Serif · IBM Plex Mono",
+    sans: "var(--font-ibm-plex-sans)",
+    serif: "var(--font-ibm-plex-serif)",
+    mono: "var(--font-ibm-plex-mono)",
+  },
+  {
+    name: "Source",
+    description: "Source Sans 3 · Source Serif 4 · IBM Plex Mono",
+    sans: sourceSans.style.fontFamily,
+    serif: sourceSerif.style.fontFamily,
+    mono: plexMono.style.fontFamily,
+  },
+  {
+    name: "Fraunces / Inter",
+    description: "Fraunces · Inter · JetBrains Mono",
+    sans: inter.style.fontFamily,
+    serif: fraunces.style.fontFamily,
+    mono: jetbrainsMono.style.fontFamily,
+  },
+  {
+    name: "Atkinson",
+    description: "Atkinson Hyperlegible Next · IBM Plex Serif · IBM Plex Mono",
+    sans: atkinson.style.fontFamily,
+    serif: plexSerif.style.fontFamily,
+    mono: plexMono.style.fontFamily,
+  },
+  {
+    name: "System",
+    description: "System sans · IBM Plex Serif · system mono",
+    sans: "system-ui, sans-serif",
+    serif: plexSerif.style.fontFamily,
+    mono: "ui-monospace, SFMono-Regular, monospace",
+  },
+] as const;
 
 const SCALE = [
   ["display-lg", "Page hero, empty states", "font-display text-display-lg"],
@@ -21,24 +118,84 @@ export default function Type() {
     <>
       <PageTitle
         title="Type"
-        lede="Typography carries the hierarchy, not borders and not boxes. A serif for display is what stops this looking like every other dashboard."
+        lede="Typography carries the hierarchy. The same church-management screens are shown in each font system."
       />
+
+      <Section
+        title="Font options, preview only"
+        note="Compare the same church-management content in each system. These specimens are isolated to this gallery and do not change the platform."
+      >
+        <div className="grid gap-4 xl:grid-cols-2">
+          {FONT_OPTIONS.map((option) => (
+            <article
+              key={option.name}
+              className="min-w-0 rounded-lg border border-line bg-surface p-4"
+              style={{ fontFamily: option.sans }}
+            >
+              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                <h3
+                  className="m-0 text-[22px] font-semibold text-fg"
+                  style={{ fontFamily: option.serif }}
+                >
+                  {option.name}
+                </h3>
+                <span className="text-caption text-fg-muted">{option.description}</span>
+              </div>
+
+              <p
+                className="mb-4 mt-0 text-[25px] leading-tight text-fg"
+                style={{ fontFamily: option.serif }}
+              >
+                Church management, made simple, for free
+              </p>
+
+              <div className="overflow-hidden rounded-md border border-line">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 bg-sunken px-3 py-2 text-[12px] font-semibold text-fg-muted">
+                  <span>Member</span>
+                  <span>Last attended</span>
+                  <span>Status</span>
+                </div>
+                <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 border-t border-line px-3 py-2.5 text-[13px] text-fg">
+                  <span className="truncate">Adaeze Okafor</span>
+                  <span className="whitespace-nowrap">Oct 11, 2026</span>
+                  <span>Present</span>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-md bg-primary-soft p-3">
+                <p className="m-0 text-[12px] font-semibold uppercase tracking-wide text-fg-muted">
+                  Check-in station
+                </p>
+                <p className="mb-1 mt-2 text-[20px] font-semibold leading-7 text-fg">
+                  Maya Okafor · Room 3
+                </p>
+                <p className="m-0 text-[16px] text-fg">
+                  Allergy: peanuts
+                  <span className="ml-3" style={{ fontFamily: option.mono }}>
+                    4B07
+                  </span>
+                </p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </Section>
 
       <Section title="The three faces">
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-lg border border-line bg-surface p-4">
             <p className="font-display text-display leading-none">Aa</p>
-            <p className="mt-3 text-label text-fg">Fraunces</p>
-            <p className="text-caption text-fg-muted">Display. Warm and distinctive without being precious.</p>
+            <p className="mt-3 text-label text-fg">IBM Plex Serif</p>
+            <p className="text-caption text-fg-muted">Display. Headings and page titles.</p>
           </div>
           <div className="rounded-lg border border-line bg-surface p-4">
             <p className="font-sans text-display font-semibold leading-none">Aa</p>
-            <p className="mt-3 text-label text-fg">Inter</p>
+            <p className="mt-3 text-label text-fg">IBM Plex Sans</p>
             <p className="text-caption text-fg-muted">Everything functional. Tabular figures in tables and currency.</p>
           </div>
           <div className="rounded-lg border border-line bg-surface p-4">
             <p className="font-mono text-display font-medium leading-none">Aa</p>
-            <p className="mt-3 text-label text-fg">JetBrains Mono</p>
+            <p className="mt-3 text-label text-fg">IBM Plex Mono</p>
             <p className="text-caption text-fg-muted">Codes and amounts. 0 and O, 1 and l are unambiguous.</p>
           </div>
         </div>

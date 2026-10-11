@@ -506,9 +506,42 @@ begin
 
   execute 'drop policy if exists church_read on storage.objects';
   execute 'drop policy if exists church_logo_read on storage.objects';
+  execute 'drop policy if exists church_website_media_read on storage.objects';
   execute 'drop policy if exists church_write on storage.objects';
   execute 'drop policy if exists church_update on storage.objects';
   execute 'drop policy if exists church_delete on storage.objects';
+
+  execute $fn$
+    create or replace function connectapp.website_media_is_public(p_key text)
+    returns boolean
+    language sql
+    stable
+    security definer
+    set search_path = ''
+    as $body$
+      select exists (
+        select 1
+        from public.stored_files sf
+        join public.church_websites w on w.tenant_id = sf.tenant_id
+        join public.tenants t on t.id = sf.tenant_id
+        where sf.bucket = 'church'
+          and sf.key = p_key
+          and sf.purpose = 'website_media'
+          and w.published
+          and t.approved_at is not null
+          and t.demo_expires_at is null
+          and exists (
+            select 1
+            from pg_catalog.jsonb_array_elements(w.sections) section(value)
+            where section.value ->> 'imageKey' = p_key
+               or section.value ->> 'videoKey' = p_key
+          )
+      )
+    $body$;
+  $fn$;
+
+  execute 'revoke all on function connectapp.website_media_is_public(text) from public';
+  execute 'grant execute on function connectapp.website_media_is_public(text) to anon, authenticated';
 
   execute $pol$
     create policy church_read on storage.objects for select to authenticated
@@ -528,6 +561,14 @@ begin
   execute $pol$
     create policy church_logo_read on storage.objects for select to anon, authenticated
     using (bucket_id = 'church' and (storage.foldername(name))[2] = 'logo')
+  $pol$;
+  execute $pol$
+    create policy church_website_media_read on storage.objects for select to anon, authenticated
+    using (
+      bucket_id = 'church'
+      and (storage.foldername(name))[2] = 'website_media'
+      and connectapp.website_media_is_public(name)
+    )
   $pol$;
   execute $pol$
     create policy church_write on storage.objects for insert to authenticated

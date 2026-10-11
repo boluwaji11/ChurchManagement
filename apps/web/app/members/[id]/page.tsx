@@ -206,7 +206,7 @@ export default async function PersonPage({
          other things a record is opened to do. */
       back={{ href: "/members", label: t("members.title") }}
     >
-      {/* A 72px face, the name in Fraunces at 32, and under it the one line
+      {/* A 72px face, the name in IBM Plex Serif at 32, and under it the one line
           that places them: what they are to the church, whose household, and
           since when. */}
       <div className="flex flex-wrap items-center gap-5">

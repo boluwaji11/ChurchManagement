@@ -29,12 +29,12 @@ const EXPECTED: Record<TenantRole, string[]> = {
   owner: [
     "/dashboard", "/members", "/messages", "/followups", "/checkin",
     "/calendar", "/services", "/schedule", "/groups", "/events", "/giving",
-    "/forms", "/reports", "/settings/church",
+    "/forms", "/website", "/reports", "/settings/church",
   ],
   admin: [
     "/dashboard", "/members", "/messages", "/followups", "/checkin",
     "/calendar", "/services", "/schedule", "/groups", "/events",
-    "/forms", "/reports", "/settings/church",
+    "/forms", "/website", "/reports", "/settings/church",
   ],
   staff: [
     "/dashboard", "/members", "/messages", "/followups", "/checkin",
