@@ -364,6 +364,7 @@ of money and after everything else.
 | HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Resolved |
 | HRT-292 | Leaving a church, and the one owner who cannot | R1.4 | Resolved |
 | HRT-293 | Closing an account, and handing a church to somebody else first | R1.4, R21.9 | New |
+| HRT-294 | The church's website, asked once at sign-up | R22.1, R22.2 | Resolved |
 | HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | New |
 | HRT-291 | The church's own domain: members.church.org and give.church.org, with the screen to set one up | R1.1, R22.2 | New |
 
@@ -908,6 +909,26 @@ What is left:
   explicitly rather than shared. That is the same piece of work the localhost
   note above describes, and this is what makes it necessary rather than
   convenient.
+
+## The church's website, asked once, October 2026
+
+HRT-294. Sign-up asked a church for its name, its country and its timezone,
+and nothing about what it is already on. So every screen downstream that
+needed to know had to ask again, and HRT-283's reading of a church's domain,
+built in September, had nowhere to be triggered from.
+
+It is one field on `create-church`, optional, stored as the bare domain.
+`cleanWebsite` does that in one place, so what sign-up writes and what the
+Website settings screen writes are the same shape. Before this, settings would
+have stored `https://www.church.org/` and sign-up `church.org`, which is one
+column holding two spellings of one church.
+
+What this does not do yet is fork. The narrative behind HRT-283 to HRT-287
+splits here: a church with a site gets the reading and the records to add, a
+church without one is offered a page. Neither destination exists, so both arms
+of the question would lead to the same next screen, and a fork that forks
+nothing is decoration. The question comes back as a fork when HRT-285 gives
+the second arm somewhere to go.
 
 ## Leaving a church, and closing an account, October 2026
 

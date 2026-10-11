@@ -4,6 +4,7 @@ import type { TenantRole } from "../roles";
 import { PERMISSIONS, type Permission } from "../permissions";
 import { BUILT_IN_KINDS } from "./item-kinds";
 import { InvalidInputError } from "../errors";
+import { cleanWebsite } from "./church";
 import {
   addressAlreadyClaimed, claimRecord, claimableRecord, nameForRecord, recordForAccount,
   writeAccount, writeRecordFor,
@@ -374,6 +375,15 @@ export async function createChurch(input: {
    * rather than defaulted and discovered months later.
    */
   country?: string;
+  /**
+   * R22.1, R22.2. The church's own website, where it has one.
+   *
+   * Asked once, at the start. What a church is already on decides whether a
+   * record can be written for them or has to be typed, what their mail is
+   * already set up to do, and whether they need a page of ours at all, so
+   * every screen that would ask reads this instead.
+   */
+  website?: string | null;
   user: {
     id: string;
     email: string;
@@ -385,6 +395,13 @@ export async function createChurch(input: {
   };
 }): Promise<{ tenantId: string; slug: string; name: string }> {
   const name = input.name.trim().replace(/\s+/g, " ");
+  /*
+   * Stored as the bare domain, so gracecommunity.org, www.gracecommunity.org
+   * and https://gracecommunity.org/about are one answer rather than three.
+   * A church that typed something that is not a domain is told, because the
+   * alternative is a field that looks accepted and silently holds nothing.
+   */
+  const website = cleanWebsite(input.website);
   if (name.length < 2) throw new InvalidInputError("error.churchNameShort");
   if (name.length > 120) throw new InvalidInputError("error.churchNameLong");
 
@@ -416,8 +433,8 @@ export async function createChurch(input: {
     }
 
     const [tenant] = await tx<{ id: string }[]>`
-      insert into tenants (slug, name, timezone, country)
-      values (${slug}, ${name}, ${timezone}, ${country})
+      insert into tenants (slug, name, timezone, country, website)
+      values (${slug}, ${name}, ${timezone}, ${country}, ${website})
       returning id`;
     if (!tenant) throw new Error("Tenant insert returned no row.");
 

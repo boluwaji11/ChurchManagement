@@ -176,6 +176,22 @@ export function CreateChurchForm() {
         <input type="hidden" name="country" value={country} />
       </Field>
 
+      {/* R22.1, R22.2. Asked once, at the start.
+          What a church is already on decides what its mail is set up to do,
+          whether a record can be written for them or has to be typed, and
+          whether they need a page of ours at all. Every screen that would
+          ask again reads this instead. A church with no site leaves it
+          empty and is offered one later. */}
+      <Field label={t("createChurch.website")}>
+        <Input
+          name="website"
+          type="url"
+          inputMode="url"
+          autoComplete="url"
+          placeholder={t("createChurch.websiteExample")}
+        />
+      </Field>
+
       <Field label={t("createChurch.timezone")}>
         <Select name="timezone" value={zone} onValueChange={setZone}>
           <SelectTrigger>

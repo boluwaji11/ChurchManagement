@@ -148,6 +148,38 @@ describe("what is refused", () => {
   });
 });
 
+describe.skipIf(!HAS_ACCOUNTS)("the church's own website (R22.1, R22.2)", () => {
+  const site = async (website?: string) => {
+    const church = await createChurch({
+      name: `${PREFIX} Site ${randomUUID().slice(0, 8)}`,
+      timezone: "America/Chicago",
+      website,
+      user: newcomer("site"),
+    });
+    const [row] = await owner()<{ website: string | null }[]>`
+      select website from tenants where id = ${church.tenantId}`;
+    return row!.website;
+  };
+
+  it("keeps what the church typed, as the bare domain", async () => {
+    expect(await site("gracecommunity.org")).toBe("gracecommunity.org");
+  });
+
+  it("reads one church out of three spellings of its address", async () => {
+    expect(await site("https://www.gracecommunity.org/about?x=1"))
+      .toBe("gracecommunity.org");
+  });
+
+  it("holds nothing for a church that has no site", async () => {
+    expect(await site()).toBeNull();
+    expect(await site("   ")).toBeNull();
+  });
+
+  it("refuses something that is not an address, rather than keeping it", async () => {
+    await expect(site("our church")).rejects.toThrow();
+  });
+});
+
 describe.skipIf(!HAS_ACCOUNTS)("a new church is isolated from the first moment", () => {
   it("cannot see the seeded church, and the seeded church cannot see it", async () => {
     const user = newcomer("isolated");
