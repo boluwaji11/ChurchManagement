@@ -760,7 +760,7 @@ export const en = {
   "domain.keep.dmarc": "Your protection from forgery",
   "domain.warn.noMx": "No emails can be received at this domain. Check your website is correct.",
   "domain.warn.manySpf": "This domain publishes two SPF records. Mail servers reject both, so sending is already failing. Remove one.",
-  "domain.warn.dkimTaken": "Something already answers where our key goes. Adding ours would stop whatever put it there from sending.",
+  "domain.warn.dkimTaken": "Another service is already signing email for this domain. Setting ours up would stop that one sending.",
   "domain.warn.dmarcStrict": "Your policy is {detail}, which is why our key goes on the domain itself rather than on a subdomain.",
   "domain.error.notADomain": "That does not look like a domain name.",
   "domain.error.notAllowed": "Your role cannot change the church's settings.",

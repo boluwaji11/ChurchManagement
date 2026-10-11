@@ -185,6 +185,43 @@ describe("reading a whole domain", () => {
     expect(found.dkimTaken).toBe(false);
   });
 
+  /*
+   * A domain with `* TXT` answers every lookup under it, including the name a
+   * DKIM key would live at. Reading that reply as a record somebody put there
+   * deliberately warns a church about a conflict that does not exist, which
+   * is how connectapp.church got its own screen wrong the day the wildcard
+   * went in.
+   */
+  it("does not read a wildcard answering everywhere as a key already in place", async () => {
+    const everywhere = answering({
+      mx: [{ exchange: "aspmx.l.google.com.", priority: 1 }],
+      txt: {
+        "fairviewchurch.org": [["v=spf1 -all"]],
+        "resend._domainkey.fairviewchurch.org": [["v=spf1 -all"]],
+        "_connectapp-wildcard-probe.fairviewchurch.org": [["v=spf1 -all"]],
+      },
+      ns: ["ns01.domaincontrol.com"],
+    });
+
+    const found = (await readDomain("fairviewchurch.org", everywhere))!;
+    expect(found.dkimTaken).toBe(false);
+    expect(found.warnings.map((one) => one.code)).not.toContain("dkimTaken");
+  });
+
+  it("still reports a key that is really there, beside a wildcard", async () => {
+    const both = answering({
+      mx: [{ exchange: "aspmx.l.google.com.", priority: 1 }],
+      txt: {
+        "fairviewchurch.org": [["v=spf1 -all"]],
+        "resend._domainkey.fairviewchurch.org": [["v=DKIM1; k=rsa; p=MIIB"]],
+        "_connectapp-wildcard-probe.fairviewchurch.org": [["v=spf1 -all"]],
+      },
+      ns: ["ns01.domaincontrol.com"],
+    });
+
+    expect((await readDomain("fairviewchurch.org", both))!.dkimTaken).toBe(true);
+  });
+
   /* A TXT record over 255 characters arrives in pieces, which is how a real
      DKIM key arrives, and reading only the first piece misses it. */
   it("joins a record that was published in pieces", async () => {

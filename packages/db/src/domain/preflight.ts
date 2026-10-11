@@ -279,13 +279,21 @@ export async function readDomain(
    */
   const apex = apexOf(domain);
 
-  const [mx, rootTxt, dmarcTxt, dkimTxt, ns, cname] = await Promise.all([
+  const [mx, rootTxt, dmarcTxt, dkimTxt, ns, cname, wildTxt] = await Promise.all([
     quiet(resolver.mx(apex), []),
     quiet(resolver.txt(apex), []),
     quiet(resolver.txt(`_dmarc.${apex}`), []),
     quiet(resolver.txt(`resend._domainkey.${apex}`), []),
     quiet(resolver.ns(apex), []),
     quiet(resolver.cname(domain), []),
+    /*
+     * A name nobody would ever create, so whatever answers it is a wildcard
+     * answering for everything. A domain with `* TXT` replies to every lookup
+     * under it, and without this the DKIM check reads that reply as a record
+     * somebody put there deliberately and warns about a conflict that is not
+     * there.
+     */
+    quiet(resolver.txt(`_connectapp-wildcard-probe.${apex}`), []),
   ]);
 
   // A TXT record arrives in pieces, because a record longer than 255
@@ -299,7 +307,11 @@ export async function readDomain(
     .map((one) => one.exchange.replace(/\.$/, ""));
   const spf = spfRecords(flat(rootTxt));
   const dmarc = dmarcPolicy(flat(dmarcTxt));
-  const dkimTaken = flat(dkimTxt).length > 0;
+  const atDkim = flat(dkimTxt);
+  const wildcard = flat(wildTxt);
+  const fromWildcard =
+    wildcard.length > 0 && atDkim.every((one) => wildcard.includes(one));
+  const dkimTaken = atDkim.length > 0 && !fromWildcard;
 
   return {
     domain,
