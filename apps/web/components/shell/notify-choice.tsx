@@ -22,7 +22,10 @@ export function NotifyChoice({}: {  }) {
   if (!push) return null;
 
   return (
-    <div className="flex items-center justify-between gap-4">
+    /* Beside its label, where Appearance puts its own control. A switch
+       thrown to the far edge of a wide card reads as belonging to the card
+       rather than to the words it answers. */
+    <div className="flex items-center gap-3">
       <label htmlFor="notify" className="text-[12px] font-medium tracking-[0.02em] text-fg-subtle uppercase">
         {t("settings.pref.notifications")}
       </label>
