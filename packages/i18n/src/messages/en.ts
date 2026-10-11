@@ -582,7 +582,7 @@ export const en = {
   "settings.profile.church": "Church",
   "settings.profile.leave": "Leave this church",
   "settings.profile.leave.title": "Leave {name}?",
-  "settings.profile.leave.body": "You lose access to everything in {name}. The church keeps your record.",
+  "settings.profile.leave.body": "You lose access to everything in {name}.",
   "settings.profile.leave.go": "Leave",
   "settings.profile.leaving": "Leaving",
   "settings.profile.leave.owner": "Make somebody else an owner first.",
