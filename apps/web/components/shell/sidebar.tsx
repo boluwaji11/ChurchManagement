@@ -137,11 +137,11 @@ export function Sidebar({
         aria-current={on ? "page" : undefined}
         className={cn(
           "relative flex h-9 w-full items-center gap-2.5 rounded-lg text-left text-[13px] font-medium",
-          "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+          "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
           collapsed ? "justify-center px-0" : "px-2.5",
           on
-            ? "bg-primary-soft font-semibold text-primary shadow-sm"
-            : "text-fg-muted hover:bg-sunken hover:text-fg",
+            ? "bg-surface font-semibold text-fg shadow-sm"
+            : "text-shell-muted hover:bg-shell-line hover:text-shell-fg",
         )}
       >
         <span className="grid shrink-0 place-items-center [&_svg]:size-[18px]">
@@ -171,7 +171,7 @@ export function Sidebar({
         // mark stays at the top and signing out stays at the bottom, and only
         // the list of sections scrolls when a short screen cannot hold it.
         "sticky top-0 hidden h-screen shrink-0 flex-col gap-4 overflow-hidden",
-        "border-r border-line bg-surface text-fg md:flex",
+        "border-r border-shell-line bg-shell text-shell-fg md:flex",
         "motion-safe:transition-[width] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-out)",
         collapsed ? "w-16 px-2.5 py-4" : "w-58 px-3 py-4",
       )}
@@ -190,7 +190,7 @@ export function Sidebar({
           <FlameMark logoUrl={logoUrl} churchName={churchName} />
           {collapsed ? null : (
             <span
-              className="min-w-0 flex-1 font-display font-semibold text-fg [overflow-wrap:anywhere] line-clamp-2"
+              className="min-w-0 flex-1 font-display font-semibold text-shell-fg [overflow-wrap:anywhere] line-clamp-2"
               style={nameSize(churchName)}
             >
               {churchName}
@@ -205,7 +205,7 @@ export function Sidebar({
             onClick={toggle}
             aria-label={toggleLabel}
             aria-expanded={!collapsed}
-            className="grid size-[30px] shrink-0 place-items-center rounded-md text-fg-muted hover:bg-sunken hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="grid size-[30px] shrink-0 place-items-center rounded-md text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
           >
             {collapsed ? (
               <PanelLeftOpen className="size-[18px]" />
@@ -226,14 +226,14 @@ export function Sidebar({
           return (
             <section key={group.id} className="flex flex-col gap-1">
               {collapsed ? (
-                <div className="my-1 border-t border-line" aria-hidden />
+                <div className="my-1 border-t border-shell-line" aria-hidden />
               ) : (
                 <button
                   type="button"
                   aria-expanded={isOpen}
                   aria-controls={contentId}
                   onClick={() => setExpandedGroup(isOpen ? null : group.id)}
-                  className="flex h-8 items-center justify-between rounded-md px-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-fg-muted hover:bg-sunken hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="flex h-8 items-center justify-between rounded-md px-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                 >
                   {t(group.label as never)}
                   {isOpen
@@ -253,8 +253,8 @@ export function Sidebar({
         })}
         {otherEntries.length ? (
           <section className="flex flex-col gap-1">
-            {collapsed ? <div className="my-1 border-t border-line" aria-hidden /> : (
-              <span className="px-2.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-fg-muted">
+            {collapsed ? <div className="my-1 border-t border-shell-line" aria-hidden /> : (
+              <span className="px-2.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-shell-muted">
                 {t("nav.group.more")}
               </span>
             )}
@@ -263,7 +263,7 @@ export function Sidebar({
         ) : null}
       </nav>
 
-      <div className="flex shrink-0 flex-col gap-2 border-t border-line pt-3">
+      <div className="flex shrink-0 flex-col gap-2 border-t border-shell-line pt-3">
         {settings.map(renderEntry)}
         {/* Who is signed in, and the way to their own screen. It used to open
             Settings, which is its own row two inches above, and the chevrons
@@ -271,15 +271,15 @@ export function Sidebar({
         <Link
           href={"/settings/profile"}
           className={cn(
-            "flex w-full items-center gap-2.5 rounded-lg text-left hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-            collapsed ? "justify-center p-1" : "rounded-xl border border-line bg-canvas px-2 py-2",
+            "flex w-full items-center gap-2.5 rounded-lg text-left hover:bg-shell-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
+            collapsed ? "justify-center p-1" : "rounded-xl border border-shell-line px-2 py-2",
           )}
         >
           <Avatar name={personName} src={photoUrl} id={userId} size="sm" className="size-8 text-[12px] font-semibold" />
           {collapsed ? null : (
             <span className="flex min-w-0 flex-1 flex-col leading-4">
-              <span className="truncate text-[13px] font-medium text-fg">{personName}</span>
-              <span className="truncate text-[12px] text-fg-muted">{roleName}</span>
+              <span className="truncate text-[13px] font-medium text-shell-fg">{personName}</span>
+              <span className="truncate text-[12px] text-shell-muted">{roleName}</span>
             </span>
           )}
         </Link>
@@ -305,7 +305,7 @@ export function Sidebar({
               disabled={going}
               aria-label={t("action.signOut")}
               className={cn(
-                "flex h-9 items-center gap-2.5 rounded-lg text-[13px] font-medium text-fg-muted hover:bg-sunken hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                "flex h-9 items-center gap-2.5 rounded-lg text-[13px] font-medium text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
                 collapsed ? "justify-center px-0" : "px-2.5",
               )}
             >
