@@ -123,6 +123,21 @@ export default async function ProfilePage({
         </Banner>
       )}
 
+      {/* R24.x, R16.10. What somebody settles once: how the product is drawn,
+          and whether this browser tells them when something arrives. Both were
+          elsewhere, one on a menu of its own and one in the sidebar. */}
+      <SettingCard icon={<SunMoon />} title={t("settings.preferences")}>
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            {/* The same label every other field on this screen carries. */}
+            <span className="text-[12px] font-medium tracking-[0.02em] text-fg-subtle uppercase">{t("settings.pref.appearance")}</span>
+            <ThemeChoice current={theme} />
+          </div>
+
+          <NotifyChoice />
+        </div>
+      </SettingCard>
+
       {/* R1.6. Which church somebody is signed in to and what they may do in
           it. Neither is theirs to change, so it sits outside the card the
           pencil opens. */}
@@ -138,21 +153,6 @@ export default async function ProfilePage({
             {t(`role.${session.role}` as never)}
           </Detail>
         </Details>
-      </SettingCard>
-
-      {/* R24.x, R16.10. What somebody settles once: how the product is drawn,
-          and whether this browser tells them when something arrives. Both were
-          elsewhere, one on a menu of its own and one in the sidebar. */}
-      <SettingCard icon={<SunMoon />} title={t("settings.preferences")}>
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2">
-            {/* The same label every other field on this screen carries. */}
-            <span className="text-[12px] font-medium tracking-[0.02em] text-fg-subtle uppercase">{t("settings.pref.appearance")}</span>
-            <ThemeChoice current={theme} />
-          </div>
-
-          <NotifyChoice />
-        </div>
       </SettingCard>
     </>
   );
