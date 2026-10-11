@@ -4,6 +4,7 @@ import { documentTheme } from "@/lib/theme";
 import { canonicalAddress } from "@/lib/church-address";
 import { Fraunces, Inter, JetBrains_Mono, Noto_Color_Emoji } from "next/font/google";
 import { TooltipProvider } from "@connectapp/ui";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 /**
@@ -82,6 +83,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         className={`${display.variable} ${sans.variable} ${mono.variable} ${emoji.variable} font-sans`}
       >
         <TooltipProvider>{children}</TooltipProvider>
+        {/*
+         * How many people reach a page, and nothing about who they are.
+         *
+         * It sets no cookie, keeps no identifier across visits and sends the
+         * route rather than the address, so a member's own page is counted as
+         * /members/[id] and the id never leaves the browser. A church's data
+         * is its own, and a visitor count is the most we take.
+         */}
+        <Analytics />
       </body>
     </html>
   );
