@@ -49,6 +49,11 @@ export const tenants = pgTable(
      */
     hasWebsite: boolean("has_website"),
     /**
+     * R9.5. Where that website is built, which is not always who sold them
+     * the name. Free text: a church on something obscure still has a site.
+     */
+    siteBuilder: text("site_builder"),
+    /**
      * R7.6. How many held services somebody misses in a row before the church
      * wants to know. Three by default, which is roughly a month of services.
      */

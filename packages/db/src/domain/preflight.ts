@@ -344,6 +344,54 @@ export async function readDomain(
  * domain's records, because the path to a single domain carries an account id
  * we do not have.
  */
+/**
+ * R9.5. The site builders a church's nameservers give away.
+ *
+ * Only some do. A church on Wix or Squarespace usually points the whole name
+ * at them, and then the nameservers say so outright. A church that bought at
+ * GoDaddy and built on anything says nothing here, which is why this is a
+ * guess the church confirms rather than an answer.
+ */
+const BUILDER_NS: [string, string][] = [
+  ["wixdns.net", "wix"],
+  ["squarespacedns.com", "squarespace"],
+  ["wordpress.com", "wordpress"],
+  ["weebly.com", "weebly"],
+  ["webflow.com", "webflow"],
+  ["shopifydns.com", "shopify"],
+  ["myshopify.com", "shopify"],
+  ["godaddysites.com", "godaddy"],
+];
+
+/** The builder a set of nameservers names, or null when they name none. */
+export function builderFromNameservers(nameservers: readonly string[]): string | null {
+  const names = nameservers.map((one) => one.toLowerCase().replace(/\.$/, ""));
+  for (const [suffix, builder] of BUILDER_NS) {
+    if (names.some((one) => one === suffix || one.endsWith(`.${suffix}`))) return builder;
+  }
+  return null;
+}
+
+/**
+ * R9.5. Every builder the steps are written for.
+ *
+ * Ids rather than names, because the name is a word on a screen and belongs in
+ * the catalogue with every other word. "other" is last and is what a church
+ * with a hand-written site picks.
+ */
+export const SITE_BUILDERS = [
+  "wix",
+  "squarespace",
+  "wordpress",
+  "weebly",
+  "webflow",
+  "godaddy",
+  "shopify",
+  "other",
+] as const;
+
+export type SiteBuilder = (typeof SITE_BUILDERS)[number];
+
 export const DNS_CONSOLE: Record<string, string> = {
   "GoDaddy": "https://dcc.godaddy.com/control/portfolio",
   "Cloudflare": "https://dash.cloudflare.com/",

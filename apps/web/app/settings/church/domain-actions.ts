@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import {
   withTenant, setCustomDomain, setSelfSignup,
   canManageChurch, readDomain, dnsResolver, type DomainFindings,
-  setPortalName, setPortalOpen,
+  setPortalName, setPortalOpen, setSiteBuilder,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -42,6 +42,25 @@ export async function saveDomain(domain: string, church?: string): Promise<Domai
 }
 
 /** R1.7. Opening or shutting the church's own door to new accounts. */
+/**
+ * R9.5. Where the church says its website is built.
+ *
+ * Kept so the steps are right the next time somebody opens this screen, and
+ * so the next screen that needs it does not ask again.
+ */
+export async function saveSiteBuilder(builder: string | null): Promise<{ error?: string }> {
+  const session = await requireSession();
+  try {
+    await withTenant(
+      { tenantId: session.tenantId, role: session.role, userId: session.userId },
+      (tx) => setSiteBuilder(tx, session, builder),
+    );
+  } catch (error) {
+    return { error: explain(error) };
+  }
+  return {};
+}
+
 export async function setSignup(open: boolean): Promise<{ error?: string }> {
   try {
     const session = await requireSession();

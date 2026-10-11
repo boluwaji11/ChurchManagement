@@ -366,7 +366,7 @@ of money and after everything else.
 | HRT-293 | Closing an account, and handing a church to somebody else first | R1.4, R21.9 | New |
 | HRT-294 | The church's website, asked once at sign-up | R22.1, R22.2 | Resolved |
 | HRT-295 | The fork at sign-up: does the church have a website | R22.1, R22.2 | Resolved |
-| HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | The pieces are built. The steps for each site builder are not |
+| HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | Resolved |
 | HRT-291 | The church's own domain: members.church.org and give.church.org, with the screen to set one up | R1.1, R22.2 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
@@ -879,6 +879,17 @@ screen carries only what is church-wide.
 `/g/embed` answers on a church's own address, a static segment beside
 `/g/[slug]`, so a group named "embed" is unreachable at the short path. The
 same trade `/e/[slug]/register` already carries.
+
+The steps followed in October 2026. The church picks where its site is built,
+from eight builders and "something else", and the snippet comes with the few
+presses that put it on a page there. The answer is kept on the church's
+record, so the next screen that needs it does not ask again.
+
+The nameservers offer a guess, and only sometimes: `wixdns.net` and
+`squarespacedns.com` name a builder outright, and `domaincontrol.com`, which
+is the common case, names nothing at all. So it is a guess the church
+confirms rather than an answer, and the reading only runs for a church that
+has a website and has not already said.
 
 Which means capturing the **site builder**, which is not always the DNS
 provider: a church can buy the name at GoDaddy and build the site on Squarespace.

@@ -6,7 +6,9 @@ import {
   Field, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { SITE_BUILDERS } from "@connectapp/db/rules";
 import { Copyable } from "./copyable";
+import { saveSiteBuilder } from "./domain-actions";
 
 type Part = "giving" | "groups" | "join";
 
@@ -32,13 +34,23 @@ export function OnYourSite({
   groups,
   groupsFrame,
   join,
+  builder,
+  guessed,
 }: {
   giving: string;
   groups: string;
   groupsFrame: string;
   join: string;
+  /** What the church has told us, or null until it has. */
+  builder: string | null;
+  /** What its nameservers suggested, where they named one at all. */
+  guessed: string | null;
 }) {
   const [part, setPart] = React.useState<Part>("giving");
+  /* The guess stands in until the church says otherwise, and saving it is
+     what turns a guess into an answer. */
+  const [built, setBuilt] = React.useState<string>(builder ?? guessed ?? "");
+  const [, start] = React.useTransition();
 
   const button =
     `<a href="${giving}" style="display:inline-block;padding:14px 28px;border-radius:9999px;`
@@ -87,15 +99,56 @@ export function OnYourSite({
       <Copyable label={t(`site.part.${part}` as never)} value={showing.link} open={showing.link} />
 
       {showing.snippet ? (
-        <Field label={showing.snippetLabel!}>
-          <Textarea
-            readOnly
-            rows={4}
-            value={showing.snippet}
-            onFocus={(e) => e.currentTarget.select()}
-            className="font-mono text-[12px]"
-          />
-        </Field>
+        <>
+          <Field label={showing.snippetLabel!}>
+            <Textarea
+              readOnly
+              rows={4}
+              value={showing.snippet}
+              onFocus={(e) => e.currentTarget.select()}
+              className="font-mono text-[12px]"
+            />
+          </Field>
+
+          {/* R9.5, R22.2. "Paste this into your website" is the instruction a
+              volunteer gets stuck on, and it is a different few presses at
+              every builder. */}
+          <Field label={t("site.builder")}>
+            <Select
+              value={built}
+              onValueChange={(value) => {
+                setBuilt(value);
+                start(async () => { await saveSiteBuilder(value); });
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("builder.unset")} />
+              </SelectTrigger>
+              <SelectContent>
+                {SITE_BUILDERS.map((one) => (
+                  <SelectItem key={one} value={one}>{t(`builder.${one}` as never)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          {built ? (
+            <section className="flex flex-col gap-2 rounded-[12px] border border-line bg-sunken p-4">
+              <h4 className="m-0 text-caption font-medium tracking-[0.02em] text-fg-subtle uppercase">
+                {t("site.whereToPaste")}
+              </h4>
+              <ol className="m-0 flex list-decimal flex-col gap-1 pl-5">
+                {t(`steps.${built}` as never)
+                  .split("\n")
+                  .map((step) => (
+                    <li key={step} className="text-[length:var(--d-text-body)] leading-6 text-fg">
+                      {step}
+                    </li>
+                  ))}
+              </ol>
+            </section>
+          ) : null}
+        </>
       ) : (
         /* R1.4. The one that is a link and nothing else, said once. */
         <p className="m-0 text-[length:var(--d-text-body)] leading-6 text-fg-muted">

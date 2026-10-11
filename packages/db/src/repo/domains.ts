@@ -171,6 +171,25 @@ export async function setPortalOpen(
   return open;
 }
 
+/**
+ * R9.5. Where the church says its website is built.
+ *
+ * Asked rather than inferred. Only some nameservers name a builder, and the
+ * common case, a name bought at a registrar and a site built somewhere else,
+ * names none.
+ */
+export async function setSiteBuilder(
+  db: Tx,
+  actor: WriteActor,
+  builder: string | null,
+): Promise<string | null> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  const kept = builder?.trim() || null;
+  await db.update(tenants).set({ siteBuilder: kept }).where(eq(tenants.id, actor.tenantId));
+  return kept;
+}
+
 /* The rules themselves, for everything that reads them from here. */
 export {
   cleanDomain, slugUnderPlatform, cleanPortalName, isReservedName,

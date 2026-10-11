@@ -57,6 +57,8 @@ export interface ChurchProfile {
   /** R1.1. Where somebody reading a public page writes to. */
   email: string | null;
   website: string | null;
+  /** R9.5. Where the church's website is built, once it has told us. */
+  siteBuilder: string | null;
   brandHue: string;
   logoKey: string | null;
   /** R1.7. Null when the church has switched joining off. */
@@ -122,7 +124,8 @@ export async function getChurch(
       timezone: tenants.timezone, addressLine1: tenants.addressLine1,
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
-      website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
+      website: tenants.website, siteBuilder: tenants.siteBuilder,
+      brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
       customDomain: tenants.customDomain, portalName: tenants.portalName,
       portalOpen: tenants.portalOpen,
@@ -226,7 +229,8 @@ export async function updateChurch(
       timezone: tenants.timezone, addressLine1: tenants.addressLine1,
       addressLine2: tenants.addressLine2, city: tenants.city, region: tenants.region,
       postalCode: tenants.postalCode, country: tenants.country, phone: tenants.phone, email: tenants.email,
-      website: tenants.website, brandHue: tenants.brandHue, logoKey: tenants.logoKey,
+      website: tenants.website, siteBuilder: tenants.siteBuilder,
+      brandHue: tenants.brandHue, logoKey: tenants.logoKey,
       selfSignup: tenants.selfSignup, statementsBy: tenants.statementsBy,
       customDomain: tenants.customDomain, portalName: tenants.portalName,
       portalOpen: tenants.portalOpen,

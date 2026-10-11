@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
-import { withTenant, getChurch, canManageChurch } from "@connectapp/db";
-import { slugUnderPlatform } from "@connectapp/db/rules";
+import { withTenant, getChurch, canManageChurch, readDomain, dnsResolver } from "@connectapp/db";
+import { slugUnderPlatform, builderFromNameservers } from "@connectapp/db/rules";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
@@ -74,6 +74,19 @@ export default async function WebsitePage({
     publicLink(session.tenantSlug, "join"),
   ]);
 
+  /*
+   * R9.5. A guess at where the site is built, for a church that has not said.
+   * Only some nameservers name a builder, and the common case, a name bought
+   * at a registrar and a site built somewhere else, names none. Read only
+   * when there is something to read and nothing already answered.
+   */
+  const guessed =
+    profile?.siteBuilder || !profile?.website
+      ? null
+      : builderFromNameservers(
+          (await readDomain(profile.website, dnsResolver()))?.nameservers ?? [],
+        );
+
   return (
     <>
       <SettingsHeading title="settings.tab.website" lede="settings.lede.website" />
@@ -106,6 +119,8 @@ export default async function WebsitePage({
             groups={groups}
             groupsFrame={groupsFrame}
             join={join}
+            builder={profile?.siteBuilder ?? null}
+            guessed={guessed}
           />
         </section>
       </div>
