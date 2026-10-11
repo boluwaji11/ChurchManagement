@@ -183,13 +183,7 @@ export function CreateChurchForm() {
           ask again reads this instead. A church with no site leaves it
           empty and is offered one later. */}
       <Field label={t("createChurch.website")}>
-        <Input
-          name="website"
-          type="url"
-          inputMode="url"
-          autoComplete="url"
-          placeholder={t("createChurch.websiteExample")}
-        />
+        <Input name="website" type="url" inputMode="url" autoComplete="url" />
       </Field>
 
       <Field label={t("createChurch.timezone")}>

@@ -96,7 +96,6 @@ function MagicLinkForm({ next, email }: { next?: string; email?: string }) {
           type="email"
           autoComplete="email"
           defaultValue={email}
-          placeholder={t("signIn.emailPlaceholder")}
           className={AUTH_INPUT}
         />
       </Field>
@@ -126,7 +125,6 @@ function PasswordForm({ next, email }: { next?: string; email?: string }) {
           type="email"
           autoComplete="email"
           defaultValue={email}
-          placeholder={t("signIn.emailPlaceholder")}
           className={AUTH_INPUT}
         />
       </Field>

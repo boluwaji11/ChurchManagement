@@ -30,7 +30,6 @@ export function ForgotForm() {
           autoFocus
           value={address}
           onChange={(event) => setAddress(event.target.value)}
-          placeholder={t("signIn.emailPlaceholder")}
           className={AUTH_INPUT}
         />
       </Field>
