@@ -57,9 +57,6 @@ export default async function DomainPage() {
         <Banner tone="danger">{t("domain.error.notADomain")}</Banner>
       ) : (
         <>
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">
-            <code className="font-mono text-fg">{found.domain}</code>
-          </p>
           {/* R22.2. The plan belongs to the screen that can act on it. */}
           <DomainReading
             found={found}

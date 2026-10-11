@@ -119,6 +119,11 @@ export function DomainReading({
         </Banner>
       ))}
 
+      {/* The name itself, under anything wrong with it. Whoever opened this
+          screen already knows which church they are in; what they are checking
+          is which address we read. */}
+      <p className="m-0 font-mono text-[length:var(--d-text-body)] text-fg">{found.domain}</p>
+
       <section className="flex flex-col gap-1">
         <h3 className="font-display text-[17px] leading-6 text-fg">{t("domain.reading")}</h3>
 
