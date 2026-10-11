@@ -948,9 +948,20 @@ question. GitHub's shape is the right one to borrow:
   because a church that cannot get its records out is a church we have locked
   in.
 
-None of that is built. The open questions are who may end a church, how long
-its records are held afterwards, and what happens to giving history, which a
-treasurer needs in January whatever the church decided in August.
+Settled, October 2026:
+
+- **Closing a church outright goes through us.** The product does not offer a
+  button for it. A church that wants to end asks the ConnectApp team, which
+  makes it a conversation with a person rather than a press somebody regrets
+  on a Friday night. A member leaving and an owner closing their own account
+  are still self-serve.
+- **Records are held for a year** after a church ends, and the export is
+  offered before anything is held rather than after.
+- **Giving history is held for a year** on the same clock, because a treasurer
+  needs January's statements whatever the church decided in August.
+
+What is still open: how a church with no reachable owner is handed on, and
+what the person asking us to close one has to show to prove they may.
 
 ## Where the domain reading belongs, October 2026
 
