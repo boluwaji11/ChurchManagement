@@ -1,26 +1,31 @@
 "use client";
 
 import * as React from "react";
-import { Spinner } from "@connectapp/ui";
+import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { AUTH_BUTTON } from "../../auth-chrome";
 import { join } from "./actions";
 
 /**
- * Signing in was the decision. This is what follows from it.
+ * R1.7. Joining a church is a press.
  *
- * A church points somebody at its own address and they sign up. Asking them to
- * press one more button afterwards, on a screen they only reached by pressing
- * the first one, is a step that answers nothing. The write still happens in an
- * action rather than on the page load.
+ * It used to run on mount, on the reasoning that signing in was already the
+ * decision. That holds only for somebody who came through this screen's own
+ * sign-in link. Anybody already signed in who opens the address, follows a
+ * link to it, or whose browser reaches it ahead of them, never made that
+ * decision, and the page wrote them into a church's records anyway.
  */
-export function JoinNow({ church }: { church: string }) {
-  const started = React.useRef(false);
+export function JoinNow({ church, name }: { church: string; name: string }) {
+  const [going, start] = React.useTransition();
 
-  React.useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-    void join(church);
-  }, [church]);
-
-  return <Spinner label={t("join.action")} className="self-center" />;
+  return (
+    <Button
+      full
+      className={AUTH_BUTTON}
+      loading={going}
+      onClick={() => start(() => join(church))}
+    >
+      {t("signUp.atChurch", { name })}
+    </Button>
+  );
 }

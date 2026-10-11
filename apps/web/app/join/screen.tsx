@@ -103,7 +103,7 @@ export async function JoinScreen({
       {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {user ? (
-        <JoinNow church={church.slug} />
+        <JoinNow church={church.slug} name={church.name} />
       ) : (
         <div className="flex flex-col gap-3">
           <Button asChild full className={AUTH_BUTTON}>
