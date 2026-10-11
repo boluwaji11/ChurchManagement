@@ -15,6 +15,7 @@ import { personForUser } from "../src/repo/scope";
 import { PermissionError } from "../src/roles";
 import type { TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
+import { HAS_ACCOUNTS } from "./supabase-only";
 
 let tenant: string;
 let other: string;
@@ -77,7 +78,7 @@ describe("the door", () => {
   });
 });
 
-describe("an address the church already holds", () => {
+describe.skipIf(!HAS_ACCOUNTS)("an address the church already holds", () => {
   it("claims that record and is a member in one step", async () => {
     const person = await makePerson("Maria");
     await addEmail(person, "Maria@Jointest.invalid");
@@ -106,7 +107,7 @@ describe("an address the church already holds", () => {
   });
 });
 
-describe("an address the church does not hold", () => {
+describe.skipIf(!HAS_ACCOUNTS)("an address the church does not hold", () => {
   it("still joins, on a visitor record written there and then", async () => {
     const outcome = await joinChurch({
       slug: SLUG,
@@ -145,7 +146,7 @@ describe("an address the church does not hold", () => {
   });
 });
 
-describe("what the door can never do", () => {
+describe.skipIf(!HAS_ACCOUNTS)("what the door can never do", () => {
   it("does not claim a child's record", async () => {
     const child = await makePerson("Toby", { dateOfBirth: "2016-04-02" });
     await addEmail(child, "toby@jointest.invalid");

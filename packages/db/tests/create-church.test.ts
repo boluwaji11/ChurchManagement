@@ -13,6 +13,7 @@ import { createChurch, slugify, RESERVED_SLUGS, membershipsForUser } from "../sr
 import { deleteTenants, deleteTenantsLike, withAuditTriggersOff } from "../src/maintenance";
 import { createPerson, listPeople } from "../src/repo/members";
 import { InvalidInputError } from "../src/errors";
+import { HAS_ACCOUNTS } from "./supabase-only";
 
 const PREFIX = "hrt32";
 
@@ -41,7 +42,7 @@ afterAll(async () => {
   await closeConnections();
 });
 
-describe("slugs", () => {
+describe.skipIf(!HAS_ACCOUNTS)("slugs", () => {
   it("reduces a name to something that belongs in a URL", () => {
     expect(slugify("St. Mark's Riverside")).toBe("st-marks-riverside");
     expect(slugify("  Grace   Community  ")).toBe("grace-community");
@@ -79,7 +80,7 @@ describe("slugs", () => {
   });
 });
 
-describe("what gets created", () => {
+describe.skipIf(!HAS_ACCOUNTS)("what gets created", () => {
   it("makes the church, a primary campus, and the caller as owner, together", async () => {
     const user = newcomer("full");
     const church = await createChurch({
@@ -147,7 +148,7 @@ describe("what is refused", () => {
   });
 });
 
-describe("a new church is isolated from the first moment", () => {
+describe.skipIf(!HAS_ACCOUNTS)("a new church is isolated from the first moment", () => {
   it("cannot see the seeded church, and the seeded church cannot see it", async () => {
     const user = newcomer("isolated");
     const church = await createChurch({ name: `${PREFIX} Isolated`, timezone: "America/Chicago", user });

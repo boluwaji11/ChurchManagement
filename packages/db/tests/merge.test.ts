@@ -20,6 +20,7 @@ import { enterPipeline, addTask, peopleIn, listPipelines } from "../src/repo/fol
 import { createNote, countNotes } from "../src/repo/notes";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { InvalidInputError } from "../src/errors";
+import { HAS_ACCOUNTS } from "./supabase-only";
 
 let riverside: string;
 const SUR = "Mergetest";
@@ -462,7 +463,7 @@ describe("what a merge takes with it (R2.8)", () => {
     expect(roster.map((m) => m.memberId)).toContain(winner.id);
   });
 
-  it("moves an open pipeline entry and the tasks written about them", async () => {
+  it.skipIf(!HAS_ACCOUNTS)("moves an open pipeline entry and the tasks written about them", async () => {
     const winner = await make("Dee");
     const loser = await make("Deedee");
     const [pipeline] = await run(riverside, "owner", (tx) => listPipelines(tx));

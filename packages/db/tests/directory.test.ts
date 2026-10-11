@@ -11,6 +11,7 @@ import { listPeople, countPeople, createPerson, bulkSetArchived, bulkSetStatus }
 import { createTag, bulkSetPersonTag, setPersonTag } from "../src/repo/tags";
 import { listTagsForPerson } from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
+import { HAS_ACCOUNTS } from "./supabase-only";
 
 let riverside: string;
 let northgate: string;
@@ -226,7 +227,7 @@ describe("acting on a selection (R2.12)", () => {
   });
 });
 
-describe("pages", () => {
+describe.skipIf(!HAS_ACCOUNTS)("pages", () => {
   beforeAll(async () => {
     // Enough to need more than one page of fifty.
     for (let i = 0; i < 12; i++) {
