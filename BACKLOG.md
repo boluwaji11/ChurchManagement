@@ -965,8 +965,10 @@ Settled, October 2026:
   email, the church is locked out of its own records and no screen it can
   reach will fix that. It is a conversation with us, like closing.
 
-What is left is the shape of the asking: where somebody writes to, and what we
-do at our end once they have.
+- **support@connectapp.church** is where somebody writes, for both.
+- **We act in the admin portal**, which already exists for the platform's own
+  work. Ending a church is a platform act rather than a church one, which is
+  the whole reason the product has no button for it.
 
 ## Where the domain reading belongs, October 2026
 
