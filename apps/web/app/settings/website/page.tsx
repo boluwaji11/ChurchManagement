@@ -67,10 +67,11 @@ export default async function WebsitePage({
 
   /* R9.5, R17.1. Built on the server through the one helper, so what a church
      pastes into its own site and what the route answers on cannot disagree. */
-  const [giving, groups, groupsFrame] = await Promise.all([
+  const [giving, groups, groupsFrame, join] = await Promise.all([
     publicLink(session.tenantSlug, "give"),
     publicLink(session.tenantSlug, "g"),
     publicLink(session.tenantSlug, "g", "/embed"),
+    publicLink(session.tenantSlug, "join"),
   ]);
 
   return (
@@ -94,8 +95,19 @@ export default async function WebsitePage({
           canEdit={canManageChurch(session)}
         />
 
-        {/* R9.5, R13.5. What goes on the site the church already has. */}
-        <OnYourSite giving={giving} groups={groups} groupsFrame={groupsFrame} />
+        {/* R9.5, R13.5. What goes on the site the church already has, behind
+            a rule, because the two columns answer different questions. */}
+        <section className="flex flex-col gap-4 lg:border-l lg:border-line lg:pl-8">
+          <h3 className="m-0 font-display text-[17px] leading-6 text-fg">
+            {t("site.onYourSite")}
+          </h3>
+          <OnYourSite
+            giving={giving}
+            groups={groups}
+            groupsFrame={groupsFrame}
+            join={join}
+          />
+        </section>
       </div>
     </>
   );
