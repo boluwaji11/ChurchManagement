@@ -77,10 +77,11 @@ export default async function WebsitePage({
     <>
       <SettingsHeading title="settings.tab.website" lede="settings.lede.website" />
 
-      {/* R24.6. The address and the member's door stand together, because the
-          door is the address with a path on it. The finder's snippet is wide
-          and takes the row under them. */}
-      <div className="grid max-w-[1120px] items-start gap-5">
+      {/* R24.6. The address on the left, what goes on the church's own site
+          on the right. One column is about where members reach ConnectApp,
+          the other is about what the church hands to its own visitors, and
+          stacking them put the second where nobody scrolled. */}
+      <div className="grid max-w-[1120px] items-start gap-5 lg:grid-cols-2">
         <PortalAddress
           church={session.tenantSlug}
           slug={session.tenantSlug}

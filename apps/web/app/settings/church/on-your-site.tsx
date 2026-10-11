@@ -80,7 +80,7 @@ export function OnYourSite({
     + `style="border:0" loading="lazy"></iframe>`;
 
   return (
-    <div className="grid items-start gap-4 lg:grid-cols-2">
+    <div className="flex flex-col gap-5">
       <Card className="flex flex-col gap-4">
         <Head icon={<HandHeart />} title={t("site.give.title")} />
         <Separator />
