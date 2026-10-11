@@ -94,20 +94,20 @@ function Choice({
       onClick={onPick}
       aria-pressed={chosen}
       className={cn(
-        "flex w-full items-center gap-3 rounded-[12px] border p-3 text-left transition-colors",
+        "flex w-full items-center gap-3 rounded-[10px] border px-3 py-2.5 text-left transition-colors",
         chosen ? "border-primary bg-primary-soft" : "border-line bg-surface hover:border-line-strong",
       )}
     >
       <span
         aria-hidden
-        className="grid size-9 shrink-0 place-items-center rounded-lg [&_svg]:size-4"
+        className="grid size-8 shrink-0 place-items-center rounded-lg [&_svg]:size-[15px]"
         style={{ background: "var(--hue-indigo-tint)", color: "var(--hue-indigo-key)" }}
       >
         {icon}
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-heading text-fg">{title}</span>
-        <span className="text-[13px] leading-5 text-fg-muted">{says}</span>
+        <span className="text-[length:var(--d-text-body)] font-medium leading-5 text-fg">{title}</span>
+        <span className="text-[12px] leading-4 text-fg-subtle">{says}</span>
       </span>
       {chosen ? <Check className="size-[18px] shrink-0 text-primary" aria-hidden /> : null}
     </button>
@@ -262,23 +262,25 @@ export function OnYourSite({
         ) : null}
       </div>
 
-      {/* Pinned, so the way on sits in the same place at every step. */}
-      <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
-        <Button
-          type="button"
-          variant="ghost"
-          disabled={step === 1}
-          onClick={() => setStep(step === 3 && !pastes ? 1 : step - 1)}
-        >
-          <ArrowLeft /> {t("action.back")}
-        </Button>
-
-        {step === 2 ? (
-          <Button type="button" disabled={!built} onClick={() => setStep(3)}>
-            {t("action.next")} <ArrowRight />
+      {/* Pinned, so the way on sits in the same place at every step. The
+          first step has nothing behind it, so it carries no bar at all. */}
+      {step > 1 ? (
+        <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setStep(step === 3 && !pastes ? 1 : step - 1)}
+          >
+            <ArrowLeft /> {t("action.back")}
           </Button>
-        ) : null}
-      </div>
+
+          {step === 2 ? (
+            <Button type="button" disabled={!built} onClick={() => setStep(3)}>
+              {t("action.next")} <ArrowRight />
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
