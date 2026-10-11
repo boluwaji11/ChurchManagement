@@ -8,6 +8,8 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t, countryList } from "@connectapp/i18n";
+/* Pure, and built to be served to a browser: no driver comes with it. */
+import { bareDomain } from "@connectapp/db/rules";
 import { createChurchAccount } from "./actions";
 
 /**
@@ -228,7 +230,9 @@ export function CreateChurchForm() {
         ready={
           name.trim() !== ""
           && country !== ""
-          && (hasSite === "no" || (hasSite === "yes" && website.trim() !== ""))
+          /* The same rule the server keeps, so a web address that cannot be
+             saved is never offered a lit button. */
+          && (hasSite === "no" || (hasSite === "yes" && bareDomain(website) !== null))
         }
       />
     </form>
