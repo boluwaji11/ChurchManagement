@@ -194,7 +194,7 @@ export default async function CelebrationsPage({
         </div>
       </div>
 
-      {/* Two counts, each with its hue, the number in Fraunces at 40. */}
+      {/* Two counts, each with its hue, the number in IBM Plex Serif at 40. */}
       <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))]">
         {[
           { label: t("celebrations.birthdays"), n: birthdays.length, hue: "rose" },

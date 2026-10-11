@@ -12,6 +12,19 @@ import { saveSiteBuilder } from "./domain-actions";
 
 type Part = "giving" | "groups" | "join";
 
+/*
+ * Alphabetical by the name on screen, because somebody looking for Squarespace
+ * reads down the list rather than guessing our order. The two that are not
+ * products sit at the end, where a reader lands after not finding theirs.
+ */
+const LAST = ["code", "other"];
+const BUILDERS = [
+  ...SITE_BUILDERS.filter((one) => !LAST.includes(one))
+    .slice()
+    .sort((a, b) => t(`builder.${a}` as never).localeCompare(t(`builder.${b}` as never))),
+  ...LAST,
+];
+
 const PARTS: { id: Part; icon: typeof Users }[] = [
   { id: "giving", icon: HandHeart },
   { id: "groups", icon: Users },
@@ -71,6 +84,27 @@ function Trail({
         );
       })}
     </ol>
+  );
+}
+
+/** One of the two ways to use a page, with what it is for above it. */
+function Use({
+  title,
+  says,
+  children,
+}: {
+  title: string;
+  says: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-1.5">
+      <h4 className="m-0 text-[length:var(--d-text-body)] font-medium leading-5 text-fg">
+        {title}
+      </h4>
+      <p className="m-0 text-[12px] leading-4 text-fg-subtle">{says}</p>
+      <div className="mt-1">{children}</div>
+    </section>
   );
 }
 
@@ -145,13 +179,20 @@ export function OnYourSite({
   builder: string | null;
   guessed: string | null;
 }) {
-  const [step, setStep] = React.useState(1);
+  const [at, setAt] = React.useState(1);
   const [part, setPart] = React.useState<Part | null>(null);
   const [built, setBuilt] = React.useState(builder ?? guessed ?? "");
   const [, start] = React.useTransition();
 
-  const pastes = part !== null && part !== "join";
-  const labels = [t("site.step.page"), t("site.step.site"), t("site.step.add")];
+  /*
+   * The door has nothing to paste anywhere, so it has two steps rather than
+   * three. Skipping the middle one of three looked like the screen had
+   * failed; a trail of two says there were only ever two.
+   */
+  const trail: ("page" | "site" | "add")[] =
+    part === "join" ? ["page", "add"] : ["page", "site", "add"];
+  const here = trail[at - 1] ?? "page";
+  const labels = trail.map((one) => t(`site.step.${one}` as never));
 
   const button =
     `<a href="${giving}" style="display:inline-block;padding:14px 28px;border-radius:9999px;`
@@ -171,16 +212,15 @@ export function OnYourSite({
 
   const pick = (id: Part) => {
     setPart(id);
-    /* The door has nothing to paste, so it skips the question about where. */
-    setStep(id === "join" ? 3 : 2);
+    setAt(2);
   };
 
   return (
     <div className="flex h-full flex-col gap-5">
-      <Trail labels={labels} at={step} onGo={setStep} />
+      <Trail labels={labels} at={at} onGo={setAt} />
 
       <div className="flex min-h-0 flex-1 flex-col gap-4">
-        {step === 1 ? (
+        {here === "page" ? (
           <div className="flex flex-col gap-2">
             {PARTS.map(({ id, icon: Mark }) => (
               <Choice
@@ -195,7 +235,7 @@ export function OnYourSite({
           </div>
         ) : null}
 
-        {step === 2 ? (
+        {here === "site" ? (
           <Field label={t("site.builder")}>
             <Select
               value={built}
@@ -208,7 +248,7 @@ export function OnYourSite({
                 <SelectValue placeholder={t("builder.unset")} />
               </SelectTrigger>
               <SelectContent>
-                {SITE_BUILDERS.map((one) => (
+                {BUILDERS.map((one) => (
                   <SelectItem key={one} value={one}>{t(`builder.${one}` as never)}</SelectItem>
                 ))}
               </SelectContent>
@@ -216,17 +256,31 @@ export function OnYourSite({
           </Field>
         ) : null}
 
-        {step === 3 ? (
-          <div className="flex flex-col gap-4">
-            <Copyable
-              label={t(`site.part.${part ?? "giving"}` as never)}
-              value={shown.link}
-              open={shown.link}
-            />
+        {here === "add" ? (
+          <div className="flex flex-col gap-5">
+            {shown.snippet ? (
+              <p className="m-0 text-[length:var(--d-text-body)] leading-6 text-fg-muted">
+                {t("site.use.intro")}
+              </p>
+            ) : null}
+
+            <Use
+              title={t("site.use.link")}
+              says={t(`site.link.${part ?? "giving"}` as never)}
+            >
+              <Copyable
+                label={t(`site.part.${part ?? "giving"}` as never)}
+                value={shown.link}
+                open={shown.link}
+              />
+            </Use>
 
             {shown.snippet ? (
               <>
-                <Field label={shown.snippetLabel!}>
+                <Use
+                  title={t("site.use.code")}
+                  says={t(`site.code.${part ?? "giving"}` as never)}
+                >
                   <Textarea
                     readOnly
                     rows={4}
@@ -234,7 +288,7 @@ export function OnYourSite({
                     onFocus={(e) => e.currentTarget.select()}
                     className="font-mono text-[12px]"
                   />
-                </Field>
+                </Use>
 
                 {built ? (
                   <section className="flex flex-col gap-2 rounded-[12px] border border-line bg-sunken p-4">
@@ -253,29 +307,25 @@ export function OnYourSite({
                   </section>
                 ) : null}
               </>
-            ) : (
-              <p className="m-0 text-[length:var(--d-text-body)] leading-6 text-fg-muted">
-                {t("site.join.linkOnly")}
-              </p>
-            )}
+            ) : null}
           </div>
         ) : null}
       </div>
 
       {/* Pinned, so the way on sits in the same place at every step. The
           first step has nothing behind it, so it carries no bar at all. */}
-      {step > 1 ? (
+      {at > 1 ? (
         <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
           <Button
             type="button"
             variant="ghost"
-            onClick={() => setStep(step === 3 && !pastes ? 1 : step - 1)}
+            onClick={() => setAt(at - 1)}
           >
             <ArrowLeft /> {t("action.back")}
           </Button>
 
-          {step === 2 ? (
-            <Button type="button" disabled={!built} onClick={() => setStep(3)}>
+          {here === "site" ? (
+            <Button type="button" variant="ghost" disabled={!built} onClick={() => setAt(3)}>
               {t("action.next")} <ArrowRight />
             </Button>
           ) : null}

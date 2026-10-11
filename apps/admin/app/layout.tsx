@@ -1,14 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import { TooltipProvider } from "@connectapp/ui";
 import "./globals.css";
 
-/** The same three faces the product is set in. */
-const display = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap" });
-const sans = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
+/** The same IBM Plex faces as the church-facing product. */
+const display = IBM_Plex_Serif({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "600"],
+  variable: "--font-ibm-plex-serif",
+  display: "swap",
+});
+const sans = IBM_Plex_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: "variable",
+  variable: "--font-ibm-plex-sans",
+  display: "swap",
+});
+const mono = IBM_Plex_Mono({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500"],
+  variable: "--font-ibm-plex-mono",
   display: "swap",
   preload: false,
 });

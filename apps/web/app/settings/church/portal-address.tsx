@@ -27,6 +27,7 @@ export function PortalAddress({
   origin,
   spanning,
   portalOpen,
+  approved,
   canEdit,
 }: {
   church: string;
@@ -48,6 +49,8 @@ export function PortalAddress({
   spanning: boolean;
   /** R17.1. Whether the address answers at all. */
   portalOpen: boolean;
+  /** R1.1. Whether the church has been approved for external access. */
+  approved: boolean;
   canEdit: boolean;
 }) {
   const [draft, setDraft] = React.useState(name ?? "");
@@ -56,7 +59,11 @@ export function PortalAddress({
   const [took, setTook] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string>();
   const [working, start] = React.useTransition();
-  const [live_, setLive] = React.useState(portalOpen);
+  const [live_, setLive] = React.useState(approved && portalOpen);
+
+  React.useEffect(() => {
+    setLive(approved && portalOpen);
+  }, [approved, portalOpen]);
 
   const live = taken ?? slug;
   const changed = draft.trim().toLowerCase() !== (taken ?? "");
@@ -209,8 +216,8 @@ export function PortalAddress({
           still getting ready, and staff still work at the main address. */}
       <label className="flex cursor-pointer items-center gap-3 rounded-lg bg-sunken px-3 py-2.5 text-[length:var(--d-text-body)] text-fg">
         <Switch
-          checked={live_}
-          disabled={working || !canEdit}
+          checked={approved && live_}
+          disabled={working || !canEdit || !approved}
           onCheckedChange={(on) => {
             setLive(on);
             start(async () => {

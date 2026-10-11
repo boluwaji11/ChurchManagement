@@ -567,9 +567,9 @@
   --color-shell-line: var(--shell-line);
 
   /* Faces. Display serif for hierarchy, sans for work, mono for codes read aloud. */
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", monospace;
+  --font-display: var(--font-ibm-plex-serif), "IBM Plex Serif", Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-ibm-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
 
   /* Type scale. Never lighter than 400 for body. */
   --text-display-lg: 2.75rem;

@@ -62,7 +62,7 @@ export default function Overview() {
         <div className="grid gap-3 sm:grid-cols-2">
           {[
             ["/design/colour", "Colour", "Ramps, the twelve-hue spectrum, semantic tokens, status."],
-            ["/design/type", "Type", "Fraunces, Inter, and a mono chosen so 0 and O cannot be confused."],
+            ["/design/type", "Type", "Current typography and side-by-side font-system previews."],
             ["/design/space", "Space and depth", "Scale, radius, elevation. A hairline does the work."],
             ["/design/icons", "Icons", "Lucide, one concept to one glyph, sized by density."],
             ["/design/motion", "Motion", "Durations, easings, and what we refuse to animate."],

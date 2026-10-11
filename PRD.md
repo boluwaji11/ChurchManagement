@@ -971,7 +971,7 @@ a PRD are here.
 | R24.4 | 0.2 | **Colour is assigned to things, not sprinkled on them.** Rooms, teams, group types, funds, ministries, and pipeline stages each own a hue, auto-assigned on creation for maximum separation and editable by the church. Everything else stays quiet: dashboard tiles are plain by default, and at most one in a row is tinted. |
 | R24.5 | 0.2 | **Check-in room colour prints on the child label** and tints the room card and the supervisor dashboard, so a volunteer can direct a parent by colour. Faster and more accurate than reading a room name. |
 | R24.6 | 1.0 | Master calendar, schedule grids, and all charts are colour-coded from the spectrum, with a categorical series keeping the same colour across every view of the same data. |
-| R24.7 | 0.1 | Type: a display serif (Fraunces) with a UI sans (Inter) and a mono for codes (JetBrains Mono), chosen because a volunteer reads a pickup code aloud and must not confuse 0 with O. Self-hosted, no layout shift. |
+| R24.7 | 0.1 | Type: IBM Plex Serif for display, IBM Plex Sans for the UI, and IBM Plex Mono for codes. A volunteer reads a pickup code aloud and must not confuse 0 with O. Self-hosted, no layout shift. |
 | R24.8 | 0.1 | **Body text never lighter than 400 weight.** Contrast minimums 4.5:1 body, 3:1 UI boundaries, and **7:1 on any station screen**. Verified in CI. |
 | R24.9 | 0.1 | **Colour is never the only signal.** Every status carries an icon or a label as well. |
 | R24.10 | 0.1 | **Dark mode is a first-class target**, not an inversion, including dark pairs for every spectrum hue. Tech booths and stage areas are dark on purpose. |

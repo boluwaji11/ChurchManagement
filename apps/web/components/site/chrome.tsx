@@ -29,11 +29,14 @@ export function SiteBar({
   home = "/",
   children,
   nameFrom,
+  topContent,
 }: {
   /** Where the mark goes. The website keeps the reader on the page. */
   home?: string;
   /** Whatever the page hangs on the right of the bar. */
   children?: React.ReactNode;
+  /** Content held above the bar while the page scrolls. */
+  topContent?: React.ReactNode;
   /**
    * The width the name appears at, on a bar carrying enough beside it that a
    * narrow phone has no room for both. The mark stands alone below it and the
@@ -43,6 +46,7 @@ export function SiteBar({
 }) {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--canvas)_88%,transparent)] backdrop-blur-[10px]">
+      {topContent}
       <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3 sm:gap-x-6">
         <Link
           href={home}
@@ -71,7 +75,23 @@ export function SiteBar({
  */
 export function SiteHeader() {
   return (
-    <SiteBar home="#top" nameFrom="480px">
+    <SiteBar
+      home="#top"
+      nameFrom="480px"
+      topContent={
+        <div className="border-b border-line bg-primary-soft px-6 py-2.5">
+          <div className="mx-auto flex min-h-11 max-w-[1200px] flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[15px] text-fg">
+            <span>{t("site.pilot.banner")}</span>
+            <Link
+              href={START}
+              className="inline-flex min-h-11 items-center rounded-md font-semibold text-primary underline underline-offset-4 hover:text-fg"
+            >
+              {t("site.pilot.join")}
+            </Link>
+          </div>
+        </div>
+      }
+    >
       {/* On a phone the sections take a line of their own under the mark and
           scroll sideways. Wrapped into the bar they broke into two ragged rows
           with a word hanging off the end of each. */}
@@ -113,7 +133,8 @@ const FOOT = [
   { href: "/trust", key: "site.foot.data" },
   { href: "https://github.com/boluwaji11/ChurchManagement", key: "site.foot.source" },
   { href: "https://github.com/boluwaji11/ChurchManagement/discussions", key: "site.foot.forum" },
-  { href: "https://github.com/sponsors/boluwaji11", key: "site.foot.donate" },
+  { href: "https://buy.stripe.com/dRmdR23AB9X2e7g6BV63K00", key: "site.foot.donate" },
+  { href: "mailto:support@connectapp.church", key: "site.foot.supportEmail" },
 ] as const;
 
 /** R21.12. The promises and the source, where somebody deciding can reach them. */
@@ -132,7 +153,11 @@ export function SiteFooter({ theme }: { theme?: Theme }) {
             <Link
               key={item.key}
               href={item.href}
-              className="flex min-h-11 items-center text-fg-muted no-underline hover:text-fg sm:min-h-0"
+              target={item.key === "site.foot.donate" ? "_blank" : undefined}
+              rel={item.key === "site.foot.donate" ? "noopener noreferrer" : undefined}
+              className={`flex min-h-11 items-center text-fg-muted hover:text-fg sm:min-h-0 ${
+                item.key === "site.foot.supportEmail" ? "underline underline-offset-4" : "no-underline"
+              }`}
             >
               {t(item.key)}
             </Link>

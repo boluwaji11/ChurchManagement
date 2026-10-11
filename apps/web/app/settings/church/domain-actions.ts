@@ -5,6 +5,7 @@ import {
   withTenant, setCustomDomain, setSelfSignup,
   canManageChurch, readDomain, dnsResolver, type DomainFindings,
   setPortalName, setPortalOpen, setSiteBuilder,
+  requireApproved,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -146,12 +147,14 @@ export async function openPortal(
         userId: session.userId,
         permissions: session.permissions,
       },
-      (tx) =>
-        setPortalOpen(
+      async (tx) => {
+        if (on) await requireApproved(tx, session.tenantId);
+        return setPortalOpen(
           tx,
           { tenantId: session.tenantId, role: session.role, userId: session.userId },
           on,
-        ),
+        );
+      },
     );
     revalidatePath("/settings/website");
     return {};

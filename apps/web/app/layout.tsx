@@ -2,20 +2,39 @@ import type { Metadata, Viewport } from "next";
 import { redirect } from "next/navigation";
 import { documentTheme } from "@/lib/theme";
 import { canonicalAddress } from "@/lib/church-address";
-import { Fraunces, Inter, JetBrains_Mono, Noto_Color_Emoji } from "next/font/google";
+import {
+  IBM_Plex_Mono,
+  IBM_Plex_Sans,
+  IBM_Plex_Serif,
+  Noto_Color_Emoji,
+} from "next/font/google";
 import { TooltipProvider } from "@connectapp/ui";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 /**
- * Display serif for hierarchy, sans for work, mono for codes a volunteer reads
- * aloud, chosen so 0 and O cannot be confused. Self-hosted, no layout shift.
+ * IBM Plex across display, UI and codes. Self-hosted, no layout shift.
  */
-const display = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap" });
-const sans = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-// Not used above the fold on most pages, so preloading it only earns a console
-// warning about an unused preload.
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap", preload: false });
+const display = IBM_Plex_Serif({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "600"],
+  variable: "--font-ibm-plex-serif",
+  display: "swap",
+});
+const sans = IBM_Plex_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: "variable",
+  variable: "--font-ibm-plex-sans",
+  display: "swap",
+});
+const mono = IBM_Plex_Mono({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500"],
+  variable: "--font-ibm-plex-mono",
+  display: "swap",
+  preload: false,
+});
 
 /**
  * R16.9. One set of emoji, whoever is reading.
@@ -25,7 +44,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", 
  * build, so the same thumbs up is three different pictures and two of them
  * date the product. Noto is flat, current, and the same on every screen.
  *
- * Only the characters that need it use it: the body text keeps Inter.
+ * Only the characters that need it use it: the body text keeps IBM Plex Sans.
  */
 const emoji = Noto_Color_Emoji({
   subsets: ["emoji"],
@@ -92,6 +111,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
          * is its own, and a visitor count is the most we take.
          */}
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
