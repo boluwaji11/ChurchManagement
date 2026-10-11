@@ -4,7 +4,7 @@ import * as React from "react";
 import { Check, Plus } from "lucide-react";
 import { Banner, Button } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
-import { FieldHint } from "@/components/field-hint";
+import { DomainHelp } from "./domain-help";
 import type { DomainFindings } from "@connectapp/db/rules";
 
 /**
@@ -127,7 +127,7 @@ export function DomainReading({
           <h3 className="m-0 font-display text-[17px] leading-6 text-fg">{t("domain.reading")}</h3>
           {/* R22.2. What the two mail rows are for. A church meets SPF and
               DMARC once, and the words for them are nobody's words. */}
-          <FieldHint about="domain.help" label={t("domain.help.label")} />
+          <DomainHelp found={found} />
         </div>
 
         <dl className="m-0 flex flex-col divide-y divide-line">
