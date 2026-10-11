@@ -3,7 +3,7 @@
 A design note, dated 9 October 2026. Nothing here is approved and nothing here is built. It exists
 so the decisions below are argued once and can be read again when the work is asked for.
 
-The source is a narrative of one church's first hour (Pastor Sarah, Grace Community), an
+The source is a narrative of one church's first hour (Pastor Sarah, Fairview Church), an
 architecture sketch, and a blueprint for verifying a sending domain. This note says which parts
 hold, which parts are wrong, and what the work would actually be.
 
@@ -107,12 +107,12 @@ domain. We leave it off, always.
 
 So the correct shape:
 
-- Register the **root** domain, `gracecommunity.org`.
+- Register the **root** domain, `fairviewchurch.org`.
 - DKIM TXT at the root, `resend._domainkey`.
 - Resend's SPF and return-path MX on `send.`, applied as Resend generates them.
 - Inbound stays off.
 
-The church then sends as `sarah@gracecommunity.org` with DKIM alignment, their Workspace inbox is
+The church then sends as `sarah@fairviewchurch.org` with DKIM alignment, their Workspace inbox is
 untouched, and DMARC passes on alignment at the root. The `mail.` subdomain in the narrative and the
 Reply-To header it needs both become unnecessary, because the From address is already the real one.
 

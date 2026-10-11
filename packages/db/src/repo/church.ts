@@ -27,8 +27,8 @@ import type { WriteActor } from "./members";
  *
  * Blank is an answer: plenty of churches have no site, and one of them is the
  * reason HRT-285 exists. Anything else has to be a domain, because every
- * screen downstream reads it as one, and gracecommunity.org,
- * www.gracecommunity.org and https://gracecommunity.org/about are the same
+ * screen downstream reads it as one, and fairviewchurch.org,
+ * www.fairviewchurch.org and https://fairviewchurch.org/about are the same
  * church three times over.
  */
 export function cleanWebsite(raw: string | null | undefined): string | null {

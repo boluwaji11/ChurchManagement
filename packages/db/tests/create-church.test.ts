@@ -50,8 +50,8 @@ describe.skipIf(!HAS_ACCOUNTS)("slugs", () => {
   });
 
   it("derives the slug from the name", async () => {
-    const church = await start("Grace Community");
-    expect(church.slug).toBe("hrt32-grace-community");
+    const church = await start("Fairview Church");
+    expect(church.slug).toBe("hrt32-fairview-church");
   });
 
   it("suffixes rather than colliding when the name is taken", async () => {
@@ -162,12 +162,12 @@ describe.skipIf(!HAS_ACCOUNTS)("the church's own website (R22.1, R22.2)", () => 
   };
 
   it("keeps what the church typed, as the bare domain", async () => {
-    expect(await site("gracecommunity.org")).toBe("gracecommunity.org");
+    expect(await site("fairviewchurch.org")).toBe("fairviewchurch.org");
   });
 
   it("reads one church out of three spellings of its address", async () => {
-    expect(await site("https://www.gracecommunity.org/about?x=1"))
-      .toBe("gracecommunity.org");
+    expect(await site("https://www.fairviewchurch.org/about?x=1"))
+      .toBe("fairviewchurch.org");
   });
 
   it("holds nothing for a church that has no site", async () => {

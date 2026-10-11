@@ -64,7 +64,7 @@ POST /api/stage/v1/devices
 201
 { "device_token": "<opaque, 64 bytes, base64url>",
   "device_id": "uuid",
-  "tenant": { "id": "uuid", "name": "Grace Community Church", "timezone": "America/Chicago" },
+  "tenant": { "id": "uuid", "name": "Fairview Church", "timezone": "America/Chicago" },
   "campus_id": "uuid | null" }
 ```
 

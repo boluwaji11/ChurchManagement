@@ -42,9 +42,9 @@ const answering = (answers: {
 
 describe("the name somebody typed", () => {
   it("takes a domain out of whatever was pasted in", () => {
-    expect(bareDomain("https://www.gracecommunity.org/giving")).toBe("gracecommunity.org");
-    expect(bareDomain("  GraceCommunity.ORG. ")).toBe("gracecommunity.org");
-    expect(bareDomain("gracecommunity.org")).toBe("gracecommunity.org");
+    expect(bareDomain("https://www.fairviewchurch.org/giving")).toBe("fairviewchurch.org");
+    expect(bareDomain("  FairviewChurch.ORG. ")).toBe("fairviewchurch.org");
+    expect(bareDomain("fairviewchurch.org")).toBe("fairviewchurch.org");
   });
 
   it("refuses what is not a domain", () => {
@@ -58,7 +58,7 @@ describe("naming what we found", () => {
   it("knows the mail hosts a church is actually on", () => {
     expect(mailProviderOf(["aspmx.l.google.com", "alt1.aspmx.l.google.com"]))
       .toBe("Google Workspace");
-    expect(mailProviderOf(["gracecommunity-org.mail.protection.outlook.com"]))
+    expect(mailProviderOf(["fairviewchurch-org.mail.protection.outlook.com"]))
       .toBe("Microsoft 365");
     expect(mailProviderOf(["mx.zoho.com"])).toBe("Zoho Mail");
     expect(mailProviderOf(["mail.someplace.co.uk"])).toBeNull();
@@ -91,12 +91,12 @@ describe("naming what we found", () => {
 
 describe("what we would add", () => {
   it("is three records, and the key goes at the root", () => {
-    const plan = plannedRecords("gracecommunity.org");
+    const plan = plannedRecords("fairviewchurch.org");
     expect(plan).toHaveLength(3);
 
     const dkim = plan.find((one) => one.purpose === "dkim")!;
     expect(dkim.type).toBe("TXT");
-    expect(dkim.host).toBe("resend._domainkey.gracecommunity.org");
+    expect(dkim.host).toBe("resend._domainkey.fairviewchurch.org");
   });
 
   /*
@@ -105,11 +105,11 @@ describe("what we would add", () => {
    * Google is never in the picture.
    */
   it("puts SPF and the return path on a subdomain, never at the root", () => {
-    const plan = plannedRecords("gracecommunity.org");
+    const plan = plannedRecords("fairviewchurch.org");
     for (const one of plan.filter((each) => each.purpose !== "dkim")) {
-      expect(one.host).toBe("send.gracecommunity.org");
+      expect(one.host).toBe("send.fairviewchurch.org");
     }
-    expect(plan.some((one) => one.type === "MX" && one.host === "gracecommunity.org"))
+    expect(plan.some((one) => one.type === "MX" && one.host === "fairviewchurch.org"))
       .toBe(false);
   });
 });
@@ -155,19 +155,19 @@ describe("reading a whole domain", () => {
       { exchange: "aspmx.l.google.com.", priority: 1 },
     ],
     txt: {
-      "gracecommunity.org": [
+      "fairviewchurch.org": [
         ["google-site-verification=abc123"],
         ["v=spf1 include:_spf.google.com ~all"],
       ],
-      "_dmarc.gracecommunity.org": [["v=DMARC1; p=reject; rua=mailto:d@gracecommunity.org"]],
+      "_dmarc.fairviewchurch.org": [["v=DMARC1; p=reject; rua=mailto:d@fairviewchurch.org"]],
     },
     ns: ["ns01.domaincontrol.com", "ns02.domaincontrol.com"],
   });
 
   it("names the provider, the registrar and the policy", async () => {
-    const found = (await readDomain("https://gracecommunity.org", grace))!;
+    const found = (await readDomain("https://fairviewchurch.org", grace))!;
 
-    expect(found.domain).toBe("gracecommunity.org");
+    expect(found.domain).toBe("fairviewchurch.org");
     expect(found.mailProvider).toBe("Google Workspace");
     expect(found.registrar).toBe("GoDaddy");
     expect(found.dmarc).toBe("reject");
@@ -175,12 +175,12 @@ describe("reading a whole domain", () => {
   });
 
   it("lists their mail hosts in the order mail actually tries them", async () => {
-    const found = (await readDomain("gracecommunity.org", grace))!;
+    const found = (await readDomain("fairviewchurch.org", grace))!;
     expect(found.mailHosts[0]).toBe("aspmx.l.google.com");
   });
 
   it("says their mail, their SPF and their policy are all left where they are", async () => {
-    const found = (await readDomain("gracecommunity.org", grace))!;
+    const found = (await readDomain("fairviewchurch.org", grace))!;
     expect(found.leaving).toEqual(["mx", "spf", "dmarc"]);
     expect(found.dkimTaken).toBe(false);
   });
@@ -190,10 +190,10 @@ describe("reading a whole domain", () => {
   it("joins a record that was published in pieces", async () => {
     const split = answering({
       txt: {
-        "gracecommunity.org": [["v=spf1 ", "include:_spf.google.com ~all"]],
+        "fairviewchurch.org": [["v=spf1 ", "include:_spf.google.com ~all"]],
       },
     });
-    const found = (await readDomain("gracecommunity.org", split))!;
+    const found = (await readDomain("fairviewchurch.org", split))!;
     expect(found.spf).toBe("v=spf1 include:_spf.google.com ~all");
   });
 

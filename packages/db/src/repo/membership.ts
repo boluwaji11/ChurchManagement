@@ -396,8 +396,8 @@ export async function createChurch(input: {
 }): Promise<{ tenantId: string; slug: string; name: string }> {
   const name = input.name.trim().replace(/\s+/g, " ");
   /*
-   * Stored as the bare domain, so gracecommunity.org, www.gracecommunity.org
-   * and https://gracecommunity.org/about are one answer rather than three.
+   * Stored as the bare domain, so fairviewchurch.org, www.fairviewchurch.org
+   * and https://fairviewchurch.org/about are one answer rather than three.
    * A church that typed something that is not a domain is told, because the
    * alternative is a field that looks accepted and silently holds nothing.
    */

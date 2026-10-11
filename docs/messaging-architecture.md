@@ -84,7 +84,7 @@ So:
 - SPF and the return-path MX on `send.`, exactly as Resend generates them.
 - Inbound off, always.
 
-The church then sends as `sarah@gracecommunity.org` with the signature aligned
+The church then sends as `sarah@fairviewchurch.org` with the signature aligned
 to the address a member reads, DMARC passes on that alignment, and their
 Workspace inbox is untouched. The `mail.` subdomain and the Reply-To header it
 needs are both unnecessary, because the From address is already the real one.

@@ -1606,7 +1606,7 @@ It asks for nothing. No email, no password, no account, and no Supabase setting 
 that starts with a sign-up form is a demo for the people who were going to sign up anyway.
 
 1. **Sign out.** On the landing page, press "See a demo" in the top right.
-2. **A church of your own arrives**, named Grace Community Church, with twenty-one people,
+2. **A church of your own arrives**, named Fairview Church, with twenty-one people,
    households, tags, milestones and relationships. It takes a few seconds to build, and the button
    says so while it works.
 3. **Every page says it is a demo**, in a strip above the header, with when it disappears and a way

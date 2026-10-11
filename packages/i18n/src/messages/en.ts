@@ -301,7 +301,7 @@ export const en = {
   "createChurch.name": "Church name",
   "createChurch.timezone": "Timezone",
   "createChurch.website": "Church website",
-  "createChurch.websiteExample": "e.g. gracecommunity.org",
+  "createChurch.websiteExample": "e.g. fairviewchurch.org",
   "createChurch.error.website": "That is not a web address.",
   "createChurch.submit": "Create it",
   "createChurch.working": "Building your church account",

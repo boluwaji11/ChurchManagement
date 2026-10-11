@@ -163,7 +163,7 @@ export function dmarcPolicy(txt: readonly string[]): string | null {
 /**
  * R22.2, R16.1. The three records a sending domain needs, and no others.
  *
- * The DKIM key goes at the root, so mail leaves as `sarah@gracecommunity.org`
+ * The DKIM key goes at the root, so mail leaves as `sarah@fairviewchurch.org`
  * with the signature aligned to the address a member reads. The SPF record and
  * the return path that carries bounces go on a `send.` subdomain of their own,
  * which is why the church's existing mail keeps working: their root MX, the one
