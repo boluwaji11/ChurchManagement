@@ -15,7 +15,7 @@ import { RichText } from "@/components/rich-text";
 import { AddressFields } from "@/components/address-fields";
 import { FormActions, useReportBusy } from "@/components/form-actions";
 import {
-  createEventFrom, saveEvent, clearEventCover, recolourEvent, useFormForEvent,
+  createEventFrom, saveEvent, clearEventCover, recolourEvent, attachEventForm,
 } from "./actions";
 
 export interface EventDraft {
@@ -326,7 +326,7 @@ export function EventEditor({
                   return;
                 }
                 startLinking(async () => {
-                  const result = await useFormForEvent(event.id, formId || null);
+                  const result = await attachEventForm(event.id, formId || null);
                   if (result.error) {
                     setError(result.error);
                   } else {

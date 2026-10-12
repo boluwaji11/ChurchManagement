@@ -20,7 +20,6 @@
         "^build"
       ]
     },
-    "lint": {},
     "tokens": {
       "outputs": [
         "src/tokens.css"

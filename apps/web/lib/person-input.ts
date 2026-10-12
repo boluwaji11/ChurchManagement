@@ -117,7 +117,7 @@ function phoneProblem(value: string | null): string | undefined {
   if (!value) return undefined;
   const digits = value.replace(/\D/g, "");
   if (digits.length < 7) return t("validate.phone.short");
-  if (!/^[\d\s()+.\-]+$/.test(value)) return t("validate.phone.characters");
+  if (!/^[\d\s()+.-]+$/.test(value)) return t("validate.phone.characters");
   return undefined;
 }
 

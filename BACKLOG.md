@@ -153,7 +153,8 @@ we do not. The reading that produced them is below the table.
 | HRT-334 | A record says how complete it is, and the directory says which are not | R2.1, R19.3 | New |
 | HRT-335 | The church's own activity feed, read from the log that already records it | R1.11, R18.1 | New |
 | HRT-336 | Sweep the dead ends: a link to nothing, two empty directories, components nothing renders | R24.18 | New |
-| HRT-337 | Lint in CI, with the rules of hooks enforced | R22.7, N7 | New |
+| HRT-337 | Lint in CI, with the rules of hooks enforced | R22.7, N7 | Resolved |
+| HRT-340 | Take out the church prop nothing reads | R24.18 | New |
 | HRT-338 | The church website builder: what a Path B church can actually build | R22.2, R24.15 | New |
 
 
@@ -179,6 +180,48 @@ Scope: an ESLint flat config at the root with `react-hooks` and
 `@next/eslint-plugin-next`, a `lint` script in each package so turbo has
 something to run, and a lint step in `ci.yml` beside typecheck. Fix whatever
 the first run turns up before it is wired in, so the step lands green.
+
+**What the first run found.** 1,002 problems, which came down to 131 once the
+config stopped reading things that are not this repo's source: Hearth Stage is
+checked out inside this directory and ignored by git, `out/` held its build
+output, `docs/redesign` holds drawings, and `no-undef` reported `console` 698
+times in files TypeScript already checks.
+
+Six `react-hooks/rules-of-hooks` errors were left, in four files. Two were a
+server action named `use` something, which the rule reads as a hook:
+`useFormForEvent` and `useTemplate` are now `attachEventForm` and
+`applyPlanTemplate`, which is what they do, and neither name misleads a reader
+into expecting a hook. The other four were the real thing, and two of them were
+live bugs nobody had reported:
+
+- **`components/pages.tsx`**, the paginator every list on the platform uses,
+  returned null for a single page and then called three hooks. A list growing
+  past one page while it was mounted, which is a filter cleared or a search
+  widened, changed the hook count and threw.
+- **`forms/[id]/responses.tsx`** returned the empty state and then called
+  `useId`, so a form taking its first response while somebody had it open threw.
+
+The lint runs as one pass over the repo rather than six through turbo, because
+the flat config already covers every package. The step is pinned with
+`--max-warnings 127`, the count on the day it landed, so the warnings cannot
+grow while the sweep in HRT-340 waits.
+
+## The church prop nothing reads, October 2026
+
+HRT-340. Wiring lint turned up 67 unused variables and about forty-five of them
+are one thing: a `church` prop destructured in a component and never read. It
+is threaded through screens across members, groups, events, forms, giving,
+reports, schedule, services, settings and the shell.
+
+Each one is harmless alone. Together they are a prop every new component copies
+because the one beside it has it, and a reader cannot tell which screens
+genuinely need the church and which inherited it.
+
+It is a sweep, not a design decision: take the prop off the component, take it
+off the call site, and let the typecheck find the rest. Its own story because
+forty-five files in the lint commit would hide the six hook fixes that commit
+is actually for. `no-unused-vars` is a warning until this lands, then it goes
+to error and the ratchet in `ci.yml` comes off.
 
 
 ## What a church can build with us, October 2026
@@ -560,7 +603,7 @@ and a design file does not move it.
 | HRT-26 | Background check status and expiry tracking | R2.10, R21.11 | Closed |
 | HRT-27 | Birthdays and anniversaries list, by month and week | R2.11 | Closed |
 | HRT-304 | Refresh the Members list with clear live/archive views and grouped secondary actions | R2.14, R24.6 | Closed |
-| HRT-305 | Open member records and the new-member form in a centered, sectioned window over the directory | R2.1, R2.4, R2.15, R24.6 | Active |
+| HRT-305 | Open member records and the new-member form in a centered, sectioned window over the directory | R2.1, R2.4, R2.15, R24.6 | Resolved |
 
 ### HRT-305, how to test it
 

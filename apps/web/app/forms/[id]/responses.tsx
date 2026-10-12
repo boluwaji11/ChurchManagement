@@ -138,13 +138,16 @@ export function Responses({
     router.push(`${pathname}?${query.toString()}`, { scroll: false });
   };
 
+  /* R24.6. Named, so turning a page brings the reader back to its head. Above
+     the empty return: a form that takes its first response while this is open
+     would otherwise call a hook on a render that called none. */
+  const anchor = React.useId();
+
   if (total === 0) return <Empty icon="inbox" title={t("form.responses.empty")}
           body={t("form.responses.empty.body")} />;
 
   const first = (page - 1) * perPage + 1;
   const upto = Math.min(page * perPage, total);
-  // R24.6. Named, so turning a page brings the reader back to its head.
-  const anchor = React.useId();
 
   return (
     <div id={anchor} className="flex scroll-mt-20 flex-col gap-4">

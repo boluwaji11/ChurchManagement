@@ -216,7 +216,7 @@ export async function dropTemplate(id: string): Promise<PlanResult> {
 }
 
 /** R11.8. Lays a saved shape onto the plan, after whatever is already there. */
-export async function useTemplate(
+export async function applyPlanTemplate(
   planId: string,
   templateId: string,
   ): Promise<PlanResult> {

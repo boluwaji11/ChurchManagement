@@ -190,7 +190,7 @@ export async function findEventContact(
  * left alone, because somebody halfway through writing a description did not
  * ask for it to be saved.
  */
-export async function useFormForEvent(
+export async function attachEventForm(
   eventId: string,
   formId: string | null,
   ): Promise<EventResult> {
