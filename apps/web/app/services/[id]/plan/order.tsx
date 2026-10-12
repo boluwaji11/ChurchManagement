@@ -21,7 +21,7 @@ import { useFormError } from "@/lib/form-error";
 import { Confirm } from "@/components/confirm";
 import {
   saveItem, dropItem, reorder, saveNote, dropNote, dropFile, fileLink,
-  keepAsTemplate, useTemplate, shapeOf,
+  keepAsTemplate, applyPlanTemplate, shapeOf,
 } from "./actions";
 import { dragShape } from "@/lib/drag-shadow";
 
@@ -947,7 +947,7 @@ function StartFrom({
                       template.id,
                       template.name,
                       { kind: "template", id: template.id },
-                      () => useTemplate(planId, template.id),
+                      () => applyPlanTemplate(planId, template.id),
                     ),
                 ),
               )

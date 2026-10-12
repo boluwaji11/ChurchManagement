@@ -32,7 +32,22 @@ export function Pages({
    */
   anchor?: string;
 }) {
-  if (last <= 1) return null;
+  /*
+   * R24.6. Every caller of this navigates, and a server-rendered page can
+   * take a moment, so the pager holds the press: the page being opened is
+   * marked and the whole row stops taking presses until it lands.
+   *
+   * Above the one-page return, because a list that grows past a single page
+   * while this is mounted (a filter cleared, a search widened) would otherwise
+   * call three hooks on a render that called none, and React throws.
+   */
+  const [going, setGoing] = React.useState<number>();
+  const [pending, start] = React.useTransition();
+
+  React.useEffect(() => {
+    if (pending) return;
+    setGoing(undefined);
+  }, [pending]);
 
   const tokens: Array<number | "gap"> = [];
   if (last <= 7) {
@@ -47,18 +62,7 @@ export function Pages({
     tokens.push(last);
   }
 
-  /*
-   * R24.6. Every caller of this navigates, and a server-rendered page can
-   * take a moment, so the pager holds the press: the page being opened is
-   * marked and the whole row stops taking presses until it lands.
-   */
-  const [going, setGoing] = React.useState<number>();
-  const [pending, start] = React.useTransition();
-
-  React.useEffect(() => {
-    if (pending) return;
-    setGoing(undefined);
-  }, [pending]);
+  if (last <= 1) return null;
 
   const go = (to: number) => {
     setGoing(to);
