@@ -123,7 +123,7 @@ The pass against the reference screens, October 2026. Phase A builds the vocabul
 B puts it in the shell, C applies it a screen at a time, D adds what the reference has and
 we do not. The reading that produced them is below the table.
 
-| HRT-307 | One page header: where you are, what the screen is, what it is for, and its one action | R24.6, R24.15 | New |
+| HRT-307 | One page header: where you are, what the screen is, what it is for, and its one action | R24.6, R24.15 | Resolved |
 | HRT-308 | One table: a row, a cell, sorting, selection and the empty case, instead of sixteen | R24.6, R24.15, R2.14 | New |
 | HRT-309 | A tab that carries its count, and one segmented control instead of five | R24.6, R24.15 | New |
 | HRT-310 | Pagination the reader controls, with how many a page as a choice rather than a constant | R24.6, R2.14 | New |
@@ -318,13 +318,26 @@ reasoning about how the router behaves were wrong until somebody pointed a brows
 
 ### HRT-307, how to test it
 
-Open any screen with a parent, such as a member record or a campaign. Confirm the trail
-above the title names the screens above it and each one is a link that works. Confirm the
-title is the screen's name and the line under it says what the screen is for. Confirm the
-screen's one action sits on the same row, right aligned, and that no screen shows two. Check
-a screen with no parent, such as Members, and confirm it shows a title with no trail rather
-than a trail of one. Check the three densities and both themes, and at phone width confirm
-the trail truncates from the left rather than wrapping to three lines.
+Phase A builds the piece and changes no screen a church sees, so this is tested in the
+gallery at `/design/components`, under "Page header". Three are drawn. Confirm the first
+shows a trail above its title, that each step before the last is a link and the last is
+not, and that the chevrons sit between them. Confirm the second, which has nothing above
+it, draws a title with no trail rather than a trail of one. Confirm the third draws a trail
+and a title and nothing else, with no empty row where a lede or an action would go. Check
+the three densities and both themes, and at phone width confirm the trail scrolls sideways
+with no scrollbar drawn rather than wrapping to three lines.
+
+The screens themselves adopt it in Phase C, one area per story, HRT-321 to HRT-332. It is
+not applied to any screen here on purpose: the group record, for one, already draws its
+name as a 36px line beside a banner, and rearranging that is HRT-322's work rather than a
+change smuggled into the component's own story.
+
+**What the survey undercounted.** The plan said three header mechanisms. There are five:
+`TopBar` draws an h1 in the chrome, `PageTitle` draws another on the page, `SettingsHeading`
+draws an h2 with its own lede and hairline, `BackLink` carries the way out of a record on
+its action row, and several records name themselves in their own content with a `div` rather
+than a heading, so the group record has no `h1` at all. `PageMeta` is a sixth if a line of
+data under the chrome counts. Phase C replaces all of them.
 
 ### HRT-308, how to test it
 

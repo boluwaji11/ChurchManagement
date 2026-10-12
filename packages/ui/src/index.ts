@@ -46,5 +46,6 @@ export { Banner, type BannerProps } from "./components/banner";
 export { CriticalBanner, CodeDisplay, OfflineBar, BlockingInterrupt } from "./components/station";
 export { StatTile } from "./components/stat-tile";
 export { EmptyState } from "./components/empty-state";
+export { PageHeader, type Crumb } from "./components/page-header";
 export { Table, Thead, Th, Tr, Td } from "./components/table";
 export { LIFT } from "./lib/lift";

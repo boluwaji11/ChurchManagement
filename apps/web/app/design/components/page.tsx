@@ -7,7 +7,7 @@ import {
   CardDescription, Separator, Skeleton, Spinner, Progress, Working, Checkbox, Switch, RadioGroup,
   RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Combobox, DatePicker, TimePicker, Tooltip,
   Dialog, DialogTrigger, DialogContent, DialogClose, Tabs, TabsList, TabsTrigger,
-  TabsContent, Banner, EmptyState, Table, Thead, Th, Tr, Td, HueTag, HUES,
+  TabsContent, Banner, EmptyState, PageHeader, Table, Thead, Th, Tr, Td, HueTag, HUES,
 } from "@connectapp/ui";
 import { check, email } from "@/lib/validate";
 import { PageTitle, Section, Row } from "@/components/section";
@@ -306,6 +306,41 @@ export default function Components() {
             ))}
           </tbody>
         </Table>
+      </Section>
+
+      <Section title="Page header" note="Where you are, what the screen is, what it is for, and its one action. Replaces three mechanisms: the title in the chrome, the title on the page, and screens that named themselves inside their own content.">
+        <div className="flex flex-col gap-8">
+          <div className="rounded-[14px] border border-line bg-surface p-6">
+            <PageHeader
+              trail={[
+                { label: "Members", href: "#" },
+                { label: "Households", href: "#" },
+                { label: "The Okonkwo household" },
+              ]}
+              title="The Okonkwo household"
+              lede="Four people, at one address, counted once for a mailing."
+              action={<Button><Plus /> Add a person</Button>}
+            />
+          </div>
+
+          {/* A screen with nothing above it draws no trail. A trail of one is
+              the screen naming itself twice. */}
+          <div className="rounded-[14px] border border-line bg-surface p-6">
+            <PageHeader
+              title="Members"
+              lede="Everyone this church keeps a record of."
+              action={<Button><Plus /> Add a member</Button>}
+            />
+          </div>
+
+          {/* No lede and no action: most screens inside a record. */}
+          <div className="rounded-[14px] border border-line bg-surface p-6">
+            <PageHeader
+              trail={[{ label: "Settings", href: "#" }, { label: "Rooms" }]}
+              title="Rooms"
+            />
+          </div>
+        </div>
       </Section>
 
       <Section title="Empty state" note="An illustration, not a grey icon and an apology. A church's first week should feel like an invitation.">

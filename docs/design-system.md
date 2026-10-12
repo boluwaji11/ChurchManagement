@@ -438,7 +438,7 @@ Explicitly refused, so the conversation happens once:
 | Toast-only error reporting | Toasts vanish. Errors must persist near their cause |
 | Hint text explaining what a field is for | A label and an error are enough. Hints make a short form look long |
 | The contrast construction: "X, never Y", "X, not Y", "Nothing is deleted" | A tic. Say the one true thing and stop |
-| Reassurance copy in banners and ledes | If the title says it, the sentence under it is padding |
+| Reassurance copy in banners | If the title says it, the sentence under it is padding. A screen header's one line saying what the screen is for is the exception, through `PageHeader` |
 | Spinners for long operations | Use skeletons, or a real progress indicator |
 | Scroll-triggered animation on functional screens | Delays work, breaks find-in-page |
 | Modal stacking | If a dialog opens a dialog, the flow is wrong |
