@@ -34,7 +34,6 @@ const summary = (lines: { minutes: number }[]) =>
  * lengths, which is what carries from one week to the next.
  */
 export function TemplateManager({
-  church,
   templates,
   taken,
   kinds,
@@ -111,19 +110,18 @@ export function TemplateManager({
           icon="calendar"
           title={t("planTpl.empty.title")}
           body={t("planTpl.empty.body")}
-          action={<TemplatePanel church={church} pending={pending} taken={taken} kinds={kinds} />}
+          action={<TemplatePanel pending={pending} taken={taken} kinds={kinds} />}
         />
       ) : (
         <>
           <div className="flex justify-end">
-            <TemplatePanel church={church} pending={pending} taken={taken} kinds={kinds} />
+            <TemplatePanel pending={pending} taken={taken} kinds={kinds} />
           </div>
 
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))]">
             {live.map((one) => (
               <TemplatePanel
                 key={one.id}
-                church={church}
                 pending={pending}
                 template={one}
                 taken={taken}
@@ -175,7 +173,6 @@ export function TemplateManager({
 
 /** R11.8. Writing a shape down, or changing one. */
 function TemplatePanel({
-  church,
   pending,
   template,
   taken = [],
@@ -183,7 +180,6 @@ function TemplatePanel({
   trigger,
   onArchive,
 }: {
-  church: string;
   pending: boolean;
   kinds: KindOption[];
   /** Given when an existing shape is being changed. */

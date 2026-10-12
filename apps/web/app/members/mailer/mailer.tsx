@@ -229,7 +229,6 @@ export function Mailer({
             href={fileHref}
             file={fileName}
             label={t("post.writing")}
-            title={t("post.writeFailed")}
             className="grid size-9 cursor-pointer place-items-center rounded-[var(--d-radius-control)] text-fg hover:bg-sunken [&_svg]:size-[18px]"
           >
             <DownloadIcon aria-hidden />

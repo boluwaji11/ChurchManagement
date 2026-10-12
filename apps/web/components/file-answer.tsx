@@ -31,14 +31,12 @@ export interface Attached {
  */
 export function FileAnswer({
   field,
-  churchSlug,
   formSlug,
   value,
   onChange,
   onAttached,
 }: {
   field: FormFieldDef;
-  churchSlug: string;
   formSlug: string;
   value: string[];
   onChange: (keys: string[]) => void;

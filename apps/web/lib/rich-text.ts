@@ -33,14 +33,14 @@ function marked(text: string, wrap: string): string {
 export function htmlToMarkdown(root: Node): string {
   const out: string[] = [];
 
-  const walk = (node: Node, inList: null | "ul" | "ol", index = 0): string => {
+  const walk = (node: Node, inList: null | "ul" | "ol"): string => {
     if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? "";
     if (node.nodeType !== Node.ELEMENT_NODE) return "";
 
     const el = node as HTMLElement;
     const kids = (list: null | "ul" | "ol" = inList) =>
       Array.from(el.childNodes)
-        .map((child, i) => walk(child, list, i))
+        .map((child) => walk(child, list))
         .join("");
 
     switch (el.tagName) {

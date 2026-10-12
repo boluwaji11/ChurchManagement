@@ -7,7 +7,7 @@
  * church's address.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { withTenant, owner, closeConnections, type Tx } from "../src/client";
+import { withTenant, closeConnections, type Tx } from "../src/client";
 import {
   slugUnderPlatform, cleanPortalName, isReservedName, portalNameFree, setPortalName,
   setPortalOpen, resolveTenantByHost,

@@ -102,7 +102,6 @@ export default async function WebsitePage({
           stacking them put the second where nobody scrolled. */}
       <div className="grid max-w-[1120px] items-start gap-5 lg:grid-cols-2">
         <PortalAddress
-          church={session.tenantSlug}
           slug={session.tenantSlug}
           name={profile?.portalName ?? null}
           host={platformHost}

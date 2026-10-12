@@ -85,16 +85,10 @@ export default tseslint.config(
       /* The CSV reader strips Excel's byte order mark by matching it, so the
          character is the point. Everywhere else an odd space is a mistake. */
       "no-irregular-whitespace": ["error", { skipRegExps: true }],
-      /*
-       * A warning, not an error, because the first run found 67 and about
-       * forty-five of them are one thing: a `church` prop destructured and
-       * never read, threaded through component after component. Taking it out
-       * is a sweep across forty-five files and its own story, HRT-340. Left as
-       * a warning the count stays visible and CI still goes green on what
-       * actually breaks a screen.
-       */
+      /* An error since HRT-340 took out the church prop nothing read. A name
+         bound and never used is either dead code or a mistake. */
       "@typescript-eslint/no-unused-vars": [
-        "warn",
+        "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrors: "none" },
       ],
     },

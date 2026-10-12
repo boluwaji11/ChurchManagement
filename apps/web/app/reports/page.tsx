@@ -234,7 +234,6 @@ export default async function ReportsPage({
 
       {cards.length > 0 ? (
         <SavedReports
-          church={session.tenantSlug}
           putAway={putAway}
           /* R18.x. Only somebody who runs the church shares one. */
           canShare={canManageChurch(session)}

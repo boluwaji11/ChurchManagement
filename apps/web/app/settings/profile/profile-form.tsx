@@ -56,7 +56,6 @@ export interface CampusChoice {
  * is corrected everywhere rather than in a copy only this screen knows about.
  */
 export function ProfileForm({
-  church,
   signedInAs,
   photoUrl,
   values,
@@ -64,7 +63,6 @@ export function ProfileForm({
   customValues = {},
   campuses,
 }: {
-  church: string;
   /** The address this person signs in with, which changes under Security. */
   signedInAs: string;
   photoUrl: string | null;
@@ -236,7 +234,7 @@ export function ProfileForm({
                 loading={removing}
                 onClick={() =>
                   startRemoving(async () => {
-                    const result = await clearPhoto(church);
+                    const result = await clearPhoto();
                     setError(result.error);
                     setDropping(false);
                     if (!result.error) {

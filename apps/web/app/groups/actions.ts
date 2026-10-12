@@ -221,7 +221,6 @@ export async function decide(
 /** R9.2. Takes the picture off a group, and out of the bucket. */
 export async function clearGroupPhoto(
   groupId: string,
-  church?: string,
 ): Promise<GroupResult> {
   const session = await requireSession();
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };

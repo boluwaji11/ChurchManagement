@@ -92,21 +92,15 @@ const KIND_HUE: Record<string, string> = {
 
 export function Order({
   church,
-  occurrenceId,
   planId,
   serviceStartsAt,
-  series,
-  theme,
   items,
   templates,
   kinds,
 }: {
   church: string;
-  occurrenceId: string;
   planId: string;
   serviceStartsAt: string;
-  series: string | null;
-  theme: string | null;
   items: OrderItem[];
   templates: OrderTemplate[];
   /** R11.2. The kinds this church files an item under, in its own words. */
@@ -203,7 +197,6 @@ export function Order({
           <GripVertical className="size-3.5" aria-hidden /> {t("order.dragHint")}
         </span>
         <StartFrom
-          church={church}
           planId={planId}
           templates={templates}
           kinds={kinds}
@@ -270,7 +263,6 @@ export function Order({
                     {/* R11.2. The item itself opens it. The three icons beside
                         it are the things that are not editing it. */}
                     <ItemDialog
-                      church={church}
                       planId={planId}
                       item={item}
                       kinds={kinds}
@@ -325,7 +317,7 @@ export function Order({
                             file={file}
                             pending={pending}
                             removing={doing === `file:${file.id}`}
-                            onRemove={() => run(`file:${file.id}`, () => dropFile(file.id, church))}
+                            onRemove={() => run(`file:${file.id}`, () => dropFile(file.id))}
                           />
                         ))}
 
@@ -388,7 +380,7 @@ export function Order({
                         )}
                       </IconButton>
                       <AttachButton itemId={item.id} />
-                      <NoteDialog church={church} itemId={item.id} />
+                      <NoteDialog itemId={item.id} />
                       {/* R24.x. The x takes the item off this plan, and asks
                           first. */}
                       <Confirm
@@ -429,7 +421,6 @@ export function Order({
  * appends to: a new item goes on the end.
  */
 export function AddItem({
-  church,
   planId,
   kinds,
 }: {
@@ -439,7 +430,6 @@ export function AddItem({
 }) {
   return (
     <ItemDialog
-      church={church}
       planId={planId}
       kinds={kinds}
       trigger={<Button><Plus /> {t("order.add")}</Button>}
@@ -448,13 +438,11 @@ export function AddItem({
 }
 
 function ItemDialog({
-  church,
   planId,
   item,
   kinds,
   trigger,
 }: {
-  church: string;
   planId: string;
   item?: OrderItem;
   kinds: KindOption[];
@@ -587,7 +575,7 @@ function ItemDialog({
  * The audience is the schedule rather than every team in the church, because a
  * note addressed to a position nobody is filling is a note nobody reads.
  */
-function NoteDialog({ church, itemId }: { church: string; itemId: string }) {
+function NoteDialog({ itemId }: { itemId: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [error, setError] = useFormError(open);
@@ -770,13 +758,11 @@ function AttachButton({ itemId }: { itemId: string }) {
 
 /** R11.8. One press to lay an earlier plan or a saved shape onto this one. */
 function StartFrom({
-  church,
   planId,
   templates,
   kinds,
   disabled,
 }: {
-  church: string;
   planId: string;
   templates: OrderTemplate[];
   kinds: KindOption[];

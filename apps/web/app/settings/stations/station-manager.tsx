@@ -35,11 +35,9 @@ export interface StationItem {
  * the same station.
  */
 export function StationManager({
-  church,
   stations,
   putAway,
 }: {
-  church: string;
   stations: StationItem[];
   /** R24.6. Whether this is the shelf of stations that have been put away. */
   putAway?: boolean;

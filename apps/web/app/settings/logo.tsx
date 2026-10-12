@@ -20,12 +20,10 @@ import { clearLogo } from "./actions";
  * a number that never moves is a number nobody should be reading.
  */
 export function ChurchLogo({
-  church,
   churchName,
   logoUrl,
   canEdit,
 }: {
-  church: string;
   churchName: string;
   logoUrl: string | null;
   canEdit: boolean;

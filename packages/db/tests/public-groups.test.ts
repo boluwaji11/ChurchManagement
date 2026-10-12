@@ -6,7 +6,6 @@
  * a church nobody has looked at yet, and anything that names a person.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { sql } from "drizzle-orm";
 import { withTenant, closeConnections, type Tx } from "../src/client";
 import { publicChurch, publicGroups, publicGroup } from "../src/repo/public-groups";
 import {

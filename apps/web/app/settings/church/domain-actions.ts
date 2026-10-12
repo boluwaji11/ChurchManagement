@@ -18,7 +18,7 @@ export interface DomainResult {
 }
 
 /** R1.1. The church's own address, set or cleared. */
-export async function saveDomain(domain: string, church?: string): Promise<DomainResult> {
+export async function saveDomain(domain: string): Promise<DomainResult> {
   try {
     const session = await requireSession();
     const saved = await withTenant(

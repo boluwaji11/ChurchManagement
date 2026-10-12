@@ -18,7 +18,6 @@ import { createPerson } from "../src/repo/members";
 import { attendanceForPerson } from "../src/repo/attendance";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
-import { withAuditTriggersOff } from "../src/maintenance";
 import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;

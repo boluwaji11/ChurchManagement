@@ -20,7 +20,6 @@ import { claimPortalName, openPortal } from "./domain-actions";
  * have to read "riverside" out from the front.
  */
 export function PortalAddress({
-  church,
   slug,
   name,
   host,
@@ -30,7 +29,6 @@ export function PortalAddress({
   approved,
   canEdit,
 }: {
-  church: string;
   /** The church's own slug, which answers until a name is chosen. */
   slug: string;
   /** The name the church chose, where it has. */

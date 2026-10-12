@@ -44,7 +44,6 @@ export interface DetailRequest {
  * happened, and a column of facts down the right.
  */
 export function GroupDetail({
-  church,
   groupId,
   groupName,
   canManage,
@@ -410,7 +409,6 @@ export function GroupDetail({
         {canRecord ? (
           <TabsContent value="attendance">
             <Register
-              church={church}
               groupId={groupId}
               meeting={meeting}
               attendees={attendees}
@@ -576,14 +574,12 @@ function MeetingList({
  * the work is naming who was missing. Four taps and a save.
  */
 function Register({
-  church,
   groupId,
   meeting: first,
   attendees: firstAttendees,
   date,
   days,
 }: {
-  church: string;
   groupId: string;
   meeting: Meeting | null;
   attendees: MeetingPerson[];

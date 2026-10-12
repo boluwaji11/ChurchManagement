@@ -184,7 +184,6 @@ export default async function GroupsPage({
 
   const finder = (
     <Finder
-        church={session.tenantSlug}
         from={type ? `?type=${encodeURIComponent(type)}` : ""}
         canManage={manage}
         putAway={putAway}

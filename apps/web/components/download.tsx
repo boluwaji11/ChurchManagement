@@ -17,7 +17,6 @@ export function Download({
   href,
   file,
   label,
-  title,
   name,
   className,
   children,
@@ -28,8 +27,6 @@ export function Download({
   file: string;
   /** What the panel says while the server works. */
   label: string;
-  /** What the banner is headed, where it fails. */
-  title: string;
   /** R24.11. What it is called, where the press carries a mark and no words. */
   name?: string;
   className?: string;

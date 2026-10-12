@@ -12,10 +12,8 @@ import { chooseStatementsBy } from "./actions";
  * rather than three screens away in a settings form.
  */
 export function StatementsBy({
-  church,
   by,
 }: {
-  church: string;
   by: "person" | "household";
 }) {
   const router = useRouter();

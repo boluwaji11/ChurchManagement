@@ -96,7 +96,7 @@ export default async function CampaignsPage({
             title={putAway ? t("campaigns.archived.none") : t("campaigns.none")}
             action={
               manage && !putAway ? (
-                <CampaignPanel church={session.tenantSlug} today={read.today} funds={funds} />
+                <CampaignPanel today={read.today} funds={funds} />
               ) : undefined
             }
           />
@@ -104,7 +104,7 @@ export default async function CampaignsPage({
           <>
             {manage && !putAway ? (
               <div className="flex justify-end">
-                <CampaignPanel church={session.tenantSlug} today={read.today} funds={funds} />
+                <CampaignPanel today={read.today} funds={funds} />
               </div>
             ) : null}
 

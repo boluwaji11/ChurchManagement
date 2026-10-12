@@ -65,7 +65,6 @@ export default async function StationsPage({
         lede={putAway ? undefined : "settings.lede.stations"}
       />
       <StationManager
-        church={session.tenantSlug}
         putAway={putAway}
         stations={stations.map((s) => ({
           id: s.id,

@@ -13,7 +13,7 @@ import {
   unnotifiedDecisions, markNotified,
 } from "../src/repo/group-finder";
 import {
-  createGroup, updateGroup, addToGroup, groupRoster, seedGroupTypes, listGroupTypes,
+  createGroup, addToGroup, groupRoster, seedGroupTypes, listGroupTypes,
   setGroupStatus,
 } from "../src/repo/groups";
 import { linkPersonToUser } from "../src/repo/scope";

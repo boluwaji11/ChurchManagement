@@ -7,7 +7,7 @@
  * and that a retired station cannot quietly go on being used.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { owner, withTenant, closeConnections, type Tx } from "../src/client";
+import { withTenant, closeConnections, type Tx } from "../src/client";
 import {
   addStation, updateStation, listStations, getStation, setStationArchived,
   claimStation, roomsForStation, canManageStations, STATION_MODES,

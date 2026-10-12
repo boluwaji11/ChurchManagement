@@ -21,14 +21,12 @@ import { useAnswered } from "@/components/form-actions";
  * so once, because that is a consequence somebody should know before they press.
  */
 export function FileReport({
-  church,
   today,
   members,
   rooms,
   services,
   trigger,
 }: {
-  church: string;
   today: string;
   members: { id: string; name: string }[];
   rooms: { id: string; name: string }[];

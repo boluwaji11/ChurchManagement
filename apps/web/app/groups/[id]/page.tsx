@@ -139,7 +139,7 @@ export default async function GroupPage({
   });
 
   if (!data) notFound();
-  const { group, meets, now, today, metOn, meeting, members, types, roster, requests, canRecord } = data;
+  const { group, meets, now, today, metOn, meeting, members, roster, requests, canRecord } = data;
 
   // R9.2. The bucket is private, so the picture is served through a link signed
   // for an hour. A leaked path is then a leak with an expiry.
@@ -261,7 +261,6 @@ export default async function GroupPage({
 
         {manage ? (
           <ManageGroup
-            types={types.map((type) => ({ id: type.id, name: type.name, hue: type.hue }))}
             group={{
               id: group.id,
               slug: group.slug,
@@ -331,7 +330,6 @@ export default async function GroupPage({
             beside the name. An upload box on the page a member reads is an
             invitation to edit a group while standing in it. */}
         <GroupBanner
-          church={session.tenantSlug}
           groupId={group.id}
           groupName={group.name}
           photoUrl={photoUrl}

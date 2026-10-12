@@ -28,13 +28,11 @@ const METHODS: GiftMethod[] = ["cash", "cheque", "card", "ach", "in_kind", "othe
  * was given was a piano rather than money (R13.13).
  */
 export function GiftPanel({
-  church,
   today,
   funds,
   batchId,
   trigger,
 }: {
-  church: string;
   today: string;
   funds: { id: string; name: string }[];
   /** Given when the gift is a line on a count. */

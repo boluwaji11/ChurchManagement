@@ -97,7 +97,7 @@ export function Review({
               two is one decision: which record survives. */}
           {two
             ? <PairCard key={`${two.a.id}:${two.b.id}`} church={church} pair={two} />
-            : <ClusterCard key={group.members.map((m) => m.id).join(":")} church={church} group={group} />}
+            : <ClusterCard key={group.members.map((m) => m.id).join(":")} group={group} />}
         </Deck>
       )}
 
@@ -349,7 +349,7 @@ function PairCard({ church, pair }: { church: string; pair: Pair }) {
  * card: choose which record survives, drop any that turn out to be somebody
  * else, and the rest move onto it in one press.
  */
-function ClusterCard({ church, group }: { church: string; group: Group }) {
+function ClusterCard({ group }: { group: Group }) {
   const router = useRouter();
   const [keep, setKeep] = React.useState(group.members[0]!.id);
   const [out, setOut] = React.useState<string[]>([]);

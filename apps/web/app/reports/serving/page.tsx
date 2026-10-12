@@ -108,7 +108,6 @@ export default async function ServingReport({
   return (
     <AppShell session={session} title={t("reports.title")} wide>
       <ReportFrame
-        church={session.tenantSlug}
         title={t("reports.serving.title")}
         window={window}
         path="serving"

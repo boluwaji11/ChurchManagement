@@ -143,7 +143,7 @@ export async function dropNote(id: string): Promise<PlanResult> {
  *
  * A file nothing points at is quota a church is paying for and cannot see.
  */
-export async function dropFile(id: string, church?: string): Promise<PlanResult> {
+export async function dropFile(id: string): Promise<PlanResult> {
   const { actor, ctx } = await context();
   try {
     const removed = await withTenant(ctx, (tx) => detachFromItem(tx, actor, id));

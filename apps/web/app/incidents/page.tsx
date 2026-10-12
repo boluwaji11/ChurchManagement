@@ -93,7 +93,6 @@ export default async function IncidentsPage({
 
   const filing = canCheckIn(session) ? (
     <FileReport
-      church={session.tenantSlug}
       today={today}
       members={members}
       rooms={rooms.map((r) => ({ id: r.id, name: r.name }))}
