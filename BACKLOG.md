@@ -182,15 +182,21 @@ and a design file does not move it.
 | HRT-26 | Background check status and expiry tracking | R2.10, R21.11 | Closed |
 | HRT-27 | Birthdays and anniversaries list, by month and week | R2.11 | Closed |
 | HRT-304 | Refresh the Members list with clear live/archive views and grouped secondary actions | R2.14, R24.6 | Resolved |
-| HRT-305 | Open member records and the new-member form in a sectioned panel over the directory | R2.1, R2.4, R2.15, R24.6 | Resolved |
+| HRT-305 | Open member records and the new-member form in a centered, sectioned window over the directory | R2.1, R2.4, R2.15, R24.6 | Active |
 
 ### HRT-305, how to test it
 
-Open Members and select a person. Their record opens in a panel above the still-visible directory,
-with sections in the left navigation and one section shown at a time. Move between sections, edit
-the record, and close the panel. Open Add a member and confirm the form uses the same panel and
-section navigation. Save both forms, check permissions and the unsaved-changes prompt, open a
-direct member URL to confirm it remains a page, and repeat at phone width.
+Open Members from a filtered or saved-list view and select a person. Their record opens in a centered
+window above the directory. Confirm Personal details opens first, its fields stay in that section,
+and the action toolbar stays at the top right as sections change. Check Address and contact,
+Household, Church history, Tags, Groups and Serving teams. Confirm first visit, membership date and
+campus sit in Church history. More appears last when the church has custom person fields, and its
+fields show in the record. Edit and add a member, then verify the same sections, tags, custom fields
+and pinned Save. Save each form and confirm the directory returns to the same filtered or saved-list
+view. Test permissions, the unsaved-changes prompt, direct member URLs, and phone width.
+
+This pass is implemented and awaits an authenticated visual check. Keep HRT-305 Active until that
+check is complete.
 
 ### HRT-304, how to test it
 
@@ -393,6 +399,7 @@ of money and after everything else.
 | HRT-293 | Closing an account, and handing a church to somebody else first | R1.4, R21.9 | New |
 | HRT-294 | The church's website, asked once at sign-up | R22.1, R22.2 | Resolved |
 | HRT-295 | The fork at sign-up: does the church have a website | R22.1, R22.2 | Resolved |
+| HRT-296 | What's on: the church's events, in public and in a frame | R14.2, R9.5 | Resolved |
 | HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | Resolved |
 | HRT-291 | The church's own domain: members.church.org and give.church.org, with the screen to set one up | R1.1, R22.2 | New |
 
@@ -1003,6 +1010,24 @@ churches that already have a site.
 Only Path A has a destination. A church that says no is recorded, and after
 approval the Website editor can publish its homepage. Sign-up records the
 answer without promising publication before approval.
+
+## What's on, in public, October 2026
+
+HRT-296. A church could publish an event and hand out its address, and that
+was all: there was no page saying what was coming up, so a church's own site
+could link to one event at a time and nothing else. Groups had that page from
+the start.
+
+`/e` on a church's own address, the same screen as `/g`, with `/e/embed` for
+the frame. Only what is still ahead, decided by the church's own date, so an
+event running today is still listed at eleven at night three timezones away.
+
+`/e/<one segment>` now carries two meanings decided by the host: an event on
+the church's address, the church's what's-on page on ours. The host is read
+before the segment, so the two can never collide. The same shape `/g/[slug]`
+has carried since the slug came out of the public paths.
+
+It is the fourth choice in the embedding flow.
 
 ## Leaving a church, and closing an account, October 2026
 

@@ -70,11 +70,13 @@ export default async function WebsitePage({
 
   /* R9.5, R17.1. Built on the server through the one helper, so what a church
      pastes into its own site and what the route answers on cannot disagree. */
-  const [giving, groups, groupsFrame, join] = await Promise.all([
+  const [giving, groups, groupsFrame, join, events, eventsFrame] = await Promise.all([
     publicLink(session.tenantSlug, "give"),
     publicLink(session.tenantSlug, "g"),
     publicLink(session.tenantSlug, "g", "/embed"),
     publicLink(session.tenantSlug, "join"),
+    publicLink(session.tenantSlug, "e"),
+    publicLink(session.tenantSlug, "e", "/embed"),
   ]);
 
   /*
@@ -127,6 +129,8 @@ export default async function WebsitePage({
               groups={groups}
               groupsFrame={groupsFrame}
               join={join}
+              events={events}
+              eventsFrame={eventsFrame}
               builder={profile?.siteBuilder ?? null}
               guessed={guessed}
             />

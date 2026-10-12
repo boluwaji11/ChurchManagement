@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowLeft, ArrowRight, Check, HandHeart, UserPlus, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, HandHeart, UserPlus, Users } from "lucide-react";
 import {
   Button, Field, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Textarea, cn,
 } from "@connectapp/ui";
@@ -10,7 +10,7 @@ import { SITE_BUILDERS } from "@connectapp/db/rules";
 import { Copyable } from "./copyable";
 import { saveSiteBuilder } from "./domain-actions";
 
-type Part = "giving" | "groups" | "join";
+type Part = "giving" | "groups" | "events" | "join";
 
 /*
  * Alphabetical by the name on screen, because somebody looking for Squarespace
@@ -28,6 +28,7 @@ const BUILDERS = [
 const PARTS: { id: Part; icon: typeof Users }[] = [
   { id: "giving", icon: HandHeart },
   { id: "groups", icon: Users },
+  { id: "events", icon: CalendarDays },
   { id: "join", icon: UserPlus },
 ];
 
@@ -169,6 +170,8 @@ export function OnYourSite({
   groups,
   groupsFrame,
   join,
+  events,
+  eventsFrame,
   builder,
   guessed,
 }: {
@@ -176,6 +179,8 @@ export function OnYourSite({
   groups: string;
   groupsFrame: string;
   join: string;
+  events: string;
+  eventsFrame: string;
   builder: string | null;
   guessed: string | null;
 }) {
@@ -199,16 +204,18 @@ export function OnYourSite({
     + `background:#1d1d2d;color:#ffffff;font:600 16px/1 system-ui,sans-serif;`
     + `text-decoration:none">${t("site.give.label")}</a>`;
 
-  const frame =
-    `<iframe src="${groupsFrame}" title="${t("nav.groups")}" width="100%" height="720" `
+  const framed = (src: string, title: string) =>
+    `<iframe src="${src}" title="${title}" width="100%" height="720" `
     + `style="border:0" loading="lazy"></iframe>`;
 
   const shown =
     part === "giving"
-      ? { link: giving, snippet: button, snippetLabel: t("site.give.snippet") }
+      ? { link: giving, snippet: button }
       : part === "groups"
-        ? { link: groups, snippet: frame, snippetLabel: t("site.snippet") }
-        : { link: join, snippet: undefined, snippetLabel: undefined };
+        ? { link: groups, snippet: framed(groupsFrame, t("nav.groups")) }
+        : part === "events"
+          ? { link: events, snippet: framed(eventsFrame, t("nav.events")) }
+          : { link: join, snippet: undefined };
 
   const pick = (id: Part) => {
     setPart(id);
