@@ -252,7 +252,7 @@ export function OnYourSite({
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder={t("builder.unset")} />
+                <SelectValue placeholder={t("common.chooseOne")} />
               </SelectTrigger>
               <SelectContent>
                 {BUILDERS.map((one) => (

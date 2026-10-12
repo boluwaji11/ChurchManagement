@@ -15,6 +15,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections } from "../src/client";
 import {
   createPerson, updatePerson, setPersonArchived, getPersonForEdit, listPeople, peopleToInvite,
+  anniversaryOf,
   type PersonInput,
 } from "../src/repo/members";
 import { PermissionError, type TenantRole } from "../src/roles";
@@ -130,6 +131,40 @@ describe("editing a person", () => {
     );
     expect(saved?.allergies).toBe("Peanuts");
     expect(saved?.medicalNote).toBe("EpiPen in bag");
+  });
+
+  /*
+   * R2.11. The wedding date lives as a marriage milestone rather than a column,
+   * so it is written through a second call and follows the same rule as the
+   * health details: a form that does not ask for it leaves it alone.
+   */
+  it("writes, keeps and clears the wedding date", async () => {
+    const id = await add(
+      riverside,
+      "owner",
+      draft({ firstName: "Esther", maritalStatus: "married", anniversary: "2011-06-18" }),
+    );
+
+    const read = () =>
+      withTenant({ tenantId: riverside, role: "owner" }, (tx) => anniversaryOf(tx, id));
+    expect(await read()).toBe("2011-06-18");
+
+    // A section that never showed the date must not take it away.
+    await withTenant({ tenantId: riverside, role: "owner" }, (tx) =>
+      updatePerson(tx, as(riverside, "owner"), id, draft({ firstName: "Esther" })),
+    );
+    expect(await read()).toBe("2011-06-18");
+
+    // Correcting it replaces the one milestone rather than adding a second.
+    await withTenant({ tenantId: riverside, role: "owner" }, (tx) =>
+      updatePerson(tx, as(riverside, "owner"), id, draft({ firstName: "Esther", anniversary: "2011-06-19" })),
+    );
+    expect(await read()).toBe("2011-06-19");
+
+    await withTenant({ tenantId: riverside, role: "owner" }, (tx) =>
+      updatePerson(tx, as(riverside, "owner"), id, draft({ firstName: "Esther", anniversary: null })),
+    );
+    expect(await read()).toBeNull();
   });
 
   it("removes a contact method when the field is cleared", async () => {

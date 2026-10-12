@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getPersonForEdit, listHouseholds, listCustomFields, getCustomValues,
   listTagsWithCounts, listTagsForPerson, listContacts, listAddresses, listCampuses, canEditPeople,
+  anniversaryOf,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { requireSession } from "@/lib/session";
@@ -51,7 +52,7 @@ async function renderEditPersonPage({
     const person = await getPersonForEdit(tx, id);
 
     // Eight reads that only ever needed the id, in one pass down the connection.
-    const [households, customFields, campuses, customValues, tags, assigned, contacts, places] =
+    const [households, customFields, campuses, customValues, tags, assigned, contacts, places, anniversary] =
       await Promise.all([
         listHouseholds(tx),
         listCustomFields(tx, "person"),
@@ -61,14 +62,15 @@ async function renderEditPersonPage({
         person ? listTagsForPerson(tx, person.id) : [],
         person ? listContacts(tx, person.id) : [],
         person ? listAddresses(tx, person.id) : [],
+        person ? anniversaryOf(tx, person.id) : null,
       ]);
 
-    return { person, households, customFields, campuses, customValues, tags, assigned, contacts, places };
+    return { person, households, customFields, campuses, customValues, tags, assigned, contacts, places, anniversary };
   });
 
   // Another church's person is reported exactly like a person who does not exist.
   if (!result.person) notFound();
-  const { person, households, customFields, customValues, tags, assigned, campuses, contacts, places } = result;
+  const { person, households, customFields, customValues, tags, assigned, campuses, contacts, places, anniversary } = result;
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
 
   const permitted = canEditPeople(session);
@@ -93,6 +95,7 @@ async function renderEditPersonPage({
             dateOfBirth: person.dateOfBirth,
             campusId: person.campusId,
             maritalStatus: person.maritalStatus,
+            anniversary,
             lifecycleStatus: person.lifecycleStatus,
             membershipDate: person.membershipDate,
             firstVisitOn: person.firstVisitOn,

@@ -85,7 +85,7 @@ export function SheetContent({
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-5 sm:px-6">
           {/* min-w-0 so a long title wraps inside the panel rather than
               pushing the close square off a phone's right edge. */}
-          <P.Title className="min-w-0 font-display text-[22px] break-words text-fg">{title}</P.Title>
+          <P.Title className="min-w-0 font-display text-[22px] font-normal break-words text-fg">{title}</P.Title>
           <div className="flex shrink-0 items-center gap-2">
             {actions}
             <P.Close
