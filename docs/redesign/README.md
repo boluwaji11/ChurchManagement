@@ -6,7 +6,8 @@ are leaving out, and where the two disagree about how somebody gets in.
 
 `handoff.md` is the designer's own brief, unedited. `tokens.md` is the colour table it shipped with.
 `screen-map.md` maps each design screen to the routes it was drawn from. `design/` holds the
-prototypes themselves.
+prototypes themselves. `plan.md` is how the work was broken up, and the argument behind the thirty
+stories it became: HRT-307 to HRT-336 in the F24 table in [BACKLOG.md](../../BACKLOG.md).
 
 ## Read the prototypes, do not port them
 
