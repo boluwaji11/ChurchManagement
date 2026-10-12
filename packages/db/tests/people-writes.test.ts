@@ -114,6 +114,24 @@ describe("editing a person", () => {
     expect(rows[0]!.value).toBe("(512) 555 0199");
   });
 
+  it("keeps health details when the form omits those fields", async () => {
+    const id = await add(
+      riverside,
+      "owner",
+      draft({ firstName: "Miriam", allergies: "Peanuts", medicalNote: "EpiPen in bag" }),
+    );
+
+    await withTenant({ tenantId: riverside, role: "owner" }, (tx) =>
+      updatePerson(tx, as(riverside, "owner"), id, draft({ firstName: "Miriam" })),
+    );
+
+    const saved = await withTenant({ tenantId: riverside, role: "owner" }, (tx) =>
+      getPersonForEdit(tx, id),
+    );
+    expect(saved?.allergies).toBe("Peanuts");
+    expect(saved?.medicalNote).toBe("EpiPen in bag");
+  });
+
   it("removes a contact method when the field is cleared", async () => {
     const id = await add(riverside, "owner", draft({ firstName: "Paula", email: "paula.writeperson@example.org" }));
 

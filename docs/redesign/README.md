@@ -201,10 +201,21 @@ menu. A duplicate count on More calls attention to pairs waiting for review. Exp
 direct, progress-aware action, and Add a member follows More as the primary action. The purple rail
 and other screens are unchanged while this page is reviewed.
 
-Selecting a member from the directory opens their record in a wide right-side panel, with the
-directory still visible behind it. A left-side section menu shows one part of the record at a time.
-Add and edit use the same panel treatment and keep their save action in the pinned footer. Direct
+Selecting a member from the directory opens their record in a centered window over the dimmed
+directory. The left-side menu opens Personal details first, then Address and contact, Church
+history, Household, Giving when permitted, Serving teams, Groups, Tags and More when custom person
+fields are configured. More is the final section. Each section uses plain content and a purple
+selected marker. Personal details stay in their own pane, and Edit, Add note and Message stay in a
+toolbar at the main pane's top right. Add and edit share the same field groups and keep Save in the
+pinned footer. Church history holds first visit, membership date, campus and the activity timeline.
+More shows every custom person field the church defines. Opening a record or form carries the
+directory query through save, so the member returns to the same filtered or saved-list view. Direct
 member links continue to open the full-page record.
+
+**HRT-305 implementation status.** The centered window, pane field groups, persistent actions,
+conditional More section, and directory return path are implemented. The remaining work is an
+authenticated visual check of pane switching, create and edit, permission states, unsaved changes,
+filtered return navigation and phone width. HRT-305 stays Active until that check is complete.
 
 Three of these moved our own tokens, because the tokens were the thing that was off: `--radius-sm`
 went from 6px to 8px, office density went from 32px taps and 20px icons to 40px and 16px, and every

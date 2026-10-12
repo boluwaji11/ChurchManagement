@@ -65,8 +65,8 @@ export function parsePerson(data: FormData): PersonInput & { householdChoice: st
     lifecycleStatus: (str(data, "lifecycleStatus") || "visitor") as LifecycleStatus,
     membershipDate: str(data, "membershipDate") || null,
     firstVisitOn: str(data, "firstVisitOn") || null,
-    allergies: str(data, "allergies") || null,
-    medicalNote: str(data, "medicalNote") || null,
+    allergies: data.has("allergies") ? str(data, "allergies") || null : undefined,
+    medicalNote: data.has("medicalNote") ? str(data, "medicalNote") || null : undefined,
     /*
      * R2.4. Left out where the form did not ask, so an edit cannot clear a
      * list it never showed. The new-person form carries both; the edit form
@@ -74,15 +74,17 @@ export function parsePerson(data: FormData): PersonInput & { householdChoice: st
      */
     email: data.has("email") ? str(data, "email") || null : undefined,
     phone: data.has("phone") ? str(data, "phone") || null : undefined,
-    address: {
-      line1: str(data, "addressLine1") || null,
-      line2: str(data, "addressLine2") || null,
-      city: str(data, "addressCity") || null,
-      region: str(data, "addressRegion") || null,
-      postalCode: str(data, "addressPostalCode") || null,
-      country: str(data, "addressCountry") || "US",
-    },
-    campusId: str(data, "campusId") || null,
+    address: data.has("addressLine1")
+      ? {
+          line1: str(data, "addressLine1") || null,
+          line2: str(data, "addressLine2") || null,
+          city: str(data, "addressCity") || null,
+          region: str(data, "addressRegion") || null,
+          postalCode: str(data, "addressPostalCode") || null,
+          country: str(data, "addressCountry") || "US",
+        }
+      : undefined,
+    campusId: data.has("campusId") ? str(data, "campusId") || null : undefined,
     maritalStatus: pick(data, "maritalStatus"),
     householdId: householdChoice === HOUSEHOLD_NEW || householdChoice === HOUSEHOLD_NONE ? null : householdChoice,
     householdName: householdChoice === HOUSEHOLD_NEW ? str(data, "householdName") || null : null,

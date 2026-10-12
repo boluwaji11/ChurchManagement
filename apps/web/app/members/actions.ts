@@ -11,6 +11,7 @@ import {
 import { requireSession } from "@/lib/session";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
+import { memberDirectoryReturnTo } from "@/lib/member-return";
 import { parsePerson, personErrors, hasErrors, type PersonErrors } from "@/lib/person-input";
 
 export interface SaveResult {
@@ -122,13 +123,8 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
     return { formError: explain(error) };
   }
 
-  const where = await withTenant(ctx, async (tx) => {
-    const saved = await getPerson(tx, memberId!, { role: session.role, userId: session.userId });
-    return saved?.slug ?? memberId!;
-  });
-
   revalidatePath("/members");
-  redirect(`/members/${where}?saved=1`);
+  redirect(memberDirectoryReturnTo(data.get("returnTo")));
 }
 
 export async function setArchived(data: FormData): Promise<SaveResult> {

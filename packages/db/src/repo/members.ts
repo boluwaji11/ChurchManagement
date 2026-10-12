@@ -561,9 +561,9 @@ export async function updatePerson(
       lifecycleStatus: input.lifecycleStatus,
       membershipDate: trimmed(input.membershipDate),
       firstVisitOn: trimmed(input.firstVisitOn),
-      allergies: trimmed(input.allergies),
-      medicalNote: trimmed(input.medicalNote),
-      campusId: trimmed(input.campusId),
+      ...(input.allergies !== undefined ? { allergies: trimmed(input.allergies) } : {}),
+      ...(input.medicalNote !== undefined ? { medicalNote: trimmed(input.medicalNote) } : {}),
+      ...(input.campusId !== undefined ? { campusId: trimmed(input.campusId) } : {}),
       maritalStatus: trimmed(input.maritalStatus),
       updatedAt: new Date(),
     })
