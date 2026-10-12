@@ -79,6 +79,7 @@ async function renderNewPersonPage({
         title={t("personForm.addTitle")}
         sections={sections}
         formId="person-form"
+        closeTo={returnTo ?? "/members"}
         footer={permitted ? <PersonFormActions editing={false} /> : undefined}
       >
         {form}

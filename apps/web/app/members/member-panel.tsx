@@ -17,6 +17,7 @@ export function MemberPanel({
   actions,
   footer,
   formId,
+  closeTo = "/members",
   children,
 }: {
   title: string;
@@ -24,12 +25,25 @@ export function MemberPanel({
   actions?: React.ReactNode;
   footer?: React.ReactNode;
   formId?: string;
+  /** Where closing lands, which is the list the record was opened from. */
+  closeTo?: string;
   children: React.ReactNode;
 }) {
   const router = useRouter();
   const [active, setActive] = React.useState(sections[0]?.id ?? "");
+  /*
+   * R24.6. The window's own state, so the close square closes it at once. The
+   * record is a parallel slot, and a soft navigation keeps a slot's last
+   * content, so moving the address alone leaves the window standing.
+   */
+  const [open, setOpen] = React.useState(true);
   const [confirmClose, setConfirmClose] = React.useState(false);
   const dirty = useDirty(formId ?? "");
+
+  const leave = () => {
+    setOpen(false);
+    router.replace(closeTo);
+  };
 
   React.useEffect(() => {
     const selectSection = (event: Event) => {
@@ -47,7 +61,7 @@ export function MemberPanel({
         <Button variant="ghost" onClick={() => setConfirmClose(false)}>
           {t("unsaved.stay")}
         </Button>
-        <Button variant="danger" onClick={() => router.back()}>
+        <Button variant="danger" onClick={() => leave()}>
           {t("unsaved.discard")}
         </Button>
       </div>
@@ -56,11 +70,11 @@ export function MemberPanel({
 
   return (
     <Sheet
-      open
-      onOpenChange={(open) => {
-        if (open) return;
+      open={open}
+      onOpenChange={(next) => {
+        if (next) return;
         if (dirty) setConfirmClose(true);
-        else router.back();
+        else leave();
       }}
     >
       <SheetContent

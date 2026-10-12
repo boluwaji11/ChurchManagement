@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArchiveRestore, FileText, Plus } from "lucide-react";
 import {
-  Button, Field, IconButton, Input, Sheet, SheetContent,
+  Button, Field, IconButton, Input,
 } from "@connectapp/ui";
 import { plural, t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
@@ -72,6 +72,15 @@ export function Shelf({
     });
   };
 
+  const archived = !putAway && archivedCount > 0 ? (
+    <Link
+      href={"/members/mailer?archived=1"}
+      className="text-label font-medium text-primary underline-offset-4 hover:underline"
+    >
+      {plural("post.archived", archivedCount)}
+    </Link>
+  ) : null;
+
   const start = (
     <Button
       loading={busy}
@@ -90,7 +99,10 @@ export function Shelf({
           ) : (
             <span />
           )}
-          {start}
+          <div className="flex flex-wrap items-center gap-3">
+            {archived}
+            {start}
+          </div>
         </div>
       ) : null}
 
@@ -101,7 +113,16 @@ export function Shelf({
       {mailers.length === 0 && putAway ? (
         <p className="text-fg-muted">{t("post.archived.none")}</p>
       ) : mailers.length === 0 ? (
-        <Empty icon="letter" title={t("post.noneYet")} action={start} />
+        <Empty
+          icon="letter"
+          title={t("post.noneYet")}
+          action={
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {start}
+              {archived}
+            </div>
+          }
+        />
       ) : (
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))]">
           {shown.map((one) => (
@@ -162,48 +183,34 @@ export function Shelf({
         <p className="text-[13px] text-fg-muted">{t("lists.noneFound")}</p>
       ) : null}
 
-      {!putAway && archivedCount > 0 ? (
-        <Link
-          href={"/members/mailer?archived=1"}
-          className="self-start text-label font-medium text-primary underline-offset-4 hover:underline"
+      {/* R24.6. Named here rather than in a panel over the window this screen
+          already fills. A second surface over the first is one too many. */}
+      {open ? (
+        <div
+          aria-busy={busy}
+          className="flex flex-col gap-4 rounded-[14px] border border-line bg-sunken p-5"
         >
-          {plural("post.archived", archivedCount)}
-        </Link>
-      ) : null}
-
-      <Sheet open={open} onOpenChange={(next) => { if (!busy) setOpen(next); }}>
-        <SheetContent
-          title={t("post.new")}
-          closeLabel={t("action.cancel")}
-          footer={
-            <>
-              <Button variant="secondary" disabled={busy} onClick={() => setOpen(false)}>
-                {t("action.cancel")}
-              </Button>
-              <Button loading={busy} disabled={busy || !name.trim()} onClick={go}>
-                {t("report.start")}
-              </Button>
-            </>
-          }
-        >
-          <div
-            aria-busy={busy}
-            className={busy ? "pointer-events-none opacity-60" : undefined}
-          >
-            <Field label={t("post.name")} required error={error ?? undefined}>
-              <Input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") { event.preventDefault(); go(); }
-                }}
-                placeholder={t("post.namePlaceholder")}
-                autoFocus
-              />
-            </Field>
+          <Field label={t("post.name")} required error={error ?? undefined}>
+            <Input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") { event.preventDefault(); go(); }
+              }}
+              placeholder={t("post.namePlaceholder")}
+              autoFocus
+            />
+          </Field>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button variant="secondary" disabled={busy} onClick={() => setOpen(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button loading={busy} disabled={busy || !name.trim()} onClick={go}>
+              {t("report.start")}
+            </Button>
           </div>
-        </SheetContent>
-      </Sheet>
+        </div>
+      ) : null}
 
     </div>
   );

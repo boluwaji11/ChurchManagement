@@ -490,7 +490,12 @@ async function renderPersonPage({
 
   if (presentation === "panel") {
     return (
-      <MemberPanel title={display} sections={panelSections} actions={actions}>
+      <MemberPanel
+        title={display}
+        sections={panelSections}
+        actions={actions}
+        closeTo={returnTo ?? "/members"}
+      >
         <div className="flex flex-col gap-5">{content}</div>
       </MemberPanel>
     );

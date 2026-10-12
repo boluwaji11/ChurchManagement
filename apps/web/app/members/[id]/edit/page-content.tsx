@@ -123,6 +123,7 @@ async function renderEditPersonPage({
         title={t("personForm.editHeading", { name: display })}
         sections={sections}
         formId="person-form"
+        closeTo={returnTo ?? "/members"}
         footer={permitted ? <PersonFormActions editing /> : undefined}
       >
         {person.archivedAt ? (
