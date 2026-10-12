@@ -57,6 +57,7 @@ export function SetupDock({
 
   const [asking, setAsking] = React.useState(false);
   const [, startTransition] = React.useTransition();
+  const covered = useOverlay();
 
   const hideForNow = () => {
     setAsking(false);
@@ -81,8 +82,6 @@ export function SetupDock({
    * across the top of it. On both, a second copy in the corner is noise.
    */
   if (path === "/setup" || path === "/dashboard" || shut) return null;
-
-  const covered = useOverlay();
 
   const next = steps.find((step) => !step.done && !step.skipped);
   if (!next) return null;
