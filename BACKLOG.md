@@ -154,6 +154,7 @@ we do not. The reading that produced them is below the table.
 | HRT-335 | The church's own activity feed, read from the log that already records it | R1.11, R18.1 | New |
 | HRT-336 | Sweep the dead ends: a link to nothing, two empty directories, components nothing renders | R24.18 | New |
 | HRT-337 | Lint in CI, with the rules of hooks enforced | R22.7, N7 | New |
+| HRT-338 | The church website builder: what a Path B church can actually build | R22.2, R24.15 | New |
 
 
 ## Lint has never run, October 2026
@@ -178,6 +179,39 @@ Scope: an ESLint flat config at the root with `react-hooks` and
 `@next/eslint-plugin-next`, a `lint` script in each package so turbo has
 something to run, and a lint step in `ci.yml` beside typecheck. Fix whatever
 the first run turns up before it is wired in, so the step lands green.
+
+
+## What a church can build with us, October 2026
+
+HRT-338. Sign-up promises a church with no website that we will give it one.
+Walking Fairview through that on 12 October, the page it ends up with is thin,
+and the editor around it is thinner. What is actually wrong, from the walk:
+
+- **No section for the church's own events or groups.** The seven kinds are
+  hero, story, banner, image, video, services and contact. Meanwhile the embed
+  flow hands a church an iframe of its what's-on page to paste into Wix. So we
+  will put a church's events on somebody else's site and not on the one we
+  built for it.
+- **The page repeats itself.** On a freshly published homepage the church's
+  name reads four times and "Sign in" and "Join this church" twice, once in
+  the header and again in the hero, on a page with one screen of content.
+- **Publishing is a checkbox.** "Publish website" is a tickbox beside Save,
+  so putting a church on the internet reads like setting an option. It is the
+  most consequential press on the screen and it looks like the least.
+- **No phone preview.** The preview is the desktop width only, and most people
+  who open a church's website are holding a phone.
+- **The three starting designs differ by section list**, not by layout, so
+  Gathering, Community and Classic produce the same stacked page.
+- **Nothing says what a good page has.** A church is given an empty section
+  list and no sense of what to put in it.
+
+What it is not: the two parts that work are the brand hue carrying through to
+the public page, and the empty states on the public pages, which read well
+("Nothing coming up. Check back, or ask whoever runs the church."). The
+rebuild keeps both.
+
+This sits behind the Phase A vocabulary (HRT-307 to HRT-318), because a page
+builder wants the shared header, tabs and empty state rather than its own.
 
 ## The pass against the reference, October 2026
 
