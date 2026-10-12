@@ -171,7 +171,7 @@ export default async function PeoplePage({
           householdName: p.householdName,
           primaryEmail: p.primaryEmail,
           primaryPhone: p.primaryPhone,
-          tagNames: p.tagNames,
+          tags: p.tags,
           archived: Boolean(p.archivedAt),
         }))}
       />

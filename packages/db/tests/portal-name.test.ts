@@ -184,20 +184,25 @@ describe("taking a name", () => {
  */
 describe("turning the address off", () => {
   /* The host this deployment answers on, which is what resolveTenantByHost
-     reads. Development runs under localhost. */
-  const platform = process.env["PLATFORM_HOST"] ?? "connectapp.church";
+     reads. Development runs under localhost.
+     *
+     * Read per call, the way the code under test reads it. Read once while this
+     * file is being collected, it is read before the environment file has been
+     * loaded, so the test built its hosts under one platform while the resolver
+     * matched them against another and found nothing. */
+  const platform = () => process.env["PLATFORM_HOST"] ?? "connectapp.church";
 
   it("stops the host naming the church, and turning it on brings it back", async () => {
     await run(one, (tx) => setPortalName(tx, as(one), { name: "portalswitch" }));
-    expect(await resolveTenantByHost(`portalswitch.${platform}`)).not.toBeNull();
+    expect(await resolveTenantByHost(`portalswitch.${platform()}`)).not.toBeNull();
 
     await run(one, (tx) => setPortalOpen(tx, as(one), false));
-    expect(await resolveTenantByHost(`portalswitch.${platform}`)).toBeNull();
+    expect(await resolveTenantByHost(`portalswitch.${platform()}`)).toBeNull();
     // And not by its slug either, since that is the same address.
-    expect(await resolveTenantByHost(`portalone.${platform}`)).toBeNull();
+    expect(await resolveTenantByHost(`portalone.${platform()}`)).toBeNull();
 
     await run(one, (tx) => setPortalOpen(tx, as(one), true));
-    expect(await resolveTenantByHost(`portalswitch.${platform}`)).not.toBeNull();
+    expect(await resolveTenantByHost(`portalswitch.${platform()}`)).not.toBeNull();
   });
 
   /*
@@ -211,19 +216,19 @@ describe("turning the address off", () => {
   it("reports the chosen name when reached by the slug", async () => {
     await run(one, (tx) => setPortalName(tx, as(one), { name: "portalchosen" }));
 
-    const bySlug = await resolveTenantByHost(`portalone.${platform}`);
+    const bySlug = await resolveTenantByHost(`portalone.${platform()}`);
     expect(bySlug?.slug).toBe("portalone");
     expect(bySlug?.portalName).toBe("portalchosen");
 
     // Reached at the name it chose, where the name and the host agree, so
     // there is nowhere else to send it.
-    const byName = await resolveTenantByHost(`portalchosen.${platform}`);
+    const byName = await resolveTenantByHost(`portalchosen.${platform()}`);
     expect(byName?.portalName).toBe("portalchosen");
   });
 
   it("reports no chosen name for a church that has not picked one", async () => {
     await run(one, (tx) => setPortalName(tx, as(one), { name: null }));
-    const found = await resolveTenantByHost(`portalone.${platform}`);
+    const found = await resolveTenantByHost(`portalone.${platform()}`);
     expect(found?.slug).toBe("portalone");
     expect(found?.portalName).toBeNull();
   });

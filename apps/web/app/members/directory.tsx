@@ -46,8 +46,8 @@ export interface Row {
   householdName: string | null;
   primaryEmail: string | null;
   primaryPhone: string | null;
-  /** R2.14. The tag names, for the column the design gives them. */
-  tagNames: string[];
+  /** R2.14. Their tags, each with its hue, for the column the design gives them. */
+  tags: { name: string; hue: string }[];
   archived: boolean;
 }
 
@@ -569,6 +569,7 @@ export function Directory({
                 {reachOn(p) ? (
                   <span className="min-w-0 truncate text-[13px] text-fg-muted">{reachOn(p)}</span>
                 ) : null}
+                {p.tags.length > 0 ? <TagChips tags={p.tags} /> : null}
               </span>
 
               {putAway && canArchive ? (
@@ -660,7 +661,7 @@ export function Directory({
                     <StatusPill status={p.lifecycleStatus} />
                   </td>
                   <td className="border-b border-sunken px-4 py-2.5 text-[13px] text-fg-muted">
-                    {p.tagNames.length > 0 ? p.tagNames.join(", ") : EMPTY}
+                    {p.tags.length > 0 ? <TagChips tags={p.tags} /> : EMPTY}
                   </td>
                   <td className="border-b border-sunken px-4 py-2.5 text-[13px] text-fg-muted">
                     {p.primaryEmail ?? EMPTY}
@@ -763,14 +764,52 @@ const SORTS = [
 /** The one way to reach somebody, for the card a phone reads. */
 const reachOn = (row: Row): string | null => row.primaryEmail ?? row.primaryPhone ?? null;
 
-function StatusPill({ status }: { status: string }) {
-  const hue = STATUS_HUE[status] ?? "clay";
+/**
+ * One tinted pill, in a hue that means something. A status and a tag sit beside
+ * each other on a row, so they are the same object in two colours rather than
+ * two designs.
+ */
+function HuePill({ hue, children }: { hue: Hue; children: React.ReactNode }) {
   return (
     <span
-      className="inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium"
+      className="inline-flex max-w-full items-center truncate rounded-full px-2 py-0.5 text-[12px] font-medium"
       style={{ background: `var(--hue-${hue}-tint)`, color: `var(--hue-${hue}-key)` }}
     >
-      {lifecycleLabel(status)}
+      {children}
+    </span>
+  );
+}
+
+function StatusPill({ status }: { status: string }) {
+  return <HuePill hue={(STATUS_HUE[status] ?? "clay") as Hue}>{lifecycleLabel(status)}</HuePill>;
+}
+
+/**
+ * R2.14. The tags somebody carries, in the hue each one was given.
+ *
+ * Three at most on a row. A tag is read at a glance, and a person with nine of
+ * them turns one cell into a paragraph that pushes every other row down, so the
+ * rest are counted and named in the tooltip.
+ */
+const TAGS_ON_A_ROW = 3;
+
+function TagChips({ tags }: { tags: { name: string; hue: string }[] }) {
+  const shown = tags.slice(0, TAGS_ON_A_ROW);
+  const rest = tags.slice(TAGS_ON_A_ROW);
+  return (
+    <span className="flex flex-wrap items-center gap-1">
+      {shown.map((tag) => (
+        <HuePill key={tag.name} hue={tag.hue as Hue}>
+          {tag.name}
+        </HuePill>
+      ))}
+      {rest.length > 0 ? (
+        <Tooltip content={rest.map((tag) => tag.name).join(", ")}>
+          <span tabIndex={0} className="text-[12px] font-medium text-fg-muted">
+            {plural("members.tags.more", rest.length)}
+          </span>
+        </Tooltip>
+      ) : null}
     </span>
   );
 }

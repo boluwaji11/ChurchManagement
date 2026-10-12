@@ -43,6 +43,21 @@ time. That gap between Resolved and Closed is the review.
 4. **Nothing is built that has no story.** Scope creep is a new row, not a bigger row.
 5. **The board is updated in the same commit as the work.** A stale board is worse than none.
 
+### Next, in order
+
+Named here because each one is agreed and none of them is a story's next task, so
+the board would otherwise lose them.
+
+1. **Walk a new church through onboarding end to end**, as Fairview Church, with a
+   website: sign up, the website fork, approval, the member portal address, and a
+   piece of ConnectApp embedded on its own site. This is the hand check that moves
+   HRT-294, HRT-295, HRT-289 and HRT-296 out of Resolved.
+2. **HRT-305's authenticated visual check**, which is the last thing between the
+   member record panel and Closed.
+3. **HRT-306**, the framing rules, before launch rather than after it.
+4. **Deploy `main` to `production`.** The branch is a long way ahead of what is
+   live, and every commit in between is one more thing in a single deploy.
+
 ---
 
 ## E1. Foundation (0.1)
@@ -125,6 +140,7 @@ and a design file does not move it.
 | HRT-121 | Backups with point-in-time recovery, and a restore drill run and written down | R21.6 | Closed |
 | HRT-122 | The no-training commitment where a church can read it, and nothing in the pipeline that breaks it | R21.12 | Closed |
 | HRT-123 | Church-supplied provider credentials encrypted with their own key, never logged, never returned | R21.15 | Resolved |
+| HRT-306 | Say which pages may be framed, so sign-in cannot be put inside somebody else's page | R21.x | New |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8, R21.4 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | Cut |
 | HRT-15 | Church profile settings: name, address, timezone, service times | R1.1 | Closed |
@@ -934,6 +950,26 @@ reading in HRT-283 already names the provider, so the guess costs nothing.
 The account link came off this screen: the church's own address is the sign-in
 and the sign-up both, so a second link to the same place was a second answer to
 one question.
+
+## Which pages may be framed, October 2026
+
+HRT-306. Embedding is a feature here: HRT-289 hands a church an `<iframe>` for
+its group finder, its events and its giving link, and those pages are meant to
+sit inside the church's own site. Nothing says so, though. The app sends no
+`frame-ancestors` and no `X-Frame-Options`, so **every** page can be framed,
+sign-in included, and a page that frames our sign-in over its own chrome gets a
+volunteer typing a password into what looks like somebody else's site.
+
+The two rules the product already implies:
+
+- The embeddable pages (`/g/embed`, `/e/embed`, the public group and event
+  pages) may be framed by anyone, because that is what they are for.
+- Everything else may be framed by nobody. Sign-in, the member portal and every
+  staff screen set `frame-ancestors 'none'`.
+
+So this is one CSP header with two cases, decided by path, plus a test that
+walks the routes and fails when a new page lands in neither case. It is small,
+and it is the kind of small that does not get done until it has a row.
 
 ## The church's own domain, October 2026
 

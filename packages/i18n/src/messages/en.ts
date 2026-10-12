@@ -456,6 +456,8 @@ export const en = {
   "members.column.status": "Status",
   "members.column.email": "Email",
   "members.column.tags": "Tags",
+  "members.tags.more.one": "{count} more",
+  "members.tags.more.other": "{count} more",
   "members.column.phone": "Phone",
   "members.noHousehold": "Not in a household",
   "members.none": "None",
