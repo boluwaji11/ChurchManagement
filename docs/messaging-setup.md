@@ -14,47 +14,74 @@ billed by Twilio and Resend directly.
 
 ## Part 1. Resend, for email (HRT-287)
 
-This one has no unknowns. Do it first and the story can be built.
+**There is no screen for this.** An earlier version of this document said to
+create an OAuth application in the Resend dashboard. That was wrong, and it is
+why looking for it found nothing. Resend's own guide says it plainly: "we don't
+have a central place in the app to create clients."
 
-### What you are creating
+Source: https://resend.com/docs/guides/building-a-resend-oauth-client
 
-An **OAuth application** on the ConnectApp Resend account. A church presses
-"Connect Resend" in ConnectApp, lands on Resend, signs in to its own Resend
-account, approves, and comes back. We never see its password and never hold its
-API key.
+### The three ways Resend gives out a client id
 
-### Steps
+1. **Pre-registration.** Resend issues a fixed `client_id` and `client_secret`
+   by hand. The guide does not say how to ask, so it is an email to them.
+   Resend recommends this for a remote third-party client like ours, because
+   they have no self-service verification yet.
+2. **A Client ID Metadata Document.** We host a JSON file on our own domain and
+   its HTTPS URL *is* the `client_id`. Nothing is registered with Resend at all.
+3. **Dynamic Client Registration.** `POST https://api.resend.com/oauth/register`.
 
-1. Sign in to Resend as the ConnectApp platform account, not a church's.
-2. Find **OAuth** in the account or team settings and create a new OAuth
-   application. If you cannot find it, the feature announcement is at
-   https://resend.com/changelog/oauth-support and links to the current page.
-3. Name it **ConnectApp**. This name is shown to every church on the approval
-   screen, so it should read as us.
-4. Set the **redirect URI**. Add both:
-   - `https://connectapp.church/api/providers/resend/callback`
-   - `http://localhost:4488/api/providers/resend/callback`
-   The second is for development. If only one is allowed, create a second
-   application for development and send me both sets.
-5. Choose **scopes**. This is the step that matters. We need to create and
-   verify a sending domain on the church's behalf, so sending scopes alone are
-   not enough. Grant whatever covers **domains: create**, **domains: read** and
-   **domains: verify**, plus **emails: send**. If the scope list uses different
-   words, send me the list and I will say which to tick.
-6. Save, then copy the **client id** and the **client secret**. The secret is
-   usually shown once.
+### The scopes, which are not what this document first claimed
+
+There are two, and neither is per-resource:
+
+| Scope | What it covers |
+|---|---|
+| `emails:send` | `POST /emails` and nothing else |
+| `full_access` | every other route, which includes creating and verifying a domain |
+
+Omitting `scope` grants both. We create and verify a sending domain for the
+church, so `emails:send` is not enough and **`full_access`** is what HRT-287
+needs. Asking a church to grant full access to its Resend account is a real
+decision, and it should be said on the screen where the church presses
+Connect rather than buried here.
+
+### What to do
+
+Route 2 needs nothing from Resend and no waiting, so take it first and treat
+route 1 as the thing that makes us look legitimate later.
+
+1. Decide whether we are comfortable asking churches for `full_access`. If not,
+   HRT-287 cannot create the sending domain and the church has to make it in
+   its own Resend dashboard, which is a different and smaller story.
+2. Email Resend asking to pre-register ConnectApp as an OAuth client, giving
+   the name, our redirect URI and `full_access`. This is route 1, and the reply
+   may take days, which is why it goes early.
+3. Meanwhile, nothing is needed from you for route 2. The metadata document is
+   a file in this repository, served from our own domain, and building it is
+   part of HRT-287.
 
 ### What to send me
 
-| Item | Looks like |
+| Item | Where it comes from |
 |---|---|
-| Client id | a short opaque string |
-| Client secret | a longer opaque string, shown once |
-| Redirect URIs | the ones you registered |
-| Scopes granted | the exact names as the console spells them |
+| Whether `full_access` is acceptable | your decision, step 1 |
+| Resend's reply about pre-registration | step 2, if and when it arrives |
+| `client_id` and `client_secret` | only if Resend pre-registers us |
 
-Send the secret through something private, not chat. It goes in `.env.local`
-and in the deployment's environment, never into the repository.
+If the reply never comes, HRT-287 still ships on route 2.
+
+### The endpoints, for the record
+
+- Authorise: `https://api.resend.com/oauth/authorize`
+- Token: `https://api.resend.com/oauth/token`
+- Revoke: `https://api.resend.com/oauth/revoke`
+- Register: `https://api.resend.com/oauth/register`
+
+Our redirect URI is `https://connectapp.church/api/providers/resend/callback`.
+A remote client's redirect must be HTTPS on a domain we own, so development
+uses a loopback URI such as `http://127.0.0.1:4488/api/providers/resend/callback`
+rather than a `localhost` one.
 
 ---
 

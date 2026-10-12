@@ -141,7 +141,7 @@ that document.
 | Vendor | What is needed |
 |---|---|
 | Twilio | A Connect app on the platform account: its SID, its secret, and the authorise URL. Plus a second account to stand in for a church while the spike runs. |
-| Resend | An OAuth client registered against the platform account: client id, client secret, redirect URI, and the scopes that cover domain creation and verification rather than sending alone. |
+| Resend | A client id. There is no dashboard screen for this: either Resend pre-registers us by email, or we host a Client ID Metadata Document on our own domain and its URL is the client id. The only scope that covers creating and verifying a domain is `full_access`. See [messaging-setup.md](messaging-setup.md). |
 | Both | `PROVIDER_CREDENTIAL_KEY`, 32 bytes base64. Generate with `openssl rand -base64 32`. |
 
 ## Sources
