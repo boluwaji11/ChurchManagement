@@ -125,16 +125,16 @@ we do not. The reading that produced them is below the table.
 
 | HRT-307 | One page header: where you are, what the screen is, what it is for, and its one action | R24.6, R24.15 | Resolved |
 | HRT-308 | One table: a row, a cell, sorting, selection and the empty case, instead of sixteen | R24.6, R24.15, R2.14 | Resolved |
-| HRT-309 | A tab that carries its count, and one segmented control instead of five | R24.6, R24.15 | New |
-| HRT-310 | Pagination the reader controls, with how many a page as a choice rather than a constant | R24.6, R2.14 | New |
-| HRT-311 | One relative time, laddering to years, written in the church's own language | R22.8, R24.6 | New |
-| HRT-312 | One tag chip, with the count of the ones that did not fit | R1.13, R24.4 | New |
-| HRT-313 | A face pile, for a group's leaders and the holders of a role | R24.6, R24.9 | New |
-| HRT-314 | A stat tile that can say "+8 this week", and one of them instead of three | R24.6, R18.1 | New |
-| HRT-315 | The charts move into the design system, and gain a gauge and a sparkline | R24.4, R24.6 | New |
-| HRT-316 | The activity feed, out of the member record and into the design system | R2.15, R24.6 | New |
-| HRT-317 | A status pill that changes the status | R2.2, R24.9, R24.15 | New |
-| HRT-318 | How complete a record is, said once and the same way everywhere | R2.1, R24.9 | New |
+| HRT-309 | A tab that carries its count, and one segmented control instead of five | R24.6, R24.15 | Dropped, folded into Phase C |
+| HRT-310 | Pagination the reader controls, with how many a page as a choice rather than a constant | R24.6, R2.14 | Dropped, folded into Phase C |
+| HRT-311 | One relative time, laddering to years, written in the church's own language | R22.8, R24.6 | Dropped, folded into Phase C |
+| HRT-312 | One tag chip, with the count of the ones that did not fit | R1.13, R24.4 | Dropped, folded into Phase C |
+| HRT-313 | A face pile, for a group's leaders and the holders of a role | R24.6, R24.9 | Dropped, folded into Phase C |
+| HRT-314 | A stat tile that can say "+8 this week", and one of them instead of three | R24.6, R18.1 | Dropped, folded into Phase C |
+| HRT-315 | The charts move into the design system, and gain a gauge and a sparkline | R24.4, R24.6 | Dropped, folded into Phase C |
+| HRT-316 | The activity feed, out of the member record and into the design system | R2.15, R24.6 | Dropped, folded into Phase C |
+| HRT-317 | A status pill that changes the status | R2.2, R24.9, R24.15 | Dropped, folded into Phase C |
+| HRT-318 | How complete a record is, said once and the same way everywhere | R2.1, R24.9 | Dropped, folded into Phase C |
 | HRT-319 | The sidecar: four areas in a rail, their items beside it, and the accordion goes | R24.6, R24.14, R1.3 | New |
 | HRT-320 | The phone follows the sidecar: four areas, one tab each | R24.6, R24.14 | New |
 | HRT-321 | Members against the new vocabulary: the directory, the window, and every screen under it | R2.1, R2.14, R24.6 | New |
@@ -157,6 +157,33 @@ we do not. The reading that produced them is below the table.
 | HRT-340 | Take out the church prop nothing reads | R24.18 | Resolved |
 | HRT-338 | The church website builder: what a Path B church can actually build | R22.2, R24.15 | New |
 
+
+
+## Phase A folds into the screens, October 2026
+
+The plan split the pass in two: build a shared vocabulary in `packages/ui`
+first (HRT-307 to HRT-318), apply it to screens second (HRT-321 onward). Two
+stories in, that is the wrong order for this product.
+
+HRT-307 and HRT-308 each ended with a component in the gallery and not one
+screen a church uses looking any different. That is what Phase A was designed
+to do, and it is still not what the pass is for. The reason the pass exists is
+that the product's screens do not look good enough, and ten more stories of
+gallery work is ten more weeks before anybody sees that change.
+
+So HRT-309 to HRT-318 are dropped as separate stories. What they described
+still gets built, inside the Phase C story that first needs it, against a real
+screen with a church's real records in it. A tab with a count is built when
+Members needs one; the stat tile is built when the dashboard needs one. The
+gallery entry comes along with it, because the contrast audit and the three
+densities still have to be checked somewhere, but it is the by-product rather
+than the deliverable.
+
+What HRT-307 and HRT-308 left behind is kept: `PageHeader`, `SortTh` and
+`TableEmpty` are real and the screens adopt them from here.
+
+The order is now the shell, then the areas: HRT-319, HRT-320, then HRT-321
+onward.
 
 ## Lint has never run, October 2026
 

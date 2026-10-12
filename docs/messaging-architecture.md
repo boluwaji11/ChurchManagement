@@ -106,7 +106,22 @@ cannot be created on a subaccount, and that brand sharing is largely
 unavailable to ISV brands. The carrier registration may therefore be
 unreachable through the access Connect hands us.
 
-Run this before writing a line of HRT-286:
+**The spike is answered, and the answer is no.** Twilio's own limitations page
+says it plainly: it is not currently possible to create a Primary Business
+Profile on a subaccount. Twilio Connect returns a subaccount SID, so the
+automatic registration we wanted through Connect cannot be built. Nothing needs
+running to find this out.
+
+Twilio's ISV onboarding guide goes further and names the architecture it wants
+instead: a subaccount per customer, under the ISV's own parent account, which
+it calls the preferred option because it separates each church's traffic and
+keeps one church's noncompliance off the others. That is the shape that works,
+and it makes the platform the parent, which makes the platform the biller.
+
+So HRT-286 is not blocked on a test any more. It is blocked on one decision,
+set out under "What the answer means" below.
+
+The steps that were here, kept for the record:
 
 1. Create a Connect app on the platform Twilio account.
 2. Authorise it against a second Twilio account standing in for a church.
