@@ -77,18 +77,18 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-113 | UI sweep: every screen against the design system, 58 findings | R24.6, R24.18 | Closed |
 | HRT-200 | Land the redesign handoff, reconcile its tokens against ours | R24.1, R24.4 | Closed |
 | HRT-201 | The shell: collapsible sidebar, a top bar with one action, bottom tabs on a phone | R24.6, R24.14 | Closed |
-| HRT-202 | Navigation scoped to the role, one sidebar per persona | R1.3, R24.6 | Resolved |
-| HRT-303 | Group the staff sidebar into expandable sections with a warm, clear active state | R24.6 | Resolved |
+| HRT-202 | Navigation scoped to the role, one sidebar per persona | R1.3, R24.6 | Closed |
+| HRT-303 | Group the staff sidebar into expandable sections with a warm, clear active state | R24.6 | Closed |
 | HRT-203 | The dashboard: setup checklist, reorderable tiles, attendance over time | R18.1, R22.1 | Closed |
 | HRT-204 | People: the filter drawer, inline search, CSV export, pagination | R2.14, R19.4 | Closed |
 | HRT-205 | The command palette on Cmd+K, and no search box in the top bar | R24.6 | New |
-| HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | Resolved |
+| HRT-206 | Empty, first-run, loading and error states across every screen | R24.6, R24.11 | Closed |
 | HRT-207 | Notifications: the bell, the unread count, a panel per role | R24.6 | Closed |
 | HRT-253 | Every screen on a phone: the shell, the tables, the panels and the public site | R24.6, R24.14 | Closed. The check-in desk and the supervisor board need a service on today's date to exercise |
 | HRT-254 | One way to reach an archived record, on every screen that has them | R24.6, R2.9 | Closed |
 | HRT-208 | The remaining screens against the redesign, one pass each | R24.6, R24.18 | Closed |
 | HRT-222 | The ConnectApp website: the page a church reads before it is anybody | R22.1, R24.6 | Closed |
-| HRT-298 | Update the landing page story and invite churches to the pilot | R22.1, R22.2 | Resolved |
+| HRT-298 | Update the landing page story and invite churches to the pilot | R22.1, R22.2 | Closed |
 | HRT-223 | The church code comes out: a church is named by its address, not a secret | R1.7, R22.1 | Closed |
 | HRT-224 | Onboarding: a welcome, the five things in the order one unblocks the next | R22.1, R22.3 | Closed |
 | HRT-225 | The setup dock: the path follows whoever is walking it, on any screen | R22.1, R22.3 | Closed |
@@ -96,10 +96,10 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-227 | The ConnectApp admin portal: churches, approval, archive, the operators and the log | R21.x, R22.x | Closed |
 | HRT-234 | Speed: Turbopack in development, one trip to the database per frame, pipelined reads. [docs/performance.md](docs/performance.md) | R24.11 | Closed |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
-| HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Resolved |
-| HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Resolved |
-| HRT-301 | Alternate the landing-page "for free" and "always" typewriter phrases | R22.1, R24.6 | Resolved |
-| HRT-302 | Send landing-page support messages to the support inbox and link the footer contribution page | R22.1 | Resolved |
+| HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Closed |
+| HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Closed |
+| HRT-301 | Alternate the landing-page "for free" and "always" typewriter phrases | R22.1, R24.6 | Closed |
+| HRT-302 | Send landing-page support messages to the support inbox and link the footer contribution page | R22.1 | Closed |
 | HRT-235 | Plan templates are configured in Settings, with ready-made shapes, and the plan screen starts from them | R11.8 | Closed |
 | HRT-236 | The kinds of plan item are a list the church keeps, in its own words | R11.2 | Closed |
 | HRT-237 | Giving: the funds, the counting session with dual control, and what came in | R13.9 to R13.15, R13.21 | Closed |
@@ -501,7 +501,7 @@ and a design file does not move it.
 | HRT-77 | Supabase advisors: the storage membership check off the REST API, covering indexes | R21.x | Closed |
 | HRT-121 | Backups with point-in-time recovery, and a restore drill run and written down | R21.6 | Closed |
 | HRT-122 | The no-training commitment where a church can read it, and nothing in the pipeline that breaks it | R21.12 | Closed |
-| HRT-123 | Church-supplied provider credentials encrypted with their own key, never logged, never returned | R21.15 | Resolved |
+| HRT-123 | Church-supplied provider credentials encrypted with their own key, never logged, never returned | R21.15 | Closed |
 | HRT-306 | Say which pages may be framed, so sign-in cannot be put inside somebody else's page | R21.x | New |
 | HRT-13 | TOTP multi-factor, mandatory for Owner, Admin and Finance | R1.8, R21.4 | Deferred to later in 0.1, product surface first |
 | HRT-14 | Active session list with remote revoke | R1.10 | Cut |
@@ -524,14 +524,14 @@ and a design file does not move it.
 | HRT-262 | The household address: a screen that sets it, and the settings menu on a phone | R2.4, R24.6 | Closed |
 | HRT-114 | Joining a church: its link and code, and claiming a person record | R1.7, R17.1, R22.1 | Closed |
 | HRT-115 | A new church is provisional until a human has looked at it | R1.1, R21.x | Closed |
-| HRT-296 | Enable the member portal address after church approval | R1.1, R17.1 | Resolved |
+| HRT-339 | Enable the member portal address after church approval | R1.1, R17.1 | Closed |
 | HRT-32 | Create a church and its first Owner from sign-up. A church is a `tenants` row. | R1.1, R22.1 | Closed |
 | HRT-16 | Custom field definitions and values, in the UI | R1.12 | Closed |
 | HRT-17 | Tag management, assignment, and merge, in the UI | R1.13 | Closed |
 | HRT-34 | Tags on households, once households have a page of their own | R1.13 | New |
 | HRT-35 | Audit trigger on every tenant table, found by query rather than a list | R1.11 | Closed |
 | HRT-18 | Storage quota, enforced at upload, with the church logo as its first user | R1.1, R1.16 | Closed |
-| HRT-284 | The church's legal details on its own record: legal name, EIN, registered address | R1.1, R13.1 | Resolved |
+| HRT-284 | The church's legal details on its own record: legal name, EIN, registered address | R1.1, R13.1 | Closed |
 | HRT-44 | Show usage against the quota, once a church can approach it | R1.16 | Deferred |
 | HRT-36 | **Externalise every user-facing string.** | R22.8 | Closed |
 | HRT-37 | CI: typecheck, the test suite, and the contrast and accessibility audit | R22.7, N7 | Closed |
@@ -547,7 +547,7 @@ and a design file does not move it.
 | HRT-23 | Milestones, with the extensible kind list | R2.6 | Closed |
 | HRT-24 | Duplicate merge and review queue, reversible for 30 days | R2.8 | Closed |
 | HRT-117 | A merge moves group memberships, pipeline entries and follow-ups | R2.8 | Closed |
-| HRT-290 | The review queue is a person and every copy of them, not a list of pairs | R2.8 | Resolved |
+| HRT-290 | The review queue is a person and every copy of them, not a list of pairs | R2.8 | Closed |
 | HRT-118 | ~~Skills, interests and spiritual gifts as managed vocabularies~~ | R2.9 | **Cut** |
 | HRT-210 | The status engine: a nightly pass, the thresholds as settings, and nothing it writes over a human | R2.16 | New |
 | HRT-211 | Status history on a person, with who changed it and a one-press revert | R2.17 | New |
@@ -559,7 +559,7 @@ and a design file does not move it.
 | HRT-42 | Date field and calendar of our own, replacing the browser's | R24.x | Closed |
 | HRT-26 | Background check status and expiry tracking | R2.10, R21.11 | Closed |
 | HRT-27 | Birthdays and anniversaries list, by month and week | R2.11 | Closed |
-| HRT-304 | Refresh the Members list with clear live/archive views and grouped secondary actions | R2.14, R24.6 | Resolved |
+| HRT-304 | Refresh the Members list with clear live/archive views and grouped secondary actions | R2.14, R24.6 | Closed |
 | HRT-305 | Open member records and the new-member form in a centered, sectioned window over the directory | R2.1, R2.4, R2.15, R24.6 | Active |
 
 ### HRT-305, how to test it
@@ -770,15 +770,15 @@ of money and after everything else.
 | HRT-106 | In-context help on every screen | R22.2 | Closed |
 | HRT-213 | Regional spelling, from one catalogue, by the church's country | R22.8 | Closed |
 | HRT-107 | Time to value under sixty minutes, measured in the product | R22.3 | Closed |
-| HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Resolved |
-| HRT-285 | A church publishes a configurable public homepage and sends signed-in members to their role's starting page | R1.1, R22.1 | Resolved |
-| HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Resolved |
-| HRT-292 | Leaving a church, and the one owner who cannot | R1.4 | Resolved |
+| HRT-283 | What we can tell a church about its own domain before it changes anything | R22.2, R16.x | Closed |
+| HRT-285 | A church publishes a configurable public homepage and sends signed-in members to their role's starting page | R1.1, R22.1 | Closed |
+| HRT-288 | The address names the church: wildcard DNS, the certificate, and the slug out of the path | R1.1, R17.1 | Closed |
+| HRT-292 | Leaving a church, and the one owner who cannot | R1.4 | Closed |
 | HRT-293 | Closing an account, and handing a church to somebody else first | R1.4, R21.9 | New |
-| HRT-294 | The church's website, asked once at sign-up | R22.1, R22.2 | Resolved |
-| HRT-295 | The fork at sign-up: does the church have a website | R22.1, R22.2 | Resolved |
-| HRT-296 | What's on: the church's events, in public and in a frame | R14.2, R9.5 | Resolved |
-| HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | Resolved |
+| HRT-294 | The church's website, asked once at sign-up | R22.1, R22.2 | Closed |
+| HRT-295 | The fork at sign-up: does the church have a website | R22.1, R22.2 | Closed |
+| HRT-296 | What's on: the church's events, in public and in a frame | R14.2, R9.5 | Closed |
+| HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | Closed |
 | HRT-291 | The church's own domain: members.church.org and give.church.org, with the screen to set one up | R1.1, R22.2 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
@@ -1027,10 +1027,10 @@ church actually asks.
 | HRT-186 | Attendance reports: trend, year over year, by service, by demographic | R18.2 | Closed |
 | HRT-187 | The first-time visitor funnel, with conversion rates and elapsed time at each step | R18.3 | Closed |
 | HRT-188 | Growth and retention: new, returning, lapsed, net change by month | R18.4 | Closed |
-| HRT-189 | Group participation and group health | R18.6 | Resolved |
-| HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | Resolved |
-| HRT-191 | Milestone and demographic lists | R18.8 | Resolved |
-| HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | Resolved |
+| HRT-189 | Group participation and group health | R18.6 | Closed |
+| HRT-190 | Volunteer coverage, serving frequency, and expiring checks and certifications | R18.7 | Closed |
+| HRT-191 | Milestone and demographic lists | R18.8 | Closed |
+| HRT-192 | The connectedness indicator: four booleans and a count | R18.9 | Closed |
 | HRT-193 | CSV and PDF on every report | R18.10 | Closed |
 | HRT-194 | Giving reports: by fund, by period, lapsed donors, first-time givers, pledge progress | R18.5 | Held to 0.3 with money |
 | HRT-218 | Build a report: a fixed catalogue of subjects and fields, counted, saved and kept | R18.12 | Closed |
