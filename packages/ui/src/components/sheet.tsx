@@ -97,7 +97,7 @@ export function SheetContent({
           </div>
         </div>
 
-        <div className={cn("flex flex-1 flex-col gap-4 overflow-auto p-4 sm:p-6", bodyClassName)}>
+        <div className={cn("scroll-quiet flex flex-1 flex-col gap-4 overflow-auto p-4 sm:p-6", bodyClassName)}>
           {children}
         </div>
 

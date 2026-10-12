@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import {
   Badge, Banner, Button, IconButton, Input,
-  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { DateField } from "@/components/date-field";
@@ -138,16 +137,17 @@ export function Milestones({
         ))}
       </ul>
 
-      {canEdit ? (
-        <Sheet open={adding} onOpenChange={toggle}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" className="self-start">
-              <Plus /> {t("milestone.add")}
-            </Button>
-          </SheetTrigger>
-          {/* In a dialog rather than inline on the card, so the date field's own
-              calendar has room to open without landing on the rows below it. */}
-          <SheetContent title={t("milestone.add")} closeLabel={t("common.close")}>
+      {/* R24.6. Written where it is read, the way an email or a phone already
+          is, because this section sits inside the record's own window and a
+          second panel over that one is a surface too many. */}
+      {canEdit && !adding ? (
+        <Button variant="ghost" className="self-start" onClick={() => toggle(true)}>
+          <Plus /> {t("milestone.add")}
+        </Button>
+      ) : null}
+
+      {canEdit && adding ? (
+        <div className="rounded-lg border border-line bg-sunken p-4">
             <form noValidate ref={form} action={submit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <span className="text-label text-fg">{t("milestone.kind")}</span>
@@ -184,8 +184,7 @@ export function Milestones({
               <Button type="submit" disabled={!kind || pending}>{t("action.add")}</Button>
               </div>
             </form>
-          </SheetContent>
-        </Sheet>
+        </div>
       ) : null}
     </div>
   );

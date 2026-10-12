@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import {
   Badge, Banner, Button, Field, Input, Separator,
-  Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -98,7 +97,7 @@ export function Checks({
 
       {canEdit ? (
         <div>
-          <AddDialog
+          <AddCheck
             memberId={memberId}
             pending={pending}
             onDone={() => router.refresh()}
@@ -110,7 +109,7 @@ export function Checks({
   );
 }
 
-function AddDialog({
+function AddCheck({
   memberId,
   pending,
   onDone,
@@ -141,12 +140,18 @@ function AddDialog({
     }
   };
 
+  /* R24.6. Written where it is read. This section sits inside the record's own
+     window, and a second panel over that one is a surface too many. */
+  if (!open) {
+    return (
+      <Button variant="secondary" onClick={() => close(true)}>
+        <Plus /> {t("checks.add")}
+      </Button>
+    );
+  }
+
   return (
-    <Sheet open={open} onOpenChange={close}>
-      <SheetTrigger asChild>
-        <Button variant="secondary"><Plus /> {t("checks.add")}</Button>
-      </SheetTrigger>
-      <SheetContent title={t("checks.add")} closeLabel={t("common.close")}>
+    <div className="rounded-lg border border-line bg-sunken p-4">
         <form
           id={formId}
           noValidate
@@ -197,7 +202,6 @@ function AddDialog({
               <Button type="submit" disabled={pending || saving || !full}>{t("action.save")}</Button>
           </div>
         </form>
-      </SheetContent>
-    </Sheet>
+    </div>
   );
 }
