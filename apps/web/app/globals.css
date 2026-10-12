@@ -135,3 +135,20 @@ select:-webkit-autofill {
     animation: none;
   }
 }
+
+/*
+ * R24.6. A scroll area whose bar is not drawn.
+ *
+ * For an area that already says it continues some other way, such as the
+ * schedule grid with an arrow over each edge. The bar sat under the last row
+ * and read as part of the table. Scrolling itself is untouched: wheel, trackpad,
+ * touch and the arrows all still move it.
+ */
+.scroll-quiet {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-quiet::-webkit-scrollbar {
+  display: none;
+}

@@ -436,7 +436,7 @@ export function ScheduleGrid({
 
           <div
             ref={scroller}
-            className="w-full overflow-x-auto rounded-lg border border-line bg-surface"
+            className="scroll-quiet w-full overflow-x-auto rounded-lg border border-line bg-surface"
           >
           {/* R24.6. The grid and the row under it are one block as wide as
               the widest of them, so the footer reaches the far column rather

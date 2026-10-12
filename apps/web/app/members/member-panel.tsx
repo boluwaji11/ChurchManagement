@@ -67,6 +67,7 @@ export function MemberPanel({
       <SheetContent
         title={panelTitle}
         closeLabel={t("common.close")}
+        actions={actions}
         footer={panelFooter}
         layout="centered"
         width="880px"
@@ -96,11 +97,6 @@ export function MemberPanel({
             ))}
           </nav>
           <div className="flex min-h-0 flex-col bg-surface">
-            {actions ? (
-              <div className="flex shrink-0 justify-end gap-2 border-b border-line px-4 py-2 sm:px-6">
-                {actions}
-              </div>
-            ) : null}
             <div
               id="member-panel-content"
               className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-8"

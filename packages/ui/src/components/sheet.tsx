@@ -18,6 +18,7 @@ export const SheetClose = P.Close;
 export function SheetContent({
   title,
   closeLabel,
+  actions,
   footer,
   width = "440px",
   layout = "side",
@@ -27,6 +28,8 @@ export function SheetContent({
 }: {
   title: string;
   closeLabel: string;
+  /** What this record's own actions are, beside the close square. */
+  actions?: React.ReactNode;
   /** The row of actions along the bottom. */
   footer?: React.ReactNode;
   width?: string;
@@ -83,12 +86,15 @@ export function SheetContent({
           {/* min-w-0 so a long title wraps inside the panel rather than
               pushing the close square off a phone's right edge. */}
           <P.Title className="min-w-0 font-display text-[22px] break-words text-fg">{title}</P.Title>
-          <P.Close
-            aria-label={closeLabel}
-            className="grid size-8 place-items-center rounded-sm bg-line text-fg hover:brightness-95"
-          >
-            <X className="size-4" aria-hidden />
-          </P.Close>
+          <div className="flex shrink-0 items-center gap-2">
+            {actions}
+            <P.Close
+              aria-label={closeLabel}
+              className="grid size-8 place-items-center rounded-sm bg-line text-fg hover:brightness-95"
+            >
+              <X className="size-4" aria-hidden />
+            </P.Close>
+          </div>
         </div>
 
         <div className={cn("flex flex-1 flex-col gap-4 overflow-auto p-4 sm:p-6", bodyClassName)}>
