@@ -139,6 +139,11 @@ export function Directory({
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const directoryQuery = params.toString();
+  const directoryHref = directoryQuery ? `${pathname}?${directoryQuery}` : pathname;
+  const addMemberHref = `/members/new?returnTo=${encodeURIComponent(directoryHref)}`;
+  const memberHref = (slug: string) =>
+    `/members/${slug}?returnTo=${encodeURIComponent(directoryHref)}`;
 
   const [selected, setSelected] = React.useState<string[]>([]);
   const [result, setResult] = React.useState<BulkResult>();
@@ -411,7 +416,7 @@ export function Directory({
             of the row, beside its list tools. */}
         {canEdit ? (
           <Button asChild className="shrink-0">
-            <Link href={"/members/new"}>
+            <Link href={addMemberHref}>
               <Plus /> {t("members.add")}
             </Link>
           </Button>
@@ -493,7 +498,7 @@ export function Directory({
             ) : canEdit && !putAway ? (
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <Button asChild>
-                  <Link href={"/members/new"}>
+                  <Link href={addMemberHref}>
                     <Plus /> {t("members.add")}
                   </Link>
                 </Button>
@@ -548,7 +553,7 @@ export function Directory({
               <span className="flex min-w-0 flex-1 flex-col gap-1">
                 {/* The whole card opens them. The name is the link under it. */}
                 <Link
-                  href={`/members/${p.slug}`}
+                  href={memberHref(p.slug)}
                   className="truncate font-medium text-fg after:absolute after:inset-0 after:content-['']"
                 >
                   {p.displayName}
@@ -621,7 +626,7 @@ export function Directory({
                    and "copy link address" all still work. */
                 <tr
                   key={p.id}
-                  onClick={() => router.push(`/members/${p.slug}`)}
+                  onClick={() => router.push(memberHref(p.slug))}
                   // A picked row is tinted, so the selection is visible while
                   // the eye is on the names rather than on the checkboxes.
                   className="cursor-pointer hover:bg-canvas data-[selected]:bg-primary-soft"
@@ -641,7 +646,7 @@ export function Directory({
                   ) : null}
                   <td className="border-b border-sunken px-4 py-2.5">
                     <Link
-                      href={`/members/${p.slug}`}
+                      href={memberHref(p.slug)}
                       className="flex items-center gap-2.5 font-medium text-fg"
                     >
                       <Avatar name={p.displayName} src={p.photoUrl} id={p.id} size="sm" className="size-7 text-[12px] font-semibold" />

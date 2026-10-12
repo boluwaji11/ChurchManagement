@@ -14,12 +14,14 @@ export interface MemberPanelSection {
 export function MemberPanel({
   title,
   sections,
+  actions,
   footer,
   formId,
   children,
 }: {
   title: string;
   sections: MemberPanelSection[];
+  actions?: React.ReactNode;
   footer?: React.ReactNode;
   formId?: string;
   children: React.ReactNode;
@@ -51,6 +53,7 @@ export function MemberPanel({
       </div>
     </div>
   ) : footer;
+  const panelTitle = sections.find((section) => section.id === active)?.label ?? title;
 
   return (
     <Sheet
@@ -62,17 +65,18 @@ export function MemberPanel({
       }}
     >
       <SheetContent
-        title={title}
+        title={panelTitle}
         closeLabel={t("common.close")}
         footer={panelFooter}
-        width="960px"
-        className="max-w-none gap-0 overflow-hidden"
+        layout="centered"
+        width="880px"
+        className="gap-0"
         bodyClassName="min-h-0 gap-0 overflow-hidden p-0"
       >
-        <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] sm:grid-cols-[190px_minmax(0,1fr)] sm:grid-rows-1">
+        <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] sm:grid-cols-[200px_minmax(0,1fr)] sm:grid-rows-1">
           <nav
             aria-label={t("person.panelSections")}
-            className="flex gap-1 overflow-x-auto border-b border-line bg-sunken p-2 sm:flex-col sm:overflow-y-auto sm:border-b-0 sm:border-r sm:p-3"
+            className="flex gap-1 overflow-x-auto border-b border-line bg-surface p-2 sm:flex-col sm:overflow-y-auto sm:border-b-0 sm:border-r sm:p-3"
           >
             {sections.map((section) => (
               <button
@@ -80,23 +84,30 @@ export function MemberPanel({
                 type="button"
                 aria-pressed={active === section.id}
                 onClick={() => setActive(section.id)}
-                className={
-                  "shrink-0 rounded-md px-3 py-2 text-left text-[13px] font-medium sm:w-full "
-                  + (active === section.id
-                    ? "bg-surface text-primary shadow-sm"
-                    : "text-fg-muted hover:bg-surface hover:text-fg")
-                }
+                className={[
+                  "shrink-0 border-l-[3px] px-3 py-2 text-left text-[13px] font-medium sm:w-full",
+                  active === section.id
+                    ? "border-primary bg-primary-soft text-primary"
+                    : "border-transparent text-fg-muted hover:bg-sunken hover:text-fg",
+                ].join(" ")}
               >
                 {section.label}
               </button>
             ))}
           </nav>
-          <div
-            id="member-panel-content"
-            className="min-h-0 overflow-y-auto p-4 sm:p-6"
-          >
-            <style>{`#member-panel-content [data-member-panel-section]:not([id="${active}"]) { display: none; }`}</style>
-            {children}
+          <div className="flex min-h-0 flex-col bg-surface">
+            {actions ? (
+              <div className="flex shrink-0 justify-end gap-2 border-b border-line px-4 py-2 sm:px-6">
+                {actions}
+              </div>
+            ) : null}
+            <div
+              id="member-panel-content"
+              className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-8"
+            >
+              <style>{`#member-panel-content [data-member-panel-section]:not([id="${active}"]) { display: none; }`}</style>
+              {children}
+            </div>
           </div>
         </div>
       </SheetContent>

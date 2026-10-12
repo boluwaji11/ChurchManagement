@@ -6,7 +6,7 @@ import {
   withTenant, getPerson, householdFor,
   personTimeline, servingForPerson, groupsForPerson,
   listContacts, listAddresses, givingForPerson, getChurch,
-  listCustomFields, getCustomValues,
+  listCustomFields, getCustomValues, listTagsForPerson, listCampuses,
   canEditPeople, canReadGivingAmounts,
 } from "@connectapp/db";
 import { Avatar, Button, Tooltip } from "@connectapp/ui";
@@ -14,7 +14,7 @@ import { t, plural } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { photoUrls } from "@/lib/photos";
 import { AppShell } from "@/components/app-shell";
-import { lifecycleLabel } from "@/lib/person-input";
+import { lifecycleLabel, maritalOptions } from "@/lib/person-input";
 import { longDate, shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { churchNow } from "@/lib/church-now";
@@ -26,6 +26,7 @@ import { NoteForm } from "../note-form";
 import { customFieldValue } from "../field-values";
 import { canReadConfidentialNotes, canAnswerMessages } from "@connectapp/db";
 import { tabMetadata } from "@/lib/page-metadata";
+import { memberDirectoryReturnTo } from "@/lib/member-return";
 import { MemberPanel, type MemberPanelSection } from "../member-panel";
 
 /** R17.1. What the browser tab says until the record names itself. */
@@ -36,6 +37,15 @@ export async function generateMetadata({
 }) {
   const {} = await searchParams;
   return tabMetadata(t("members.title"));
+}
+
+function RecordValue({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1 border-b border-line py-3">
+      <span className="text-caption text-fg-subtle">{label}</span>
+      <span className="text-[length:var(--d-text-body)] text-fg">{children}</span>
+    </div>
+  );
 }
 
 /**
@@ -49,13 +59,12 @@ const EMPTY = (
 );
 
 /**
- * R24.6. One card in the person's grid.
+ * One unboxed section in the member record.
  *
- * A quiet 13px heading rather than a title with a rule under it, because the
- * card's contents are the thing being read and the heading only says which card
- * this is.
+ * The heading names the section; a light rule separates its contents from the
+ * next section.
  */
-function InfoCard({
+function RecordSection({
   id,
   title,
   action,
@@ -70,10 +79,10 @@ function InfoCard({
     <section
       id={id}
       data-member-panel-section={id ? "" : undefined}
-      className="scroll-mt-4 flex flex-col gap-3 rounded-lg border border-line bg-surface p-5"
+      className="scroll-mt-4 flex flex-col gap-4 border-b border-line pb-7 last:border-b-0"
     >
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-[15px] font-bold text-fg">{title}</h3>
+        <h3 className="text-title font-semibold text-fg">{title}</h3>
         {action}
       </div>
       {children}
@@ -105,13 +114,14 @@ function PersonStatus({ status }: { status: string }) {
 /**
  * R2.x. One person.
  *
- * Built to docs/redesign/design: the back link, who they are, and four cards.
+ * Built to docs/redesign/design: the back link, who they are, and the record
+ * sections.
  * What we hold about them, who they live with, what they are part of, and
  * everything that has happened, in that order.
  */
 type PersonPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ }>;
+  searchParams: Promise<{ returnTo?: string | string[] }>;
 };
 
 async function renderPersonPage({
@@ -124,7 +134,8 @@ async function renderPersonPage({
   presentation: "page" | "panel";
 }) {
   const { id } = await params;
-  const {} = await searchParams;
+  const { returnTo: rawReturnTo } = await searchParams;
+  const returnTo = memberDirectoryReturnTo(rawReturnTo);
   const session = await requireSession();
 
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
@@ -135,8 +146,7 @@ async function renderPersonPage({
     // works from the record's own id rather than from whatever was in the URL.
     const memberId = person.id;
 
-    // Six reads about the same person, all of them keyed on the id above, so
-    // they go down the one connection together rather than in turn.
+    // Record sections use the person's id for their related reads.
     /*
      * R1.5. Giving amounts are a field-level permission, so the read itself
      * is skipped rather than the number being hidden on the way out.
@@ -147,7 +157,7 @@ async function renderPersonPage({
 
     const [
       contacts, addresses, household, groups, serving, history, giving,
-      customFields, customValues,
+      customFields, customValues, memberTags, campuses,
     ] = await Promise.all([
       // R2.4. Every way of reaching them, not only the one that leads.
       listContacts(tx, memberId),
@@ -171,11 +181,13 @@ async function renderPersonPage({
          form and in the directory and nowhere on the record itself. */
       listCustomFields(tx, "person"),
       getCustomValues(tx, "person", memberId),
+      listTagsForPerson(tx, memberId),
+      listCampuses(tx),
     ]);
 
     return {
       person, contacts, addresses, household, groups, serving, history, giving,
-      customFields, customValues,
+      customFields, customValues, memberTags, campuses,
     };
   });
 
@@ -184,23 +196,51 @@ async function renderPersonPage({
   if (!result) notFound();
   const {
     person, contacts, addresses, household, groups, serving, history, giving,
-    customFields, customValues,
+    customFields, customValues, memberTags, campuses,
   } = result;
 
-  /* R1.10. Only the ones with an answer on this person: a card listing every
-     field the church has ever added, most of them blank, says nothing. */
+  /* R1.10. Every custom field configured by the church has a place on the record. */
   const extra = customFields
     .map((field) => ({
       id: field.id,
       label: field.label,
       value: customFieldValue(field, customValues[field.id], longDate),
-    }))
-    .filter((one) => one.value !== "");
+    }));
 
   const display = `${person.preferredName ?? person.firstName} ${person.lastName}`;
   // R2.9. Their face, signed for the hour.
   const faces = await photoUrls([person.photoKey]);
   const canEdit = canEditPeople(session);
+  const canMessage = canAnswerMessages(session);
+  const actions = canEdit || canMessage ? (
+    <div className="flex items-center gap-2">
+      {canEdit ? (
+        <NoteForm
+          memberId={person.id}
+          name={display}
+          canConfidential={canReadConfidentialNotes(session)}
+          trigger={<Button variant="secondary">{t("person.addNote")}</Button>}
+        />
+      ) : null}
+      {canMessage ? <WriteTo at={person.slug} name={display} /> : null}
+      {canEdit ? (
+        <Tooltip content={t("action.edit")}>
+          <Button
+            variant="ghost"
+            asChild
+            className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
+          >
+            <Link
+              href={`/members/${person.slug}/edit?returnTo=${encodeURIComponent(returnTo ?? "/members")}`}
+              aria-label={t("action.edit")}
+            >
+              <Pencil />
+            </Link>
+          </Button>
+        </Tooltip>
+      ) : null}
+    </div>
+  ) : undefined;
 
   const places = [
     ...groups.map((g) => ({ key: `g${g.groupId}`, name: g.name, hue: g.typeHue ?? "fern" })),
@@ -208,25 +248,26 @@ async function renderPersonPage({
   ];
 
   const panelSections: MemberPanelSection[] = [
-    { id: "overview", label: t("person.details") },
-    { id: "contact", label: t("person.contact") },
+    { id: "overview", label: t("personForm.section.details") },
+    { id: "contact", label: t("personForm.section.contact") },
+    { id: "timeline", label: t("person.churchHistory") },
     { id: "household", label: t("person.household") },
     ...(giving ? [{ id: "giving", label: t("person.giving") }] : []),
-    ...(extra.length > 0 ? [{ id: "additional", label: t("person.more") }] : []),
-    { id: "connections", label: t("person.groupsAndTeams") },
-    { id: "timeline", label: t("person.timeline") },
+    { id: "serving", label: t("person.serving") },
+    { id: "groups", label: t("groups.title") },
+    { id: "tags", label: t("person.tags") },
+    ...(customFields.length > 0 ? [{ id: "additional", label: t("person.more") }] : []),
   ];
 
   const content = (
     <>
-      {/* A 72px face, the name in IBM Plex Serif at 32, and under it the one line
-          that places them: what they are to the church, whose household, and
-          since when. */}
-      <div
+      {/* Their name, status and personal facts open the record. */}
+      <section
         id="overview"
         data-member-panel-section=""
-        className="scroll-mt-4 flex flex-wrap items-center gap-5"
+        className="scroll-mt-4 flex flex-col gap-6"
       >
+      <div className="flex flex-wrap items-center gap-5">
         <Avatar
           name={display}
           src={person.photoKey ? (faces[person.photoKey] ?? null) : null}
@@ -237,54 +278,25 @@ async function renderPersonPage({
           <div className="font-display text-[32px] leading-[38px] text-fg">{display}</div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <PersonStatus status={person.lifecycleStatus} />
-            <span className="text-[13px] text-fg-muted">
-              {[
-                household ? t("person.ofHousehold", { name: household.name }) : null,
-                person.membershipDate
-                  ? t("person.joinedOn", { date: longDate(person.membershipDate) })
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </span>
           </div>
         </div>
 
-        {canEdit ? (
-          <div className="flex items-center gap-2">
-            <NoteForm
-              memberId={person.id}
-              name={display}
-              canConfidential={canReadConfidentialNotes(session)}
-              trigger={<Button variant="secondary">{t("person.addNote")}</Button>}
-            />
-
-            {canAnswerMessages(session) ? (
-              <WriteTo at={person.slug} name={display} />
-            ) : null}
-            <Tooltip content={t("action.edit")}>
-              <Button
-                variant="ghost"
-                asChild
-                className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
-              >
-                <Link
-                  href={`/members/${person.slug}/edit`}
-                  aria-label={t("action.edit")}
-                >
-                  <Pencil />
-                </Link>
-              </Button>
-            </Tooltip>
-          </div>
-        ) : null}
       </div>
+      <div className="grid gap-x-8 sm:grid-cols-2">
+        <RecordValue label={t("personForm.dateOfBirth")}>
+          {person.dateOfBirth ? longDate(person.dateOfBirth) : EMPTY}
+        </RecordValue>
+        <RecordValue label={t("person.maritalStatus")}>
+          {maritalOptions().find((option) => option.value === person.maritalStatus)?.label ?? EMPTY}
+        </RecordValue>
+      </div>
+      </section>
 
       {/* Everything about the member stays grouped by section. The panel's left
           navigation keeps one part in view at a time. */}
-      <div className="flex flex-wrap items-stretch gap-6">
-        <div className="grid min-w-0 flex-[3_1_420px] content-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))]">
-          <InfoCard id="contact" title={t("person.contact")}>
+      <div className="flex flex-col gap-7">
+        <div className="contents">
+          <RecordSection id="contact" title={t("person.contact")}>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
@@ -299,9 +311,9 @@ async function renderPersonPage({
                 <Places memberId={person.id} places={addresses} canEdit={false} />
               </div>
             </div>
-          </InfoCard>
+          </RecordSection>
 
-          <InfoCard id="household" title={t("person.household")}>
+          <RecordSection id="household" title={t("person.household")}>
             {household && household.members.length > 0 ? (
               household.members.map((m) => (
                 <span key={m.id} className="flex items-center gap-2.5">
@@ -315,10 +327,10 @@ async function renderPersonPage({
             ) : (
               <p className="text-[13px] text-fg-muted">{t("person.noHousehold")}</p>
             )}
-          </InfoCard>
+          </RecordSection>
 
           {giving ? (
-            <InfoCard id="giving" title={t("person.giving")}>
+            <RecordSection id="giving" title={t("person.giving")}>
               <div data-numeric className="font-display text-[32px] leading-[38px] text-fg">
                 {giving.gifts === 0 ? EMPTY : money(giving.cents)}
               </div>
@@ -329,41 +341,89 @@ async function renderPersonPage({
                       last: giving.lastOn ? shortDate(giving.lastOn) : "",
                     })}
               </div>
-            </InfoCard>
+            </RecordSection>
           ) : null}
 
-          {extra.length > 0 ? (
-            <InfoCard id="additional" title={t("person.more")}>
+          {customFields.length > 0 ? (
+            <RecordSection id="additional" title={t("person.more")}>
               {extra.map((one) => (
                 <div key={one.id} className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-caption text-fg-subtle">{one.label}</span>
-                  <span className="text-[length:var(--d-text-body)] text-fg">{one.value}</span>
+                  <span className="text-[length:var(--d-text-body)] text-fg">
+                    {one.value || EMPTY}
+                  </span>
                 </div>
               ))}
-            </InfoCard>
+            </RecordSection>
           ) : null}
 
-          <InfoCard id="connections" title={t("person.groupsAndTeams")}>
-            {places.length === 0 ? (
-              <p className="text-[13px] text-fg-muted">{t("person.noGroups")}</p>
+          <RecordSection id="groups" title={t("groups.title")}>
+            {groups.length === 0 ? (
+              <p className="text-[13px] text-fg-muted">{t("person.notInGroup")}</p>
             ) : (
-              places.map((one) => (
-                <span key={one.key} className="flex items-center gap-2.5">
+              groups.map((group) => (
+                <span key={group.groupId} className="flex items-center gap-2.5">
                   <span
                     className="size-2 shrink-0 rounded-full"
-                    style={{ background: `var(--hue-${one.hue}-500)` }}
+                    style={{ background: `var(--hue-${group.typeHue ?? "fern"}-500)` }}
                   />
-                  <span className="font-medium text-fg">{one.name}</span>
+                  <span className="font-medium text-fg">{group.name}</span>
                 </span>
               ))
             )}
-          </InfoCard>
+          </RecordSection>
+
+          <RecordSection id="serving" title={t("person.serving")}>
+            {serving.length === 0 ? (
+              <p className="text-[13px] text-fg-muted">{t("person.notOnTeam")}</p>
+            ) : (
+              serving.map((team) => (
+                <span key={team.teamId} className="flex items-center gap-2.5">
+                  <span
+                    className="size-2 shrink-0 rounded-full"
+                    style={{ background: `var(--hue-${team.hue}-500)` }}
+                  />
+                  <span className="font-medium text-fg">{team.teamName}</span>
+                </span>
+              ))
+            )}
+          </RecordSection>
+
+          <RecordSection id="tags" title={t("person.tags")}>
+            {memberTags.length === 0 ? (
+              <p className="text-[13px] text-fg-muted">{t("person.noTags")}</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {memberTags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="rounded-full border border-line px-3 py-1 text-[13px] font-medium text-fg"
+                  >
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </RecordSection>
         </div>
 
-        <div className="flex min-w-0 flex-[2_1_320px] flex-col md:border-l md:border-line md:pl-6">
-          <InfoCard id="timeline" title={t("person.timeline")}>
+        <div className="contents">
+          <RecordSection id="timeline" title={t("person.churchHistory")}>
+            <div className="grid gap-x-8 sm:grid-cols-2">
+              <RecordValue label={t("personForm.firstVisit")}>
+                {person.firstVisitOn ? longDate(person.firstVisitOn) : EMPTY}
+              </RecordValue>
+              <RecordValue label={t("personForm.membershipDate")}>
+                {person.membershipDate ? longDate(person.membershipDate) : EMPTY}
+              </RecordValue>
+              {campuses.length > 1 ? (
+                <RecordValue label={t("person.campus")}>
+                  {campuses.find((campus) => campus.id === person.campusId)?.name ?? EMPTY}
+                </RecordValue>
+              ) : null}
+            </div>
             <Timeline entries={history} />
-          </InfoCard>
+          </RecordSection>
         </div>
       </div>
     </>
@@ -371,7 +431,7 @@ async function renderPersonPage({
 
   if (presentation === "panel") {
     return (
-      <MemberPanel title={display} sections={panelSections}>
+      <MemberPanel title={display} sections={panelSections} actions={actions}>
         <div className="flex flex-col gap-5">{content}</div>
       </MemberPanel>
     );
@@ -386,7 +446,7 @@ async function renderPersonPage({
 
          A note sits beside the two marks on the name's own row, with the
          other things a record is opened to do. */
-      back={{ href: "/members", label: t("members.title") }}
+      back={{ href: returnTo ?? "/members", label: t("members.title") }}
     >
       {/* A 72px face, the name in IBM Plex Serif at 32, and under it the one line
           that places them: what they are to the church, whose household, and
@@ -440,7 +500,7 @@ async function renderPersonPage({
                 className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
               >
                 <Link
-                  href={`/members/${person.slug}/edit`}
+                  href={`/members/${person.slug}/edit?returnTo=${encodeURIComponent(returnTo ?? "/members")}`}
                   aria-label={t("action.edit")}
                 >
                   <Pencil />
@@ -457,7 +517,7 @@ async function renderPersonPage({
           the others. */}
       <div className="flex flex-wrap items-stretch gap-6">
         <div className="grid min-w-0 flex-[3_1_420px] content-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))]">
-        <InfoCard title={t("person.contact")}>
+        <RecordSection title={t("person.contact")}>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
@@ -489,9 +549,9 @@ async function renderPersonPage({
               />
             </div>
           </div>
-        </InfoCard>
+        </RecordSection>
 
-        <InfoCard title={t("person.household")}>
+        <RecordSection title={t("person.household")}>
           {household && household.members.length > 0 ? (
             household.members.map((m) => (
               <span key={m.id} className="flex items-center gap-2.5">
@@ -509,17 +569,16 @@ async function renderPersonPage({
           ) : (
             <p className="text-[13px] text-fg-muted">{t("person.noHousehold")}</p>
           )}
-        </InfoCard>
+        </RecordSection>
 
         {/*
           * R13.18, R1.5. What this person has given this year.
           *
           * Only for somebody whose role carries "See how much somebody gives".
-          * Everybody else does not see an empty card where the number would
-          * be: they see no card, because the absence of one says nothing.
+          * Everybody else sees no section for an amount they cannot read.
           */}
         {giving ? (
-          <InfoCard title={t("person.giving")}>
+          <RecordSection title={t("person.giving")}>
             <div data-numeric className="font-display text-[32px] leading-[38px] text-fg">
               {giving.gifts === 0 ? EMPTY : money(giving.cents)}
             </div>
@@ -530,23 +589,25 @@ async function renderPersonPage({
                     last: giving.lastOn ? shortDate(giving.lastOn) : "",
                   })}
             </div>
-          </InfoCard>
+          </RecordSection>
         ) : null}
 
         {/* R1.10. What this church asks about its people beyond the fields
             the product ships with. */}
-        {extra.length > 0 ? (
-          <InfoCard title={t("person.more")}>
+        {customFields.length > 0 ? (
+          <RecordSection title={t("person.more")}>
             {extra.map((one) => (
               <div key={one.id} className="flex min-w-0 flex-col gap-0.5">
                 <span className="text-caption text-fg-subtle">{one.label}</span>
-                <span className="text-[length:var(--d-text-body)] text-fg">{one.value}</span>
+                <span className="text-[length:var(--d-text-body)] text-fg">
+                  {one.value || EMPTY}
+                </span>
               </div>
             ))}
-          </InfoCard>
+          </RecordSection>
         ) : null}
 
-        <InfoCard title={t("person.groupsAndTeams")}>
+        <RecordSection title={t("person.groupsAndTeams")}>
           {places.length === 0 ? (
             <p className="text-[13px] text-fg-muted">{t("person.noGroups")}</p>
           ) : (
@@ -560,14 +621,14 @@ async function renderPersonPage({
               </span>
             ))
           )}
-        </InfoCard>
+        </RecordSection>
 
         </div>
 
         <div className="flex min-w-0 flex-[2_1_320px] flex-col md:border-l md:border-line md:pl-6">
-          <InfoCard title={t("person.timeline")}>
+          <RecordSection title={t("person.timeline")}>
             <Timeline entries={history} />
-          </InfoCard>
+          </RecordSection>
         </div>
       </div>
     </AppShell>

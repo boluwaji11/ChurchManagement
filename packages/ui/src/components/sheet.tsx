@@ -10,18 +10,17 @@ export const SheetTrigger = P.Trigger;
 export const SheetClose = P.Close;
 
 /**
- * R24.6. A form that comes in from the right.
+ * R24.6. A surface over the screen it came from.
  *
- * 440px over a dim, the title in IBM Plex Serif at 22 with a close square beside it,
- * the body scrolling on its own, and the actions pinned to the bottom. The
- * screen behind stays in view, which is the point: you are adding to the thing
- * you were just looking at.
+ * The side layout enters from the right. The centered layout keeps member
+ * records close to the directory. Both scroll the body and pin their actions.
  */
 export function SheetContent({
   title,
   closeLabel,
   footer,
   width = "440px",
+  layout = "side",
   children,
   className,
   bodyClassName,
@@ -31,6 +30,7 @@ export function SheetContent({
   /** The row of actions along the bottom. */
   footer?: React.ReactNode;
   width?: string;
+  layout?: "side" | "centered";
   children: React.ReactNode;
   className?: string;
   bodyClassName?: string;
@@ -59,11 +59,25 @@ export function SheetContent({
           }
         }}
         className={cn(
-          "fixed inset-y-0 right-0 z-50 flex h-full flex-col bg-canvas shadow-lg",
-          "data-[state=open]:animate-[connectapp-slide-in_var(--duration-base)_var(--ease-out)]",
+          layout === "centered"
+            ? [
+                "fixed inset-x-0 top-0 bottom-[env(safe-area-inset-bottom)] z-50 m-auto",
+                "flex h-[min(680px,calc(100dvh-3rem-env(safe-area-inset-bottom)))]",
+                "max-h-[calc(100dvh-3rem-env(safe-area-inset-bottom))] max-w-[880px]",
+                "flex-col overflow-hidden rounded-xl border border-line bg-canvas shadow-lg",
+                "data-[state=open]:animate-[connectapp-pop_var(--duration-base)_var(--ease-out)]",
+              ].join(" ")
+            : [
+                "fixed inset-y-0 right-0 z-50 flex h-full flex-col bg-canvas shadow-lg",
+                "data-[state=open]:animate-[connectapp-slide-in_var(--duration-base)_var(--ease-out)]",
+              ].join(" "),
           className,
         )}
-        style={{ width: `min(${width}, 100%)` }}
+        style={{
+          width: layout === "centered"
+            ? `min(${width}, calc(100vw - 2rem))`
+            : `min(${width}, 100%)`,
+        }}
       >
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-5 sm:px-6">
           {/* min-w-0 so a long title wraps inside the panel rather than

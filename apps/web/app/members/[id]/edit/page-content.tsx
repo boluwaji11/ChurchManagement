@@ -13,6 +13,7 @@ import { toAddress } from "@/lib/address";
 import { t } from "@connectapp/i18n";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
+import { memberDirectoryReturnTo } from "@/lib/member-return";
 import { MemberPanel } from "../../member-panel";
 
 /** R17.1. What the browser tab says until the record names itself. */
@@ -27,7 +28,7 @@ export async function generateMetadata({
 
 type EditPersonPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ }>;
+  searchParams: Promise<{ returnTo?: string | string[] }>;
 };
 
 async function renderEditPersonPage({
@@ -40,7 +41,8 @@ async function renderEditPersonPage({
   presentation: "page" | "panel";
 }) {
   const { id } = await params;
-  const {} = await searchParams;
+  const { returnTo: rawReturnTo } = await searchParams;
+  const returnTo = memberDirectoryReturnTo(rawReturnTo);
   const session = await requireSession();
 
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
@@ -73,6 +75,7 @@ async function renderEditPersonPage({
   const form = permitted ? (
         <PersonForm
           church={session.tenantSlug}
+          returnTo={returnTo}
           households={households}
           campuses={campuses.map((one) => ({ id: one.id, name: one.name }))}
           customFields={customFields}
@@ -104,11 +107,11 @@ async function renderEditPersonPage({
       );
   const sections = [
     { id: "details", label: t("personForm.section.details") },
-    { id: "contact", label: t("person.contact") },
-    ...(customFields.length > 0 ? [{ id: "custom", label: t("person.more") }] : []),
-    { id: "status", label: t("personForm.section.status") },
-    ...(tags.length > 0 ? [{ id: "tags", label: t("person.tags") }] : []),
+    { id: "contact", label: t("personForm.section.contact") },
     { id: "household", label: t("personForm.section.household") },
+    { id: "status", label: t("person.churchHistory") },
+    ...(tags.length > 0 ? [{ id: "tags", label: t("person.tags") }] : []),
+    ...(customFields.length > 0 ? [{ id: "custom", label: t("person.more") }] : []),
   ];
 
   if (presentation === "panel") {
@@ -132,7 +135,7 @@ async function renderEditPersonPage({
   return (
     <AppShell session={session} max="max-w-[1080px]">
       <Link
-        href={`/members/${person.slug}`}
+        href={returnTo ?? `/members/${person.slug}`}
         className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {display}

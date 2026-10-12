@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import {
-  withTenant, listHouseholds, listCustomFields, listCampuses, canEditPeople,
+  withTenant, listHouseholds, listCustomFields, listCampuses, listTagsWithCounts, canEditPeople,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
@@ -9,6 +9,7 @@ import { PersonForm, PersonFormActions } from "../person-form";
 import { t } from "@connectapp/i18n";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
+import { memberDirectoryReturnTo } from "@/lib/member-return";
 import { MemberPanel } from "../member-panel";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export async function generateMetadata({
 }
 
 type NewPersonPageProps = {
-  searchParams: Promise<{ }>;
+  searchParams: Promise<{ returnTo?: string | string[] }>;
 };
 
 async function renderNewPersonPage({
@@ -34,7 +35,8 @@ async function renderNewPersonPage({
   searchParams: NewPersonPageProps["searchParams"];
   presentation: "page" | "panel";
 }) {
-  const {} = await searchParams;
+  const { returnTo: rawReturnTo } = await searchParams;
+  const returnTo = memberDirectoryReturnTo(rawReturnTo);
   const session = await requireSession();
 
   // The form is hidden from a role that cannot use it. The refusal that matters
@@ -46,23 +48,28 @@ async function renderNewPersonPage({
         households: await listHouseholds(tx),
         customFields: await listCustomFields(tx, "person"),
         campuses: await listCampuses(tx),
+        tags: await listTagsWithCounts(tx),
       }))
-    : { households: [], customFields: [], campuses: [] };
+    : { households: [], customFields: [], campuses: [], tags: [] };
 
   const form = permitted ? (
         <PersonForm
           church={session.tenantSlug}
+          returnTo={returnTo}
           households={data.households}
           customFields={data.customFields}
           campuses={data.campuses.map((one) => ({ id: one.id, name: one.name }))}
+          tags={data.tags.map((tag) => ({ id: tag.id, name: tag.name }))}
         />
       ) : (
         <Denied role={session.role} action="addPerson" church={session.tenantSlug} />
       );
   const sections = [
     { id: "details", label: t("personForm.section.details") },
+    { id: "contact", label: t("personForm.section.contact") },
     { id: "household", label: t("personForm.section.household") },
-    { id: "status", label: t("personForm.section.status") },
+    { id: "status", label: t("person.churchHistory") },
+    ...(data.tags.length > 0 ? [{ id: "tags", label: t("person.tags") }] : []),
     ...(data.customFields.length > 0 ? [{ id: "custom", label: t("person.more") }] : []),
   ];
 
@@ -82,7 +89,7 @@ async function renderNewPersonPage({
   return (
     <AppShell session={session} tab={t("personForm.addTitle")} max="max-w-[1080px]">
       <Link
-        href={"/members"}
+        href={returnTo ?? "/members"}
         className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
       >
         <ArrowLeft className="size-4" /> {t("members.title")}

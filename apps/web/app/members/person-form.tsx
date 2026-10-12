@@ -63,7 +63,6 @@ export interface PersonFormValues {
  * first bad field takes focus, so a keyboard or screen reader user is put on the
  * problem rather than left to hunt for it.
  */
-/** The design's form card: a bold heading, no rule under it. */
 /**
  * R2.1. Who is already in the household this person is being put into.
  *
@@ -113,7 +112,7 @@ function HouseholdMembers({
   );
 }
 
-function FormCard({
+function FormSection({
   id,
   title,
   note,
@@ -128,10 +127,10 @@ function FormCard({
     <section
       id={id}
       data-member-panel-section={id ? "" : undefined}
-      className="scroll-mt-4 flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
+      className="scroll-mt-4 flex flex-col gap-4 border-b border-line pb-7 last:border-b-0"
     >
       <div>
-        <span className="text-[15px] font-bold text-fg">{title}</span>
+        <h2 className="text-title font-semibold text-fg">{title}</h2>
         {note ? <span className="block text-[13px] text-fg-subtle">{note}</span> : null}
       </div>
       {children}
@@ -151,6 +150,7 @@ export function PersonFormActions({ editing }: { editing: boolean }) {
 
 export function PersonForm({
   church,
+  returnTo = "/members",
   values,
   households,
   customFields = [],
@@ -162,6 +162,7 @@ export function PersonForm({
   places,
 }: {
   church: string;
+  returnTo?: string;
   values?: PersonFormValues;
   households: HouseholdOption[];
   /** R1.2. Shown only where this church has more than one. */
@@ -229,18 +230,15 @@ export function PersonForm({
           page's header, can say it is working. */}
       <FormBusy form="person-form" />
       <input type="hidden" name="church" value={church} />
+      <input type="hidden" name="returnTo" value={returnTo} />
       {values?.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
       {formError ? (
         <Banner tone="danger">{formError}</Banner>
       ) : null}
 
-      {/* The person on the left, who they live with on the right, with a
-          hairline between. A household is a different question from a phone
-          number, and putting it in the same grid made it read as one. */}
-      <div className="flex flex-wrap items-start gap-6">
-        <div className="flex min-w-0 flex-[3_1_420px] flex-col gap-5">
-      <FormCard id="details" title={t("personForm.section.details")}>
+      <div className="flex flex-col gap-7">
+      <FormSection id="details" title={t("personForm.section.details")}>
         <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
           <Field label={t("personForm.firstName")} error={errors.firstName} required>
             <Input name="firstName" defaultValue={values?.firstName ?? ""} autoComplete="off" autoFocus={!editing} />
@@ -248,20 +246,9 @@ export function PersonForm({
           <Field label={t("personForm.lastName")} error={errors.lastName} required>
             <Input name="lastName" defaultValue={values?.lastName ?? ""} autoComplete="off" />
           </Field>
-          {/* R2.4. Asked once, when the record is written. A person who is
-              already here has a list of these on their own page, and a single
-              box here would overwrite whichever one happened to be leading
-              with no sign the others were there. */}
-          {editing ? null : (
-            <>
-              <Field label={t("personForm.email")} error={errors.email}>
-                <Input name="email" type="email" defaultValue={values?.email ?? ""} />
-              </Field>
-              <Field label={t("personForm.phone")} error={errors.phone}>
-                <PhoneInput name="phone" defaultValue={values?.phone ?? ""} />
-              </Field>
-            </>
-          )}
+          <Field label={t("personForm.preferredName")}>
+            <Input name="preferredName" defaultValue={values?.preferredName ?? ""} autoComplete="off" />
+          </Field>
           <Field label={t("personForm.dateOfBirth")} error={errors.dateOfBirth}>
             <DateField name="dateOfBirth" defaultValue={values?.dateOfBirth ?? ""} />
           </Field>
@@ -275,31 +262,12 @@ export function PersonForm({
             />
           </Field>
 
-          {/* R1.2. Only where this church has more than one. */}
-          {campuses.length > 1 ? (
-            <Field label={t("person.campus")}>
-              <Picker
-                name="campusId"
-                defaultValue={values?.campusId ?? null}
-                options={campuses.map((one) => ({ value: one.id, label: one.name }))}
-                label={t("person.campus")}
-              />
-            </Field>
-          ) : null}
-
-
-          {/* R2.4. Asked once, when the record is written. A person already
-              here keeps a list of these in the card below, which is where a
-              second address or a work number goes. */}
-          {editing ? null : <AddressFields values={values?.address ?? emptyAddress()} />}
         </div>
-      </FormCard>
+      </FormSection>
 
-      {/* R2.4. Every way of reaching them, each a list. The lists write as
-          they are pressed, so they sit outside the form that saves the rest. */}
-      {editing && contacts ? (
-        <FormCard id="contact" title={t("person.contact")}>
-          <div className="flex flex-col gap-4">
+      <FormSection id="contact" title={t("personForm.section.contact")}>
+        {editing && contacts ? (
+          <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
               <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
               <Contacts
@@ -327,20 +295,81 @@ export function PersonForm({
               />
             </div>
           </div>
-        </FormCard>
-      ) : null}
-
-      {customFields.length > 0 ? (
-        <FormCard id="custom" title={t("person.more")}>
+        ) : (
           <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
-            <CustomFieldInputs fields={customFields} values={customValues} errors={errors} />
+            <Field label={t("personForm.email")} error={errors.email}>
+              <Input name="email" type="email" defaultValue={values?.email ?? ""} />
+            </Field>
+            <Field label={t("personForm.phone")} error={errors.phone}>
+              <PhoneInput name="phone" defaultValue={values?.phone ?? ""} />
+            </Field>
+            <AddressFields values={values?.address ?? emptyAddress()} />
           </div>
-        </FormCard>
-      ) : null}
+        )}
+      </FormSection>
 
-      {/* Status as pills rather than a dropdown. Four values a church picks
-          between every day, all visible, one press each. */}
-      <FormCard id="status" title={t("personForm.status")}>
+      <FormSection id="household" title={t("personForm.household")}>
+        <div className="flex flex-col gap-3.5">
+          <Field label={t("personForm.householdWhich")}>
+            <Select name="householdId" value={household} onValueChange={setHousehold}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={HOUSEHOLD_NONE}>
+                  <span className="font-semibold text-primary">
+                    {t("personForm.householdNone")}
+                  </span>
+                </SelectItem>
+                <SelectItem value={HOUSEHOLD_NEW}>
+                  <span className="font-semibold text-primary">
+                    {t("personForm.householdNew")}
+                  </span>
+                </SelectItem>
+
+                <span aria-hidden className="my-1 block h-px bg-line" />
+
+                {households.map((h) => (
+                  <SelectItem key={h.id} value={h.id}>
+                    <span className="flex min-w-0 items-baseline gap-1.5 overflow-hidden">
+                      <span className="shrink-0">{h.name}</span>
+                      {h.members.length > 0 ? (
+                        <span className="min-w-0 truncate text-[13px] text-fg-muted">
+                          ({h.members.map((m) => m.name.split(" ")[0]).join(", ")})
+                        </span>
+                      ) : null}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          {household === HOUSEHOLD_NEW ? (
+            <Field label={t("personForm.householdName")} error={errors.householdName} required>
+              <Input name="householdName" autoComplete="off" />
+            </Field>
+          ) : null}
+
+          {household !== HOUSEHOLD_NONE ? (
+            <Field label={t("personForm.householdRoleShort")}>
+              <Select name="householdRole" defaultValue={values?.householdRole ?? "other"}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {householdRoleOptions().map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          ) : null}
+
+          <HouseholdMembers
+            self={values?.id}
+            members={households.find((h) => h.id === household)?.members ?? []}
+          />
+        </div>
+      </FormSection>
+
+      <FormSection id="status" title={t("person.churchHistory")}>
         <input type="hidden" name="lifecycleStatus" value={status} />
         <div className="flex flex-wrap gap-2">
           {lifecycleOptions().map((o) => (
@@ -360,12 +389,28 @@ export function PersonForm({
             </button>
           ))}
         </div>
-      </FormCard>
+        <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
+          <Field label={t("personForm.firstVisit")} error={errors.firstVisitOn}>
+            <DateField name="firstVisitOn" defaultValue={values?.firstVisitOn ?? ""} />
+          </Field>
+          <Field label={t("personForm.membershipDate")} error={errors.membershipDate}>
+            <DateField name="membershipDate" defaultValue={values?.membershipDate ?? ""} />
+          </Field>
+          {campuses.length > 1 ? (
+            <Field label={t("person.campus")}>
+              <Picker
+                name="campusId"
+                defaultValue={values?.campusId ?? null}
+                options={campuses.map((one) => ({ value: one.id, label: one.name }))}
+                label={t("person.campus")}
+              />
+            </Field>
+          ) : null}
+        </div>
+      </FormSection>
 
-      {/* R2.x. Tags, as the design puts them: under the status, on the same
-          card, one press each. */}
       {tags.length > 0 ? (
-        <FormCard id="tags" title={t("person.tags")}>
+        <FormSection id="tags" title={t("person.tags")}>
           <input type="hidden" name="tagIds" value={chosenTags.join(",")} />
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => {
@@ -392,78 +437,16 @@ export function PersonForm({
               );
             })}
           </div>
-        </FormCard>
+        </FormSection>
       ) : null}
 
-
-        </div>
-
-        <div className="flex min-w-0 flex-[2_1_280px] flex-col gap-5 md:border-l md:border-line md:pl-6">
-          <FormCard id="household" title={t("personForm.household")}>
-            <div className="flex flex-col gap-3.5">
-              <Field label={t("personForm.householdWhich")}>
-                <Select name="householdId" value={household} onValueChange={setHousehold}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {/* The two answers that are not a household sit above the
-                        rule, so they are not hunted for among forty names. */}
-                    <SelectItem value={HOUSEHOLD_NONE}>
-                      <span className="font-semibold text-primary">
-                        {t("personForm.householdNone")}
-                      </span>
-                    </SelectItem>
-                    <SelectItem value={HOUSEHOLD_NEW}>
-                      <span className="font-semibold text-primary">
-                        {t("personForm.householdNew")}
-                      </span>
-                    </SelectItem>
-
-                    <span aria-hidden className="my-1 block h-px bg-line" />
-
-                    {/* R2.1. Four households called Smith are four identical
-                        words, so each carries who is in it. */}
-                    {households.map((h) => (
-                      <SelectItem key={h.id} value={h.id}>
-                        <span className="flex min-w-0 items-baseline gap-1.5 overflow-hidden">
-                          <span className="shrink-0">{h.name}</span>
-                          {h.members.length > 0 ? (
-                            <span className="min-w-0 truncate text-[13px] text-fg-muted">
-                              ({h.members.map((m) => m.name.split(" ")[0]).join(", ")})
-                            </span>
-                          ) : null}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              {household === HOUSEHOLD_NEW ? (
-                <Field label={t("personForm.householdName")} error={errors.householdName} required>
-                  <Input name="householdName" autoComplete="off" />
-                </Field>
-              ) : null}
-
-              {household !== HOUSEHOLD_NONE ? (
-                <Field label={t("personForm.householdRoleShort")}>
-                  <Select name="householdRole" defaultValue={values?.householdRole ?? "other"}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {householdRoleOptions().map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              ) : null}
-
-              <HouseholdMembers
-                self={values?.id}
-                members={households.find((h) => h.id === household)?.members ?? []}
-              />
-            </div>
-          </FormCard>
-        </div>
+      {customFields.length > 0 ? (
+        <FormSection id="custom" title={t("person.more")}>
+          <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]">
+            <CustomFieldInputs fields={customFields} values={customValues} errors={errors} />
+          </div>
+        </FormSection>
+      ) : null}
       </div>
 
     </form>
