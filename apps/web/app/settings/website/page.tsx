@@ -116,7 +116,7 @@ export default async function WebsitePage({
             a rule, because the two columns answer different questions. */}
         {/* R24.6. No heading: the trail's first step already says what the
             column is for, and a title above it said it twice. */}
-        <section className="flex h-full flex-col gap-4 lg:border-l lg:border-line lg:pl-8">
+        <section className="flex flex-col gap-4 lg:border-l lg:border-line lg:pl-8">
           <div
             aria-disabled={!approved}
             inert={!approved}
