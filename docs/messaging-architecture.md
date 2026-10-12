@@ -130,6 +130,12 @@ Until that answer exists, HRT-286 stays unwritten.
   sections. Churches can edit and reorder them. Arbitrary layouts and multi-page authoring remain
   out of scope.
 
+## How to create the accounts
+
+The console steps, and what to hand back, are in
+[messaging-setup.md](messaging-setup.md). The Twilio spike below is Part 2b of
+that document.
+
 ## What to supply when the accounts exist
 
 | Vendor | What is needed |
