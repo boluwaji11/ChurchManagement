@@ -207,8 +207,15 @@ export function ChurchWebsitePage({
   editor?: WebsitePageEditor;
 }) {
   const dragging = React.useRef<number | null>(null);
+  /*
+   * The page is the real homepage on a church's own address and a preview
+   * inside the Website editor. Only the first is the page's main landmark: in
+   * the editor it sits inside the shell's own main, and two main landmarks on
+   * one screen leave a screen reader with no answer to "take me to the page".
+   */
+  const Frame = editor ? "div" : "main";
   return (
-    <main className="min-h-dvh bg-canvas text-fg" data-brand-hue={website.brandHue}>
+    <Frame className="min-h-dvh bg-canvas text-fg" data-brand-hue={website.brandHue}>
       <header className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-3 rounded-md font-display text-xl font-semibold">
           <span className="truncate">{website.churchName}</span>
@@ -304,6 +311,6 @@ export function ChurchWebsitePage({
       <footer className="border-t border-line px-5 py-6 text-center text-sm text-fg-muted">
         {website.churchName}
       </footer>
-    </main>
+    </Frame>
   );
 }

@@ -153,6 +153,31 @@ we do not. The reading that produced them is below the table.
 | HRT-334 | A record says how complete it is, and the directory says which are not | R2.1, R19.3 | New |
 | HRT-335 | The church's own activity feed, read from the log that already records it | R1.11, R18.1 | New |
 | HRT-336 | Sweep the dead ends: a link to nothing, two empty directories, components nothing renders | R24.18 | New |
+| HRT-337 | Lint in CI, with the rules of hooks enforced | R22.7, N7 | New |
+
+
+## Lint has never run, October 2026
+
+HRT-337. `pnpm lint` runs turbo's `lint` task in six packages and executes
+nothing, because no package defines one and the repo has no ESLint config at
+all. The `eslint-disable` comments in three files have therefore never
+suppressed anything, and `react-hooks/rules-of-hooks` has never been checked.
+
+What that cost, found by hand on 12 October: `SetupDock` called `useOverlay()`
+after an early return, so the hook count changed between the first render and
+the second. The dock threw on every render it reached, and because it sits in
+the app shell the nearest error boundary is the screen's, so a brand-new
+church met "That screen did not load" on the Website editor. The dock had
+never once drawn since it was written.
+
+A typecheck does not catch it, a unit test does not reach it, and nobody
+notices until a church with unfinished setup opens a screen. One lint rule
+catches the whole class.
+
+Scope: an ESLint flat config at the root with `react-hooks` and
+`@next/eslint-plugin-next`, a `lint` script in each package so turbo has
+something to run, and a lint step in `ci.yml` beside typecheck. Fix whatever
+the first run turns up before it is wired in, so the step lands green.
 
 ## The pass against the reference, October 2026
 

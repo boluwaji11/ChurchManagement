@@ -68,16 +68,20 @@ const sectionHeadingPlaceholder = (
 
 function DesignCard({
   layout,
+  churchName,
   onChoose,
 }: {
   layout: WebsiteLayout;
+  /* R22.2. The church's own name in the preview. A starting design showing
+     somebody else's church reads as a page that belongs to them. */
+  churchName: string;
   onChoose: (layout: WebsiteLayout) => void;
 }) {
   const preview = {
     gathering: (
       <div className="h-full bg-[#faf7f1] text-[#25231f]">
         <div className="flex items-center justify-between border-b border-[#e6dfd3] px-4 py-2">
-          <span className="font-display text-[10px] font-semibold">{t("website.preview.church")}</span>
+          <span className="font-display text-[10px] font-semibold">{churchName}</span>
           <span className="flex gap-3 text-[6px] text-[#625f58]">
             <span>{t("website.preview.about")}</span><span>{t("website.preview.services")}</span><span>{t("website.preview.contact")}</span>
           </span>
@@ -101,7 +105,7 @@ function DesignCard({
     community: (
       <div className="h-full bg-[#f5f4ef] text-[#262b25]">
         <div className="flex items-center justify-between px-4 py-2">
-          <span className="font-display text-[10px] font-semibold">{t("website.preview.church")}</span>
+          <span className="font-display text-[10px] font-semibold">{churchName}</span>
           <span className="flex gap-3 text-[6px] text-[#5f675e]">
             <span>{t("website.preview.community.nav1")}</span><span>{t("website.preview.community.nav2")}</span><span>{t("website.preview.visit")}</span>
           </span>
@@ -117,14 +121,14 @@ function DesignCard({
     classic: (
       <div className="h-full bg-[#fffdf8] text-[#292720]">
         <div className="flex items-center justify-between border-b border-[#e5e0d4] px-4 py-2">
-          <span className="font-display text-[10px] font-semibold">{t("website.preview.church")}</span>
+          <span className="font-display text-[10px] font-semibold">{churchName}</span>
           <span className="flex gap-3 text-[6px] text-[#625f58]">
             <span>{t("website.preview.welcome")}</span><span>{t("website.preview.whoWeAre")}</span><span>{t("website.preview.visit")}</span>
           </span>
         </div>
         <div className="grid h-[calc(100%-29px)] grid-cols-[0.95fr_1.05fr] gap-3 px-4 py-3">
           <div className="flex flex-col justify-center gap-2">
-            <span className="text-[6px] font-semibold uppercase tracking-[0.15em] text-[#6d7155]">{t("website.preview.classic.eyebrow")}</span>
+            <span className="text-[6px] font-semibold uppercase tracking-[0.15em] text-[#6d7155]">{t("website.preview.classic.eyebrow", { church: churchName })}</span>
             <span className="font-display text-[18px] leading-[1.05]">{t("website.preview.classic.title")}</span>
             <span className="text-[7px] leading-3 text-[#625f58]">{t("website.preview.classic.body")}</span>
             <span className="w-fit border-b border-[#6d7155] pb-0.5 text-[6px] font-semibold text-[#51583d]">{t("website.preview.services")}</span>
@@ -330,7 +334,7 @@ export function WebsiteEditor({
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {(["gathering", "community", "classic"] as const).map((one) => (
-              <DesignCard key={one} layout={one} onChoose={chooseDesign} />
+              <DesignCard key={one} layout={one} churchName={churchName} onChoose={chooseDesign} />
             ))}
           </div>
         </section>
