@@ -151,11 +151,8 @@ export default async function PlanPage({
         <div className="flex flex-col gap-6">
           <Order
             church={session.tenantSlug}
-            occurrenceId={occurrence.slug}
             planId={plan.id}
             serviceStartsAt={plan.serviceStartsAt}
-            series={plan.series}
-            theme={plan.theme}
             items={plan.items.map((item) => ({
               id: item.id,
               kind: item.kind,

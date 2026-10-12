@@ -154,7 +154,7 @@ we do not. The reading that produced them is below the table.
 | HRT-335 | The church's own activity feed, read from the log that already records it | R1.11, R18.1 | New |
 | HRT-336 | Sweep the dead ends: a link to nothing, two empty directories, components nothing renders | R24.18 | New |
 | HRT-337 | Lint in CI, with the rules of hooks enforced | R22.7, N7 | Resolved |
-| HRT-340 | Take out the church prop nothing reads | R24.18 | New |
+| HRT-340 | Take out the church prop nothing reads | R24.18 | Resolved |
 | HRT-338 | The church website builder: what a Path B church can actually build | R22.2, R24.15 | New |
 
 
@@ -203,8 +203,8 @@ live bugs nobody had reported:
 
 The lint runs as one pass over the repo rather than six through turbo, because
 the flat config already covers every package. The step is pinned with
-`--max-warnings 127`, the count on the day it landed, so the warnings cannot
-grow while the sweep in HRT-340 waits.
+`--max-warnings`, so the warnings cannot grow: 127 on the day it landed, 60
+once HRT-340 had swept the unused ones out.
 
 ## The church prop nothing reads, October 2026
 
@@ -220,8 +220,24 @@ genuinely need the church and which inherited it.
 It is a sweep, not a design decision: take the prop off the component, take it
 off the call site, and let the typecheck find the rest. Its own story because
 forty-five files in the lint commit would hide the six hook fixes that commit
-is actually for. `no-unused-vars` is a warning until this lands, then it goes
-to error and the ratchet in `ci.yml` comes off.
+is actually for.
+
+**What it came to:** 92 files, 217 lines gone. 43 components stopped taking a
+prop, and 57 attributes and 11 arguments came off the call sites. Seven server
+actions took a `church` they never read: `clearGroupPhoto`, `dropFile`,
+`saveDomain`, `clearPhoto`, `kindsICanWriteTo`, `whoToWriteTo` and
+`dropPledge`. The shell lost it twice, from the sidebar and from the phone
+tabs, and the member portal's tabs lost it too.
+
+The first attempt matched the first occurrence of the name in each file rather
+than the line the lint reported, and took a `viewing` that a second component
+two hundred lines down was reading. It was reverted whole. The second pass
+anchors on the reported line and brace-matches the type literal beside the
+destructure, and TypeScript confirmed it: no "cannot find name" anywhere, and
+27 screens checked in a browser afterwards.
+
+`no-unused-vars` is now an error, and the ratchet in `ci.yml` came down from
+127 warnings to 60.
 
 
 ## What a church can build with us, October 2026

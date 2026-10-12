@@ -69,7 +69,6 @@ export default async function CampaignPage({
         <BackLink href={"/giving/campaigns"} label={t("campaigns.back")} />
 
         <CampaignScreen
-          church={session.tenantSlug}
           today={read.today}
           campaign={read.campaign}
           pledges={read.pledges}

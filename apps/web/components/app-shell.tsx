@@ -151,7 +151,6 @@ export async function AppShell({
         photoUrl={photoUrl}
         roleName={t(`role.${session.role}` as never)}
         userId={session.userId}
-        church={session.tenantSlug}
         logoUrl={logoUrl}
         collapsed={collapsed}
       />
@@ -242,7 +241,7 @@ export async function AppShell({
         }
       />
 
-      <MobileTabs entries={entries} church={session.tenantSlug} />
+      <MobileTabs entries={entries} />
 
       {/* R22.1. The setup path, following whoever is walking it. */}
       {counts.setup && !counts.setup.complete && !counts.setup.dismissed ? (

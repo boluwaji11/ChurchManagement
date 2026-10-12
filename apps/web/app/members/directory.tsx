@@ -102,7 +102,6 @@ const LIVE_FILTER = "directory:live-filter";
  * place you are at.
  */
 export function Directory({
-  church,
   putAway = false,
   rows,
   tags,
@@ -317,7 +316,7 @@ export function Directory({
             panel and answered with the same press. It leads the marks. */}
         {/* R1.14. The lists this church keeps, beside the box that searches
             them: both are ways into the directory by name. */}
-        <OpenList church={church} lists={lists} />
+        <OpenList lists={lists} />
 
         <SortDrawer
           value={params.get("sort") ?? "name"}
@@ -358,7 +357,6 @@ export function Directory({
           href={exportHref}
           file="members.csv"
           label={t("directory.exporting")}
-          title={t("directory.exportFailed")}
           name={t("directory.exportView")}
           className="inline-flex h-9 items-center gap-2 rounded-lg border border-line px-3 text-[13px] font-medium text-fg hover:bg-sunken"
         >
@@ -444,13 +442,11 @@ export function Directory({
       ) : null}
 
       {/* R1.14. Which list is being read, and the way back to everybody. */}
-      {viewing ? <ListBar church={church} list={viewing} canEdit={canEdit} /> : null}
+      {viewing ? <ListBar list={viewing} canEdit={canEdit} /> : null}
 
       {selected.length > 0 && picking ? (
         <SelectionBar
-          church={church}
           lists={lists}
-          viewing={viewing}
           count={selected.length}
           ids={selected}
           tags={tags}
@@ -1035,9 +1031,7 @@ function DirectoryFilters({
 }
 
 function SelectionBar({
-  church,
   lists,
-  viewing,
   count,
   ids,
   tags,
@@ -1050,9 +1044,7 @@ function SelectionBar({
   onGroup,
   onStatus,
 }: {
-  church: string;
   lists: ListOption[];
-  viewing: { id: string; name: string; kind: "static" | "rule" } | null;
   count: number;
   ids: string[];
   tags: TagOption[];
@@ -1135,7 +1127,6 @@ function SelectionBar({
         href={`/api/export?ids=${ids.join(",")}`}
         file="members.csv"
         label={t("directory.exporting")}
-        title={t("directory.exportFailed")}
         className="flex min-h-9 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4"
       >
         <Download /> {t("directory.bulkExport")}
@@ -1268,11 +1259,9 @@ function Picker({
 
 /** R1.14. The list on screen, and the two things a church does to one. */
 function ListBar({
-  church,
   list,
   canEdit,
 }: {
-  church: string;
   list: { id: string; name: string; kind: "static" | "rule" };
   canEdit: boolean;
 }) {

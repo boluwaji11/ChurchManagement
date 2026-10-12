@@ -135,7 +135,6 @@ export default async function MemberHomePage({
   const asked = mine.serving.filter((one) => one.status === "pending");
   const ahead = mine.serving.filter((one) => one.status === "accepted");
   const first = session.displayName.split(" ")[0] ?? session.displayName;
-  const at = session.tenantSlug;
 
   /*
    * R14.1. The church's own diary, as one thread.
@@ -167,7 +166,6 @@ export default async function MemberHomePage({
         <PortalSection title={t("home.needsYou")}>
           {checkingIn && mine.service ? (
             <CheckinCard
-              church={at}
               occurrenceId={mine.service.id}
               serviceName={mine.service.name}
             >

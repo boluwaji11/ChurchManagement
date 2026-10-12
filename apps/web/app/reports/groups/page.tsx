@@ -93,7 +93,6 @@ export default async function GroupsReport({
   return (
     <AppShell session={session} title={t("reports.title")} wide>
       <ReportFrame
-        church={session.tenantSlug}
         title={t("reports.groups.title")}
         window={window}
         path="groups"

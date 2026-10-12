@@ -32,7 +32,7 @@ export interface PortalTab {
  * 64px tall so the underline sits on the header's own edge, which is what
  * marks the tab rather than a pill or a fill.
  */
-export function PortalTabs({ tabs, church }: { tabs: PortalTab[]; church: string }) {
+export function PortalTabs({ tabs }: { tabs: PortalTab[]}) {
   const path = usePathname();
 
   /*

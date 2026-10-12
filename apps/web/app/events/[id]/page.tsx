@@ -79,7 +79,6 @@ export default async function EventPage({
   return (
     <AppShell session={session} tab={result.event.name}>
       <EventView
-        church={session.tenantSlug}
         /* R14.2, R17.1. Built here rather than from the window, so what a
            church copies is the address the public route answers on. */
         publicLink={await publicLink(session.tenantSlug, "e", `/${result.event.slug}`)}

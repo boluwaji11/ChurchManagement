@@ -338,7 +338,6 @@ export function Builder({
           {form.fields.map((field) => (
             <Question
               key={field.id}
-              church={church}
               formId={form.id}
               field={field}
               personFields={personFields}
@@ -476,7 +475,6 @@ function StatusSwitch({
  * not open six dialogs.
  */
 function Question({
-  church,
   formId,
   field,
   personFields,
@@ -492,7 +490,6 @@ function Question({
   onDone,
   onError,
 }: {
-  church: string;
   formId: string;
   field: FormFieldDef;
   personFields: { id: string; label: string }[];

@@ -12,7 +12,6 @@ import { lookupPeople } from "../src/repo/lookup";
 import { stationRoster } from "../src/repo/roster";
 import { search } from "../src/repo/match";
 import { createPerson } from "../src/repo/members";
-import { withAuditTriggersOff } from "../src/maintenance";
 import { testTenant, dropTenants } from "./helpers/tenant";
 import type { TenantRole } from "../src/roles";
 

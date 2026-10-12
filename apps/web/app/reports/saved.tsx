@@ -34,12 +34,10 @@ export interface SavedCard {
  * alone and say what they are through their label.
  */
 export function SavedReports({
-  church,
   reports,
   putAway = false,
   canShare = false,
 }: {
-  church: string;
   reports: SavedCard[];
   /** R24.6. Whether this is the list of the ones put away. */
   putAway?: boolean;

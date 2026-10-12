@@ -46,7 +46,6 @@ export interface PlanEntry {
  * shows six is a screen where the one they came for is below the fold.
  */
 export function SchedulePlan({
-  church,
   teamId,
   teamPath,
   gatherings,
@@ -54,7 +53,6 @@ export function SchedulePlan({
   positions,
   entries,
 }: {
-  church: string;
   /** The team's own id, which is what a write is filed against. */
   teamId: string;
   /** R10.1. What the team is called in this screen's address. */

@@ -122,10 +122,8 @@ export function SaveView({
  * these and the whole point is reaching one in a press.
  */
 export function OpenList({
-  church,
   lists,
 }: {
-  church: string;
   lists: ListOption[];
 }) {
   const router = useRouter();

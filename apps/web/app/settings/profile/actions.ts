@@ -108,7 +108,7 @@ export async function saveProfile(data: FormData): Promise<ProfileResult> {
 }
 
 /** R17.1. Taking your photograph off your own record. */
-export async function clearPhoto(church?: string): Promise<ProfileResult> {
+export async function clearPhoto(): Promise<ProfileResult> {
   const session = await requireSession();
   const ctx = {
     tenantId: session.tenantId,

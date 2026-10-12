@@ -17,13 +17,11 @@ import { ScheduleGrid, type GridService, type GridTeam, type GridSlot, type Grid
  * is what a leader opens on a Tuesday to fill the weekend.
  */
 export function ServingViews({
-  church,
   heading,
   schedule,
   canManage,
   focus,
 }: {
-  church: string;
   /** Null when the church has no team or nothing scheduled to fill. */
   schedule: {
     teams: GridTeam[];
@@ -91,7 +89,6 @@ export function ServingViews({
       {heading}
 
       <ScheduleGrid
-        church={church}
         teams={schedule.teams}
         team={schedule.team}
         positions={schedule.positions}

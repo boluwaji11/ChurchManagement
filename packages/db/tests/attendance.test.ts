@@ -16,7 +16,6 @@ import { addService, listOccurrences, setOccurrenceCancelled } from "../src/repo
 import { createPerson } from "../src/repo/members";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError, type TenantRole } from "../src/roles";
-import { withAuditTriggersOff } from "../src/maintenance";
 import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;

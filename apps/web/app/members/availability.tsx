@@ -31,13 +31,11 @@ const NONE = "none";
  * leader who has already spoken to somebody can put them down anyway.
  */
 export function Availability({
-  church,
   memberId,
   frequency,
   away,
   canEdit,
 }: {
-  church: string;
   memberId: string;
   frequency: ServingFrequency | null;
   away: AwayRange[];

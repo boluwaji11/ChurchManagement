@@ -38,11 +38,9 @@ export interface RoomItem {
  * across a full foyer, so it is part of the configuration rather than a theme.
  */
 export function RoomManager({
-  church,
   rooms,
   putAway,
 }: {
-  church: string;
   rooms: RoomItem[];
   /** R24.6. Whether this is the shelf of rooms that have been put away. */
   putAway?: boolean;

@@ -74,7 +74,6 @@ export default async function ConnectedReport({
   return (
     <AppShell session={session} title={t("reports.title")} wide>
       <ReportFrame
-        church={session.tenantSlug}
         title={t("reports.connected.title")}
         window={window}
         path="connected"

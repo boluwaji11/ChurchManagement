@@ -104,7 +104,6 @@ export default async function SchedulePlanPage({
       </div>
 
       <SchedulePlan
-        church={session.tenantSlug}
         teamId={team.id}
         teamPath={team.slug}
         chosen={chosen ?? ""}

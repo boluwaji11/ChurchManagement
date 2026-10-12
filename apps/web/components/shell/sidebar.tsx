@@ -76,7 +76,6 @@ export function Sidebar({
   photoUrl,
   roleName,
   userId,
-  church,
   logoUrl,
   collapsed: initial,
 }: {
@@ -87,7 +86,6 @@ export function Sidebar({
   photoUrl?: string | null;
   roleName: string;
   userId: string;
-  church: string;
   /** R1.1. This church's own logo, where it has uploaded one. */
   logoUrl?: string | null;
   collapsed: boolean;
@@ -331,7 +329,7 @@ export function Sidebar({
 /** How many sections sit on the bar itself. The last place is More. */
 const ON_BAR = 4;
 
-export function MobileTabs({ entries, church }: { entries: ShellEntry[]; church: string }) {
+export function MobileTabs({ entries }: { entries: ShellEntry[]}) {
   const pathname = usePathname();
   const router = useRouter();
   const reopen = useSectionMemory(entries);

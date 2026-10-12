@@ -76,7 +76,6 @@ export async function savePledge(
 
 export async function dropPledge(
   id: string,
-  campaignId: string,
   ): Promise<CampaignResult> {
   const { actor, ctx } = await context();
   try {

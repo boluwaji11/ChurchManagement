@@ -8,7 +8,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { randomUUID } from "node:crypto";
-import { owner, withTenant, closeConnections, type Tx } from "../src/client";
+import { withTenant, closeConnections, type Tx } from "../src/client";
 import {
   reserveCodes, reconcile, codeReserved, BLOCK_SIZE,
   type OfflineEvent,

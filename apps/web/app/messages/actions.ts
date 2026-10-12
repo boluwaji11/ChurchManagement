@@ -220,7 +220,6 @@ export type WriteKind = "church" | "member" | "group" | "team";
 export async function whoToWriteTo(
   kind: WriteKind,
   query: string,
-  church?: string,
 ): Promise<WriteTo[]> {
   try {
     const { session, ctx } = await context();
@@ -258,7 +257,7 @@ export async function whoToWriteTo(
 }
 
 /** R16.9. Which kinds this reader may address, in the order they are offered. */
-export async function kindsICanWriteTo(church?: string): Promise<WriteKind[]> {
+export async function kindsICanWriteTo(): Promise<WriteKind[]> {
   try {
     const { session } = await context();
     return canAnswerMessages(session)

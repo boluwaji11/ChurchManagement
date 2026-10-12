@@ -25,13 +25,11 @@ export function backBy(iso: string, days: number): string {
  * report was read at is the window the file carries.
  */
 export function ReportFrame({
-  church,
   title,
   window: days,
   path,
   children,
 }: {
-  church: string;
   title: string;
   window: Window;
   /** The report's own segment, for the links that change the window. */

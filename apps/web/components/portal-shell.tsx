@@ -137,7 +137,7 @@ export async function PortalShell({
             </Link>
           )}
 
-          <PortalTabs tabs={theTabs} church={slug} />
+          <PortalTabs tabs={theTabs} />
 
           <PortalAccount
             name={session.displayName}

@@ -39,7 +39,7 @@ export function Compose({
   const ticket = React.useRef(0);
 
   React.useEffect(() => {
-    void kindsICanWriteTo(church).then((found) => {
+    void kindsICanWriteTo().then((found) => {
       setKinds(found);
       setKind((was) => was ?? found[0] ?? null);
     });
@@ -51,7 +51,7 @@ export function Compose({
     if (!kind || kind === "church") { setOptions([]); return; }
     if (kind === "member") { setOptions([]); return; }
     const mine = ++ticket.current;
-    void whoToWriteTo(kind, "", church).then((found) => {
+    void whoToWriteTo(kind, "").then((found) => {
       if (mine === ticket.current) setOptions(found);
     });
   }, [kind, church]);
@@ -59,7 +59,7 @@ export function Compose({
   const look = (query: string) => {
     if (kind !== "member") return;
     const mine = ++ticket.current;
-    void whoToWriteTo("member", query, church).then((found) => {
+    void whoToWriteTo("member", query).then((found) => {
       if (mine === ticket.current) setOptions(found);
     });
   };

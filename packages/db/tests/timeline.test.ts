@@ -7,7 +7,7 @@
  * present and blanked out, because a blanked-out row still says one is there.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { owner, withTenant, closeConnections, type Tx } from "../src/client";
+import { withTenant, closeConnections, type Tx } from "../src/client";
 import { personTimeline } from "../src/repo/timeline";
 import { createPerson, setPersonArchived } from "../src/repo/members";
 import { createNote } from "../src/repo/notes";

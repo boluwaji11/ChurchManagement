@@ -89,7 +89,6 @@ export default async function GrowthReport({
   return (
     <AppShell session={session} title={t("reports.title")} wide>
       <ReportFrame
-        church={session.tenantSlug}
         title={t("reports.growth.title")}
         window={window}
         path="growth"

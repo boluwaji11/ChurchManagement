@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Banner, IconButton } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { archive } from "../actions";
-import { ArchiveDialog, type GroupDraft, type GroupTypeOption } from "../group-form";
+import { ArchiveDialog, type GroupDraft } from "../group-form";
 
 /**
  * R9.1 to R9.4. What the church may do to a group, in the corner.
@@ -18,10 +18,8 @@ import { ArchiveDialog, type GroupDraft, type GroupTypeOption } from "../group-f
  */
 export function ManageGroup({
   group,
-  types,
 }: {
   group: GroupDraft;
-  types: GroupTypeOption[];
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();

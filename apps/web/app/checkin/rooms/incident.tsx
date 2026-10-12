@@ -23,14 +23,12 @@ import { useAnswered } from "@/components/form-actions";
  * consequence somebody should know before they press.
  */
 export function IncidentDialog({
-  church,
   memberId,
   personName,
   roomId,
   occurrenceId,
   today,
 }: {
-  church: string;
   memberId: string;
   personName: string;
   roomId: string;

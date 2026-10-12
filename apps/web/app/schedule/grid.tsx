@@ -70,7 +70,7 @@ export interface GridVolunteer {
 }
 
 /** R10.2. One more position on this team, from the bottom of its grid. */
-function AddPosition({ church, teamId }: { church: string; teamId: string }) {
+function AddPosition({ teamId }: { teamId: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
@@ -136,7 +136,6 @@ function AddPosition({ church, teamId }: { church: string; teamId: string }) {
  * first, because a leader filling Drums is choosing between drummers.
  */
 function FillSlot({
-  church,
   teamId,
   positionId,
   occurrenceId,
@@ -144,7 +143,6 @@ function FillSlot({
   closed,
   className,
 }: {
-  church: string;
   teamId: string;
   positionId: string;
   occurrenceId: string;
@@ -308,7 +306,6 @@ function Filled({
  * list beside it onto the slot they are taking.
  */
 export function ScheduleGrid({
-  church,
   teams,
   team,
   positions,
@@ -319,7 +316,6 @@ export function ScheduleGrid({
   onTeam,
   focus,
 }: {
-  church: string;
   teams: GridTeam[];
   team: GridTeam;
   positions: GridPosition[];
@@ -529,7 +525,6 @@ export function ScheduleGrid({
                         />
                       ) : (
                         <FillSlot
-                          church={church}
                           teamId={team.id}
                           positionId={position.id}
                           occurrenceId={service.id}
@@ -545,7 +540,7 @@ export function ScheduleGrid({
           </div>
 
           {/* R10.2. A position the schedule is missing, added where it is missed. */}
-          {canManage ? <AddPosition church={church} teamId={team.id} /> : null}
+          {canManage ? <AddPosition teamId={team.id} /> : null}
           </div>
           </div>
         </section>
@@ -603,7 +598,6 @@ export function ScheduleGrid({
                     />
                   ) : (
                     <FillSlot
-                      church={church}
                       teamId={team.id}
                       positionId={position.id}
                       occurrenceId={one}
@@ -617,7 +611,7 @@ export function ScheduleGrid({
             })}
           </ul>
 
-          {canManage ? <AddPosition church={church} teamId={team.id} /> : null}
+          {canManage ? <AddPosition teamId={team.id} /> : null}
         </section>
 
         {/* R10.3. Who is on this team, with what they are already doing, so a

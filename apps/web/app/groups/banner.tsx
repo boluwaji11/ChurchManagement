@@ -20,14 +20,12 @@ import { useFormError } from "@/lib/form-error";
  * written.
  */
 export function GroupBanner({
-  church,
   groupId,
   groupName,
   photoUrl,
   hue,
   canEdit,
 }: {
-  church: string;
   groupId: string;
   groupName: string;
   photoUrl: string | null;
@@ -148,7 +146,7 @@ export function GroupBanner({
               loading={removing}
               onClick={() =>
                 startTransition(async () => {
-                  const result = await clearGroupPhoto(groupId, church);
+                  const result = await clearGroupPhoto(groupId);
                   setError(result.error);
                   setAsking(false);
                   if (!result.error) router.refresh();

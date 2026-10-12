@@ -71,7 +71,6 @@ function answerText(value: unknown): string {
  * of these screens has learned both.
  */
 export function EventView({
-  church,
   publicLink,
   event,
   coverUrl,
@@ -79,7 +78,6 @@ export function EventView({
   questions,
   tab,
 }: {
-  church: string;
   /** R14.2, R17.1. The address the public page answers on, built on the server. */
   publicLink: string;
   event: ChurchEvent;

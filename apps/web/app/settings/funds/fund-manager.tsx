@@ -50,7 +50,6 @@ function suggestCode(name: string, taken: string[]): string {
 }
 
 export function FundManager({
-  church,
   funds,
   putAway,
 }: {
@@ -113,14 +112,13 @@ export function FundManager({
       {error ? <Banner tone="danger">{error}</Banner> : null}
 
       <div className="flex justify-end">
-        <FundPanel church={church} pending={pending} codesInUse={codes} />
+        <FundPanel pending={pending} codesInUse={codes} />
       </div>
 
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr))]">
         {live.map((fund) => (
           <FundPanel
             key={fund.id}
-            church={church}
             pending={pending}
             fund={fund}
             codesInUse={codes.filter((one) => one !== fund.code)}
@@ -177,14 +175,12 @@ export function FundManager({
 
 /** R13.9. Writing a fund down, or changing one. */
 function FundPanel({
-  church,
   pending,
   fund,
   codesInUse,
   trigger,
   onArchive,
 }: {
-  church: string;
   pending: boolean;
   fund?: Fund;
   /** R13.23. The codes already spoken for, so a suggestion is its own. */

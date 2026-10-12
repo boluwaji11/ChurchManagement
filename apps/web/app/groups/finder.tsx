@@ -145,7 +145,6 @@ const DISMISSED = "connectapp:groupRequestsPutAway";
  * when it meets and who leads it. That is the order somebody reads them in.
  */
 export function Finder({
-  church,
   from = "",
   groups,
   types,
@@ -154,7 +153,6 @@ export function Finder({
   putAway = false,
   make,
 }: {
-  church: string;
   /**
    * The query that brought the reader here, carried onto every group so its
    * own page can send them back to the list they came from rather than to the

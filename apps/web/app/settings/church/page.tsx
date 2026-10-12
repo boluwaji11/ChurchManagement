@@ -61,7 +61,6 @@ export default async function SettingsPage({
             canEdit={canManageChurch(session)}
             logo={
               <ChurchLogo
-                church={session.tenantSlug}
                 churchName={session.tenantName}
                 logoUrl={logoUrl}
                 canEdit={canManageChurch(session)}

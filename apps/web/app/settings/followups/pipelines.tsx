@@ -370,7 +370,6 @@ function AddStep({
 
 /** R5.2. A stage of this church's own, filled in where it is made. */
 export function NewPipeline({
-  church,
   team,
   taken = [],
 }: {
@@ -428,7 +427,6 @@ export function NewPipeline({
           />
         ) : (
           <StageForm
-            church={church}
             team={team}
             preset={preset}
             formId={formId}
@@ -443,7 +441,6 @@ export function NewPipeline({
 }
 
 function EditDialog({
-  church,
   row,
   team,
   pending,
@@ -477,10 +474,8 @@ function EditDialog({
             starts from what was saved rather than from what was typed. */}
         {open ? (
           <StageForm
-            church={church}
             row={row}
             team={team}
-            pending={pending}
             formId={formId}
             onBusy={setBusy}
             onDone={() => setOpen(false)}
@@ -499,23 +494,19 @@ function EditDialog({
  * the steps. One form, so the two never drift apart.
  */
 function StageForm({
-  church,
   row,
   team,
   preset,
-  pending,
   onBack,
   formId,
   onBusy,
   onDone,
 }: {
-  church: string;
   /** The stage being changed, where there is one. */
   row?: PipelineRow;
   team: TeamMember[];
   /** R5.2. A journey from the library, filling the form a church would type. */
   preset?: FlowPreset | null;
-  pending?: boolean;
   /** The way back to the library, when one was offered. */
   onBack?: () => void;
   /** R24.6. The id the panel's footer presses. */

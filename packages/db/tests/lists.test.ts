@@ -7,7 +7,7 @@
  * moved and the other did not.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { owner, withTenant, closeConnections, type Tx } from "../src/client";
+import { withTenant, closeConnections, type Tx } from "../src/client";
 import {
   listSavedLists, createStaticList, createRuleList, renameList, setListArchived,
   addToList, removeFromList, resolveList, listsForPerson, cleanRule,

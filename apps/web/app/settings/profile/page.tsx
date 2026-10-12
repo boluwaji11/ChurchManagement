@@ -92,7 +92,6 @@ export default async function ProfilePage({
       {result?.person ? (
         <section className="rounded-[14px] border border-line bg-surface p-5 shadow-sm">
           <ProfileForm
-            church={session.tenantSlug}
             signedInAs={session.email}
             photoUrl={photoUrl}
             campuses={result.campuses.map((one) => ({ id: one.id, name: one.name }))}

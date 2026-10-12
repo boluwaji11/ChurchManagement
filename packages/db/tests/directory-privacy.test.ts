@@ -19,7 +19,6 @@ import { testTenant, dropTenants } from "./helpers/tenant";
 let tenant: string;
 let dad: string;
 let mum: string;
-let child: string;
 let loner: string;
 let household: string;
 
@@ -54,7 +53,8 @@ beforeAll(async () => {
   mum = await make("Mary", "1987-08-11", {
     householdId: household, householdRole: "spouse", email: "mary@privacy.example",
   });
-  child = await make("Chloe", "2016-05-20", { householdId: household, householdRole: "child" });
+  /* The household needs a child for the age rules; nothing reads her id. */
+  await make("Chloe", "2016-05-20", { householdId: household, householdRole: "child" });
   loner = await make("Lonnie", "1970-01-01");
 });
 

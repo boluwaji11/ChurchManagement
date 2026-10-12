@@ -219,7 +219,6 @@ export default async function ServingPage({
   return (
     <AppShell session={session} title={t("serving.title")} wide>
       <ServingViews
-        church={session.tenantSlug}
         canManage={canManage}
         /* R10.3. Named by the service's own address rather than its id, and
            turned back into one here, where the month is already in hand. */

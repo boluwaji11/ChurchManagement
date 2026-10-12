@@ -19,14 +19,12 @@ import { saveCampaign } from "./actions";
 
 /** R13.16. Writing a campaign down, or changing one. */
 export function CampaignPanel({
-  church,
   today,
   funds,
   campaign,
   trigger,
   onClose,
 }: {
-  church: string;
   today: string;
   funds: { id: string; name: string }[];
   campaign?: Campaign;

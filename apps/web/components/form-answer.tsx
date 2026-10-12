@@ -100,7 +100,6 @@ export function Answer({
       <Field label={field.label} hint={field.help ?? undefined} error={error} required={field.required}>
         <FileAnswer
           field={field}
-          churchSlug={churchSlug}
           formSlug={formSlug}
           value={Array.isArray(value) ? value : []}
           onChange={onChange}

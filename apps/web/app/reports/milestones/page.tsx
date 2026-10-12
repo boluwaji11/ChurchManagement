@@ -106,7 +106,6 @@ export default async function MilestonesReport({
   return (
     <AppShell session={session} title={t("reports.title")} wide>
       <ReportFrame
-        church={session.tenantSlug}
         title={t("reports.milestones.title")}
         window={window}
         path="milestones"

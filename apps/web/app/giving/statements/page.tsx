@@ -90,7 +90,7 @@ export default async function StatementsPage({
 
           <div className="flex flex-wrap items-center gap-3">
             {/* R13.18. The church's own choice, where it is felt. */}
-            <StatementsBy church={session.tenantSlug} by={read.by} />
+            <StatementsBy by={read.by} />
             {read.givers.length > 0 ? (
             <a
               href={`/giving/statements/print?year=${read.year}`}

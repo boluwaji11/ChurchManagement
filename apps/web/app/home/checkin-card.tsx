@@ -17,12 +17,10 @@ import { checkInMine } from "./actions";
  * pickup whatever happened to the phone on the way in.
  */
 export function CheckinCard({
-  church,
   occurrenceId,
   serviceName,
   children: kids,
 }: {
-  church: string;
   occurrenceId: string;
   serviceName: string;
   children: MyChild[];

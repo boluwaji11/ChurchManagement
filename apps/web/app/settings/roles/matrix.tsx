@@ -52,7 +52,6 @@ const nameOf = (role: RoleRow) =>
  * so its own answers go in its own roles, which it writes in full.
  */
 export function Matrix({
-  church,
   roles,
   permissions,
   groups,
@@ -102,7 +101,7 @@ export function Matrix({
                 {role.key === "owner" ? (
                   nameOf(role)
                 ) : (
-                  <RoleForm church={church} role={role} permissions={permissions} groups={groups} mine={mine}>
+                  <RoleForm role={role} permissions={permissions} groups={groups} mine={mine}>
                     <button
                       type="button"
                       className="min-h-8 w-full cursor-pointer rounded-sm px-1 py-1.5 font-medium text-primary underline decoration-primary/35 underline-offset-[3px] hover:bg-sunken hover:decoration-primary"
@@ -273,7 +272,6 @@ export function ArchivedRoles({
  * role is deciding what it is for, and that decision reads as a list.
  */
 export function RoleForm({
-  church,
   role,
   permissions,
   groups,
@@ -281,7 +279,6 @@ export function RoleForm({
   mine,
   children,
 }: {
-  church: string;
   /** The role being changed, or nothing when one is being written. */
   role?: RoleRow;
   permissions: string[];
@@ -635,7 +632,6 @@ export function RoleForm({
 
 /** R1.6. The one action this screen carries, beside its title. */
 export function NewRole({
-  church,
   permissions,
   groups,
   shelf,
@@ -648,7 +644,7 @@ export function NewRole({
   mine: string[];
 }) {
   return (
-    <RoleForm church={church} permissions={permissions} groups={groups} shelf={shelf} mine={mine}>
+    <RoleForm permissions={permissions} groups={groups} shelf={shelf} mine={mine}>
       <Button>
         <Plus /> {t("roles.add")}
       </Button>

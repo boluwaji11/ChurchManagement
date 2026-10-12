@@ -66,7 +66,6 @@ export default async function RoomsPage({
         }
       />
       <RoomManager
-        church={session.tenantSlug}
         putAway={putAway}
         rooms={rooms.map((r) => ({
           id: r.id,

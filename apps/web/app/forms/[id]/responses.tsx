@@ -91,7 +91,6 @@ function spoken(answer: FormAnswer): string {
  * underneath are the ones the directory uses.
  */
 export function Responses({
-  church,
   formId,
   fields,
   rows,
@@ -180,7 +179,7 @@ export function Responses({
       <ul className="flex flex-col gap-2 sm:hidden">
         {rows.map((row) => (
           <li key={row.id}>
-            <Response row={row} asked={asked} church={church}>
+            <Response row={row} asked={asked}>
               <button
                 type="button"
                 aria-label={t("form.responses.open")}
@@ -245,7 +244,7 @@ export function Responses({
 
           <tbody>
             {rows.map((row) => (
-              <Response key={row.id} row={row} asked={asked} church={church}>
+              <Response key={row.id} row={row} asked={asked}>
                 {/* The whole row opens the response. It stands for one
                     thing, so pressing anywhere on it means the same. */}
                 <tr
@@ -329,12 +328,10 @@ export function Responses({
 function Response({
   row,
   asked,
-  church,
   children,
 }: {
   row: SubmissionRow;
   asked: FormFieldDef[];
-  church: string;
   children: React.ReactNode;
 }) {
   return (

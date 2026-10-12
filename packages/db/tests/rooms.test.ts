@@ -8,7 +8,7 @@
  * warns and blocks on are the church's own.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { owner, withTenant, closeConnections, type Tx } from "../src/client";
+import { withTenant, closeConnections, type Tx } from "../src/client";
 import {
   addRoom, updateRoom, listRooms, getRoom, setRoomArchived, orderRooms,
   suggestRoom, ageInMonths, canManageRooms, type Room,

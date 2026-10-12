@@ -185,7 +185,6 @@ export default async function GivingPage({
 
   const record = manage ? (
     <GiftPanel
-      church={session.tenantSlug}
       today={read.today}
       funds={fundList}
       trigger={
@@ -312,7 +311,6 @@ export default async function GivingPage({
                   {/* Both filled here. This is the screen's whole content,
                       so neither of them is the quieter one. */}
                   <GiftPanel
-                    church={session.tenantSlug}
                     today={read.today}
                     funds={fundList}
                     trigger={
@@ -486,7 +484,6 @@ export default async function GivingPage({
                       href={"/api/giving"}
                       file={`giving-${session.tenantSlug}.csv`}
                       label={t("download.building")}
-                      title={t("giving.export")}
                       name={t("giving.export")}
                       className="relative grid size-[var(--d-tap)] place-items-center rounded-md text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-[18px]"
                     >

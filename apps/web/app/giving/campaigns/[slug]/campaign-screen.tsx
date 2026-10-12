@@ -30,14 +30,12 @@ import { Progress, PaceChip, percentOf, standingOf } from "../progress";
  * having kept it.
  */
 export function CampaignScreen({
-  church,
   today,
   campaign,
   pledges,
   funds,
   manage,
 }: {
-  church: string;
   today: string;
   campaign: Campaign;
   pledges: Pledge[];
@@ -118,7 +116,6 @@ export function CampaignScreen({
               </Button>
             ) : (
               <CampaignPanel
-                church={church}
                 today={today}
                 funds={funds}
                 campaign={campaign}
@@ -193,7 +190,7 @@ export function CampaignScreen({
           </div>
 
           {manage && !campaign.archived ? (
-            <PledgePanel church={church} campaignId={campaign.id} />
+            <PledgePanel campaignId={campaign.id} />
           ) : null}
         </div>
 
@@ -286,7 +283,7 @@ export function CampaignScreen({
               onClick={() => {
                 const id = removing;
                 setRemoving(null);
-                if (id) run(() => dropPledge(id, campaign.id));
+                if (id) run(() => dropPledge(id));
               }}
             >
               {t("pledge.remove")}
@@ -318,7 +315,7 @@ function Figure({ icon, label, value, note }: {
 }
 
 /** R13.16. One household's pledge, written down. */
-function PledgePanel({ church, campaignId }: { church: string; campaignId: string }) {
+function PledgePanel({ campaignId }: { campaignId: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [dirty, setDirty] = React.useState(false);
