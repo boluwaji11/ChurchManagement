@@ -116,7 +116,7 @@ export const DialogContent = React.forwardRef<
         {/* min-w-0 so a long title wraps rather than pushing the X off a
             phone's right edge. */}
         <div className={cn("flex min-w-0 flex-col gap-1", hideTitle && "sr-only")}>
-          <P.Title className="text-heading font-display text-fg">{title}</P.Title>
+          <P.Title className="text-heading font-display font-normal text-fg">{title}</P.Title>
           {description ? (
             <P.Description className="text-caption text-fg-muted">{description}</P.Description>
           ) : null}

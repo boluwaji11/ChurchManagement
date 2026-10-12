@@ -35,6 +35,7 @@ export interface PersonFormValues {
   address?: AddressValues;
   campusId?: string | null;
   maritalStatus?: string | null;
+  anniversary?: string | null;
   id?: string;
   firstName?: string;
   lastName?: string;
@@ -184,6 +185,10 @@ export function PersonForm({
 
   const [household, setHousehold] = React.useState(values?.householdId ?? HOUSEHOLD_NONE);
   const [status, setStatus] = React.useState(values?.lifecycleStatus ?? "visitor");
+  const [marital, setMarital] = React.useState(values?.maritalStatus ?? null);
+  /* R2.11. Asked of anybody married, and kept for anybody who already has a
+     date, so a record whose status was never filled in does not hide it. */
+  const wedded = marital === "married" || Boolean(values?.anniversary);
   const [chosenTags, setChosenTags] = React.useState<string[]>(assignedTags ?? []);
 
   const revalidate = () => {
@@ -259,8 +264,17 @@ export function PersonForm({
               defaultValue={values?.maritalStatus ?? null}
               options={maritalOptions()}
               label={t("person.maritalStatus")}
+              onChange={setMarital}
             />
           </Field>
+
+          {/* R2.11. The wedding date, asked for once somebody is married, and
+              kept on screen for anybody who already has one. */}
+          {wedded ? (
+            <Field label={t("person.anniversary")}>
+              <DateField name="anniversary" defaultValue={values?.anniversary ?? ""} />
+            </Field>
+          ) : null}
 
         </div>
       </FormSection>

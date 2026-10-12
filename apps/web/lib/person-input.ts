@@ -86,6 +86,9 @@ export function parsePerson(data: FormData): PersonInput & { householdChoice: st
       : undefined,
     campusId: data.has("campusId") ? str(data, "campusId") || null : undefined,
     maritalStatus: pick(data, "maritalStatus"),
+    /* R2.11. Only where the form asked, so a section that does not show the
+       wedding date cannot clear it. */
+    anniversary: data.has("anniversary") ? str(data, "anniversary") || null : undefined,
     householdId: householdChoice === HOUSEHOLD_NEW || householdChoice === HOUSEHOLD_NONE ? null : householdChoice,
     householdName: householdChoice === HOUSEHOLD_NEW ? str(data, "householdName") || null : null,
     householdRole: (str(data, "householdRole") || "other") as HouseholdRole,

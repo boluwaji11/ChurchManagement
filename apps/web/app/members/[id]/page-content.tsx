@@ -7,7 +7,7 @@ import {
   personTimeline, servingForPerson, groupsForPerson,
   listContacts, listAddresses, givingForPerson, getChurch,
   listCustomFields, getCustomValues, listTagsForPerson, listCampuses,
-  canEditPeople, canReadGivingAmounts,
+  canEditPeople, canReadGivingAmounts, anniversaryOf,
 } from "@connectapp/db";
 import { Avatar, Button, Tooltip } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
@@ -157,7 +157,7 @@ async function renderPersonPage({
 
     const [
       contacts, addresses, household, groups, serving, history, giving,
-      customFields, customValues, memberTags, campuses,
+      customFields, customValues, memberTags, campuses, anniversary,
     ] = await Promise.all([
       // R2.4. Every way of reaching them, not only the one that leads.
       listContacts(tx, memberId),
@@ -183,11 +183,12 @@ async function renderPersonPage({
       getCustomValues(tx, "person", memberId),
       listTagsForPerson(tx, memberId),
       listCampuses(tx),
+      anniversaryOf(tx, memberId),
     ]);
 
     return {
       person, contacts, addresses, household, groups, serving, history, giving,
-      customFields, customValues, memberTags, campuses,
+      customFields, customValues, memberTags, campuses, anniversary,
     };
   });
 
@@ -196,7 +197,7 @@ async function renderPersonPage({
   if (!result) notFound();
   const {
     person, contacts, addresses, household, groups, serving, history, giving,
-    customFields, customValues, memberTags, campuses,
+    customFields, customValues, memberTags, campuses, anniversary,
   } = result;
 
   /* R1.10. Every custom field configured by the church has a place on the record. */
@@ -289,6 +290,11 @@ async function renderPersonPage({
         <RecordValue label={t("person.maritalStatus")}>
           {maritalOptions().find((option) => option.value === person.maritalStatus)?.label ?? EMPTY}
         </RecordValue>
+        {/* R2.11. Shown where there is one, so the record reads the way the
+            form that wrote it asked. */}
+        {anniversary ? (
+          <RecordValue label={t("person.anniversary")}>{longDate(anniversary)}</RecordValue>
+        ) : null}
       </div>
       </section>
 

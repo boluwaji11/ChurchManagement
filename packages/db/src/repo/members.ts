@@ -460,6 +460,13 @@ export interface PersonInput {
   campusId?: string | null;
   /** R2.1. Single, married, widowed, and so on. */
   maritalStatus?: string | null;
+  /**
+   * R2.11. The wedding date, kept as a marriage milestone rather than a column.
+   *
+   * Left out, the date is untouched, which is what a form that does not ask
+   * for it means. Null clears it.
+   */
+  anniversary?: string | null;
   /** R2.1. Pre-K through graduate school, from the managed list. */
   /** An existing household, or null for none. Ignored when householdName is set. */
   householdId?: string | null;
@@ -534,6 +541,9 @@ export async function createPerson(db: Tx, actor: WriteActor, input: PersonInput
   await setContact(db, actor, row.id, "phone", input.phone);
   await setAddress(db, actor, row.id, input.address);
   await setHousehold(db, actor, row.id, input);
+  if (trimmed(input.anniversary)) {
+    await setAnniversary(db, actor, row.id, trimmed(input.anniversary));
+  }
 
   return row;
 }
@@ -579,6 +589,9 @@ export async function updatePerson(
   await setContact(db, actor, id, "phone", input.phone);
   await setAddress(db, actor, id, input.address);
   await setHousehold(db, actor, id, input);
+  if (input.anniversary !== undefined) {
+    await setAnniversary(db, actor, id, trimmed(input.anniversary));
+  }
 }
 
 /**
