@@ -8,6 +8,7 @@ import {
   listContacts, listAddresses, givingForPerson, getChurch,
   listCustomFields, getCustomValues, listTagsForPerson, listCampuses,
   canEditPeople, canReadGivingAmounts, anniversaryOf,
+  checksFor, canSeeChecks, listMilestones,
 } from "@connectapp/db";
 import { Avatar, Button, Tooltip } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
@@ -28,6 +29,8 @@ import { canReadConfidentialNotes, canAnswerMessages } from "@connectapp/db";
 import { tabMetadata } from "@/lib/page-metadata";
 import { memberDirectoryReturnTo } from "@/lib/member-return";
 import { MemberPanel, type MemberPanelSection } from "../member-panel";
+import { Milestones } from "../milestones";
+import { Checks } from "../checks";
 
 /** R17.1. What the browser tab says until the record names itself. */
 export async function generateMetadata({
@@ -157,7 +160,7 @@ async function renderPersonPage({
 
     const [
       contacts, addresses, household, groups, serving, history, giving,
-      customFields, customValues, memberTags, campuses, anniversary,
+      customFields, customValues, memberTags, campuses, anniversary, milestoneRows, checkStanding,
     ] = await Promise.all([
       // R2.4. Every way of reaching them, not only the one that leads.
       listContacts(tx, memberId),
@@ -184,11 +187,15 @@ async function renderPersonPage({
       listTagsForPerson(tx, memberId),
       listCampuses(tx),
       anniversaryOf(tx, memberId),
+      /* R2.6, R2.10. The dates a church is asked for and cannot produce, and
+         the check that decides whether somebody may serve with children. */
+      listMilestones(tx, memberId),
+      canSeeChecks(session) ? checksFor(tx, session, memberId) : Promise.resolve(null),
     ]);
 
     return {
       person, contacts, addresses, household, groups, serving, history, giving,
-      customFields, customValues, memberTags, campuses, anniversary,
+      customFields, customValues, memberTags, campuses, anniversary, milestoneRows, checkStanding,
     };
   });
 
@@ -197,7 +204,7 @@ async function renderPersonPage({
   if (!result) notFound();
   const {
     person, contacts, addresses, household, groups, serving, history, giving,
-    customFields, customValues, memberTags, campuses, anniversary,
+    customFields, customValues, memberTags, campuses, anniversary, milestoneRows, checkStanding,
   } = result;
 
   /* R1.10. Every custom field configured by the church has a place on the record. */
@@ -256,6 +263,8 @@ async function renderPersonPage({
     ...(giving ? [{ id: "giving", label: t("person.giving") }] : []),
     { id: "serving", label: t("person.serving") },
     { id: "groups", label: t("groups.title") },
+    { id: "milestones", label: t("person.milestones") },
+    ...(checkStanding ? [{ id: "checks", label: t("checks.title") }] : []),
     { id: "tags", label: t("person.tags") },
     ...(customFields.length > 0 ? [{ id: "additional", label: t("person.more") }] : []),
   ];
@@ -360,6 +369,26 @@ async function renderPersonPage({
                   </span>
                 </div>
               ))}
+            </RecordSection>
+          ) : null}
+
+          {/* R2.6. Baptism, salvation, a dedication: the dates a church is
+              asked for years later and cannot produce. */}
+          <RecordSection id="milestones" title={t("person.milestones")}>
+            <Milestones memberId={person.id} rows={milestoneRows} canEdit={canEdit} />
+          </RecordSection>
+
+          {/* R2.10, R21.11. Read by the role the church trusts with it, and by
+              nobody else. Serving with children is gated on what it says. */}
+          {checkStanding ? (
+            <RecordSection id="checks" title={t("checks.title")}>
+              <Checks
+                memberId={person.id}
+                standing={checkStanding.standing}
+                expiresOn={checkStanding.expiresOn}
+                rows={checkStanding.checks}
+                canEdit={canEdit}
+              />
             </RecordSection>
           ) : null}
 

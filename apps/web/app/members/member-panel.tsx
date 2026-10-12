@@ -77,7 +77,7 @@ export function MemberPanel({
         <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] sm:grid-cols-[200px_minmax(0,1fr)] sm:grid-rows-1">
           <nav
             aria-label={t("person.panelSections")}
-            className="flex gap-1 overflow-x-auto border-b border-line bg-surface p-2 sm:flex-col sm:overflow-y-auto sm:border-b-0 sm:border-r sm:p-3"
+            className="scroll-quiet flex gap-1 overflow-x-auto border-b border-line bg-surface p-2 sm:flex-col sm:overflow-y-auto sm:border-b-0 sm:border-r sm:p-3"
           >
             {sections.map((section) => (
               <button
@@ -99,7 +99,7 @@ export function MemberPanel({
           <div className="flex min-h-0 flex-col bg-surface">
             <div
               id="member-panel-content"
-              className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-8"
+              className="scroll-quiet min-h-0 flex-1 overflow-y-auto p-5 sm:p-8"
             >
               <style>{`#member-panel-content [data-member-panel-section]:not([id="${active}"]) { display: none; }`}</style>
               {children}
