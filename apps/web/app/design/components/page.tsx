@@ -7,7 +7,7 @@ import {
   CardDescription, Separator, Skeleton, Spinner, Progress, Working, Checkbox, Switch, RadioGroup,
   RadioItem, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Combobox, DatePicker, TimePicker, Tooltip,
   Dialog, DialogTrigger, DialogContent, DialogClose, Tabs, TabsList, TabsTrigger,
-  TabsContent, Banner, EmptyState, PageHeader, Table, Thead, Th, Tr, Td, HueTag, HUES,
+  TabsContent, Banner, EmptyState, PageHeader, Table, Thead, Th, Tr, Td, SortTh, TableEmpty, HueTag, HUES,
 } from "@connectapp/ui";
 import { check, email } from "@/lib/validate";
 import { PageTitle, Section, Row } from "@/components/section";
@@ -343,6 +343,10 @@ export default function Components() {
         </div>
       </Section>
 
+      <Section title="Table" note="One row, one cell, one hairline, with sorting and selection. Sixteen screens draw their own with their own padding, and not one of them could sort a column: there was no aria-sort anywhere in the product.">
+        <TableDemo />
+      </Section>
+
       <Section title="Empty state" note="An illustration, not a grey icon and an apology. A church's first week should feel like an invitation.">
         <EmptyState
           title="No one here yet"
@@ -351,6 +355,84 @@ export default function Components() {
         />
       </Section>
     </>
+  );
+}
+
+/**
+ * The table's three additions, shown together because they appear together: a
+ * heading that sorts, a tick that selects, and the row that says nothing
+ * matched without taking the headings away.
+ */
+function TableDemo() {
+  const rows = [
+    { id: "1", name: "Ada Mensah", household: "The Mensah household", status: "Member" },
+    { id: "2", name: "Caleb Oyelaran", household: "The Oyelaran household", status: "Visitor" },
+    { id: "3", name: "Dorothy Whitfield", household: "On their own", status: "Member" },
+  ];
+  const [way, setWay] = React.useState<"asc" | "desc">("asc");
+  const [picked, setPicked] = React.useState<string[]>(["2"]);
+  const [filtered, setFiltered] = React.useState(false);
+
+  const shown = filtered
+    ? []
+    : [...rows].sort((a, b) => (way === "asc" ? 1 : -1) * a.name.localeCompare(b.name));
+  const all = picked.length === rows.length;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Row>
+        <Button variant="secondary" onClick={() => setFiltered((was) => !was)}>
+          {filtered ? "Put the rows back" : "Filter everything out"}
+        </Button>
+        {picked.length > 0 && !filtered ? (
+          <span className="text-fg-muted">{picked.length} selected</span>
+        ) : null}
+      </Row>
+
+      <Table>
+        <Thead>
+          <tr>
+            <Th className="w-10">
+              <Checkbox
+                checked={all ? true : picked.length > 0 ? "indeterminate" : false}
+                onCheckedChange={(next) => setPicked(next === true ? rows.map((r) => r.id) : [])}
+                aria-label="Select every row on this page"
+              />
+            </Th>
+            <SortTh way={way} onSort={() => setWay((w) => (w === "asc" ? "desc" : "asc"))}>
+              Person
+            </SortTh>
+            {/* Sortable and not sorted, so the mark is grey and points both ways. */}
+            <SortTh way={null} onSort={() => {}}>Household</SortTh>
+            <Th>Status</Th>
+          </tr>
+        </Thead>
+        <tbody>
+          {shown.length === 0 ? (
+            <TableEmpty colSpan={4}>Nobody matches that.</TableEmpty>
+          ) : (
+            shown.map((row) => (
+              <Tr key={row.id}>
+                <Td>
+                  <Checkbox
+                    checked={picked.includes(row.id)}
+                    onCheckedChange={(next) =>
+                      setPicked((was) =>
+                        next === true ? [...was, row.id] : was.filter((id) => id !== row.id),
+                      )
+                    }
+                    aria-label={row.name}
+                  />
+                </Td>
+                <Td>{row.name}</Td>
+                <Td className="text-fg-muted">{row.household}</Td>
+                <Td>{row.status}</Td>
+              </Tr>
+            ))
+          )}
+        </tbody>
+      </Table>
+    </div>
   );
 }
 

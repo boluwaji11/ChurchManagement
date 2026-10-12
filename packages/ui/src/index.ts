@@ -47,5 +47,5 @@ export { CriticalBanner, CodeDisplay, OfflineBar, BlockingInterrupt } from "./co
 export { StatTile } from "./components/stat-tile";
 export { EmptyState } from "./components/empty-state";
 export { PageHeader, type Crumb } from "./components/page-header";
-export { Table, Thead, Th, Tr, Td } from "./components/table";
+export { Table, Thead, Th, Tr, Td, SortTh, TableEmpty, type SortWay } from "./components/table";
 export { LIFT } from "./lib/lift";
