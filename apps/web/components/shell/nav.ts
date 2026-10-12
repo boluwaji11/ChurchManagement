@@ -85,7 +85,7 @@ export function navFor(role: Who): NavEntry[] {
           label: t("nav.directory"),
           href: "/members",
           icon: Users,
-          owns: ["/members", "/duplicates", "/import", "/fields", "/tags"],
+          owns: ["/members", "/members/duplicates", "/import", "/fields", "/tags"],
         }
       : { label: t("nav.directory"), href: "/directory", icon: Users },
   );

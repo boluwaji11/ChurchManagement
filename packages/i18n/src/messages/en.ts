@@ -898,6 +898,7 @@ export const en = {
   "day.5": "Friday",
   "day.6": "Saturday",
   "person.milestones": "Milestones",
+  "person.belonging": "Groups and serving",
   "milestone.none": "None recorded",
   "milestone.add": "Record a milestone",
   "milestone.kind": "Milestone",

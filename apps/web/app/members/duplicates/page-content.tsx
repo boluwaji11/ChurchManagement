@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
+import { ScreenPanel } from "../screen-panel";
 import { Review, type PersonSide } from "./review";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -31,10 +32,16 @@ export async function generateMetadata({
   return tabMetadata(t("merge.title"));
 }
 
-export default async function DuplicatesPage({
-  searchParams,
-}: {
+type DuplicatesPageProps = {
   searchParams: Promise<{ a?: string; b?: string; page?: string; past?: string }>;
+};
+
+async function renderDuplicatesPage({
+  searchParams,
+  presentation,
+}: {
+  searchParams: DuplicatesPageProps["searchParams"];
+  presentation: "page" | "panel";
 }) {
   const { a, b, page, past } = await searchParams;
 
@@ -54,7 +61,7 @@ export default async function DuplicatesPage({
   }
 
   const here = (over: Record<string, string>) =>
-    `/duplicates?${new URLSearchParams({
+    `/members/duplicates?${new URLSearchParams({
       ...(a && b ? { a, b } : {}),
       ...(at > 1 ? { page: String(at) } : {}),
       ...(pastAt > 1 ? { past: String(pastAt) } : {}),
@@ -139,24 +146,7 @@ export default async function DuplicatesPage({
     },
   );
 
-  return (
-    <AppShell
-      session={session}
-      title={t("merge.title")}
-      wide
-    >
-      <Link
-        href={"/members"}
-        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
-      >
-        <ArrowLeft className="size-4" /> {t("members.title")}
-      </Link>
-
-      <div>
-        <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("merge.heading")}</h2>
-        <p className="mt-1 text-fg-muted">{t("merge.lede")}</p>
-      </div>
-
+  const review = (
       <Review
         church={session.tenantSlug}
         group={group}
@@ -184,6 +174,35 @@ export default async function DuplicatesPage({
           />
         }
       />
+  );
+
+  if (presentation === "panel") {
+    return <ScreenPanel title={t("merge.heading")}>{review}</ScreenPanel>;
+  }
+
+  return (
+    <AppShell session={session} title={t("merge.title")} wide>
+      <Link
+        href={"/members"}
+        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" /> {t("members.title")}
+      </Link>
+
+      <div>
+        <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("merge.heading")}</h2>
+        <p className="mt-1 text-fg-muted">{t("merge.lede")}</p>
+      </div>
+
+      {review}
     </AppShell>
   );
+}
+
+export default function DuplicatesPage(props: DuplicatesPageProps) {
+  return renderDuplicatesPage({ ...props, presentation: "page" });
+}
+
+export function DuplicatesPanelPage(props: DuplicatesPageProps) {
+  return renderDuplicatesPage({ ...props, presentation: "panel" });
 }

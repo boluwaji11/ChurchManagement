@@ -348,7 +348,7 @@ function Response({
           <MatchTag state={row.matchState} />
           {row.matchState === "review" ? (
             <Link
-              href={"/duplicates"}
+              href={"/members/duplicates"}
               className="text-[length:var(--d-text-body)] font-medium text-primary underline-offset-4 hover:underline"
             >
               {t("form.match.compare")}

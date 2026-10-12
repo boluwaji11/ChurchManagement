@@ -25,6 +25,7 @@ export function NoteForm({
   name,
   canConfidential,
   trigger,
+  inline,
 }: {
   memberId: string;
   /** Whose note it is, for the sheet's title. */
@@ -32,6 +33,11 @@ export function NoteForm({
   canConfidential: boolean;
   /** The control that opens it, where the screen wants its own. */
   trigger?: React.ReactNode;
+  /**
+   * R24.6. Written straight into the record's own window rather than into a
+   * panel over it. The record screen passes this; the standalone page does not.
+   */
+  inline?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -40,7 +46,7 @@ export function NoteForm({
   const [pending, startTransition] = React.useTransition();
 
   const formId = React.useId();
-  const full = useAnswered(formId, open);
+  const full = useAnswered(formId, inline || open);
 
   /*
    * Who may read it is a decision about this note. Inherited from the last one,
@@ -50,6 +56,63 @@ export function NoteForm({
     setOpen(next);
     if (!next) setConfidential(false);
   };
+
+  const body = (
+    <form
+      id={formId}
+      noValidate
+      action={(data) => {
+        data.set("memberId", memberId);
+        data.set("classification", confidential ? "confidential" : "general");
+        startTransition(async () => {
+          const result = await addNote(data);
+          setError(result.error);
+          if (!result.error) {
+            close(false);
+            router.refresh();
+          }
+        });
+      }}
+      className="flex flex-col gap-4"
+    >
+      {error ? <Banner tone="danger">{error}</Banner> : null}
+
+      {/* R2.7. Who may open it again is the whole difference between the two
+          kinds, so it is the first thing asked rather than a box underneath. */}
+      {canConfidential ? (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-label text-fg">{t("notes.whoCanRead")}</span>
+          <Select
+            value={confidential ? "confidential" : "general"}
+            onValueChange={(v) => setConfidential(v === "confidential")}
+          >
+            <SelectTrigger aria-label={t("notes.whoCanRead")}><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="general">{t("notes.readStaff")}</SelectItem>
+              <SelectItem value="confidential">{t("notes.readPastoral")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      ) : null}
+
+      <Field label={t("notes.body")} required>
+        <Textarea name="body" rows={6} />
+      </Field>
+    </form>
+  );
+
+  if (inline) {
+    return (
+      <div className="flex flex-col gap-4">
+        {body}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button type="submit" form={formId} loading={pending} disabled={!full}>
+            {t("notes.save")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Sheet open={open} onOpenChange={close}>
@@ -70,47 +133,7 @@ export function NoteForm({
           </>
         }
       >
-        <form
-          id={formId}
-          noValidate
-          action={(data) => {
-            data.set("memberId", memberId);
-            data.set("classification", confidential ? "confidential" : "general");
-            startTransition(async () => {
-              const result = await addNote(data);
-              setError(result.error);
-              if (!result.error) {
-                close(false);
-                router.refresh();
-              }
-            });
-          }}
-          className="flex flex-col gap-4"
-        >
-          {error ? <Banner tone="danger">{error}</Banner> : null}
-
-          {/* R2.7. Who may open it again is the whole difference between the two
-              kinds, so it is the first thing asked rather than a box underneath. */}
-          {canConfidential ? (
-            <div className="flex flex-col gap-1.5">
-              <span className="text-label text-fg">{t("notes.whoCanRead")}</span>
-              <Select
-                value={confidential ? "confidential" : "general"}
-                onValueChange={(v) => setConfidential(v === "confidential")}
-              >
-                <SelectTrigger aria-label={t("notes.whoCanRead")}><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="general">{t("notes.readStaff")}</SelectItem>
-                  <SelectItem value="confidential">{t("notes.readPastoral")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          ) : null}
-
-          <Field label={t("notes.body")} required>
-            <Textarea name="body" rows={6} autoFocus />
-          </Field>
-        </form>
+        {body}
       </SheetContent>
     </Sheet>
   );

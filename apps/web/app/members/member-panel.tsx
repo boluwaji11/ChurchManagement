@@ -53,7 +53,6 @@ export function MemberPanel({
       </div>
     </div>
   ) : footer;
-  const panelTitle = sections.find((section) => section.id === active)?.label ?? title;
 
   return (
     <Sheet
@@ -65,7 +64,7 @@ export function MemberPanel({
       }}
     >
       <SheetContent
-        title={panelTitle}
+        title={title}
         closeLabel={t("common.close")}
         actions={actions}
         footer={panelFooter}

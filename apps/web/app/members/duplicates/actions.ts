@@ -55,7 +55,7 @@ export async function merge(data: FormData): Promise<MergeOutcome> {
         take,
       }),
     );
-    revalidatePath("/duplicates");
+    revalidatePath("/members/duplicates");
     revalidatePath("/members");
     return { moved: result.movedRows };
   } catch (error) {
@@ -82,7 +82,7 @@ export async function mergeAll(data: FormData): Promise<MergeOutcome> {
         userId: session.userId, permissions: session.permissions,
       }, { winnerId, loserIds }),
     );
-    revalidatePath("/duplicates");
+    revalidatePath("/members/duplicates");
     revalidatePath("/members");
     return { moved: result.merges.length };
   } catch (error) {
@@ -99,7 +99,7 @@ export async function undo(data: FormData): Promise<MergeOutcome> {
     const result = await withTenant(ctx, (tx) =>
       undoMerge(tx, { tenantId: session.tenantId, role: session.role }, mergeId),
     );
-    revalidatePath("/duplicates");
+    revalidatePath("/members/duplicates");
     revalidatePath("/members");
     return { restored: result.restoredRows };
   } catch (error) {
