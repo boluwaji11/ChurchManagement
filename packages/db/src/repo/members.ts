@@ -22,8 +22,8 @@ export interface PersonRow {
   householdName: string | null;
   primaryEmail: string | null;
   primaryPhone: string | null;
-  /** R2.14. The tag names, for the column the directory shows them in. */
-  tagNames: string[];
+  /** R2.14. Their tags, each with the hue it is scanned by, for the directory's column. */
+  tags: { name: string; hue: string }[];
   /** R2.9. Their photo in the bucket, for the avatar on every list. */
   photoKey: string | null;
   archivedAt: Date | null;
@@ -308,8 +308,11 @@ export async function listPeople(db: Tx, opts: DirectoryQuery = {}): Promise<Per
         limit 1
       )`,
       // R2.14. One aggregate rather than a second round trip per person.
-      tagNames: sql<string[]>`(
-        select coalesce(array_agg(tg.name order by tg.name), '{}')
+      tags: sql<{ name: string; hue: string }[]>`(
+        select coalesce(
+          json_agg(json_build_object('name', tg.name, 'hue', tg.hue) order by tg.name),
+          '[]'
+        )
         from member_tags pt
         join tags tg on tg.id = pt.tag_id
         where pt.member_id = ${members.id}

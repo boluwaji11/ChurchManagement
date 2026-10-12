@@ -119,6 +119,28 @@ describe("filtering", () => {
     expect(mine(rows)).toEqual(["Amos"]);
   });
 
+  it("carries each tag's hue, so the directory can colour them", async () => {
+    const rose = await run(riverside, "owner", (tx) =>
+      createTag(tx, as(riverside), { name: "Directorytest usher", hue: "rose" }),
+    );
+    const sky = await run(riverside, "owner", (tx) =>
+      createTag(tx, as(riverside), { name: "Directorytest driver", hue: "sky" }),
+    );
+    await run(riverside, "owner", (tx) => setPersonTag(tx, as(riverside), ids["Bea"]!, rose.id, true));
+    await run(riverside, "owner", (tx) => setPersonTag(tx, as(riverside), ids["Bea"]!, sky.id, true));
+
+    const rows = await run(riverside, "owner", (tx) => listPeople(tx, { q: SUR }));
+    const bea = rows.find((r) => r.firstName === "Bea")!;
+    // Alphabetical, so a row reads the same way every time it is drawn.
+    expect(bea.tags).toEqual([
+      { name: "Directorytest driver", hue: "sky" },
+      { name: "Directorytest usher", hue: "rose" },
+    ]);
+
+    const amos = rows.find((r) => r.firstName === "Amos")!;
+    expect(amos.tags.map((one) => one.name)).not.toContain("Directorytest usher");
+  });
+
   it("combines a search with a filter", async () => {
     const rows = await run(riverside, "owner", (tx) =>
       listPeople(tx, { q: SUR, status: "member", has: "phone" }),
