@@ -119,6 +119,309 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-251 | Stripe Accounts v2: account creation, onboarding links, account sessions and the v2 event destination | R13.1 | New, before 0.3 ships |
 | HRT-252 | A bank gift shows the day it is authorised and counts the day it arrives, with what the bank said where it did not | R13.2 | Closed |
 
+The pass against the reference screens, October 2026. Phase A builds the vocabulary once,
+B puts it in the shell, C applies it a screen at a time, D adds what the reference has and
+we do not. The reading that produced them is below the table.
+
+| HRT-307 | One page header: where you are, what the screen is, what it is for, and its one action | R24.6, R24.15 | New |
+| HRT-308 | One table: a row, a cell, sorting, selection and the empty case, instead of sixteen | R24.6, R24.15, R2.14 | New |
+| HRT-309 | A tab that carries its count, and one segmented control instead of five | R24.6, R24.15 | New |
+| HRT-310 | Pagination the reader controls, with how many a page as a choice rather than a constant | R24.6, R2.14 | New |
+| HRT-311 | One relative time, laddering to years, written in the church's own language | R22.8, R24.6 | New |
+| HRT-312 | One tag chip, with the count of the ones that did not fit | R1.13, R24.4 | New |
+| HRT-313 | A face pile, for a group's leaders and the holders of a role | R24.6, R24.9 | New |
+| HRT-314 | A stat tile that can say "+8 this week", and one of them instead of three | R24.6, R18.1 | New |
+| HRT-315 | The charts move into the design system, and gain a gauge and a sparkline | R24.4, R24.6 | New |
+| HRT-316 | The activity feed, out of the member record and into the design system | R2.15, R24.6 | New |
+| HRT-317 | A status pill that changes the status | R2.2, R24.9, R24.15 | New |
+| HRT-318 | How complete a record is, said once and the same way everywhere | R2.1, R24.9 | New |
+| HRT-319 | The sidecar: four areas in a rail, their items beside it, and the accordion goes | R24.6, R24.14, R1.3 | New |
+| HRT-320 | The phone follows the sidecar: four areas, one tab each | R24.6, R24.14 | New |
+| HRT-321 | Members against the new vocabulary: the directory, the window, and every screen under it | R2.1, R2.14, R24.6 | New |
+| HRT-322 | Groups against the new vocabulary, and the two shells that screen renders | R9.5, R24.6 | New |
+| HRT-323 | Events against the new vocabulary: the list, the record and the roster | R14.1, R24.6 | New |
+| HRT-324 | Forms against the new vocabulary: the list, the builder and the responses | R4.1, R24.6 | New |
+| HRT-325 | The dashboard: tiles that carry a change, and the charts beside them | R18.1, R22.1, R24.6 | New |
+| HRT-326 | Reports: the shared table, the promoted charts, and a catalogue that looks like them | R18.2, R24.6 | New |
+| HRT-327 | Settings: twenty-three screens to one header and one table | R1.1, R24.6 | New |
+| HRT-328 | Follow-ups, calendar, incidents, import and the website editor | R5.1, R15.1, R24.6 | New |
+| HRT-329 | Giving against the new vocabulary, inside what 0.3 already built | R13.21, R24.6 | New |
+| HRT-330 | The check-in screens, where the rules deliberately differ | R24.14, R8.8, R24.11 | New |
+| HRT-331 | The public pages and the member portal | R17.1, R24.6 | New |
+| HRT-332 | One paper style across eleven print sheets | R24.6, R2.14 | New |
+| HRT-333 | Tags belong to categories, with a colour and an order the church sets | R1.13, R24.4 | New |
+| HRT-334 | A record says how complete it is, and the directory says which are not | R2.1, R19.3 | New |
+| HRT-335 | The church's own activity feed, read from the log that already records it | R1.11, R18.1 | New |
+| HRT-336 | Sweep the dead ends: a link to nothing, two empty directories, components nothing renders | R24.18 | New |
+
+## The pass against the reference, October 2026
+
+HRT-307 to HRT-336. Seventeen screens from another church product were held up as the
+standard to beat, and three surveys were run against our own: every route, every component,
+every board convention. What they found is not a list of ugly screens. It is that the same
+thing is built several ways.
+
+Zero screens say where you are. Zero carry a count in a tab label. There are five tab
+implementations, three stat tiles, three paginators, and one screen in the whole product
+where the reader can choose how many rows a page. Sixteen screens hand-roll a table against
+two that use the one in the design system. Eighteen have no empty state. The nav offers
+somebody a link to `/directory`, which does not exist.
+
+So the work is not a repaint. It is building each piece once and then using it, which is
+what the design system was for. Phase A (HRT-307 to HRT-318) builds the vocabulary and a
+church sees nothing change. Phase B (HRT-319, HRT-320) puts it in the shell. Phase C
+(HRT-321 to HRT-332) applies it a screen at a time. Phase D (HRT-333 to HRT-336) adds the
+few things the reference has that we do not.
+
+**What is taken from the reference and what is not.** Taken: the structure. Counts in tabs,
+relative dates, a page size the reader sets, colour chips with an overflow count, a record
+that says how complete it is, numbers that carry their change, a feed of what happened.
+Left: the money (payment columns, revenue, ticket sales), the messaging (a WhatsApp button
+beside a birthday), the blue and its cool neutrals, and the plan meter, because that is a
+paid tier and we are free. Our warm stone, ink, ember and the eight assigned hues stay.
+
+**The sidecar.** The reference's left-most strip is a rail of icons that switches area, the
+active one named down its side, with that area's items in a second column. We already have
+its content in the wrong shape: four groups, Overview, People, Gatherings and Church, in one
+232px column as an accordion where only one opens at a time. HRT-319 makes the four groups
+the rail and their items the column. It is the navigation we already have, re-expressed:
+`navFor(role)` returns exactly those groups, the phone's four tabs finally agree with the
+desktop, a role that cannot see a group simply has no icon for it, and Hearth Stage and a
+second church each have somewhere to go when they arrive.
+
+**One rule changes.** HRT-307 carves a narrow exception into "no lede restating the
+heading": a screen header may say what the screen is for. Hint text under a field,
+reassurance under a banner title, and a sentence that repeats its heading stay banned.
+
+**And one lesson is written into every test section below.** Each of these is checked in a
+browser, signed in, before it reaches Resolved. Not a request that follows a redirect: a
+press on the actual control. `/members/new` 404ed on a press for days, and three rounds of
+reasoning about how the router behaves were wrong until somebody pointed a browser at it.
+
+### HRT-307, how to test it
+
+Open any screen with a parent, such as a member record or a campaign. Confirm the trail
+above the title names the screens above it and each one is a link that works. Confirm the
+title is the screen's name and the line under it says what the screen is for. Confirm the
+screen's one action sits on the same row, right aligned, and that no screen shows two. Check
+a screen with no parent, such as Members, and confirm it shows a title with no trail rather
+than a trail of one. Check the three densities and both themes, and at phone width confirm
+the trail truncates from the left rather than wrapping to three lines.
+
+### HRT-308, how to test it
+
+Open Members, Giving and a report. Confirm the rows, the header cells, the padding and the
+hairlines are identical on all three. Sort by a column and confirm the mark says which way
+and that the address carries it, so the sorted view can be sent to somebody. Tick three rows
+and confirm the count and the bulk actions appear, and that ticking the header ticks the
+page rather than the whole list. Empty a filter until nothing matches and confirm the empty
+state sits inside the table rather than replacing the screen. Resize a column and confirm it
+stays resized. Then open the other thirteen table screens and confirm none of them draws its
+own.
+
+### HRT-309, how to test it
+
+Open Members and confirm the live and archived tabs carry their counts, that the counts are
+the filtered counts rather than the totals, and that they do not shift the tab width as they
+change. Confirm the same control is used by groups, by the form builder's two views, by the
+plan's service strip and by the report window, and that all five look alike and answer the
+keyboard the same way.
+
+### HRT-310, how to test it
+
+Open Members and set the page size to 10, then 50. Confirm the choice is in the address, so
+a reload keeps it and the address can be sent. Confirm the footer reads how many are shown
+and how many there are. Go to the last page, raise the page size, and confirm you land on a
+page that exists rather than an empty one. Check Giving, which shows three paginated tables
+on one screen, and confirm each pages independently.
+
+### HRT-311, how to test it
+
+Find a record edited minutes ago, one from last week, one from three months ago and one from
+two years ago. Confirm each reads in the largest unit that makes sense and that none of them
+says "304 days ago". Confirm the words come from the catalogue rather than the code, and that
+the admin portal and the church app now say the same thing the same way. Hover one and
+confirm the exact date is in the tooltip.
+
+### HRT-312, how to test it
+
+Give somebody six tags. Confirm the directory shows three chips and a count, that the count
+names the rest on hover, and that the chips carry the hue the tag was given. Confirm the tag
+editor, the celebrations screen and the follow-up panel draw the same chip, and that the
+directory no longer has one of its own.
+
+### HRT-313, how to test it
+
+Open Groups and confirm a group with three leaders shows three faces overlapping, in a
+stable order, with the count where there are more than fit. Confirm somebody with no
+photograph shows their initials on their hue. Check the roles screen shows the same pile.
+Confirm a screen reader reads the names rather than announcing three images.
+
+### HRT-314, how to test it
+
+Open the dashboard and confirm a tile can say a change in people as well as a percentage,
+that a rise and a fall read differently without colour being the only difference, and that a
+tile with no change to report simply omits it. Confirm the reports, the giving screen and
+the campaign screen all draw the same tile, and that the one in the design system is the one
+they draw.
+
+### HRT-315, how to test it
+
+Open the design gallery and confirm every chart renders there, in both themes and all three
+densities, with its numbers in text as well as in paint. Confirm a gauge reads at a glance
+and a sparkline sits inside a tile without an axis. Then open all eight reports and confirm
+they look exactly as they did, since nothing about them should change except where the code
+lives. Confirm a categorical series keeps its colour between two views of the same data.
+
+### HRT-316, how to test it
+
+Open a member record's history and confirm it reads as it did. Then open the dashboard feed
+and confirm it is the same component with different entries. Confirm entries group under a
+day heading, that the day headings say today and yesterday in words, and that a confidential
+note is still withheld from a role that may not read one.
+
+### HRT-317, how to test it
+
+Open Members and change somebody's status from the row. Confirm the row updates without the
+page reloading, that the change is written, and that a failure puts the old value back and
+says why. Confirm a role that may not edit people sees the status as a plain pill with no
+menu. Confirm the keyboard opens it, moves through it and closes it.
+
+### HRT-318, how to test it
+
+Open a record with a name and nothing else, and one filled in. Confirm each says how complete
+it is in the same words and the same place, and that the mark says which it is without colour
+alone. Confirm what counts as complete is written down in one place rather than decided on
+each screen.
+
+### HRT-319, how to test it
+
+Sign in as an Owner and confirm four icons in the rail, named Overview, People, Gatherings
+and Church, with the current one named down its side. Move between them and confirm the
+second column changes and the content does not until an item is pressed. Confirm each area
+remembers the screen it was last on. Sign in as a group leader and confirm only the areas
+with something in them appear. Collapse the second column and confirm the rail stays. Check
+both themes, and confirm the check-in station still shows no navigation at all.
+
+### HRT-320, how to test it
+
+At phone width confirm four tabs along the bottom, one per area, in the same order as the
+rail. Confirm pressing one opens that area's items as a sheet rather than navigating
+somewhere arbitrary. Confirm the active tab matches the active rail icon on the desktop for
+the same screen.
+
+### HRT-321, how to test it
+
+Walk every screen under Members: the directory, a record, its edit form, new, duplicates,
+celebrations, the mailer and the print sheets. Confirm each has one header, one table, one
+paginator and one set of chips, and that nothing in the area draws its own. Confirm the
+record window still opens over the list and still closes back to the filtered view.
+
+### HRT-322, how to test it
+
+Open Groups as staff and as a member, and confirm the same screen in two shells now differs
+only in what the viewer may do. Walk the list, a group, its edit form and the public finder.
+Confirm the leaders show as a face pile and the meeting day and time as chips.
+
+### HRT-323, how to test it
+
+Walk Events: the list, an event, its edit form, the roster and the public pages. Confirm the
+registration table is the shared one and pages with the shared paginator. Confirm the list
+rows carry the date, the capacity and the status in the same shapes the rest of the product
+uses.
+
+### HRT-324, how to test it
+
+Walk Forms: the list, the builder and the responses. Confirm the two-view switch is the
+shared segmented control, that the responses table is the shared table, and that the
+builder's own chrome is the only thing in the area that stays bespoke.
+
+### HRT-325, how to test it
+
+Open the dashboard and confirm the tiles carry their change, that the charts beside them are
+the promoted ones, and that the setup checklist and the tile reordering both still work.
+Confirm a church with no data yet sees an empty state rather than a row of zeroes.
+
+### HRT-326, how to test it
+
+Open all eight reports and the catalogue. Confirm the catalogue now looks like the reports
+it links to. Confirm every table is the shared one, the window control is the shared
+segmented control, and the download menu sits where the header's action sits everywhere
+else. Confirm the connected report no longer draws its own table.
+
+### HRT-327, how to test it
+
+Walk all twenty-three settings screens. Confirm each has the shared header with its trail,
+that the roles matrix and the accounts grid use the shared table, and that households now
+pages. Confirm the section strip still says where you are and that the screens missing an
+empty state have one.
+
+### HRT-328, how to test it
+
+Walk follow-ups, the calendar, incidents, the import wizard and the website editor. Confirm
+each has the shared header. Confirm the import wizard uses the shared step indicator rather
+than its own, and that the calendar and the follow-up board keep their own layouts, since a
+week and a kanban are not tables.
+
+### HRT-329, how to test it
+
+Walk Giving: the gifts, the counts, the funds, campaigns, statements and payouts. Confirm
+the three tables on the main screen are the shared one and page independently. Confirm the
+campaign screen uses the shared tile rather than its own copy. Confirm nothing about what
+any of it does has changed.
+
+### HRT-330, how to test it
+
+Open the check-in desk, the floor and the kiosk on a tablet at station density. Confirm
+56px targets, 20px text and 7:1 contrast. Confirm no control is an icon alone. Confirm the
+allergy banner is still unscrollable and above the fold, that the offline bar is still
+persistent chrome, and that there is still no navigation of any kind. Then pull the network
+and confirm check-in keeps working.
+
+### HRT-331, how to test it
+
+Open the public group finder, the what's-on, a public form, the giving page and the church's
+own door, as somebody signed out. Confirm they share a header and a footer and look like one
+product. Then sign in as a member and walk the portal. Confirm the portal and the staff app
+now look like the same product at different densities.
+
+### HRT-332, how to test it
+
+Print each of the eleven sheets: the directory, the labels, the letters, the celebrations
+cards, the class rosters, the check-in labels, the order of service, the deposit slip, the
+statements, the event roster and a report. Confirm one paper style across all of them, that
+the church's name and the date are in the same place on each, and that none of them carries
+the app's chrome.
+
+### HRT-333, how to test it
+
+Make a category, give it a colour, and put three tags in it. Confirm a tag can take its own
+colour instead of the category's. Reorder them and confirm the order is the order they print
+beside a name. Open the category and confirm it lists the members carrying its tags, with a
+way to take a tag off somebody. Confirm a tag with no category still works, since every
+existing tag starts that way.
+
+### HRT-334, how to test it
+
+Open the directory and confirm the mark before the avatar says which records are incomplete,
+and that filtering by it finds them. Open an incomplete record and confirm it names what is
+missing rather than only saying that something is. Confirm what counts as complete is the
+church's setting and not ours.
+
+### HRT-335, how to test it
+
+Make some changes as one account, then open the dashboard as another and confirm they are
+listed, newest first, grouped by day, each naming who did it and linking the record. Confirm
+a role that may not read a record does not see it named. Confirm nothing new is written to
+the database, since the log already records all of it.
+
+### HRT-336, how to test it
+
+Sign in as a member and confirm the nav no longer offers a link to a screen that does not
+exist. Confirm `app/groups/find` and `app/groups/find/[id]` are gone. Confirm every
+component left in the tree is rendered by something, or deleted, and that the list of ten
+things taken off the person screen is resolved either way.
+
 The redesign that HRT-200 to HRT-208 carry out arrived as prototypes in October 2026. The
 reconciliation, the token mapping, what is excluded and why, and the journeys held against what is
 built are in [docs/redesign/README.md](docs/redesign/README.md). Giving, songs, the email mockups and
