@@ -93,6 +93,16 @@ function RecordSection({
   );
 }
 
+/** R24.6. Names a part of a section that holds more than one thing. */
+function RecordPart({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <h4 className="text-label font-medium text-fg-muted">{title}</h4>
+      {children}
+    </div>
+  );
+}
+
 /** R2.2. The same pill the directory uses, so a status reads the same anywhere. */
 const STATUS_HUE: Record<string, string> = {
   member: "fern",
@@ -222,15 +232,12 @@ async function renderPersonPage({
   const canMessage = canAnswerMessages(session);
   const actions = canEdit || canMessage ? (
     <div className="flex items-center gap-2">
-      {canEdit ? (
-        <NoteForm
-          memberId={person.id}
-          name={display}
-          canConfidential={canReadConfidentialNotes(session)}
-          trigger={<Button variant="secondary">{t("person.addNote")}</Button>}
-        />
+      {/* R16.x. Messaging is deferred, and the launcher draws its own panel in
+          the corner over this window, so the record offers it on the page
+          alone until messaging comes back. */}
+      {canMessage && presentation === "page" ? (
+        <WriteTo at={person.slug} name={display} />
       ) : null}
-      {canMessage ? <WriteTo at={person.slug} name={display} /> : null}
       {canEdit ? (
         <Tooltip content={t("action.edit")}>
           <Button
@@ -255,16 +262,20 @@ async function renderPersonPage({
     ...serving.map((s) => ({ key: `t${s.teamId}`, name: s.teamName, hue: s.hue })),
   ];
 
+  /*
+   * R24.6. Seven at most, and fewer for most churches.
+   *
+   * Eleven entries made the rail a list to read rather than a place to go, and
+   * several of them held one line each. Things that answer the same question
+   * now share a section and keep their own names inside it.
+   */
   const panelSections: MemberPanelSection[] = [
     { id: "overview", label: t("personForm.section.details") },
     { id: "contact", label: t("personForm.section.contact") },
-    { id: "timeline", label: t("person.churchHistory") },
     { id: "household", label: t("person.household") },
+    { id: "timeline", label: t("person.churchHistory") },
+    { id: "belonging", label: t("person.belonging") },
     ...(giving ? [{ id: "giving", label: t("person.giving") }] : []),
-    { id: "serving", label: t("person.serving") },
-    { id: "groups", label: t("groups.title") },
-    { id: "milestones", label: t("person.milestones") },
-    ...(checkStanding ? [{ id: "checks", label: t("checks.title") }] : []),
     { id: "tags", label: t("person.tags") },
     ...(customFields.length > 0 ? [{ id: "additional", label: t("person.more") }] : []),
   ];
@@ -374,54 +385,53 @@ async function renderPersonPage({
 
           {/* R2.6. Baptism, salvation, a dedication: the dates a church is
               asked for years later and cannot produce. */}
-          <RecordSection id="milestones" title={t("person.milestones")}>
-            <Milestones memberId={person.id} rows={milestoneRows} canEdit={canEdit} />
-          </RecordSection>
+          {/* R9.5, R10.x, R2.10. Where somebody belongs and what they do, with
+              the check that decides whether they may do it with children. */}
+          <RecordSection id="belonging" title={t("person.belonging")}>
+            <RecordPart title={t("groups.title")}>
+              {groups.length === 0 ? (
+                <p className="text-[13px] text-fg-muted">{t("person.notInGroup")}</p>
+              ) : (
+                groups.map((group) => (
+                  <span key={group.groupId} className="flex items-center gap-2.5">
+                    <span
+                      className="size-2 shrink-0 rounded-full"
+                      style={{ background: `var(--hue-${group.typeHue ?? "fern"}-500)` }}
+                    />
+                    <span className="font-medium text-fg">{group.name}</span>
+                  </span>
+                ))
+              )}
+            </RecordPart>
 
-          {/* R2.10, R21.11. Read by the role the church trusts with it, and by
-              nobody else. Serving with children is gated on what it says. */}
-          {checkStanding ? (
-            <RecordSection id="checks" title={t("checks.title")}>
-              <Checks
-                memberId={person.id}
-                standing={checkStanding.standing}
-                expiresOn={checkStanding.expiresOn}
-                rows={checkStanding.checks}
-                canEdit={canEdit}
-              />
-            </RecordSection>
-          ) : null}
+            <RecordPart title={t("person.serving")}>
+              {serving.length === 0 ? (
+                <p className="text-[13px] text-fg-muted">{t("person.notOnTeam")}</p>
+              ) : (
+                serving.map((team) => (
+                  <span key={team.teamId} className="flex items-center gap-2.5">
+                    <span
+                      className="size-2 shrink-0 rounded-full"
+                      style={{ background: `var(--hue-${team.hue}-500)` }}
+                    />
+                    <span className="font-medium text-fg">{team.teamName}</span>
+                  </span>
+                ))
+              )}
+            </RecordPart>
 
-          <RecordSection id="groups" title={t("groups.title")}>
-            {groups.length === 0 ? (
-              <p className="text-[13px] text-fg-muted">{t("person.notInGroup")}</p>
-            ) : (
-              groups.map((group) => (
-                <span key={group.groupId} className="flex items-center gap-2.5">
-                  <span
-                    className="size-2 shrink-0 rounded-full"
-                    style={{ background: `var(--hue-${group.typeHue ?? "fern"}-500)` }}
-                  />
-                  <span className="font-medium text-fg">{group.name}</span>
-                </span>
-              ))
-            )}
-          </RecordSection>
-
-          <RecordSection id="serving" title={t("person.serving")}>
-            {serving.length === 0 ? (
-              <p className="text-[13px] text-fg-muted">{t("person.notOnTeam")}</p>
-            ) : (
-              serving.map((team) => (
-                <span key={team.teamId} className="flex items-center gap-2.5">
-                  <span
-                    className="size-2 shrink-0 rounded-full"
-                    style={{ background: `var(--hue-${team.hue}-500)` }}
-                  />
-                  <span className="font-medium text-fg">{team.teamName}</span>
-                </span>
-              ))
-            )}
+            {/* R2.10, R21.11. Read by the role the church trusts with it. */}
+            {checkStanding ? (
+              <RecordPart title={t("checks.title")}>
+                <Checks
+                  memberId={person.id}
+                  standing={checkStanding.standing}
+                  expiresOn={checkStanding.expiresOn}
+                  rows={checkStanding.checks}
+                  canEdit={canEdit}
+                />
+              </RecordPart>
+            ) : null}
           </RecordSection>
 
           <RecordSection id="tags" title={t("person.tags")}>
@@ -457,7 +467,21 @@ async function renderPersonPage({
                 </RecordValue>
               ) : null}
             </div>
+            <RecordPart title={t("person.milestones")}>
+              <Milestones memberId={person.id} rows={milestoneRows} canEdit={canEdit} />
+            </RecordPart>
+
             <Timeline entries={history} />
+            {/* R2.7. Written under the history it joins, rather than in a
+                panel over the window this record already fills. */}
+            {canEdit ? (
+              <NoteForm
+                inline
+                memberId={person.id}
+                name={display}
+                canConfidential={canReadConfidentialNotes(session)}
+              />
+            ) : null}
           </RecordSection>
         </div>
       </div>

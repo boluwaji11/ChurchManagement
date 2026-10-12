@@ -382,7 +382,7 @@ export function Directory({
           <DropdownMenuContent align="end">
             {canArchive ? (
               <DropdownMenuItem asChild>
-                <Link href="/duplicates">
+                <Link href="/members/duplicates">
                   <Copy /> {t("merge.title")}
                   {duplicates > 0 ? (
                     <span className="ml-auto rounded-full bg-danger-soft px-1.5 text-[11px] font-semibold text-danger-text">
@@ -457,7 +457,7 @@ export function Directory({
           groups={groups}
           mergeHref={
             canArchive && selected.length === 2
-              ? `/duplicates?a=${selected[0]}&b=${selected[1]}`
+              ? `/members/duplicates?a=${selected[0]}&b=${selected[1]}`
               : null
           }
           pending={pending}

@@ -1,47 +1,42 @@
 /**
- * R2.1. Every screen under /members has its own intercepting slot.
+ * R2.1. Every screen under /members opens in the window over the list.
  *
- * The member record opens through an intercepting route at `@panel/(.)[id]`.
- * A dynamic segment matches any single name, so a screen beside it, such as
- * the mailer, is claimed by the record panel and never renders. The answer is
- * one slot entry per screen, so the panel resolves the name to the screen the
- * church asked for. A new directory added beside the others is broken the same
- * way, and the breakage is silent, so it is checked here rather than found by
- * a church.
+ * The window is an intercepting route at `@panel/(.)[id]`. A dynamic segment
+ * claims any single name and beats a sibling that spells the name out, so that
+ * one route answers for all of them and names each screen itself. A screen
+ * added beside the others and left out of it gets looked up as a member,
+ * found to be nobody, and 404s on the press. The breakage is silent, so it is
+ * checked here rather than found by a church.
+ *
+ * `print` is the exception: it opens in its own tab, which is a fresh load
+ * rather than an interception, so it needs no entry.
  */
-import { existsSync, readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// fileURLToPath, because a repository checked out to a path with a space in it
-// arrives percent-encoded otherwise.
-const here = fileURLToPath(new URL("../apps/web/app/members/", import.meta.url));
-const slot = join(here, "@panel");
+// fileURLToPath, because a checkout under a path with a space in it arrives
+// percent-encoded otherwise.
+const members = fileURLToPath(new URL("../apps/web/app/members/", import.meta.url));
+const OPENS_IN_ITS_OWN_TAB = ["print"];
 
-/**
- * The print view opens with target="_blank", which is a hard navigation to its
- * own tab, so there is no panel over the directory for it to render in.
- */
-const openedInItsOwnTab = ["print"];
-
-const screens = readdirSync(here, { withFileTypes: true })
+const screens = readdirSync(members, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name)
-  // The panel slot, the record itself, and route groups are not screen names.
   .filter((name) => !name.startsWith("@") && !name.startsWith("[") && !name.startsWith("("))
-  .filter((name) => !openedInItsOwnTab.includes(name))
+  .filter((name) => !OPENS_IN_ITS_OWN_TAB.includes(name))
   .sort();
 
-const missing = screens.filter((name) => !existsSync(join(slot, `(.)${name}`, "page.tsx")));
+const route = join(members, "@panel", "(.)[id]", "page.tsx");
+const source = readFileSync(route, "utf8");
+
+const missing = screens.filter((name) => !source.includes(`id === "${name}"`));
 
 if (missing.length > 0) {
-  console.error(
-    `Screens under /members with no intercepting slot: ${missing.join(", ")}`,
-  );
-  console.error(
-    "Add apps/web/app/members/@panel/(.)<name>/page.tsx for each, or the record panel claims the address.",
-  );
+  console.error(`Screens under /members with no answer in @panel/(.)[id]/page.tsx: ${missing.join(", ")}`);
+  console.error("Each one is looked up as a member, found to be nobody, and 404s when pressed.");
+  console.error(`Add: if (id === "${missing[0]}") return <...PanelPage searchParams={searchParams} />;`);
   process.exit(1);
 }
 
-console.log(`${screens.length} screens under /members, every one with its own slot.`);
+console.log(`${screens.length} screens under /members, every one answered.`);

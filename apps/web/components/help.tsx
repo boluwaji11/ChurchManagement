@@ -19,7 +19,7 @@ import { t } from "@connectapp/i18n";
  * translated with the rest of the product rather than forgotten in a wiki.
  */
 const ARTICLES = [
-  { key: "members", match: ["/members", "/duplicates"] },
+  { key: "members", match: ["/members", "/members/duplicates"] },
   { key: "import", match: ["/import"] },
   { key: "services", match: ["/services"] },
   { key: "checkin", match: ["/checkin"] },
