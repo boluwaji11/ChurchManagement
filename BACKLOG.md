@@ -124,7 +124,7 @@ B puts it in the shell, C applies it a screen at a time, D adds what the referen
 we do not. The reading that produced them is below the table.
 
 | HRT-307 | One page header: where you are, what the screen is, what it is for, and its one action | R24.6, R24.15 | Resolved |
-| HRT-308 | One table: a row, a cell, sorting, selection and the empty case, instead of sixteen | R24.6, R24.15, R2.14 | New |
+| HRT-308 | One table: a row, a cell, sorting, selection and the empty case, instead of sixteen | R24.6, R24.15, R2.14 | Resolved |
 | HRT-309 | A tab that carries its count, and one segmented control instead of five | R24.6, R24.15 | New |
 | HRT-310 | Pagination the reader controls, with how many a page as a choice rather than a constant | R24.6, R2.14 | New |
 | HRT-311 | One relative time, laddering to years, written in the church's own language | R22.8, R24.6 | New |
@@ -341,14 +341,27 @@ data under the chrome counts. Phase C replaces all of them.
 
 ### HRT-308, how to test it
 
-Open Members, Giving and a report. Confirm the rows, the header cells, the padding and the
-hairlines are identical on all three. Sort by a column and confirm the mark says which way
-and that the address carries it, so the sorted view can be sent to somebody. Tick three rows
-and confirm the count and the bulk actions appear, and that ticking the header ticks the
-page rather than the whole list. Empty a filter until nothing matches and confirm the empty
-state sits inside the table rather than replacing the screen. Resize a column and confirm it
-stays resized. Then open the other thirteen table screens and confirm none of them draws its
-own.
+Phase A, so this is tested in the gallery at `/design/components`, under "Table". The
+screens adopt it in Phase C, HRT-321 to HRT-332.
+
+Press the Person heading and confirm the rows reverse and the arrow turns over. Confirm the
+Household heading carries a grey mark pointing both ways, because it can be sorted and is
+not. Confirm one row starts ticked and the heading's tick shows a dash rather than a tick,
+then press the heading's tick and confirm it takes the whole page and the count says three.
+Press "Filter everything out" and confirm the headings stay standing and the line saying
+nothing matched sits inside the table across all its columns, rather than the screen being
+replaced. Check both themes and the three densities, where the row height should change and
+the heading should not wrap.
+
+**What was found.** There was not one `aria-sort` in the product, so none of the sixteen
+tables of a church's own records could be sorted at all: they were read in whatever order
+the query returned. Sorting is a link rather than a press wherever the caller can give one,
+so the sorted view lives in the address and can be sent to somebody; `onSort` is there only
+for a table whose rows never leave the browser.
+
+**Not done here.** Column resizing. `ResizableTable` in `apps/web/components` already solves
+it and the plan has it moving into the design system, but moving it is only worth doing
+against a screen that uses it, so it rides with HRT-321.
 
 ### HRT-309, how to test it
 
