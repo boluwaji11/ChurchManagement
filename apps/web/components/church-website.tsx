@@ -55,7 +55,12 @@ function SectionContent({
       return (
         <section className={`mx-auto grid max-w-7xl items-center gap-10 px-5 py-12 sm:px-8 sm:py-20 ${website.layout === "community" ? "text-center lg:grid-cols-1" : "lg:grid-cols-[1fr_1fr]"}`}>
           <div className={`flex flex-col gap-6 ${website.layout === "community" ? "mx-auto max-w-3xl items-center" : "max-w-2xl"}`}>
-            <p className="m-0 text-sm font-semibold uppercase tracking-[0.16em] text-primary">{website.churchName}</p>
+            {/* The eyebrow names the church above the heading. With no heading
+                of its own the heading is the church's name too, and the name
+                read twice, stacked, in two sizes. */}
+            {section.title ? (
+              <p className="m-0 text-sm font-semibold uppercase tracking-[0.16em] text-primary">{website.churchName}</p>
+            ) : null}
             <h1 className="m-0 text-balance font-display text-[clamp(42px,7vw,78px)] font-normal leading-[1.02] tracking-[-0.025em]">
               {section.title || website.churchName}
             </h1>
@@ -150,6 +155,14 @@ function SectionContent({
         </section>
       ) : null;
     case "services":
+      /*
+       * A church that has not entered its service times yet has nothing to say
+       * here, and the line explaining that is written for whoever is building
+       * the page. A visitor met "Service times will appear here when the church
+       * adds them." on a live church website. Empty, it stands down, the same
+       * way an image and a video section already do.
+       */
+      if (!website.services.length && !editing) return null;
       return (
         <section className="mx-auto w-full max-w-5xl px-5 py-10 sm:px-8">
           <div className="rounded-[24px] border border-line bg-surface p-6 shadow-sm sm:p-8">
