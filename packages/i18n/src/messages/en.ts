@@ -1587,7 +1587,7 @@ export const en = {
   "settings.lede.funds": "The causes your church takes gifts for.",
   "settings.tab.online": "Online giving",
   "settings.lede.online": "How your church takes a gift by card or bank.",
-  "settings.lede.email": "Set up how your church sends email to its members.",
+  "settings.lede.email": "Set up how your church sends email to members.",
   "fund.add": "Add a new fund",
   "fund.newTitle": "New fund",
   "fund.editTitle": "Edit {name}",
