@@ -135,7 +135,7 @@ we do not. The reading that produced them is below the table.
 | HRT-316 | The activity feed, out of the member record and into the design system | R2.15, R24.6 | Dropped, folded into Phase C |
 | HRT-317 | A status pill that changes the status | R2.2, R24.9, R24.15 | Dropped, folded into Phase C |
 | HRT-318 | How complete a record is, said once and the same way everywhere | R2.1, R24.9 | Dropped, folded into Phase C |
-| HRT-319 | The sidecar: four areas in a rail, their items beside it, and the accordion goes | R24.6, R24.14, R1.3 | New |
+| HRT-319 | The sidecar: four areas in a rail, their items beside it, and the accordion goes | R24.6, R24.14, R1.3 | Resolved |
 | HRT-320 | The phone follows the sidecar: four areas, one tab each | R24.6, R24.14 | New |
 | HRT-321 | Members against the new vocabulary: the directory, the window, and every screen under it | R2.1, R2.14, R24.6 | New |
 | HRT-322 | Groups against the new vocabulary, and the two shells that screen renders | R9.5, R24.6 | New |
@@ -158,6 +158,35 @@ we do not. The reading that produced them is below the table.
 | HRT-338 | The church website builder: what a Path B church can actually build | R22.2, R24.15 | New |
 
 
+
+
+## The sidecar, October 2026
+
+HRT-319. The navigation was four groups stacked in one 232px column as an
+accordion: opening one closed another, and `section-memory` kept track of where
+each had been left. That is a two level navigation crammed into one level, and
+the accordion was the apology for it.
+
+Two levels drawn as two columns needs no apology and nothing remembered. A 64px
+rail of four marks, Overview, People, Gatherings and Church, with that area's
+items in a second column beside it. The area follows the route, so it is a fact
+about where the reader is rather than a preference they set, and pressing a
+mark on the rail moves the second column without navigating: somebody can look
+into Gatherings while standing on a member's record and go back by pressing
+nothing.
+
+The plan said `navFor(role)` already returned these four groups. It does not;
+it returns one flat list, and the grouping was a table of route prefixes inside
+the sidebar. The table stayed and gained an icon per area.
+
+Settings, the person and signing out moved onto the rail, which is the half
+that never shuts. The role moved into the avatar's tooltip rather than being
+dropped.
+
+**What the browser caught.** The first version put the reopen control floating
+beside the rail. The sticky header is `z-30` and the control was `z-10`, so the
+header swallowed the press: the column could be closed and then never reopened.
+The toggle moved onto the rail, where there is one of it and nothing covers it.
 
 ## Phase A folds into the screens, October 2026
 
