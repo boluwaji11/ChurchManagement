@@ -21,7 +21,7 @@ import {
 import { t, plural } from "@connectapp/i18n";
 import { Said } from "@/components/said";
 import { Empty } from "@/components/empty";
-import { LIFECYCLE_VALUES, lifecycleLabel } from "@/lib/person-input";
+import { LIFECYCLE_VALUES, lifecycleLabel, lifecycleOptions } from "@/lib/person-input";
 import { bulkArchive, bulkStatus, bulkTag, bulkAddToGroup, type BulkResult } from "./bulk-actions";
 import { Pages } from "@/components/pages";
 import { useAnswered } from "@/components/form-actions";
@@ -681,7 +681,12 @@ export function Directory({
                     {p.householdName ?? EMPTY}
                   </td>
                   <td className="border-b border-sunken px-4 py-2.5">
-                    <StatusPill status={p.lifecycleStatus} />
+                    <StatusCell
+                      id={p.id}
+                      status={p.lifecycleStatus}
+                      canEdit={canEdit}
+                      onChanged={() => router.refresh()}
+                    />
                   </td>
                   <td className="border-b border-sunken px-4 py-2.5 text-[13px] text-fg-muted">
                     {p.tags.length > 0 ? <TagChips tags={p.tags} /> : EMPTY}
@@ -808,12 +813,89 @@ function StatusPill({ status }: { status: string }) {
 }
 
 /**
- * R2.14. The tags somebody carries, in the hue each one was given.
+ * R2.2, R2.14. The status, changed where it is read.
  *
- * Three at most on a row. A tag is read at a glance, and a person with nine of
- * them turns one cell into a paragraph that pushes every other row down, so the
- * rest are counted and named in the tooltip.
+ * A visitor who comes back and is now a regular is the most ordinary edit a
+ * church makes, and it meant opening the record, finding the field, choosing,
+ * saving and coming back to the list. On a row it is two presses.
+ *
+ * Only for whoever may edit. For everybody else the pill is the pill, because
+ * a control that refuses on press is worse than no control.
  */
+function StatusCell({
+  id,
+  status,
+  canEdit,
+  onChanged,
+}: {
+  id: string;
+  status: string;
+  canEdit: boolean;
+  onChanged: () => void;
+}) {
+  const [busy, start] = React.useTransition();
+  const [error, setError] = React.useState<string>();
+  /*
+   * R24.6. The row says the new status at once.
+   *
+   * The write lands and the server revalidates, but the list is a server
+   * render and the new rows take a moment to arrive, so the pill went on
+   * reading Visitor after a press that had already worked. A press that
+   * changes nothing on screen reads as a press that failed, and the next
+   * thing anybody does is press it again.
+   */
+  const [shown, setShown] = React.useState(status);
+  React.useEffect(() => setShown(status), [status]);
+
+  if (!canEdit || status === "archived") return <StatusPill status={status} />;
+
+  const choose = (next: string) => {
+    if (next === shown) return;
+    const was = shown;
+    setShown(next);
+    setError(undefined);
+    start(async () => {
+      const body = new FormData();
+      body.set("ids", id);
+      body.set("status", next);
+      const result = await bulkStatus(body);
+      if (result.error) {
+        /* Back to what the church's records actually say. */
+        setShown(was);
+        setError(result.error);
+        return;
+      }
+      onChanged();
+    });
+  };
+
+  return (
+    <DropdownMenu>
+      <Tooltip content={error ?? t("directory.bulkStatus")}>
+        <DropdownMenuTrigger
+          disabled={busy}
+          className="inline-flex cursor-pointer items-center gap-1 rounded-full disabled:cursor-wait"
+          aria-label={t("directory.bulkStatus")}
+        >
+          <StatusPill status={shown} />
+          <ChevronDown aria-hidden className="size-3.5 shrink-0 text-fg-subtle" />
+        </DropdownMenuTrigger>
+      </Tooltip>
+      <DropdownMenuContent align="start">
+        {lifecycleOptions().map((option) => (
+          <DropdownMenuItem
+            key={option.value}
+            onSelect={() => choose(option.value)}
+            aria-current={option.value === shown ? "true" : undefined}
+          >
+            {option.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 /**
  * R2.14, R24.6. A heading that sorts, in this table's own padding.
  *
@@ -852,6 +934,13 @@ function SortColumn({
 
 const TAGS_ON_A_ROW = 3;
 
+/**
+ * R2.14. The tags somebody carries, in the hue each one was given.
+ *
+ * Three at most on a row. A tag is read at a glance, and a person with nine of
+ * them turns one cell into a paragraph that pushes every other row down, so the
+ * rest are counted and named in the tooltip.
+ */
 function TagChips({ tags }: { tags: { name: string; hue: string }[] }) {
   const shown = tags.slice(0, TAGS_ON_A_ROW);
   const rest = tags.slice(TAGS_ON_A_ROW);

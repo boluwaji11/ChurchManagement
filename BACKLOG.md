@@ -125,7 +125,7 @@ we do not. The reading that produced them is below the table.
 
 | HRT-307 | One page header: where you are, what the screen is, what it is for, and its one action | R24.6, R24.15 | Resolved |
 | HRT-308 | One table: a row, a cell, sorting, selection and the empty case, instead of sixteen | R24.6, R24.15, R2.14 | Resolved |
-| HRT-309 | A tab that carries its count, and one segmented control instead of five | R24.6, R24.15 | Dropped, folded into Phase C |
+| HRT-309 | One segmented control instead of five. No counts on tabs: the user struck them | R24.6, R24.15 | Dropped, folded into Phase C |
 | HRT-310 | Pagination the reader controls, with how many a page as a choice rather than a constant | R24.6, R2.14 | Dropped, folded into Phase C |
 | HRT-311 | One relative time, laddering to years, written in the church's own language | R22.8, R24.6 | Dropped, folded into Phase C |
 | HRT-312 | One tag chip, with the count of the ones that did not fit | R1.13, R24.4 | Dropped, folded into Phase C |
