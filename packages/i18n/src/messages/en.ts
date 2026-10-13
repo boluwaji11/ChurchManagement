@@ -21,6 +21,7 @@ export const en = {
   "app.name": "ConnectApp",
   "nav.skip": "Skip to the page",
   "nav.sections": "Sections",
+  "nav.areas": "Areas",
   "nav.group.workspace": "Overview",
   "nav.group.people": "People",
   "nav.group.gatherings": "Gatherings",

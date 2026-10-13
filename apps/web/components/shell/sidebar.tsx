@@ -4,7 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  PanelLeftClose, PanelLeftOpen, LogOut, Menu, ChevronDown, ChevronRight,
+  PanelLeftClose, PanelLeftOpen, LogOut, Menu,
+  LayoutDashboard, Users, CalendarDays, Church, Settings as Cog,
 } from "lucide-react";
 import { Avatar, Sheet, SheetContent, Tooltip, Working, cn } from "@connectapp/ui";
 import { t, type MessageKey } from "@connectapp/i18n";
@@ -23,22 +24,27 @@ export interface ShellEntry extends NavTarget {
 const SIDEBAR_GROUPS: {
   id: string;
   label: MessageKey;
+  /** The rail is icons, so an area needs a mark of its own. */
+  icon: React.ComponentType<{ className?: string }>;
   hrefs: readonly string[];
 }[] = [
-  { id: "workspace", label: "nav.group.workspace", hrefs: ["/dashboard", "/home"] },
+  { id: "workspace", label: "nav.group.workspace", icon: LayoutDashboard, hrefs: ["/dashboard", "/home"] },
   {
     id: "people",
     label: "nav.group.people",
+    icon: Users,
     hrefs: ["/members", "/directory", "/messages", "/followups", "/groups"],
   },
   {
     id: "gatherings",
     label: "nav.group.gatherings",
+    icon: CalendarDays,
     hrefs: ["/checkin", "/calendar", "/services", "/schedule", "/events"],
   },
   {
     id: "church",
     label: "nav.group.church",
+    icon: Church,
     hrefs: ["/giving", "/forms", "/website", "/reports"],
   },
 ] as const;
@@ -111,11 +117,22 @@ export function Sidebar({
   const activeGroup = groups.find((group) =>
     group.entries.some((entry) => entry.href === active),
   )?.id ?? null;
-  const [expandedGroup, setExpandedGroup] = React.useState<string | null>(activeGroup);
 
+  /*
+   * R24.14. Which area the second column is showing.
+   *
+   * It follows the route, and a press on the rail moves it somewhere else
+   * without navigating, so somebody can look into Gatherings while standing on
+   * a member's record and go back by pressing nothing. There is no accordion
+   * and nothing to remember being open: the area a reader is in is a fact
+   * about where they are rather than a preference they set.
+   */
+  const [shown, setShown] = React.useState<string | null>(activeGroup ?? groups[0]?.id ?? null);
   React.useEffect(() => {
-    if (activeGroup) setExpandedGroup(activeGroup);
+    if (activeGroup) setShown(activeGroup);
   }, [activeGroup]);
+
+  const area = groups.find((group) => group.id === shown) ?? groups[0];
 
   const renderEntry = (entry: ShellEntry) => {
     const on = active === entry.href;
@@ -163,157 +180,168 @@ export function Sidebar({
   const toggleLabel = collapsed ? t("shell.expand") : t("shell.collapse");
 
   return (
-    <aside
-      className={cn(
-        // Fixed to the window rather than scrolling with the page: the church's
-        // mark stays at the top and signing out stays at the bottom, and only
-        // the list of sections scrolls when a short screen cannot hold it.
-        "sticky top-0 hidden h-screen shrink-0 flex-col gap-4 overflow-hidden",
-        "border-r border-shell-line bg-shell text-shell-fg md:flex",
-        "motion-safe:transition-[width] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-out)",
-        collapsed ? "w-16 px-2.5 py-4" : "w-58 px-3 py-4",
-      )}
-    >
-      <div
+    <div className="sticky top-0 hidden h-screen shrink-0 md:flex">
+      {/*
+        R24.14. The rail. One mark per area, the church at the top and the
+        person at the bottom, 64px wide and never collapsing.
+
+        The navigation used to be four groups stacked in one 232px column as an
+        accordion, where opening one closed another and `section-memory` kept
+        track of where each had been left. That is a two level navigation
+        crammed into one level, and the accordion was the apology for it. Two
+        levels drawn as two columns needs no apology and nothing remembered.
+      */}
+      <aside
+        aria-label={t("nav.areas")}
         className={cn(
-          "flex shrink-0 items-center",
-          collapsed ? "flex-col gap-2" : "gap-2.5 rounded-xl px-2 py-2",
+          "flex w-16 shrink-0 flex-col items-center gap-3 overflow-hidden",
+          "border-r border-shell-line bg-shell text-shell-fg px-2 py-4",
         )}
       >
         <Link
           href="/choose-church"
-          className="flex min-w-0 items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           aria-label={churchName}
         >
           <FlameMark logoUrl={logoUrl} churchName={churchName} />
-          {collapsed ? null : (
-            <span
-              className="min-w-0 flex-1 font-display font-semibold text-shell-fg [overflow-wrap:anywhere] line-clamp-2"
-              style={nameSize(churchName)}
-            >
-              {churchName}
-            </span>
-          )}
-          {collapsed ? null : <ChevronDown className="size-4 shrink-0 text-fg-muted" aria-hidden />}
         </Link>
 
+        {/* The one control that opens and shuts the second column, on the half
+            that never shuts. It used to float over the page beside the rail,
+            where the sticky header covered it: the column could be closed and
+            then never reopened. */}
         <Tooltip content={toggleLabel} side="right">
           <button
             type="button"
             onClick={toggle}
             aria-label={toggleLabel}
             aria-expanded={!collapsed}
-            className="grid size-[30px] shrink-0 place-items-center rounded-md text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-md text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
           >
-            {collapsed ? (
-              <PanelLeftOpen className="size-[18px]" />
-            ) : (
-              <PanelLeftClose className="size-[18px]" />
-            )}
+            {collapsed
+              ? <PanelLeftOpen className="size-[18px]" />
+              : <PanelLeftClose className="size-[18px]" />}
           </button>
         </Tooltip>
-      </div>
 
-      <nav
-        className="scroll-quiet flex min-h-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto"
-        aria-label={t("nav.sections")}
-      >
-        {groups.map((group) => {
-          const isOpen = expandedGroup === group.id;
-          const contentId = `sidebar-group-${group.id}`;
-          return (
-            <section key={group.id} className="flex flex-col gap-1">
-              {collapsed ? (
-                <div className="my-1 border-t border-shell-line" aria-hidden />
-              ) : (
+        <nav className="scroll-quiet flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto">
+          {groups.map((group) => {
+            const Mark = group.icon;
+            const here = group.id === activeGroup;
+            const looking = group.id === shown;
+            return (
+              <Tooltip key={group.id} content={t(group.label as never)} side="right">
                 <button
                   type="button"
-                  aria-expanded={isOpen}
-                  aria-controls={contentId}
-                  onClick={() => setExpandedGroup(isOpen ? null : group.id)}
-                  className="flex h-8 items-center justify-between rounded-md px-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+                  onClick={() => { setShown(group.id); if (collapsed) toggle(); }}
+                  aria-current={here ? "true" : undefined}
+                  aria-pressed={looking}
+                  className={cn(
+                    "grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl",
+                    "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
+                    looking
+                      ? "bg-surface text-fg shadow-sm"
+                      : "text-shell-muted hover:bg-shell-line hover:text-shell-fg",
+                  )}
                 >
-                  {t(group.label as never)}
-                  {isOpen
-                    ? <ChevronDown className="size-3.5" aria-hidden />
-                    : <ChevronRight className="size-3.5" aria-hidden />}
+                  <Mark className="size-[19px]" />
                 </button>
-              )}
-              <div
-                id={contentId}
-                hidden={!collapsed && !isOpen}
-                className="flex flex-col gap-1"
+              </Tooltip>
+            );
+          })}
+        </nav>
+
+        <div className="flex shrink-0 flex-col items-center gap-1.5 border-t border-shell-line pt-3">
+          {settings.map((entry) => (
+            <Tooltip key={entry.href} content={entry.label} side="right">
+              <Link
+                href={entry.href}
+                aria-current={active === entry.href ? "page" : undefined}
+                className={cn(
+                  "grid size-9 place-items-center rounded-lg [&_svg]:size-[18px]",
+                  active === entry.href
+                    ? "bg-surface text-fg shadow-sm"
+                    : "text-shell-muted hover:bg-shell-line hover:text-shell-fg",
+                )}
               >
-                {group.entries.map(renderEntry)}
-              </div>
-            </section>
-          );
-        })}
-        {otherEntries.length ? (
-          <section className="flex flex-col gap-1">
-            {collapsed ? <div className="my-1 border-t border-shell-line" aria-hidden /> : (
-              <span className="px-2.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-shell-muted">
-                {t("nav.group.more")}
-              </span>
-            )}
-            {otherEntries.map(renderEntry)}
-          </section>
-        ) : null}
-      </nav>
+                <Cog className="size-[18px]" aria-hidden />
+              </Link>
+            </Tooltip>
+          ))}
 
-      <div className="flex shrink-0 flex-col gap-2 border-t border-shell-line pt-3">
-        {settings.map(renderEntry)}
-        {/* Who is signed in, and the way to their own screen. It used to open
-            Settings, which is its own row two inches above, and the chevrons
-            promised a church switch it never made. */}
-        <Link
-          href={"/settings/profile"}
-          className={cn(
-            "flex w-full items-center gap-2.5 rounded-lg text-left hover:bg-shell-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
-            collapsed ? "justify-center p-1" : "rounded-xl border border-shell-line px-2 py-2",
-          )}
-        >
-          <Avatar name={personName} src={photoUrl} id={userId} size="sm" className="size-8 text-[12px] font-semibold" />
-          {collapsed ? null : (
-            <span className="flex min-w-0 flex-1 flex-col leading-4">
-              <span className="truncate text-[13px] font-medium text-shell-fg">{personName}</span>
-              <span className="truncate text-[12px] text-shell-muted">{roleName}</span>
-            </span>
-          )}
-        </Link>
-
-        {/* R24.6. Signing out forgets where every section was left, so the
-            next person at this keyboard opens People on the directory rather
-            than on a stranger's record. */}
-        <form
-          action="/auth/sign-out"
-          method="post"
-          className="contents"
-          onSubmit={() => {
-            setGoing(true);
-            clearSectionMemory();
-          }}
-        >
-          {/* The post navigates the whole page, so the wait is covered rather
-              than left to the row that started it. */}
-          <Working open={going} label={t("common.signingOut")} />
-          <Tooltip content={t("action.signOut")} side="right">
-            <button
-              type="submit"
-              disabled={going}
-              aria-label={t("action.signOut")}
-              className={cn(
-                "flex h-9 items-center gap-2.5 rounded-lg text-[13px] font-medium text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
-                collapsed ? "justify-center px-0" : "px-2.5",
-              )}
-            >
-              <LogOut className="size-[18px] shrink-0" aria-hidden />
-              {collapsed ? null : <span className="whitespace-nowrap">{t("action.signOut")}</span>}
-            </button>
+          {/* The role rode under the name in the old footer. The rail has room
+              for a face and nothing else, so it moves into the tooltip rather
+              than being dropped. */}
+          <Tooltip content={`${personName}, ${roleName}`} side="right">
+            <Link href={"/settings/profile"} className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80">
+              <Avatar name={personName} src={photoUrl} id={userId} size="sm" className="size-8 text-[12px] font-semibold" />
+            </Link>
           </Tooltip>
-        </form>
-      </div>
-    </aside>
+
+          {/* R24.6. Signing out forgets where every section was left, so the
+              next person at this keyboard opens People on the directory rather
+              than on a stranger's record. */}
+          <form
+            action="/auth/sign-out"
+            method="post"
+            onSubmit={() => { setGoing(true); clearSectionMemory(); }}
+          >
+            <Working open={going} label={t("common.signingOut")} />
+            <Tooltip content={t("action.signOut")} side="right">
+              <button
+                type="submit"
+                disabled={going}
+                aria-label={t("action.signOut")}
+                className="grid size-9 cursor-pointer place-items-center rounded-lg text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+              >
+                <LogOut className="size-[18px]" aria-hidden />
+              </button>
+            </Tooltip>
+          </form>
+        </div>
+      </aside>
+
+      {/* The area's own items. This is the half that collapses, because a
+          schedule grid wants the width and the rail costs nothing. */}
+      <aside
+        aria-label={t("nav.sections")}
+        className={cn(
+          "flex h-screen flex-col gap-3 overflow-hidden border-r border-shell-line bg-shell text-shell-fg",
+          "motion-safe:transition-[width] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-out)",
+          collapsed ? "w-0 border-r-0" : "w-52 px-3 py-4",
+        )}
+      >
+        {collapsed ? null : (
+          <>
+            <span
+              className="shrink-0 px-1 font-display font-semibold text-shell-fg [overflow-wrap:anywhere] line-clamp-2"
+              style={nameSize(churchName)}
+            >
+              {churchName}
+            </span>
+
+            <nav className="scroll-quiet flex min-h-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto">
+              <span className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-shell-muted">
+                {area ? t(area.label as never) : null}
+              </span>
+              {area?.entries.map(renderEntry)}
+
+              {/* Anything no area claims. Settings is on the rail, so this is
+                  usually empty and draws nothing when it is. */}
+              {otherEntries.length ? (
+                <>
+                  <span className="mt-3 px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-shell-muted">
+                    {t("nav.group.more")}
+                  </span>
+                  {otherEntries.map(renderEntry)}
+                </>
+              ) : null}
+            </nav>
+          </>
+        )}
+      </aside>
+
+    </div>
   );
 }
 
