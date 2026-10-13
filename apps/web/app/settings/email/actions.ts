@@ -112,7 +112,7 @@ export async function checkRecords(): Promise<EmailResult> {
     const held = await withTenant(ctx, (tx) => sendingDomain(tx));
     if (!held) return {};
 
-    const seen = await recordsPublished(held.records, dnsResolver());
+    const seen = await recordsPublished(held.records, held.domain, dnsResolver());
     const missing = seen.filter((one) => !one.found);
 
     await withTenant(ctx, (tx) =>

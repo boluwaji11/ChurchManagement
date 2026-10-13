@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Mail, Server } from "lucide-react";
+import { Check, Copy, ExternalLink, Mail, Server } from "lucide-react";
 import {
   Banner, Button, Card, Field, Input, Tooltip, Working,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -38,11 +38,16 @@ export function EmailSetup({
   provider,
   domain,
   church,
+  registrar,
+  console_,
 }: {
   provider: EmailProvider | null;
   domain: DomainState | null;
   /** R16.1. What the church already told us, so nothing is asked twice. */
   church: { name: string; email: string };
+  /** R22.2. Who answers for the domain, and where its settings are typed. */
+  registrar: string | null;
+  console_: string | null;
 }) {
   const router = useRouter();
   const [busy, setBusy] = React.useState<string | null>(null);
@@ -74,6 +79,8 @@ export function EmailSetup({
         <Connected
           provider={provider}
           domain={domain}
+          registrar={registrar}
+          console_={console_}
           busy={busy !== null}
           onCheck={() => void act(checkRecords, t("email.checking"))}
           onDisconnect={() => void act(disconnectEmail, t("email.saving"))}
@@ -133,12 +140,16 @@ function Choice({
 function Connected({
   provider,
   domain,
+  registrar,
+  console_,
   busy,
   onCheck,
   onDisconnect,
 }: {
   provider: EmailProvider;
   domain: DomainState | null;
+  registrar: string | null;
+  console_: string | null;
   busy: boolean;
   onCheck: () => void;
   onDisconnect: () => void;
@@ -167,7 +178,13 @@ function Connected({
       </div>
 
       {domain ? (
-        <Records domain={domain} busy={busy} onCheck={onCheck} />
+        <Records
+          domain={domain}
+          registrar={registrar}
+          console_={console_}
+          busy={busy}
+          onCheck={onCheck}
+        />
       ) : null}
     </Card>
   );
@@ -216,20 +233,46 @@ function DisconnectDialog({ busy, onConfirm }: { busy: boolean; onConfirm: () =>
  */
 function Records({
   domain,
+  registrar,
+  console_,
   busy,
   onCheck,
 }: {
   domain: DomainState;
+  /** R22.2. The company that answers for the domain, where we know it. */
+  registrar: string | null;
+  /** The page at that company where these are typed in. */
+  console_: string | null;
   busy: boolean;
   onCheck: () => void;
 }) {
   return (
     <section className="flex flex-col gap-3 border-t border-line pt-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h4 className="m-0 font-display text-[15px] leading-6 text-fg">{t("email.records")}</h4>
-        <Button variant="ghost" onClick={onCheck} disabled={busy}>
-          {t("email.check")}
-        </Button>
+        <div className="flex min-w-0 flex-col">
+          <h4 className="m-0 font-display text-[15px] leading-6 text-fg">{t("email.records")}</h4>
+          {/* R22.2. Named, because "your registrar" is a word for somebody
+              who already knows which company they are looking for. */}
+          {registrar ? (
+            <span className="text-fg-muted">{t("email.records.at", { name: registrar })}</span>
+          ) : null}
+        </div>
+        <div className="flex items-center gap-1">
+          {registrar && console_ ? (
+            <a
+              href={console_}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="inline-flex items-center gap-1.5 px-2 font-medium text-primary underline-offset-2 hover:underline"
+            >
+              {t("email.records.open", { name: registrar })}
+              <ExternalLink className="size-[14px]" aria-hidden />
+            </a>
+          ) : null}
+          <Button variant="ghost" onClick={onCheck} disabled={busy}>
+            {t("email.check")}
+          </Button>
+        </div>
       </div>
 
       <Banner tone={domain.state === "verified" ? "success" : "info"}>
@@ -244,11 +287,12 @@ function Records({
             className="flex flex-col gap-1.5 rounded-[12px] border border-line bg-sunken/40 p-3"
           >
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              {/* The kind, because the registrar's own form asks for it, and
+                  nothing else. A line saying what each one is for was three
+                  guesses at a provider's own labels, and two of them read the
+                  same. */}
               <span className="rounded-md bg-surface px-2 py-0.5 font-mono text-[12px] text-fg-muted">
                 {record.type}
-              </span>
-              <span className="text-fg-muted">
-                {t(`email.record.${record.purpose}` as never)}
               </span>
               {record.priority === undefined ? null : (
                 <span className="text-fg-subtle">

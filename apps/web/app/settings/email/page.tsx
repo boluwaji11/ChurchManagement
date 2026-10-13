@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import {
   withTenant, emailProvider, sendingDomain, canManageChurch,
-  getChurch, readDomain, dnsResolver,
+  getChurch, readDomain, dnsResolver, consoleFor,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -110,6 +110,8 @@ export default async function EmailPage({
             name: read.profile?.name ?? "",
             email: read.profile?.email ?? "",
           }}
+          registrar={found?.registrar ?? null}
+          console_={consoleFor(found?.registrar)}
         />
 
         <section className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">

@@ -220,6 +220,7 @@ export async function resendDomain(
  */
 export async function recordsPublished(
   records: readonly PlannedRecord[],
+  domain: string,
   resolver: Resolver,
 ): Promise<{ host: string; found: boolean }[]> {
   return Promise.all(
@@ -227,16 +228,31 @@ export async function recordsPublished(
       const want = (record.value ?? "").replace(/\s+/g, "").replace(/"/g, "").toLowerCase();
       if (!want) return { host: record.host, found: false };
 
+      /* A provider writes the name the way a registrar's form asks for it,
+         which is the part in front of the domain. DNS wants the whole name. */
+      const at = record.host.endsWith(domain) ? record.host : `${record.host}.${domain}`;
+
       try {
         if (record.type === "MX") {
-          const found = await resolver.mx(record.host);
+          const found = await resolver.mx(at);
           return {
             host: record.host,
             found: found.some((one) => one.exchange.toLowerCase().replace(/\.$/, "") === want),
           };
         }
 
-        const found = await resolver.txt(record.host);
+        /* Resend sets a sender up with two CNAMEs rather than an SPF record
+           and an MX, which is what "Check again" was reading for and never
+           finding. */
+        if (record.type === "CNAME") {
+          const found = await resolver.cname(at);
+          return {
+            host: record.host,
+            found: found.some((one) => one.toLowerCase().replace(/\.$/, "") === want),
+          };
+        }
+
+        const found = await resolver.txt(at);
         return {
           host: record.host,
           found: found.some(

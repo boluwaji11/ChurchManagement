@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server";
 import { canManageChurch } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
-import { startHandshake, authorizeUrl, resendClientId } from "@/lib/resend-oauth";
+import { authorizeUrl, newVerifier, resendClientId, sealHandshake } from "@/lib/resend-oauth";
 import { here, redirectUri } from "../hop";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** Long enough to sign up at Resend and read the consent screen. */
-const MINUTES = 15;
-
 /**
  * HRT-288, R16.1. The press that sends a church to Resend.
  *
- * It leaves with nothing of ours: the verifier that proves the code came back
- * to whoever asked for it stays here in a cookie the browser never shows
- * anybody, and what travels is a random value and the church's own address.
+ * This is the only point in the journey with a session on it, so it is where
+ * the church is read and where the permission is checked. Everything the way
+ * back needs goes into a sealed state: which church, who pressed it, what mail
+ * goes out as, and the verifier that proves the code came back to whoever
+ * asked for it. Nothing readable leaves this server.
  */
 export async function GET(request: Request) {
   const session = await requireSession();
@@ -37,30 +36,24 @@ export async function GET(request: Request) {
   }
 
   const { host } = await here();
-  const { verifier, state } = startHandshake();
+  const verifier = newVerifier();
 
-  const answer = NextResponse.redirect(
+  return NextResponse.redirect(
     authorizeUrl({
       clientId,
       redirectUri: await redirectUri(),
-      /* The church's own address rides along, because the landing Resend
-         returns to is on the parent and has no way of knowing it. */
-      state: `${state}~${host}`,
+      state: sealHandshake({
+        tenantId: session.tenantId,
+        role: session.role,
+        userId: session.userId ?? null,
+        /* The church's own address, so the way back lands where it started
+           rather than on ours. Sealed, so it cannot be swapped in transit. */
+        host,
+        from: address,
+        name: (asked.searchParams.get("name") ?? "").trim(),
+        verifier,
+      }),
       verifier,
     }),
   );
-
-  const keep = {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    secure: asked.protocol === "https:",
-    path: "/",
-    maxAge: MINUTES * 60,
-  };
-  answer.cookies.set("resend_verifier", verifier, keep);
-  answer.cookies.set("resend_state", state, keep);
-  answer.cookies.set("resend_from", address, keep);
-  answer.cookies.set("resend_name", (asked.searchParams.get("name") ?? "").trim(), keep);
-
-  return answer;
 }

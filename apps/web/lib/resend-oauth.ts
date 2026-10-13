@@ -1,5 +1,5 @@
 import "server-only";
-import { createHash, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
 /**
  * HRT-288, R16.1. Connecting Resend without a church ever seeing a key.
@@ -32,17 +32,80 @@ export const resendClientId = (): string | null =>
 /** Base64url, which is what every value in this exchange is written in. */
 const url64 = (raw: Buffer): string => raw.toString("base64url");
 
+/**
+ * HRT-288, R1.4. Everything the way back needs, sealed into the state.
+ *
+ * Resend returns to one registered address, and that address is the parent
+ * rather than any church's own name. In development a session cookie set on
+ * `riverside.localhost` is not sent to `localhost`, so the landing has no
+ * session and no cookie of ours to read, and an earlier version sent the
+ * church through a sign-in in the middle of connecting.
+ *
+ * So the state carries it: which church, who pressed it, what mail goes out
+ * as, and the verifier. Sealed with a key derived from the provider key, so
+ * it is unreadable and unforgeable outside this server, and good for fifteen
+ * minutes, which is long enough to sign up at Resend and short enough that a
+ * link left in a browser's history is spent.
+ */
 export interface Handshake {
-  /** Kept on this server, and proves the code came back to whoever asked. */
+  tenantId: string;
+  role: string;
+  userId: string | null;
+  host: string;
+  from: string;
+  name: string;
   verifier: string;
-  /** Goes out and comes back unchanged, and ties the answer to the request. */
-  state: string;
+  /** Seconds since the epoch, after which this is refused. */
+  until: number;
 }
 
-export const startHandshake = (): Handshake => ({
-  verifier: url64(randomBytes(64)),
-  state: url64(randomBytes(24)),
-});
+const MINUTES = 15;
+
+const handshakeKey = (): Buffer =>
+  createHash("sha256")
+    .update(`${process.env["PROVIDER_CREDENTIAL_KEY"] ?? ""}:resend-handshake`)
+    .digest();
+
+export function sealHandshake(held: Omit<Handshake, "until">): string {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", handshakeKey(), iv);
+  const body = Buffer.concat([
+    cipher.update(
+      JSON.stringify({ ...held, until: Math.floor(Date.now() / 1000) + MINUTES * 60 }),
+      "utf8",
+    ),
+    cipher.final(),
+  ]);
+  return [iv, cipher.getAuthTag(), body].map((part) => part.toString("base64url")).join(".");
+}
+
+export function openHandshake(token: string): Handshake | null {
+  try {
+    const [ivPart, tagPart, bodyPart] = token.split(".");
+    if (!ivPart || !tagPart || !bodyPart) return null;
+
+    const decipher = createDecipheriv(
+      "aes-256-gcm",
+      handshakeKey(),
+      Buffer.from(ivPart, "base64url"),
+    );
+    decipher.setAuthTag(Buffer.from(tagPart, "base64url"));
+    const held = JSON.parse(
+      Buffer.concat([
+        decipher.update(Buffer.from(bodyPart, "base64url")),
+        decipher.final(),
+      ]).toString("utf8"),
+    ) as Handshake;
+
+    return held.until > Math.floor(Date.now() / 1000) ? held : null;
+  } catch {
+    /* Tampered with, from another key, or simply old. */
+    return null;
+  }
+}
+
+/** The proof that the code came back to whoever asked for it. */
+export const newVerifier = (): string => url64(randomBytes(64));
 
 /** Where the church is sent to say yes. */
 export function authorizeUrl(input: {

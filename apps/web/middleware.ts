@@ -43,5 +43,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|design|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)"],
+  /*
+   * HRT-288. The Resend landing is left out. It answers on the parent, where a
+   * church's session cookie is never sent, so refreshing a session there finds
+   * none and the church was asked to sign in in the middle of connecting. It
+   * carries its own proof in a sealed state and needs no session.
+   */
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|design|api/providers/resend/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)",
+  ],
 };
