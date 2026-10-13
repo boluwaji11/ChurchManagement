@@ -54,10 +54,11 @@ export async function attendanceByService(
 export interface Dashboard {
   /** R18.1. The service just held, and how it compares. */
   lastService: { name: string; occursOn: string; present: number; average: number } | null;
-  /** R2.1. People first recorded this month. */
+  /** R2.1. People first recorded this month, and by this day of last month. */
   newThisMonth: number;
+  newByNowLastMonth: number;
   /** R7.5. First-time visitors in the last month, and how many nobody has contacted. */
-  visitors: { total: number; uncontacted: number };
+  visitors: { total: number; uncontacted: number; before: number };
   /** R5.5. Follow-ups still open, and how many are past their date. */
   followUps: { open: number; overdue: number };
   /** R10.6. Positions on the next service with nobody in them. */
@@ -104,7 +105,9 @@ export async function dashboard(db: Tx, today: string): Promise<Dashboard> {
 
   const [counts] = await db.execute<{
     newThisMonth: string;
+    newByNowLastMonth: string;
     visitors: string;
+    visitorsBefore: string;
     uncontacted: string;
     open: string;
     overdue: string;
@@ -114,11 +117,26 @@ export async function dashboard(db: Tx, today: string): Promise<Dashboard> {
         where p.archived_at is null
           and p.created_at >= date_trunc('month', ${today}::date))::text as "newThisMonth",
 
+      -- R18.1. The same stretch of last month, so a church three days into
+      -- October is read against the first three days of September rather than
+      -- against all of it.
+      (select count(*) from members p
+        where p.archived_at is null
+          and p.created_at >= date_trunc('month', ${today}::date - interval '1 month')
+          and p.created_at < ${today}::date - interval '1 month' + interval '1 day')::text
+        as "newByNowLastMonth",
+
       -- R7.5. Somebody whose first recorded gathering was in the last month.
       (select count(*) from members p
         where p.archived_at is null
           and p.first_visit_on >= ${today}::date - interval '30 days'
           and p.first_visit_on <= ${today}::date)::text as visitors,
+
+      -- R18.1. The thirty days before those, which is what "up" is measured on.
+      (select count(*) from members p
+        where p.archived_at is null
+          and p.first_visit_on >= ${today}::date - interval '60 days'
+          and p.first_visit_on < ${today}::date - interval '30 days')::text as "visitorsBefore",
 
       (select count(*) from members p
         where p.archived_at is null
@@ -161,7 +179,9 @@ export async function dashboard(db: Tx, today: string): Promise<Dashboard> {
         }
       : null,
     newThisMonth: Number(counts?.newThisMonth ?? 0),
+    newByNowLastMonth: Number(counts?.newByNowLastMonth ?? 0),
     visitors: {
+      before: Number(counts?.visitorsBefore ?? 0),
       total: Number(counts?.visitors ?? 0),
       uncontacted: Number(counts?.uncontacted ?? 0),
     },
