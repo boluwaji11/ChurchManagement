@@ -80,10 +80,6 @@ export function ArchiveButton({
         )}
       </DialogTrigger>
       <DialogContent alert title={t("person.archive.confirmTitle", { name })}>
-        <p className="text-[length:var(--d-text-body)] text-fg-muted mb-5">
-          {t("person.archive.confirmBody")}
-        </p>
-
         {error ? (
           <Banner tone="danger" className="mb-4">{error}</Banner>
         ) : null}
