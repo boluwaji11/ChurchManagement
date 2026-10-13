@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, ExternalLink, Mail, Server } from "lucide-react";
+import { Check, Copy, ExternalLink, Mail, Server, Unplug } from "lucide-react";
 import {
   Banner, Button, Card, Field, Input, Tooltip, Working,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -63,6 +63,16 @@ export function EmailSetup({
   const [busy, setBusy] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
+  /*
+   * The reading of DNS that the screen does on its own. No panel over the page
+   * and no error banner: nobody asked for it, and a church that has not added
+   * the records yet is not looking at a fault.
+   */
+  const quietly = async (run: () => Promise<EmailResult>) => {
+    const answer = await run();
+    if (!answer.error) router.refresh();
+  };
+
   const act = async (run: () => Promise<EmailResult>, label: string) => {
     setBusy(label);
     setError(null);
@@ -93,7 +103,7 @@ export function EmailSetup({
           console_={console_}
           steps={steps}
           busy={busy !== null}
-          onCheck={() => void act(checkRecords, t("email.checking"))}
+          onCheck={() => void quietly(checkRecords)}
           onDisconnect={() => void act(disconnectEmail, t("email.saving"))}
         />
       ) : way === "resend" ? (
@@ -225,10 +235,7 @@ function Connected({
           registrar={registrar}
           console_={console_}
           steps={steps}
-          busy={busy}
           onCheck={onCheck}
-          onDisconnect={onDisconnect}
-          vendor={provider.vendor}
         />
       ) : (
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -249,9 +256,15 @@ function Connected({
             </span>
           </div>
 
-          <DisconnectDialog vendor={provider.vendor} busy={busy} onConfirm={onDisconnect} />
         </div>
       )}
+
+      {/* R24.6. Rare, final, and nothing to do with the stage the church is
+          on, so it sits under the work rather than in the row of things the
+          church came here to press. */}
+      <div className="flex justify-end border-t border-line pt-4">
+        <DisconnectDialog vendor={provider.vendor} busy={busy} onConfirm={onDisconnect} />
+      </div>
     </Card>
   );
 }
@@ -271,7 +284,10 @@ function DisconnectDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {/* A standalone action, so it keeps its words. */}
-        <LinkButton disabled={busy}>{t("email.disconnect")}</LinkButton>
+        <LinkButton disabled={busy} className="gap-1.5 text-fg-muted no-underline hover:underline">
+          <Unplug className="size-[15px]" aria-hidden />
+          {t(`email.disconnect.${vendor === "resend" ? "resend" : "smtp"}` as never)}
+        </LinkButton>
       </DialogTrigger>
       {/* R24.6. A destructive confirmation earns its title and its buttons.
           The sentence that was under it said what Disconnect plainly does. */}
@@ -314,10 +330,7 @@ function Records({
   registrar,
   console_,
   steps,
-  vendor,
-  busy,
   onCheck,
-  onDisconnect,
 }: {
   domain: DomainState;
   /** R22.2. The company that answers for the domain, where we know it. */
@@ -326,11 +339,32 @@ function Records({
   console_: string | null;
   /** The catalogue key for what to press once they are there. */
   steps: string;
-  vendor: string;
-  busy: boolean;
   onCheck: () => void;
-  onDisconnect: () => void;
 }) {
+  /*
+   * R24.6. It reads DNS itself rather than asking the church to press a thing
+   * called Check again.
+   *
+   * A church adds the records in another tab and comes back to this one, so
+   * coming back is read straight away, and a tab left open reads every half
+   * minute. Nothing is read while the tab is in the background: a screen
+   * nobody is looking at has nobody to tell.
+   */
+  const check = React.useRef(onCheck);
+  check.current = onCheck;
+
+  React.useEffect(() => {
+    const read = () => {
+      if (document.visibilityState === "visible") check.current();
+    };
+    const timer = window.setInterval(read, 30_000);
+    document.addEventListener("visibilitychange", read);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", read);
+    };
+  }, []);
+
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -348,23 +382,17 @@ function Records({
               calls it something else. */}
           <p className="m-0 text-fg-muted">{t(steps as never)}</p>
         </div>
-        <div className="flex items-center gap-1">
-          {registrar && console_ ? (
-            <a
-              href={console_}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="inline-flex items-center gap-1.5 px-2 font-medium text-primary underline-offset-2 hover:underline"
-            >
-              {t("email.records.open", { name: registrar })}
-              <ExternalLink className="size-[14px]" aria-hidden />
-            </a>
-          ) : null}
-          <LinkButton onClick={onCheck} disabled={busy}>
-            {t("email.check")}
-          </LinkButton>
-          <DisconnectDialog vendor={vendor} busy={busy} onConfirm={onDisconnect} />
-        </div>
+        {registrar && console_ ? (
+          <a
+            href={console_}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex shrink-0 items-center gap-1.5 font-medium text-primary underline underline-offset-4 hover:no-underline"
+          >
+            {t("email.records.open", { name: registrar })}
+            <ExternalLink className="size-[14px]" aria-hidden />
+          </a>
+        ) : null}
       </div>
 
       {/* One row a setting: the kind, the name, the value. A registrar's form
@@ -385,11 +413,12 @@ function Records({
         ))}
       </ul>
 
-      {domain.checkedAt ? (
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-caption text-fg-subtle">
-          {t("email.checkedAt", { when: when(domain.checkedAt) })}
+          {t("email.watching")}
+          {domain.checkedAt ? ` · ${t("email.checkedAt", { when: when(domain.checkedAt) })}` : ""}
         </span>
-      ) : null}
+      </div>
     </section>
   );
 }
