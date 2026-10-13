@@ -438,10 +438,15 @@ function MapColumns({
                     <Combobox
                       className="w-full"
                       options={[
-                        { value: IGNORE_VALUE, label: t("import.ignore") },
+                        /* Not one of the fields, so it leads and a rule
+                           separates it from them. */
+                        { value: IGNORE_VALUE, label: t("import.ignore"), apart: true },
                         ...fields
                           .filter((f) => f.key === current || !taken.has(f.key))
-                          .map((f) => ({ value: f.key, label: f.label })),
+                          .map((f) => ({ value: f.key, label: f.label }))
+                          /* A to Z. The order a church's own fields happen to
+                             be defined in is nobody's idea of where to look. */
+                          .sort((a, b) => a.label.localeCompare(b.label)),
                       ]}
                       value={current === IGNORE ? IGNORE_VALUE : current}
                       onChange={(v) =>

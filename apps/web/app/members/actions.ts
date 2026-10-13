@@ -124,7 +124,22 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
   }
 
   revalidatePath("/members");
-  redirect(memberDirectoryReturnTo(data.get("returnTo")));
+
+  /*
+   * R2.1, R24.6. Back to the record, not to the list.
+   *
+   * Saving an edit used to land on the directory, so somebody who had just
+   * corrected a phone number had to find the person again to see whether it
+   * had taken. The record is where the answer is, and closing it still goes
+   * wherever the editing started from.
+   */
+  const back = memberDirectoryReturnTo(data.get("returnTo"));
+  const saved = await withTenant(ctx, async (tx) => {
+    const one = await getPerson(tx, memberId!, { role: session.role, userId: session.userId });
+    return one?.slug ?? null;
+  });
+
+  redirect(saved ? `/members/${saved}?returnTo=${encodeURIComponent(back)}` : back);
 }
 
 export async function setArchived(data: FormData): Promise<SaveResult> {
