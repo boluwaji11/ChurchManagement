@@ -66,6 +66,8 @@ export async function setAddress(
     city?: string;
     region?: string;
     postalCode?: string;
+    /** R2.4. Where the letter is going, which names the two fields above it. */
+    country?: string;
   },
   ): Promise<HouseholdResult> {
   const who = await actor();

@@ -9,10 +9,10 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  LIFT,
+  Combobox, LIFT,
 } from "@connectapp/ui";
 import type { HouseholdAddress } from "@connectapp/db";
-import { t, REGION_LABEL, POSTAL_LABEL } from "@connectapp/i18n";
+import { t, countryList, REGION_LABEL, POSTAL_LABEL } from "@connectapp/i18n";
 import { householdRoleOptions } from "@/lib/person-input";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
@@ -84,12 +84,17 @@ function Part({
 }
 
 /** R2.4. An address, as the five boxes the panel types into. */
-const parts = (held: HouseholdItem["address"]) => ({
+const parts = (held: HouseholdItem["address"], fallback = "US") => ({
   line1: held?.line1 ?? "",
   line2: held?.line2 ?? "",
   city: held?.city ?? "",
   region: held?.region ?? "",
   postalCode: held?.postalCode ?? "",
+  /* R2.4. The address's own country, which is the church's until a family says
+     otherwise. A church that sends a letter abroad was writing the state and
+     the postcode under the labels of the country it is in rather than the one
+     the letter is going to. */
+  country: held?.country ?? fallback,
 });
 
 export function HouseholdList({
@@ -303,7 +308,7 @@ function EditHousehold({
 }) {
   const [open, setOpen] = React.useState(Boolean(startOpen));
   const [name, setName_] = React.useState(household.name);
-  const [where, setWhere] = React.useState(() => parts(household.address));
+  const [where, setWhere] = React.useState(() => parts(household.address, country));
   /** Where the cursor goes when a pick has nothing to copy. */
   const street = React.useRef<HTMLInputElement>(null);
   /* Both folded when it opens, and each opens on its own. The panel's first
@@ -315,16 +320,16 @@ function EditHousehold({
   React.useEffect(() => {
     if (open) {
       setName_(household.name);
-      setWhere(parts(household.address));
+      setWhere(parts(household.address, country));
       setOpenMembers(false);
       setOpenAddress(false);
     }
-  }, [open, household.name, household.address]);
+  }, [open, household.name, household.address, country]);
 
   /* The five fields go back as one address, on leaving any of them, the same
      way the name above them saves. */
   const keep = () => {
-    const was = parts(household.address);
+    const was = parts(household.address, country);
     const same = (Object.keys(was) as (keyof typeof was)[])
       .every((key) => was[key].trim() === where[key].trim());
     if (same) return;
@@ -393,6 +398,7 @@ function EditHousehold({
                         city: theirs?.city ?? "",
                         region: theirs?.region ?? "",
                         postalCode: theirs?.postalCode ?? "",
+                        country: theirs?.country ?? country,
                       };
                       setWhere(next);
                       if (theirs) {
@@ -441,7 +447,30 @@ function EditHousehold({
                     autoComplete="off"
                   />
                 </Field>
-                <Field label={REGION_LABEL[country] ?? t("address.region")}>
+                <Field label={t("address.country")}>
+                  <Combobox
+                    options={countryList().map((one) => ({
+                      value: one.code,
+                      label: one.name,
+                      keywords: one.code,
+                    }))}
+                    value={where.country}
+                    onChange={(next) => {
+                      /* A state from the country you just left is wrong
+                         everywhere. */
+                      const moved = { ...where, country: next, region: "" };
+                      setWhere(moved);
+                      if (moved.line1.trim()) {
+                        run(`address:${household.id}`, () =>
+                          setAddress(household.id, moved));
+                      }
+                    }}
+                    placeholder={t("common.chooseOne")}
+                    emptyLabel={t("common.noMatch")}
+                    clearLabel={t("date.clear")}
+                  />
+                </Field>
+                <Field label={REGION_LABEL[where.country] ?? t("address.region")}>
                   <Input
                     value={where.region}
                     onChange={(e) => setWhere({ ...where, region: e.target.value })}
@@ -449,7 +478,7 @@ function EditHousehold({
                     autoComplete="off"
                   />
                 </Field>
-                <Field label={POSTAL_LABEL[country] ?? t("address.postalCode")}>
+                <Field label={POSTAL_LABEL[where.country] ?? t("address.postalCode")}>
                   <Input
                     value={where.postalCode}
                     onChange={(e) => setWhere({ ...where, postalCode: e.target.value })}
