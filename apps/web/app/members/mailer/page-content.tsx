@@ -6,7 +6,6 @@ import {
   canEditPeople,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { AppShell } from "@/components/app-shell";
 import { Denied } from "@/components/denied";
 import { requireSession } from "@/lib/session";
 import { readingLocale } from "@/lib/reading-locale";
@@ -49,12 +48,10 @@ type MailerPageProps = {
  * chosen, or a new one is named, and then the letter is written in a screen
  * that saves itself.
  */
-async function renderMailerPage({
+export async function MailerPanelPage({
   searchParams,
-  presentation,
 }: {
   searchParams: MailerPageProps["searchParams"];
-  presentation: "page" | "panel";
 }) {
   const { open: id, archived } = await searchParams;
   /** R24.6. The ones put away, reached from the shelf they came off. */
@@ -65,14 +62,7 @@ async function renderMailerPage({
     const denied = (
       <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
     );
-    if (presentation === "panel") {
-      return <ScreenPanel title={t("post.title")}>{denied}</ScreenPanel>;
-    }
-    return (
-      <AppShell session={session} title={t("post.title")}>
-        {denied}
-      </AppShell>
-    );
+    return <ScreenPanel title={t("post.title")}>{denied}</ScreenPanel>;
   }
 
   const ctx = {
@@ -138,31 +128,12 @@ async function renderMailerPage({
     </Link>
   );
 
-  if (presentation === "panel") {
-    return (
+  return (
       <ScreenPanel title={title}>
         {/* R24.6. The directory is behind the close square, so the only step
             back worth drawing is the one from a letter to the shelf. */}
         {toShelf ? back : null}
         {body}
       </ScreenPanel>
-    );
-  }
-
-  return (
-    <AppShell session={session} title={title}>
-      <div className="flex flex-col gap-6">
-        {back}
-        {body}
-      </div>
-    </AppShell>
   );
-}
-
-export default function MailerPage(props: MailerPageProps) {
-  return renderMailerPage({ ...props, presentation: "page" });
-}
-
-export function MailerPanelPage(props: MailerPageProps) {
-  return renderMailerPage({ ...props, presentation: "panel" });
 }

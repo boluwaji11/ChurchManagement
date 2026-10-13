@@ -1,9 +1,6 @@
 import { withTenant, listImports, canEditPeople, canArchivePeople } from "@connectapp/db";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
-import { AppShell } from "@/components/app-shell";
 import { ScreenPanel } from "../screen-panel";
 import { ImportWizard } from "@/app/import/wizard";
 import { ImportHistory } from "@/app/import/history";
@@ -28,9 +25,7 @@ interface ImportPageProps {
  * every other thing under Members has already left behind. A church importing
  * its directory is standing on the list it is importing into.
  */
-async function renderImportPage({
-  presentation,
-}: ImportPageProps & { presentation: "page" | "panel" }) {
+export async function ImportPanelPage({}: ImportPageProps) {
   const session = await requireSession();
   const mayEdit = canEditPeople(session);
 
@@ -67,27 +62,5 @@ async function renderImportPage({
     <Denied role={session.role} action="addPerson" church={session.tenantSlug} />
   );
 
-  if (presentation === "panel") {
-    return <ScreenPanel title={t("import.heading")}>{body}</ScreenPanel>;
-  }
-
-  return (
-    <AppShell session={session} title={t("import.heading")} max="max-w-[1180px]">
-      <Link
-        href={"/members"}
-        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
-      >
-        <ArrowLeft className="size-4" /> {t("members.title")}
-      </Link>
-      {body}
-    </AppShell>
-  );
-}
-
-export default function ImportPage(props: ImportPageProps) {
-  return renderImportPage({ ...props, presentation: "page" });
-}
-
-export function ImportPanelPage(props: ImportPageProps) {
-  return renderImportPage({ ...props, presentation: "panel" });
+  return <ScreenPanel title={t("import.heading")}>{body}</ScreenPanel>;
 }

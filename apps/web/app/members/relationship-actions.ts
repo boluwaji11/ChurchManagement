@@ -10,6 +10,19 @@ import { requireSession } from "@/lib/session";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 
+
+/**
+ * R2.x. Redraws the record wherever it is being read.
+ *
+ * The record is addressed by its readable name while these writes carry the
+ * id, so a path built from the id revalidated nothing.
+ */
+function revalidateRecord() {
+  revalidatePath("/members/[id]", "page");
+  revalidatePath("/members/[id]/edit", "page");
+  revalidatePath("/members");
+}
+
 export interface RelationshipResponse {
   error?: string;
   /** Contact records a do-not-contact order cancelled, so the page can say so. */
@@ -51,8 +64,7 @@ export async function addRelation(data: FormData): Promise<RelationshipResponse>
         memberId, relatedMemberId, kind,
       }),
     );
-    revalidatePath(`/members/${memberId}`);
-    revalidatePath(`/members/${relatedMemberId}`);
+    revalidateRecord();
     return { cancelled: result.cancelled };
   } catch (error) {
     return { error: explain(error) };
@@ -62,7 +74,6 @@ export async function addRelation(data: FormData): Promise<RelationshipResponse>
 export async function removeRelation(data: FormData): Promise<RelationshipResponse> {
   const slug = String(data.get("church") ?? "") || undefined;
   const id = String(data.get("id") ?? "");
-  const memberId = String(data.get("memberId") ?? "");
   if (!id) return { error: t("relationship.error.notFound") };
 
   const { session, ctx } = await writeContext(slug);
@@ -71,7 +82,7 @@ export async function removeRelation(data: FormData): Promise<RelationshipRespon
     await withTenant(ctx, (tx) =>
       removeRelationship(tx, { tenantId: session.tenantId, role: session.role }, id),
     );
-    revalidatePath(`/members/${memberId}`);
+    revalidateRecord();
     return {};
   } catch (error) {
     return { error: explain(error) };

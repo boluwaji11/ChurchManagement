@@ -14,6 +14,8 @@ export interface TagResult {
   error?: string;
   /** Set when a tag was created, so a picker can select it straight away. */
   id?: string;
+  /** The hue the church's next free colour gave it. */
+  hue?: string;
 }
 
 async function context() {
@@ -112,7 +114,9 @@ export async function togglePersonTag(data: FormData): Promise<TagResult> {
   const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => setPersonTag(tx, actor, memberId, tagId, on));
-    revalidatePath(`/members/${memberId}`);
+    /* The record is addressed by its readable name rather than by the id the
+       write carries, so the route is revalidated rather than one path. */
+    revalidatePath("/members/[id]", "page");
     revalidatePath("/members");
     return {};
   } catch (error) {
@@ -129,15 +133,15 @@ export async function addTagToPerson(data: FormData): Promise<TagResult> {
 
   const { actor, ctx } = await context();
   try {
-    const id = await withTenant(ctx, async (tx) => {
-      const tag = await createTag(tx, actor, { name });
-      await setPersonTag(tx, actor, memberId, tag.id, true);
-      return tag.id;
+    const tag = await withTenant(ctx, async (tx) => {
+      const made = await createTag(tx, actor, { name });
+      await setPersonTag(tx, actor, memberId, made.id, true);
+      return made;
     });
-    revalidatePath(`/members/${memberId}`);
+    revalidatePath("/members/[id]", "page");
     revalidatePath("/members");
     revalidatePath("/tags");
-    return { id };
+    return { id: tag.id, hue: tag.hue };
   } catch (error) {
     return { error: explain(error) };
   }

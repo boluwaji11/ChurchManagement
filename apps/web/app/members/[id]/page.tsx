@@ -1,11 +1,16 @@
-import PersonPage, { generateMetadata } from "./page-content";
+import { generateMetadata } from "./page-content";
+import { MembersUnder } from "../under";
 
 export const dynamic = "force-dynamic";
 export { generateMetadata };
 
-export default function PersonRoutePage(props: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ }>;
+/* R2.1, R24.6. The list, with this screen's window standing over it. The
+   window itself is drawn by the panel slot, which answers every address under
+   /members whether it was pressed for or loaded. */
+export default function PersonRoutePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  return <PersonPage {...props} />;
+  return <MembersUnder searchParams={searchParams} />;
 }

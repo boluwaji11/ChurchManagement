@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Star, Trash2 } from "lucide-react";
 import {
   Banner, Button, IconButton, Input, Spinner,
@@ -33,6 +34,7 @@ export function Contacts({
   contacts: PersonContact[];
   canEdit: boolean;
 }) {
+  const router = useRouter();
   const [adding, setAdding] = React.useState(false);
   const [value, setValue] = React.useState("");
   const [label, setLabel] = React.useState<string>(kind === "email" ? "home" : "mobile");
@@ -55,9 +57,20 @@ export function Contacts({
   const named = (one: ContactLabel) =>
     kind === "email" && one === "home" ? t("contact.personal") : t(`contactLabel.${one}` as never);
 
+  /*
+   * R24.6. Redraws the record the write belongs to.
+   *
+   * The record can be read inside the window over the list, which is a
+   * parallel slot the server's own revalidation does not reach, so the row
+   * added here asks for the tree it is in to be read again.
+   */
   const act = (key: string, work: () => Promise<{ error?: string }>) => {
     setDoing(key);
-    run(async () => setError((await work()).error));
+    run(async () => {
+      const result = await work();
+      setError(result.error);
+      if (!result.error) router.refresh();
+    });
   };
 
   return (
@@ -92,7 +105,7 @@ export function Contacts({
                   label={t("contact.makePrimary")}
                   disabled={pending}
                   onClick={() =>
-                    act(`primary:${one.id}`, () => leadWithOne(one.id, memberId))
+                    act(`primary:${one.id}`, () => leadWithOne(one.id))
                   }
                   className="size-8 min-h-0 [&_svg]:size-3.5"
                 >
@@ -108,7 +121,7 @@ export function Contacts({
                   label={t("contact.remove", { value: one.value })}
                   disabled={pending}
                   onClick={() =>
-                    act(`remove:${one.id}`, () => removeOne(one.id, memberId))
+                    act(`remove:${one.id}`, () => removeOne(one.id))
                   }
                   className="size-8 min-h-0 [&_svg]:size-3.5"
                 >

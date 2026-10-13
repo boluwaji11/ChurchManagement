@@ -10,6 +10,19 @@ import { requireSession } from "@/lib/session";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 
+
+/**
+ * R2.x. Redraws the record wherever it is being read.
+ *
+ * The record is addressed by its readable name while these writes carry the
+ * id, so a path built from the id revalidated nothing.
+ */
+function revalidateRecord() {
+  revalidatePath("/members/[id]", "page");
+  revalidatePath("/members/[id]/edit", "page");
+  revalidatePath("/members");
+}
+
 export interface MilestoneResponse {
   error?: string;
   /** True when the write also changed the person's own record. */
@@ -53,8 +66,7 @@ export async function addPersonMilestone(data: FormData): Promise<MilestoneRespo
         memberId, kind, occurredOn, notes,
       }),
     );
-    revalidatePath(`/members/${memberId}`);
-    revalidatePath("/members");
+    revalidateRecord();
     return { updatedPerson: result.updatedPerson, kind };
   } catch (error) {
     return { error: explain(error) };
@@ -64,7 +76,6 @@ export async function addPersonMilestone(data: FormData): Promise<MilestoneRespo
 export async function removePersonMilestone(data: FormData): Promise<MilestoneResponse> {
   const slug = String(data.get("church") ?? "") || undefined;
   const id = String(data.get("id") ?? "");
-  const memberId = String(data.get("memberId") ?? "");
   if (!id) return { error: t("milestone.error.notFound") };
 
   const { session, ctx } = await writeContext(slug);
@@ -73,7 +84,7 @@ export async function removePersonMilestone(data: FormData): Promise<MilestoneRe
     await withTenant(ctx, (tx) =>
       removeMilestone(tx, { tenantId: session.tenantId, role: session.role }, id),
     );
-    revalidatePath(`/members/${memberId}`);
+    revalidateRecord();
     return {};
   } catch (error) {
     return { error: explain(error) };
