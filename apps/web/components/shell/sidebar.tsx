@@ -165,7 +165,7 @@ export function Sidebar({
         }}
         aria-current={on ? "page" : undefined}
         className={cn(
-          "relative flex h-9 w-full items-center gap-2.5 rounded-lg text-left text-[13px] font-medium",
+          "relative flex h-10 w-full items-center gap-3 rounded-lg text-left text-[14px] font-medium",
           "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
           collapsed ? "justify-center px-0" : "px-2.5",
           on
@@ -389,7 +389,7 @@ export function Sidebar({
               </Tooltip>
             </div>
 
-            <nav className="scroll-quiet flex min-h-0 flex-1 flex-col gap-1.5 overflow-x-hidden overflow-y-auto">
+            <nav className="scroll-quiet flex min-h-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto">
               {area?.entries.map(renderEntry)}
 
               {/* Anything no area claims. Settings is on the rail, so this is
@@ -412,33 +412,47 @@ export function Sidebar({
 }
 
 /**
- * R24.6. The same list across the bottom of a phone.
+ * R24.6, R24.14. The sidecar, on a phone.
  *
- * Four sections sit across the bar with More at the end, because a church
- * with giving, reports, forms and events has fourteen of them and the five
- * that fit were the only five a phone could reach. 6px of padding with the
- * safe area under it, 22px icons over an 11px label, the current one in the
- * accent at 600 and the rest subtle at 500.
+ * The bar used to carry the first four entries and put the other ten behind
+ * More, so which screens a phone could reach in one press was decided by the
+ * order a list happened to be built in, and the phone and the desktop had
+ * nothing in common.
+ *
+ * The four areas are the four tabs. Pressing one opens what is in it, which is
+ * the second column of the sidecar drawn as a sheet, because a phone has no
+ * room to keep it standing. An area holding one screen opens that screen.
+ *
+ * 6px of padding with the safe area under it, 22px marks over an 11px label,
+ * the current one in the accent at 600 and the rest subtle at 500.
  */
-/** How many sections sit on the bar itself. The last place is More. */
-const ON_BAR = 4;
-
-export function MobileTabs({ entries }: { entries: ShellEntry[]}) {
+export function MobileTabs({ entries }: { entries: ShellEntry[] }) {
   const pathname = usePathname();
   const router = useRouter();
   const reopen = useSectionMemory(entries);
   const forget = forgetSection;
   const active = activeHref(entries, pathname);
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState<string | null>(null);
 
-  /* Everything fits when there is nothing to put away. */
-  const shown = entries.length <= ON_BAR + 1 ? entries : entries.slice(0, ON_BAR);
-  const rest = entries.slice(shown.length);
-  const inRest = rest.some((one) => one.href === active);
+  const groups = SIDEBAR_GROUPS.map((group) => ({
+    ...group,
+    entries: entries.filter((entry) => group.hrefs.includes(entry.href)),
+  })).filter((group) => group.entries.length > 0);
+
+  const settings = entries.filter((entry) => entry.href.startsWith("/settings"));
+  const claimed = new Set<string>([
+    ...SIDEBAR_GROUPS.flatMap((group) => group.hrefs),
+    ...settings.map((entry) => entry.href),
+  ]);
+  /* Settings, and whatever no area claims, under one last tab. */
+  const rest = [...entries.filter((entry) => !claimed.has(entry.href)), ...settings];
+  const activeGroup = groups.find((group) =>
+    group.entries.some((entry) => entry.href === active),
+  )?.id ?? null;
 
   const go = (entry: ShellEntry) => (event: React.MouseEvent) => {
-    setOpen(false);
-    // The same rule on a phone: the tab you are on goes to the top.
+    setOpen(null);
+    // The same rule as the desktop: the screen you are on goes to the top.
     if (entry.href === active) {
       forget(entry.href);
       return;
@@ -449,45 +463,62 @@ export function MobileTabs({ entries }: { entries: ShellEntry[]}) {
     router.push(back);
   };
 
+  const press = (id: string, items: ShellEntry[]) => () => {
+    const first = items[0];
+    if (items.length === 1 && first) {
+      router.push(first.href);
+      return;
+    }
+    setOpen(id);
+  };
+
+  const showing: { label: MessageKey; entries: ShellEntry[] } | undefined = open === "more"
+    ? { label: "nav.group.more", entries: rest }
+    : groups.find((group) => group.id === open);
+
   return (
     <>
       <nav
-        aria-label={t("nav.sections")}
+        aria-label={t("nav.areas")}
         className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-canvas px-1 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] md:hidden"
       >
-        {shown.map((entry) => (
-          <Tab
-            key={entry.href}
-            href={`${entry.href}`}
-            icon={entry.icon}
-            label={entry.label}
-            on={active === entry.href}
-            onClick={go(entry)}
-          />
-        ))}
+        {groups.map((group) => {
+          const Mark = group.icon;
+          return (
+            <Tab
+              key={group.id}
+              icon={<Mark aria-hidden />}
+              label={t(group.label as never)}
+              on={activeGroup === group.id}
+              onClick={press(group.id, group.entries)}
+            />
+          );
+        })}
 
+        {/* Whatever no area claims, which for most churches is Settings alone.
+            One of them wears its own name and mark: a tab called More that
+            always opens the same single screen is a riddle with one answer. */}
         {rest.length > 0 ? (
           <Tab
-            icon={<Menu aria-hidden />}
-            label={t("nav.more")}
-            on={inRest}
-            onClick={() => setOpen(true)}
+            icon={rest.length === 1 ? rest[0]!.icon : <Menu aria-hidden />}
+            label={rest.length === 1 ? rest[0]!.label : t("nav.more")}
+            on={activeGroup === null && rest.some((one) => one.href === active)}
+            onClick={press("more", rest)}
           />
         ) : null}
       </nav>
 
-      {/* R24.6. The sections that did not fit, which on a phone is most of
-          them. Nothing a church paid nothing for should be unreachable
-          because somebody opened it on their phone. */}
-      <Sheet open={open} onOpenChange={setOpen}>
+      {/* The area's own screens. Nothing a church paid nothing for should be
+          unreachable because somebody opened it on their phone. */}
+      <Sheet open={showing != null} onOpenChange={(next) => { if (!next) setOpen(null); }}>
         <SheetContent
-          title={t("nav.allSections")}
+          title={showing ? t(showing.label as never) : ""}
           closeLabel={t("common.close")}
           width="320px"
           className="md:hidden"
         >
           <ul className="m-0 flex list-none flex-col gap-1 p-0">
-            {entries.map((entry) => (
+            {showing?.entries.map((entry) => (
               <li key={entry.href}>
                 <Link
                   href={`${entry.href}`}
@@ -513,12 +544,6 @@ export function MobileTabs({ entries }: { entries: ShellEntry[]}) {
   );
 }
 
-/**
- * One place on the bar.
- *
- * `min-w-0` is what makes the label truncate rather than push the bar wider
- * than the screen, which is what "Celebrations" next to "Check-in" did.
- */
 function Tab({
   href,
   icon,
@@ -547,7 +572,9 @@ function Tab({
 
   if (!href) {
     return (
-      <button type="button" onClick={onClick} aria-expanded={on} className={shape}>
+      /* `aria-current` rather than `aria-expanded`: the mark says which area
+         the reader is in, which is true whether or not its sheet is open. */
+      <button type="button" onClick={onClick} aria-current={on ? "true" : undefined} className={shape}>
         {inside}
       </button>
     );

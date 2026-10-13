@@ -136,7 +136,7 @@ we do not. The reading that produced them is below the table.
 | HRT-317 | A status pill that changes the status | R2.2, R24.9, R24.15 | Dropped, folded into Phase C |
 | HRT-318 | How complete a record is, said once and the same way everywhere | R2.1, R24.9 | Dropped, folded into Phase C |
 | HRT-319 | The sidecar: four areas in a rail, their items beside it, and the accordion goes | R24.6, R24.14, R1.3 | Resolved |
-| HRT-320 | The phone follows the sidecar: four areas, one tab each | R24.6, R24.14 | New |
+| HRT-320 | The phone follows the sidecar: four areas, one tab each | R24.6, R24.14 | Resolved |
 | HRT-321 | Members against the new vocabulary: the directory, the window, and every screen under it | R2.1, R2.14, R24.6 | New |
 | HRT-322 | Groups against the new vocabulary, and the two shells that screen renders | R9.5, R24.6 | New |
 | HRT-323 | Events against the new vocabulary: the list, the record and the roster | R14.1, R24.6 | New |
@@ -225,6 +225,26 @@ What HRT-307 and HRT-308 left behind is kept: `PageHeader`, `SortTh` and
 
 The order is now the shell, then the areas: HRT-319, HRT-320, then HRT-321
 onward.
+
+## The phone follows the sidecar, October 2026
+
+HRT-320. The bar across the bottom of a phone carried the first four entries
+and put the other ten behind More. Which screens a phone could reach in one
+press was therefore decided by the order a list happened to be built in, and
+the phone and the desktop had nothing in common.
+
+The four areas are the four tabs. Pressing one opens what is in it, which is
+the sidecar's second column drawn as a sheet, because a phone has no room to
+keep it standing. An area holding one screen opens that screen rather than a
+sheet listing one thing, the same rule the rail follows.
+
+Whatever no area claims sits in a last tab, which for most churches is Settings
+on its own. One of them wears its own name and mark rather than saying More: a
+tab called More that always opens the same single screen is a riddle with one
+answer.
+
+`Tab` said `aria-expanded` where it meant `aria-current`. The mark says which
+area the reader is in, which is true whether or not a sheet is open.
 
 ## Lint has never run, October 2026
 
