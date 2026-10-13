@@ -63,7 +63,7 @@ export function SaveView({
       setOpen(false);
       setName("");
       // Straight onto the list it just made, which is the thing asked for.
-      router.push(`/members?list=${result.id}`);
+      router.push(`/members?list=${result.slug ?? result.id}`);
     });
   };
 
@@ -134,10 +134,10 @@ export function OpenList({
       {/* Typing finds one. A church that keeps twenty of these should not
           have to read the list to reach the one it opens every Monday. */}
       <Combobox
-        options={lists.map((one) => ({ value: one.id, label: one.name }))}
+        options={lists.map((one) => ({ value: one.slug, label: one.name }))}
         value=""
-        onChange={(id) => {
-          if (id) router.push(`/members?list=${id}`);
+        onChange={(slug) => {
+          if (slug) router.push(`/members?list=${slug}`);
         }}
         clearable={false}
         placeholder={t("lists.title")}

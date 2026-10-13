@@ -38,6 +38,11 @@ export const DialogContent = React.forwardRef<
      */
     hideTitle?: boolean;
     description?: string;
+    /**
+     * R24.6. What this box offers beside its title, before the close square:
+     * the one thing a reader may want that is not in the list below.
+     */
+    actions?: React.ReactNode;
     /** Draws the X in the corner. Left out, there is no X. */
     closeLabel?: string;
     /**
@@ -48,7 +53,9 @@ export const DialogContent = React.forwardRef<
     /** A question that cannot be undone: no X, and the safe answer takes focus. */
     alert?: boolean;
   }
->(({ className, children, title, description, closeLabel, lead, alert, hideTitle, ...props }, ref) => (
+>(({
+  className, children, title, description, closeLabel, lead, actions, alert, hideTitle, ...props
+}, ref) => (
   <P.Portal>
     <P.Overlay
       className={cn(
@@ -121,6 +128,11 @@ export const DialogContent = React.forwardRef<
             <P.Description className="text-caption text-fg-muted">{description}</P.Description>
           ) : null}
         </div>
+        {/* Lined up with the title rather than with the close square, which
+            sits at the top of the row whatever height the title runs to. */}
+        {actions ? (
+          <div className="ml-auto flex shrink-0 items-center gap-2 self-center">{actions}</div>
+        ) : null}
         {closeLabel ? (
           <P.Close
             aria-label={closeLabel}

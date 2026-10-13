@@ -872,6 +872,19 @@ function StartFrom({
             </IconButton>
           ) : undefined
         }
+        /* R11.8. Where the shapes themselves are written and changed, at the
+           top of the box rather than under a list somebody has to scroll past
+           to find it. */
+        actions={
+          looking ? undefined : (
+            <Link
+              href={"/settings/service-template"}
+              className="text-label font-medium text-primary underline underline-offset-4"
+            >
+              {t("planTpl.manage")}
+            </Link>
+          )
+        }
       >
         {failed ? (
           <Banner tone="danger" className="mb-4">{failed}</Banner>
@@ -939,13 +952,6 @@ function StartFrom({
               )
             )}
 
-            {/* Where the shapes themselves are written and changed. */}
-            <Link
-              href={"/settings/service-template"}
-              className="mt-1 self-start font-medium text-primary"
-            >
-              {t("planTpl.manage")}
-            </Link>
           </div>
         )}
       </DialogContent>
