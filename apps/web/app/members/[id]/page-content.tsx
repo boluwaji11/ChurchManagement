@@ -10,7 +10,7 @@ import {
   canEditPeople, canArchivePeople, canReadGivingAmounts, anniversaryOf,
   checksFor, canSeeChecks, listMilestones,
 } from "@connectapp/db";
-import { Avatar, Button } from "@connectapp/ui";
+import { Avatar, Button, Tooltip } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { photoUrls } from "@/lib/photos";
@@ -274,21 +274,41 @@ async function renderPersonPage({
    * here: the square in the corner is the way out of every window in the
    * product, and a second one at the other end is two answers to one question.
    */
-  const panelFooter = canEdit ? (
-    <div className="flex items-center gap-2">
-      {canArchive ? (
-        <ArchiveButton
-          church={session.tenantSlug}
-          id={person.id}
-          name={display}
-          archived={Boolean(person.archivedAt)}
-        />
-      ) : null}
-      <Button variant="secondary" asChild>
-        <Link href={editHref}>
-          <Pencil /> {t("action.edit")}
+  /*
+   * R24.6. Editing belongs to the sections that can be edited.
+   *
+   * Two of the seven hold fields the edit form writes: the personal details and
+   * the address and contact. One Edit on the window's footer was a press whose
+   * answer depended on which section happened to be open, so it moves onto the
+   * heading of each section it actually acts on. The others carry their own
+   * presses already: a milestone, a check, a note.
+   */
+  const editMark = (part?: string) => canEdit ? (
+    <Tooltip content={t("action.edit")}>
+      <Button
+        variant="ghost"
+        asChild
+        className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
+      >
+        <Link
+          href={part ? `${editHref}#${part}` : editHref}
+          aria-label={t("action.edit")}
+        >
+          <Pencil />
         </Link>
       </Button>
+    </Tooltip>
+  ) : undefined;
+
+  const panelFooter = canArchive ? (
+    <div className="flex w-full items-center">
+      <ArchiveButton
+        mark
+        church={session.tenantSlug}
+        id={person.id}
+        name={display}
+        archived={Boolean(person.archivedAt)}
+      />
     </div>
   ) : undefined;
 
@@ -319,6 +339,9 @@ async function renderPersonPage({
         className="scroll-mt-4 flex flex-col gap-6"
       >
       <div className="flex flex-wrap items-center gap-5">
+        {/* R24.6. The mark that edits these fields, on the row that names
+            them, as it is on the address and contact section. */}
+        <span className="order-last ml-auto self-start">{editMark("details")}</span>
         <Avatar
           name={display}
           src={person.photoKey ? (faces[person.photoKey] ?? null) : null}
@@ -351,7 +374,7 @@ async function renderPersonPage({
       {/* Everything about the member stays grouped by section. The panel's left
           navigation keeps one part in view at a time. */}
       <div className="flex flex-col gap-7">
-          <RecordSection id="contact" title={t("personForm.section.contact")}>
+          <RecordSection id="contact" title={t("personForm.section.contact")} action={editMark("contact")}>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
@@ -368,7 +391,7 @@ async function renderPersonPage({
             </div>
           </RecordSection>
 
-          <RecordSection id="household" title={t("person.household")}>
+          <RecordSection id="household" title={t("person.household")} action={editMark("household")}>
             {household && household.members.length > 0 ? (
               household.members.map((m) => (
                 <span key={m.id} className="flex items-center gap-2.5">
@@ -394,7 +417,7 @@ async function renderPersonPage({
             * milestones that is four lines of apology before the one thing
             * there is to read.
             */}
-          <RecordSection id="timeline" title={t("person.churchHistory")}>
+          <RecordSection id="timeline" title={t("person.churchHistory")} action={editMark("status")}>
             <div className="grid gap-x-10 gap-y-5 sm:grid-cols-2">
               <RecordValue label={t("personForm.firstVisit")}>
                 {person.firstVisitOn ? longDate(person.firstVisitOn) : EMPTY}
@@ -491,7 +514,7 @@ async function renderPersonPage({
             </RecordSection>
           ) : null}
 
-          <RecordSection id="tags" title={t("person.tags")}>
+          <RecordSection id="tags" title={t("person.tags")} action={editMark("tags")}>
             {memberTags.length === 0 ? (
               <p className="text-[13px] text-fg-muted">{t("person.noTags")}</p>
             ) : (
@@ -509,7 +532,7 @@ async function renderPersonPage({
           </RecordSection>
 
           {customFields.length > 0 ? (
-            <RecordSection id="additional" title={t("person.more")}>
+            <RecordSection id="additional" title={t("person.more")} action={editMark("custom")}>
               {extra.map((one) => (
                 <div key={one.id} className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-caption text-fg-subtle">{one.label}</span>

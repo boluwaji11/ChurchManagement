@@ -37,6 +37,20 @@ export function RecordBody({
     );
   }, [sections]);
 
+  /*
+   * R24.6. An address can name the section it wants.
+   *
+   * `/members/x/edit#contact` opens the edit screen on the contact fields, so
+   * the mark beside a section on the record lands on the same section of the
+   * form rather than at the top of it.
+   */
+  React.useEffect(() => {
+    const wanted = window.location.hash.slice(1);
+    if (wanted && sections.some((section) => section.id === wanted)) setActive(wanted);
+    // Once, on arrival. After that the rail is whatever the reader pressed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /* Something elsewhere on the record can ask for a section, which is how a
      press inside one part opens another. */
   React.useEffect(() => {
