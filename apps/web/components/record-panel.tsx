@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Button, Sheet, SheetContent } from "@connectapp/ui";
+import {
+  Button, Sheet, SheetContent, Dialog, DialogContent, DialogFooter,
+} from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { useDirty } from "@/components/form-actions";
 import { RecordBody } from "@/components/record-body";
@@ -90,8 +92,18 @@ export function RecordPanel({
     router.replace(to);
   };
 
-  /* Cancel stays on the record it was editing. While there is unsaved work it
-     asks first, in the same words the close square uses. */
+  /*
+   * R24.6. Cancel stays on the record it was editing.
+   *
+   * It moves the address and leaves the window standing: the record is drawn
+   * in the same window the form was. Closing it first dropped the reader onto
+   * the list for as long as the record took to arrive, which is a screen they
+   * never asked for.
+   */
+  const backToRecord = () => {
+    router.push(cancelTo!);
+  };
+
   const cancel = () => {
     if (!cancelTo) return;
     if (dirty) {
@@ -99,25 +111,11 @@ export function RecordPanel({
       setConfirmClose(true);
       return;
     }
-    leaving.current = true;
-    setOpen(false);
-    router.push(cancelTo);
+    backToRecord();
   };
 
 
-  const panelFooter = confirmClose ? (
-    <div role="alert" className="flex w-full flex-wrap items-center justify-between gap-3">
-      <span className="text-[13px] font-medium text-fg">{t("unsaved.title")}</span>
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="ghost" onClick={() => setConfirmClose(false)}>
-          {t("unsaved.stay")}
-        </Button>
-        <Button variant="danger" onClick={() => leave(going.current)}>
-          {t("unsaved.discard")}
-        </Button>
-      </div>
-    </div>
-  ) : cancelTo ? (
+  const panelFooter = cancelTo ? (
     <div className="flex w-full flex-wrap items-center justify-end gap-2">
       <Button variant="secondary" onClick={cancel}>{t("action.cancel")}</Button>
       {footer}
@@ -125,6 +123,30 @@ export function RecordPanel({
   ) : footer;
 
   return (
+    <>
+    {/* R24.6. Asked in the middle, as everything this product asks is. It used
+        to take the window's own footer over, which left the question in the
+        same place as the press that had just been refused. */}
+    <Dialog open={confirmClose} onOpenChange={(next) => { if (!next) setConfirmClose(false); }}>
+      <DialogContent title={t("unsaved.title")}>
+        <DialogFooter>
+          <Button variant="secondary" onClick={() => setConfirmClose(false)}>
+            {t("unsaved.stay")}
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              setConfirmClose(false);
+              if (cancelTo && going.current === cancelTo) backToRecord();
+              else leave(going.current);
+            }}
+          >
+            {t("unsaved.discard")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
     <Sheet
       open={open}
       onOpenChange={(next) => {
@@ -155,5 +177,6 @@ export function RecordPanel({
         )}
       </SheetContent>
     </Sheet>
+    </>
   );
 }
