@@ -23,7 +23,6 @@ import {
   shiftQuestion,
 } from "../actions";
 import { FormCover } from "./cover";
-import { FormViews } from "./views";
 import { Responses, type SubmissionRow } from "./responses";
 import { dragShape } from "@/lib/drag-shadow";
 
@@ -194,8 +193,6 @@ export function Builder({
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger">{error}</Banner> : null}
 
-      <FormViews view={view} />
-
       {/* The name is written where it is read, at 28px in IBM Plex Serif over a
           dashed rule that says it can be typed in. */}
       <div className="flex flex-wrap items-center gap-3">
@@ -311,6 +308,7 @@ export function Builder({
       </div>
 
       {view === "responses" ? (
+        <section data-record-section id="responses" className="flex flex-col gap-5">
         <Responses
           church={church}
           formId={form.id}
@@ -320,8 +318,9 @@ export function Builder({
           perPage={perPage}
           total={total}
         />
+        </section>
       ) : (
-      <>
+      <section data-record-section id="questions" className="flex flex-col gap-5">
       <FormCover
         formId={form.id}
         hue={form.hue}
@@ -429,7 +428,7 @@ export function Builder({
           </div>
         </aside>
       </div>
-      </>
+      </section>
       )}
     </div>
   );
