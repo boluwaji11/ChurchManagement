@@ -133,6 +133,14 @@ export function Sidebar({
   }, [activeGroup]);
 
   const area = groups.find((group) => group.id === shown) ?? groups[0];
+  /*
+   * R24.14. An area with one screen in it draws no second column. Overview is
+   * the Dashboard and nothing else, and a column holding a single row below a
+   * heading naming the same thing is a list of one.
+   */
+  const items = area?.entries ?? [];
+  const listed = items.length > 1 || otherEntries.length > 0;
+  const open = !collapsed && listed;
 
   const renderEntry = (entry: ShellEntry) => {
     const on = active === entry.href;
@@ -210,19 +218,22 @@ export function Sidebar({
             that never shuts. It used to float over the page beside the rail,
             where the sticky header covered it: the column could be closed and
             then never reopened. */}
-        <Tooltip content={toggleLabel} side="right">
-          <button
-            type="button"
-            onClick={toggle}
-            aria-label={toggleLabel}
-            aria-expanded={!collapsed}
-            className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-md text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-          >
-            {collapsed
-              ? <PanelLeftOpen className="size-[18px]" />
-              : <PanelLeftClose className="size-[18px]" />}
-          </button>
-        </Tooltip>
+        {/* Shutting the column is done inside it. Opening it again cannot be,
+            so the rail carries that half and only that half. On an area holding
+            one screen there is no column either way and neither is drawn. */}
+        {listed && collapsed ? (
+          <Tooltip content={toggleLabel} side="right">
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label={toggleLabel}
+              aria-expanded={false}
+              className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-md text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            >
+              <PanelLeftOpen className="size-[18px]" />
+            </button>
+          </Tooltip>
+        ) : null}
 
         <nav className="scroll-quiet flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto">
           {groups.map((group) => {
@@ -233,18 +244,30 @@ export function Sidebar({
               <Tooltip key={group.id} content={t(group.label as never)} side="right">
                 <button
                   type="button"
-                  onClick={() => { setShown(group.id); if (collapsed) toggle(); }}
+                  onClick={() => {
+                    setShown(group.id);
+                    /* One screen in it, so there is nothing to choose from: the
+                       press is the navigation. */
+                    if (group.entries.length === 1) router.push(group.entries[0]!.href);
+                  }}
                   aria-current={here ? "true" : undefined}
                   aria-pressed={looking}
                   className={cn(
-                    "grid size-11 shrink-0 cursor-pointer place-items-center rounded-xl",
+                    "flex w-11 shrink-0 cursor-pointer flex-col items-center gap-2 rounded-xl py-2.5",
                     "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
                     looking
                       ? "bg-surface text-fg shadow-sm"
                       : "text-shell-muted hover:bg-shell-line hover:text-shell-fg",
                   )}
                 >
-                  <Mark className="size-[19px]" />
+                  <Mark className="size-[19px] shrink-0" />
+                  {/* The one being looked at says its name down the rail, which
+                      is what makes the rail readable without a tooltip. */}
+                  {looking ? (
+                    <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-semibold uppercase tracking-[0.14em]">
+                      {t(group.label as never)}
+                    </span>
+                  ) : null}
                 </button>
               </Tooltip>
             );
@@ -308,17 +331,30 @@ export function Sidebar({
         className={cn(
           "flex h-screen flex-col gap-3 overflow-hidden border-r border-shell-line bg-shell text-shell-fg",
           "motion-safe:transition-[width] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-out)",
-          collapsed ? "w-0 border-r-0" : "w-52 px-3 py-4",
+          open ? "w-52 px-3 py-4" : "w-0 border-r-0",
         )}
       >
-        {collapsed ? null : (
+        {open ? (
           <>
-            <span
-              className="shrink-0 px-1 font-display font-semibold text-shell-fg [overflow-wrap:anywhere] line-clamp-2"
-              style={nameSize(churchName)}
-            >
-              {churchName}
-            </span>
+            <div className="flex shrink-0 items-start justify-between gap-2 px-1">
+              <span
+                className="min-w-0 flex-1 font-display font-semibold text-shell-fg [overflow-wrap:anywhere] line-clamp-2"
+                style={nameSize(churchName)}
+              >
+                {churchName}
+              </span>
+              <Tooltip content={toggleLabel} side="right">
+                <button
+                  type="button"
+                  onClick={toggle}
+                  aria-label={toggleLabel}
+                  aria-expanded
+                  className="grid size-[30px] shrink-0 cursor-pointer place-items-center rounded-md text-shell-muted hover:bg-shell-line hover:text-shell-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+                >
+                  <PanelLeftClose className="size-[18px]" />
+                </button>
+              </Tooltip>
+            </div>
 
             <nav className="scroll-quiet flex min-h-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto">
               <span className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-shell-muted">
@@ -338,7 +374,7 @@ export function Sidebar({
               ) : null}
             </nav>
           </>
-        )}
+        ) : null}
       </aside>
 
     </div>
