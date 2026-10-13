@@ -7,10 +7,10 @@ import {
   personTimeline, servingForPerson, groupsForPerson,
   listContacts, listAddresses, givingForPerson, getChurch,
   listCustomFields, getCustomValues, listTagsForPerson, listCampuses,
-  canEditPeople, canReadGivingAmounts, anniversaryOf,
+  canEditPeople, canArchivePeople, canReadGivingAmounts, anniversaryOf,
   checksFor, canSeeChecks, listMilestones,
 } from "@connectapp/db";
-import { Avatar, Button, Tooltip } from "@connectapp/ui";
+import { Avatar, Button } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { photoUrls } from "@/lib/photos";
@@ -20,6 +20,8 @@ import { longDate, shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { churchNow } from "@/lib/church-now";
 import { Timeline } from "./timeline";
+import { ArchiveButton } from "../archive-button";
+import { RecordBody } from "../record-body";
 import { Contacts } from "./contacts";
 import { Places } from "./places";
 import { WriteTo } from "@/components/inbox/write-to";
@@ -98,15 +100,25 @@ function RecordSection({
         <h3 className="text-title font-semibold text-fg">{title}</h3>
         {action}
       </div>
-      {children}
+      {/* The contents in their own box, so a part can tell whether it is the
+          first thing under the heading. Measured against the section itself,
+          the heading was always first and every part drew a rule. */}
+      <div className="flex flex-col gap-6">{children}</div>
     </section>
   );
 }
 
-/** R24.6. Names a part of a section that holds more than one thing. */
+/**
+ * R24.6. Names a part of a section that holds more than one thing.
+ *
+ * A rule above each one, so a section of three parts reads as three things
+ * rather than one column of headings at the same weight. The first part of a
+ * section goes without, because a line directly under the section's own
+ * heading separates it from nothing.
+ */
 function RecordPart({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 border-t border-line pt-6 first:border-t-0 first:pt-0">
       <h4 className="text-label font-medium text-fg-muted">{title}</h4>
       {children}
     </div>
@@ -239,6 +251,7 @@ async function renderPersonPage({
   // R2.9. Their face, signed for the hour.
   const faces = await photoUrls([person.photoKey]);
   const canEdit = canEditPeople(session);
+  const canArchive = canArchivePeople(session);
   const canMessage = canAnswerMessages(session);
   const editHref =
     `/members/${person.slug}/edit?returnTo=${encodeURIComponent(returnTo ?? "/members")}`;
@@ -256,18 +269,28 @@ async function renderPersonPage({
    * is the one thing a reader does to a record they have opened, and an icon
    * beside the close square is the quietest place on the window to put it.
    */
+  /*
+   * R24.6. What a reader does to a record they have opened. Closing is not
+   * here: the square in the corner is the way out of every window in the
+   * product, and a second one at the other end is two answers to one question.
+   */
   const panelFooter = canEdit ? (
-    <Button variant="secondary" asChild>
-      <Link href={editHref}>
-        <Pencil /> {t("action.edit")}
-      </Link>
-    </Button>
+    <div className="flex items-center gap-2">
+      {canArchive ? (
+        <ArchiveButton
+          church={session.tenantSlug}
+          id={person.id}
+          name={display}
+          archived={Boolean(person.archivedAt)}
+        />
+      ) : null}
+      <Button variant="secondary" asChild>
+        <Link href={editHref}>
+          <Pencil /> {t("action.edit")}
+        </Link>
+      </Button>
+    </div>
   ) : undefined;
-
-  const places = [
-    ...groups.map((g) => ({ key: `g${g.groupId}`, name: g.name, hue: g.typeHue ?? "fern" })),
-    ...serving.map((s) => ({ key: `t${s.teamId}`, name: s.teamName, hue: s.hue })),
-  ];
 
   /*
    * R24.6. Seven at most, and fewer for most churches.
@@ -300,7 +323,7 @@ async function renderPersonPage({
           name={display}
           src={person.photoKey ? (faces[person.photoKey] ?? null) : null}
           id={person.id}
-          className="size-[72px] text-[24px] font-semibold"
+          className="size-[108px] text-[34px] font-semibold"
         />
         <div className="min-w-[200px] flex-1">
           <div className="font-display text-[32px] leading-[38px] text-fg">{display}</div>
@@ -515,200 +538,27 @@ async function renderPersonPage({
     );
   }
 
+  /*
+   * R2.1, R24.6. The same record, on its own address.
+   *
+   * This used to be a different screen: three columns, a row of marks beside
+   * the name, an Add note button and a message launcher, all of which the
+   * window had already left behind. A link somebody pasted, or a reload, gave
+   * them a record that looked like another product. It is now the same rail
+   * and the same sections, in a page instead of a window.
+   */
   return (
     <AppShell
       session={session}
-      /* R24.6. The screen's one action. The bar carries no name: this page
-         names itself with the face and the name under it, and a record page
-         that says whose it is twice says it once too often.
-
-         A note sits beside the two marks on the name's own row, with the
-         other things a record is opened to do. */
       back={{ href: returnTo ?? "/members", label: t("members.title") }}
+      action={panelFooter}
     >
-      {/* A 72px face, the name in IBM Plex Serif at 32, and under it the one line
-          that places them: what they are to the church, whose household, and
-          since when. */}
-      <div className="flex flex-wrap items-center gap-5">
-        <Avatar
-          name={display}
-          src={person.photoKey ? (faces[person.photoKey] ?? null) : null}
-          id={person.id}
-          className="size-[72px] text-[24px] font-semibold"
-        />
-        <div className="min-w-[200px] flex-1">
-          <div className="font-display text-[32px] leading-[38px] text-fg">{display}</div>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <PersonStatus status={person.lifecycleStatus} />
-            <span className="text-[13px] text-fg-muted">
-              {[
-                household ? t("person.ofHousehold", { name: household.name }) : null,
-                person.membershipDate
-                  ? t("person.joinedOn", { date: longDate(person.membershipDate) })
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </span>
-          </div>
-        </div>
-
-        {canEdit ? (
-          <div className="flex items-center gap-2">
-            {/* The errand this screen is most often opened for, beside the
-                marks that do the other two things to a record. */}
-            <NoteForm
-              memberId={person.id}
-              name={display}
-              canConfidential={canReadConfidentialNotes(session)}
-              trigger={<Button variant="secondary">{t("person.addNote")}</Button>}
-            />
-
-            {/* R16.9. Only the office writes to a person by name, so the action
-                is here for whoever answers for the church. */}
-            {canAnswerMessages(session) ? (
-              <WriteTo at={person.slug} name={display} />
-            ) : null}
-            {/* Sized from the same token as the IconButton beside it, so the
-                two actions are one pair rather than two shapes. */}
-            <Tooltip content={t("action.edit")}>
-              <Button
-                variant="ghost"
-                asChild
-                className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
-              >
-                <Link
-                  href={`/members/${person.slug}/edit?returnTo=${encodeURIComponent(returnTo ?? "/members")}`}
-                  aria-label={t("action.edit")}
-                >
-                  <Pencil />
-                </Link>
-              </Button>
-            </Tooltip>
-          </div>
-        ) : null}
-      </div>
-
-      {/* Everything we hold on the left, everything that has happened on the
-          right, with a hairline between them. The timeline is read down rather
-          than across, so it gets a column of its own rather than a band under
-          the others. */}
-      <div className="flex flex-wrap items-stretch gap-6">
-        <div className="grid min-w-0 flex-[3_1_420px] content-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))]">
-        <RecordSection title={t("person.contact")}>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
-              <Contacts
-                memberId={person.id}
-                kind="email"
-                contacts={contacts}
-                canEdit={false}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <span className="text-caption text-fg-subtle">{t("contact.phones")}</span>
-              <Contacts
-                memberId={person.id}
-                kind="phone"
-                contacts={contacts}
-                canEdit={false}
-              />
-            </div>
-
-            {/* R2.4. Theirs and the household's, each said for what it is. */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
-              <Places
-                memberId={person.id}
-                places={addresses}
-                canEdit={false}
-              />
-            </div>
-          </div>
-        </RecordSection>
-
-        <RecordSection title={t("person.household")}>
-          {household && household.members.length > 0 ? (
-            household.members.map((m) => (
-              <span key={m.id} className="flex items-center gap-2.5">
-                <Avatar
-                  name={m.displayName}
-                  id={m.id}
-                  className="size-7 text-[12px] font-semibold"
-                />
-                <span className="min-w-0 flex-1 truncate font-medium text-fg">{m.displayName}</span>
-                <span className="text-[13px] text-fg-subtle">
-                  {t(`householdRole.${m.role}` as never)}
-                </span>
-              </span>
-            ))
-          ) : (
-            <p className="text-[13px] text-fg-muted">{t("person.noHousehold")}</p>
-          )}
-        </RecordSection>
-
-        {/*
-          * R13.18, R1.5. What this person has given this year.
-          *
-          * Only for somebody whose role carries "See how much somebody gives".
-          * Everybody else sees no section for an amount they cannot read.
-          */}
-        {giving ? (
-          <RecordSection title={t("person.giving")}>
-            <div data-numeric className="font-display text-[32px] leading-[38px] text-fg">
-              {giving.gifts === 0 ? EMPTY : money(giving.cents)}
-            </div>
-            <div className="text-[13px] text-fg-muted">
-              {giving.gifts === 0
-                ? t("person.noGifts")
-                : plural("person.giving.year", giving.gifts, {
-                    last: giving.lastOn ? shortDate(giving.lastOn) : "",
-                  })}
-            </div>
-          </RecordSection>
-        ) : null}
-
-        {/* R1.10. What this church asks about its people beyond the fields
-            the product ships with. */}
-        {customFields.length > 0 ? (
-          <RecordSection title={t("person.more")}>
-            {extra.map((one) => (
-              <div key={one.id} className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-caption text-fg-subtle">{one.label}</span>
-                <span className="text-[length:var(--d-text-body)] text-fg">
-                  {one.value || EMPTY}
-                </span>
-              </div>
-            ))}
-          </RecordSection>
-        ) : null}
-
-        <RecordSection title={t("person.groupsAndTeams")}>
-          {places.length === 0 ? (
-            <p className="text-[13px] text-fg-muted">{t("person.noGroups")}</p>
-          ) : (
-            places.map((one) => (
-              <span key={one.key} className="flex items-center gap-2.5">
-                <span
-                  className="size-2 shrink-0 rounded-full"
-                  style={{ background: `var(--hue-${one.hue}-500)` }}
-                />
-                <span className="font-medium text-fg">{one.name}</span>
-              </span>
-            ))
-          )}
-        </RecordSection>
-
-        </div>
-
-        <div className="flex min-w-0 flex-[2_1_320px] flex-col md:border-l md:border-line md:pl-6">
-          <RecordSection title={t("person.timeline")}>
-            <Timeline entries={history} />
-          </RecordSection>
-        </div>
-      </div>
+      <RecordBody
+        sections={panelSections}
+        className="overflow-hidden rounded-[14px] border border-line bg-surface"
+      >
+        <div className="flex flex-col gap-5">{content}</div>
+      </RecordBody>
     </AppShell>
   );
 }
