@@ -5,11 +5,11 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { PrintSheet, PrintPage } from "@/components/print-sheet";
 import { churchNow } from "@/lib/church-now";
 import { churchLogoUrl } from "@/lib/church-logo";
 import { getChurch } from "@connectapp/db";
 import { BrandRuleFor } from "@/components/brand-rule";
-import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { Answer } from "../../../answer";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -91,12 +91,9 @@ export default async function PrintReportPage({
   const logo = await churchLogoUrl(session.tenantId, session.role);
 
   return (
-    <main className="mx-auto max-w-5xl bg-white px-8 py-8 text-black print:max-w-none print:px-10">
-      <AutoPrint />
+    <PrintSheet landscape>
+      <PrintPage wide>
 
-      {/* The browser's own header and footer come off, and the padding above
-          puts the white space back where it belongs. */}
-      <style>{"@page { size: landscape; margin: 0; }"}</style>
 
       <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
 
@@ -153,6 +150,7 @@ export default async function PrintReportPage({
           );
         })}
       </div>
-    </main>
+    </PrintPage>
+    </PrintSheet>
   );
 }

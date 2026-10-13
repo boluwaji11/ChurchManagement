@@ -3,9 +3,9 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { PrintSheet, PrintPage } from "@/components/print-sheet";
 import { churchNow } from "@/lib/church-now";
 import { BrandRuleFor } from "@/components/brand-rule";
-import { AutoPrint } from "../../../checkin/rooms/print/auto-print";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
 
@@ -66,12 +66,9 @@ export default async function PrintDirectoryPage({
   );
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8 bg-white text-black print:max-w-none print:px-10 print:py-8">
-      <AutoPrint />
+    <PrintSheet>
+      <PrintPage>
 
-      {/* The browser's own header and footer come off, and the padding above
-          puts the white space back where it belongs. */}
-      <style>{"@page { size: auto; margin: 0; }"}</style>
 
       <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
 
@@ -108,6 +105,7 @@ export default async function PrintDirectoryPage({
           </section>
         ))}
       </div>
-    </main>
+    </PrintPage>
+    </PrintSheet>
   );
 }

@@ -5,10 +5,10 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { PrintSheet, PrintPage } from "@/components/print-sheet";
 import { churchNow } from "@/lib/church-now";
 import { longDate } from "@/lib/dates";
 import { money } from "@/lib/money";
-import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { photoUrls } from "@/lib/photos";
 import { Letterhead, Recipient } from "../../statement/letterhead";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -86,21 +86,14 @@ export default async function StatementPrintPage({
     .join(", ");
 
   return (
-    <main className="bg-white text-black">
-      <AutoPrint />
-      <style>{"@page { size: auto; margin: 0; }"}</style>
+    <PrintSheet>
 
       {read.statements.map((statement) => {
         const inKind = statement.lines.filter((line) => line.inKindDescription);
         const cash = statement.lines.filter((line) => !line.inKindDescription);
 
         return (
-          <section
-            key={statement.memberId}
-            /* The break goes between sheets. On the last one it pushes an
-               empty page out of the printer. */
-            className="mx-auto max-w-3xl px-10 py-10 break-after-page last:break-after-auto"
-          >
+          <PrintPage key={statement.memberId}>
             {/* R13.17. The church on the left, whoever it is for on the
                 right, which is how a letter is laid out. */}
             <div className="flex items-start justify-between gap-8">
@@ -163,9 +156,9 @@ export default async function StatementPrintPage({
             {statement.needsAcknowledgment ? (
               <p className="mt-2 text-[14px]">{t("statement.ack")}</p>
             ) : null}
-          </section>
+          </PrintPage>
         );
       })}
-    </main>
+    </PrintSheet>
   );
 }

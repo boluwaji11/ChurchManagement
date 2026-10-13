@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import { withTenant, getChurch } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { PrintSheet, PrintPage } from "@/components/print-sheet";
 import { churchLogoUrl } from "@/lib/church-logo";
 import { BrandRuleFor } from "@/components/brand-rule";
-import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
 import { windowOf } from "../frame";
@@ -108,12 +108,9 @@ export default async function PrintReportPage({
   );
 
   return (
-    <main className="mx-auto max-w-4xl bg-white px-8 py-8 text-black print:max-w-none print:px-10">
-      <AutoPrint />
+    <PrintSheet>
+      <PrintPage>
 
-      {/* The browser's own header and footer come off, and the padding above
-          puts the white space back where it belongs. */}
-      <style>{"@page { margin: 0; }"}</style>
 
       <BrandRuleFor hue={hue} className="mb-5 h-1.5 w-full print:h-[3mm]" />
 
@@ -161,6 +158,7 @@ export default async function PrintReportPage({
             }}
           />
         ))}
-    </main>
+    </PrintPage>
+    </PrintSheet>
   );
 }

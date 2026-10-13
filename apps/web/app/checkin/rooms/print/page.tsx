@@ -3,9 +3,9 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { PrintSheet, PrintPage } from "@/components/print-sheet";
 import { churchNow } from "@/lib/church-now";
 import { ageLine } from "@/lib/room-ages";
-import { AutoPrint } from "./auto-print";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
 
@@ -94,9 +94,8 @@ export default async function RosterPrintPage({
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-10 py-9 bg-white text-black print:max-w-none">
-      <AutoPrint />
-      <style>{"@page { size: auto; margin: 0; }"}</style>
+    <PrintSheet>
+      <PrintPage>
 
       <div className="text-[13px] font-medium text-neutral-500">{session.tenantName}</div>
 
@@ -157,6 +156,7 @@ export default async function RosterPrintPage({
           </section>
         ))}
       </div>
-    </main>
+    </PrintPage>
+    </PrintSheet>
   );
 }
