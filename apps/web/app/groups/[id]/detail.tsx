@@ -66,6 +66,7 @@ export function GroupDetail({
   status,
   requests,
   members,
+  onAdd,
   meeting,
   attendees,
   attendanceDate,
@@ -95,6 +96,8 @@ export function GroupDetail({
   status: "draft" | "published";
   requests: DetailRequest[];
   members: DetailMember[];
+  /** R9.4. The mark that puts people in the group, drawn with its roster. */
+  onAdd?: React.ReactNode;
   meeting: Meeting | null;
   attendees: MeetingPerson[];
   attendanceDate: string;
@@ -319,6 +322,14 @@ export function GroupDetail({
         {canRecord ? (
         <section data-record-section id="members" className="flex flex-col gap-7">
           <div className="flex max-w-[680px] flex-col gap-4">
+            {/* R9.4, R24.6. The press that fills the roster belongs to the
+                roster, not to the window's own row of marks: that row is what
+                a church does to the group, and this adds people to it. */}
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-title font-semibold text-fg">{t("group.tab.members")}</h3>
+              {canManage ? onAdd : null}
+            </div>
+
             <section className="overflow-hidden rounded-lg border border-line bg-surface">
               {members.map((member) => (
                 <div

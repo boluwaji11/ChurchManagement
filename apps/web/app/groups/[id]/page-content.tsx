@@ -251,8 +251,6 @@ export async function GroupPanelPage({
      marks. The way back is the close square. */
   const actions = (
       <div className="flex items-center gap-1">
-        {manage ? <AddMemberMark /> : null}
-
         {/* R9.7, R16.9. The group's own thread, for whoever may write into it:
             the office speaks for the church, and a member writes to the groups
             they are in. */}
@@ -419,6 +417,7 @@ export async function GroupPanelPage({
           }),
         )}
         requests={requests.map((one) => ({ id: one.id, personName: one.personName }))}
+        onAdd={manage ? <AddMemberMark /> : undefined}
         members={roster
           .filter((one) => !one.leftOn)
           .map((one) => ({ memberId: one.memberId, name: one.name, role: one.role }))}
