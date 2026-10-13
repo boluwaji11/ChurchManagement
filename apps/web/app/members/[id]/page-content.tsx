@@ -42,9 +42,17 @@ export async function generateMetadata({
   return tabMetadata(t("members.title"));
 }
 
+/**
+ * One label and its value.
+ *
+ * No rule under it. Every value carried one, so a section of six fields drew
+ * six lines across the window, and on a record where half of them are empty
+ * the lines were the loudest thing on the screen: a reader met a ledger of
+ * what the church does not know about somebody.
+ */
 function RecordValue({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 border-b border-line py-3">
+    <div className="flex min-w-0 flex-col gap-0.5">
       <span className="text-caption text-fg-subtle">{label}</span>
       <span className="text-[length:var(--d-text-body)] text-fg">{children}</span>
     </div>
@@ -82,7 +90,9 @@ function RecordSection({
     <section
       id={id}
       data-member-panel-section={id ? "" : undefined}
-      className="scroll-mt-4 flex flex-col gap-4 border-b border-line pb-7 last:border-b-0"
+      /* No rule under it. The window shows one section at a time, so a line
+         below the last thing on screen separates nothing. */
+      className="scroll-mt-4 flex flex-col gap-6"
     >
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-title font-semibold text-fg">{title}</h3>
@@ -247,13 +257,11 @@ async function renderPersonPage({
    * beside the close square is the quietest place on the window to put it.
    */
   const panelFooter = canEdit ? (
-    <div className="flex w-full items-center justify-end gap-2">
-      <Button variant="secondary" asChild>
-        <Link href={editHref}>
-          <Pencil /> {t("action.edit")}
-        </Link>
-      </Button>
-    </div>
+    <Button variant="secondary" asChild>
+      <Link href={editHref}>
+        <Pencil /> {t("action.edit")}
+      </Link>
+    </Button>
   ) : undefined;
 
   const places = [
@@ -353,8 +361,18 @@ async function renderPersonPage({
             )}
           </RecordSection>
 
+          {/*
+            * R2.6, R2.7. Three things, each named: the dates a church is asked
+            * for years later, what it has marked, and what has happened.
+            *
+            * They used to sit as four loose blocks of the same weight, two of
+            * them usually empty, with a note box open under them and a rule
+            * below that separated nothing. On a record with no dates and no
+            * milestones that is four lines of apology before the one thing
+            * there is to read.
+            */}
           <RecordSection id="timeline" title={t("person.churchHistory")}>
-            <div className="grid gap-x-8 sm:grid-cols-2">
+            <div className="grid gap-x-10 gap-y-5 sm:grid-cols-2">
               <RecordValue label={t("personForm.firstVisit")}>
                 {person.firstVisitOn ? longDate(person.firstVisitOn) : EMPTY}
               </RecordValue>
@@ -367,21 +385,25 @@ async function renderPersonPage({
                 </RecordValue>
               ) : null}
             </div>
+
             <RecordPart title={t("person.milestones")}>
               <Milestones memberId={person.id} rows={milestoneRows} canEdit={canEdit} />
             </RecordPart>
 
-            <Timeline entries={history} />
-            {/* R2.7. Written under the history it joins, rather than in a
-                panel over the window this record already fills. */}
-            {canEdit ? (
-              <NoteForm
-                inline
-                memberId={person.id}
-                name={display}
-                canConfidential={canReadConfidentialNotes(session)}
-              />
-            ) : null}
+            {/* R2.7. The note is written into the history it joins, so the
+                press that writes one belongs to the history rather than
+                floating under it. */}
+            <RecordPart title={t("timeline.title")}>
+              <Timeline entries={history} />
+              {canEdit ? (
+                <NoteForm
+                  inline
+                  memberId={person.id}
+                  name={display}
+                  canConfidential={canReadConfidentialNotes(session)}
+                />
+              ) : null}
+            </RecordPart>
           </RecordSection>
 
           <RecordSection id="belonging" title={t("person.belonging")}>
