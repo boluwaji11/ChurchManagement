@@ -3,14 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, apexOf, dnsResolver,
-  connectEmailProvider, disconnectEmailProvider, emailProvider,
-  sendingDomain, saveSendingDomain, markSendingDomain,
+  withTenant, dnsResolver,
+  connectEmailProvider, withdrawEmailProvider,
+  sendingDomain, markSendingDomain,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
-import { proveSmtp, proveResend, resendDomain, recordsPublished } from "@/lib/email-provider";
+import { proveSmtp, recordsPublished } from "@/lib/email-provider";
+import { resendClientId, revokeGrant } from "@/lib/resend-oauth";
 
 /**
  * HRT-287, R16.1, R21.15. Connecting the account a church's email leaves through.
@@ -98,54 +99,6 @@ export async function connectSmtp(data: FormData): Promise<EmailResult> {
 }
 
 /**
- * R16.1. Resend, and the church's own domain registered on it.
- *
- * The domain is the root of the address mail goes out as, so the signature
- * aligns with what a member reads in their inbox and DMARC passes on that
- * alignment. What Resend generates is written down in the same breath, because
- * a volunteer who closes this tab halfway through typing records into their
- * registrar has to come back to the same three values.
- */
-export async function connectResend(data: FormData): Promise<EmailResult> {
-  const { actor, ctx } = await context();
-
-  const sender = from(data);
-  if ("error" in sender) return { error: sender.error };
-
-  const key = field(data, "key");
-  const proof = await proveResend(key);
-  if (!proof.ok) return { error: proof.said };
-
-  const root = apexOf(sender.address.split("@")[1] ?? "");
-  if (!root) return { error: t("email.error.noDomain") };
-
-  const made = await resendDomain(key, root);
-  if (!made.ok) return { error: made.said };
-
-  try {
-    await withTenant(ctx, async (tx) => {
-      const providerId = await connectEmailProvider(tx, actor, {
-        vendor: "resend",
-        credential: key,
-        externalAccountId: made.domain.id,
-        fromName: sender.name,
-        fromAddress: sender.address,
-        settings: null,
-      });
-      await saveSendingDomain(tx, actor, {
-        providerId,
-        domain: made.domain.name,
-        records: made.domain.records,
-      });
-    });
-    revalidatePath("/settings/email");
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-/**
  * R16.1. Whether the records are published, read from public DNS.
  *
  * Public DNS is what every mail server on the internet reads before it
@@ -176,13 +129,24 @@ export async function checkRecords(): Promise<EmailResult> {
   }
 }
 
-/** R16.1, R21.15. Taking the connection off, and the password with it. */
+/**
+ * R16.1, R21.15. Taking the connection off, and handing the grant back.
+ *
+ * Forgetting our copy of a Resend token leaves a live grant sitting on the
+ * church's own account, which is not what a church that pressed Disconnect
+ * asked for. So the credential comes out of the column and goes straight to
+ * Resend to be withdrawn, and it is gone from here either way.
+ */
 export async function disconnectEmail(): Promise<EmailResult> {
   const { actor, ctx } = await context();
   try {
-    await withTenant(ctx, async (tx) => {
-      if (await emailProvider(tx)) await disconnectEmailProvider(tx, actor);
-    });
+    const held = await withTenant(ctx, (tx) => withdrawEmailProvider(tx, actor));
+
+    const clientId = resendClientId();
+    if (held?.vendor === "resend" && held.credential && clientId) {
+      await revokeGrant(clientId, held.credential);
+    }
+
     revalidatePath("/settings/email");
     return {};
   } catch (error) {
