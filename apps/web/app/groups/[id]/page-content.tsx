@@ -187,7 +187,8 @@ export async function GroupPanelPage({
       ? { k: t("group.cat.forWhom"), v: t(`groups.audience.${group.forWhom}` as never) }
       : null,
     group.location ? { k: t("group.cat.meetsAt"), v: group.location } : null,
-    group.typeName ? { k: t("group.cat.type"), v: group.typeName } : null,
+    /* The kind is the pill at the top of the record, so it is not written
+       again as a fact beside it. */
   ].filter(Boolean) as { k: string; v: string }[];
 
   const hue = group.typeHue ?? "sky";
@@ -284,9 +285,9 @@ export async function GroupPanelPage({
       width="980px"
     >
       <div className="flex flex-col gap-7">
-      {/* The kind, the name and when it meets on the left, the banner beside
-          them, on one line until the screen is too narrow for two. */}
-      <div className="grid items-center gap-7 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
+      {/* R24.6. The kind and when it meets, over the picture. The name is the
+          window's own title, so it is not written twice. */}
+      <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-2.5">
           <span className="flex flex-wrap items-center gap-2">
             {group.status === "draft" ? (
@@ -309,14 +310,12 @@ export async function GroupPanelPage({
               </span>
             ) : null}
           </span>
-          <div className="font-display text-[36px] leading-[42px] text-balance text-fg">
-            {group.name}
-          </div>
-          <div className="text-fg-muted">
-            {group.leaders.length > 0
-              ? t("find.ledBy", { meets: meetsLine, leader: group.leaders.map((l) => l.name).join(", ") })
-              : meetsLine}
-          </div>
+          {/* The lead and when it meets, and whichever of the two there is
+             where there is only one: a church with no day set on a group read
+             a line that opened on the separator. */}
+          {/* When it meets. Who runs it is a fact of its own further down, so
+             saying it here as well put the same name on the screen twice. */}
+          {meetsLine ? <div className="text-fg-muted">{meetsLine}</div> : null}
         </div>
 
         {/* R9.2. Read here, changed on the edit screen. A group with no picture

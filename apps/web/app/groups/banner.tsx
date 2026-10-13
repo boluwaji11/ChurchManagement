@@ -61,6 +61,14 @@ export function GroupBanner({
     }
   };
 
+  /*
+   * R9.2, R24.6. A group with no picture and nobody able to add one draws
+   * nothing. The empty block was a third of the window in the kind's colour,
+   * carrying no word and no picture, above the thing somebody opened the group
+   * to read.
+   */
+  if (!photoUrl && !canEdit) return null;
+
   return (
     <div className="flex flex-col gap-2" aria-busy={busy || removing}>
       <Working
@@ -74,11 +82,12 @@ export function GroupBanner({
           <img
             src={photoUrl}
             alt={t("group.photo.alt", { group: groupName })}
-            className="aspect-[16/9] w-full rounded-[14px] object-cover"
+            /* Wide rather than tall: the record is read under it. */
+            className="aspect-[21/9] max-h-[260px] w-full rounded-[14px] object-cover"
           />
         ) : (
           <div
-            className="grid aspect-[16/9] w-full place-items-center rounded-[14px]"
+            className="grid aspect-[21/9] max-h-[260px] w-full place-items-center rounded-[14px]"
             style={{
               background: `var(--hue-${hue}-tint)`,
               color: `var(--hue-${hue}-key)`,

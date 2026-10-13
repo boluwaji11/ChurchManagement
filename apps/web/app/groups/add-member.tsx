@@ -98,9 +98,11 @@ export function AddMember({ groupId }: { groupId: string }) {
   return (
     <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>
-        <Button>
-          <Plus /> {t("groups.addMembers")}
-        </Button>
+        {/* R24.6. A mark, because it stands in the window's row of marks, where
+            a filled button beside three icons reads as the only thing there. */}
+        <IconButton label={t("groups.addMembers")} variant="ghost">
+          <Plus />
+        </IconButton>
       </SheetTrigger>
 
       <SheetContent
