@@ -77,6 +77,10 @@ export function Matrix({
     <div className="flex flex-col gap-5">
       <ResizableTable id="roles" className="rounded-[14px] border border-line bg-surface">
       <table className="w-full border-collapse text-left">
+        {/* R1.4, R24.6. This one keeps its own markup. It is a matrix rather
+            than a list: the first column is pinned while the rest scrolls
+            sideways, and every cell is a control. The shared row and cell are
+            for a list of records. */}
         <thead>
           <tr className="border-b border-line">
             {/* R24.6. Pinned, and held to 190px on a phone. The names run
