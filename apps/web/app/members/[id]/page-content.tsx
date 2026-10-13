@@ -321,8 +321,7 @@ async function renderPersonPage({
       {/* Everything about the member stays grouped by section. The panel's left
           navigation keeps one part in view at a time. */}
       <div className="flex flex-col gap-7">
-        <div className="contents">
-          <RecordSection id="contact" title={t("person.contact")}>
+          <RecordSection id="contact" title={t("personForm.section.contact")}>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
@@ -355,38 +354,37 @@ async function renderPersonPage({
             )}
           </RecordSection>
 
-          {giving ? (
-            <RecordSection id="giving" title={t("person.giving")}>
-              <div data-numeric className="font-display text-[32px] leading-[38px] text-fg">
-                {giving.gifts === 0 ? EMPTY : money(giving.cents)}
-              </div>
-              <div className="text-[13px] text-fg-muted">
-                {giving.gifts === 0
-                  ? t("person.noGifts")
-                  : plural("person.giving.year", giving.gifts, {
-                      last: giving.lastOn ? shortDate(giving.lastOn) : "",
-                    })}
-              </div>
-            </RecordSection>
-          ) : null}
+          <RecordSection id="timeline" title={t("person.churchHistory")}>
+            <div className="grid gap-x-8 sm:grid-cols-2">
+              <RecordValue label={t("personForm.firstVisit")}>
+                {person.firstVisitOn ? longDate(person.firstVisitOn) : EMPTY}
+              </RecordValue>
+              <RecordValue label={t("personForm.membershipDate")}>
+                {person.membershipDate ? longDate(person.membershipDate) : EMPTY}
+              </RecordValue>
+              {campuses.length > 1 ? (
+                <RecordValue label={t("person.campus")}>
+                  {campuses.find((campus) => campus.id === person.campusId)?.name ?? EMPTY}
+                </RecordValue>
+              ) : null}
+            </div>
+            <RecordPart title={t("person.milestones")}>
+              <Milestones memberId={person.id} rows={milestoneRows} canEdit={canEdit} />
+            </RecordPart>
 
-          {customFields.length > 0 ? (
-            <RecordSection id="additional" title={t("person.more")}>
-              {extra.map((one) => (
-                <div key={one.id} className="flex min-w-0 flex-col gap-0.5">
-                  <span className="text-caption text-fg-subtle">{one.label}</span>
-                  <span className="text-[length:var(--d-text-body)] text-fg">
-                    {one.value || EMPTY}
-                  </span>
-                </div>
-              ))}
-            </RecordSection>
-          ) : null}
+            <Timeline entries={history} />
+            {/* R2.7. Written under the history it joins, rather than in a
+                panel over the window this record already fills. */}
+            {canEdit ? (
+              <NoteForm
+                inline
+                memberId={person.id}
+                name={display}
+                canConfidential={canReadConfidentialNotes(session)}
+              />
+            ) : null}
+          </RecordSection>
 
-          {/* R2.6. Baptism, salvation, a dedication: the dates a church is
-              asked for years later and cannot produce. */}
-          {/* R9.5, R10.x, R2.10. Where somebody belongs and what they do, with
-              the check that decides whether they may do it with children. */}
           <RecordSection id="belonging" title={t("person.belonging")}>
             <RecordPart title={t("groups.title")}>
               {groups.length === 0 ? (
@@ -434,6 +432,21 @@ async function renderPersonPage({
             ) : null}
           </RecordSection>
 
+          {giving ? (
+            <RecordSection id="giving" title={t("person.giving")}>
+              <div data-numeric className="font-display text-[32px] leading-[38px] text-fg">
+                {giving.gifts === 0 ? EMPTY : money(giving.cents)}
+              </div>
+              <div className="text-[13px] text-fg-muted">
+                {giving.gifts === 0
+                  ? t("person.noGifts")
+                  : plural("person.giving.year", giving.gifts, {
+                      last: giving.lastOn ? shortDate(giving.lastOn) : "",
+                    })}
+              </div>
+            </RecordSection>
+          ) : null}
+
           <RecordSection id="tags" title={t("person.tags")}>
             {memberTags.length === 0 ? (
               <p className="text-[13px] text-fg-muted">{t("person.noTags")}</p>
@@ -450,40 +463,19 @@ async function renderPersonPage({
               </div>
             )}
           </RecordSection>
-        </div>
 
-        <div className="contents">
-          <RecordSection id="timeline" title={t("person.churchHistory")}>
-            <div className="grid gap-x-8 sm:grid-cols-2">
-              <RecordValue label={t("personForm.firstVisit")}>
-                {person.firstVisitOn ? longDate(person.firstVisitOn) : EMPTY}
-              </RecordValue>
-              <RecordValue label={t("personForm.membershipDate")}>
-                {person.membershipDate ? longDate(person.membershipDate) : EMPTY}
-              </RecordValue>
-              {campuses.length > 1 ? (
-                <RecordValue label={t("person.campus")}>
-                  {campuses.find((campus) => campus.id === person.campusId)?.name ?? EMPTY}
-                </RecordValue>
-              ) : null}
-            </div>
-            <RecordPart title={t("person.milestones")}>
-              <Milestones memberId={person.id} rows={milestoneRows} canEdit={canEdit} />
-            </RecordPart>
-
-            <Timeline entries={history} />
-            {/* R2.7. Written under the history it joins, rather than in a
-                panel over the window this record already fills. */}
-            {canEdit ? (
-              <NoteForm
-                inline
-                memberId={person.id}
-                name={display}
-                canConfidential={canReadConfidentialNotes(session)}
-              />
-            ) : null}
-          </RecordSection>
-        </div>
+          {customFields.length > 0 ? (
+            <RecordSection id="additional" title={t("person.more")}>
+              {extra.map((one) => (
+                <div key={one.id} className="flex min-w-0 flex-col gap-0.5">
+                  <span className="text-caption text-fg-subtle">{one.label}</span>
+                  <span className="text-[length:var(--d-text-body)] text-fg">
+                    {one.value || EMPTY}
+                  </span>
+                </div>
+              ))}
+            </RecordSection>
+          ) : null}
       </div>
     </>
   );
