@@ -2,6 +2,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { t } from "@connectapp/i18n";
+import { Stages } from "@/components/stages";
 import { cn } from "@connectapp/ui";
 import { SiteBar, SiteFooter } from "@/components/site/chrome";
 import { Art, type Piece } from "@/components/site/art";
@@ -114,46 +115,11 @@ export function AuthShell({
  * steps behind this one are filled, the one ahead is a hairline.
  */
 export function AuthSteps({ at }: { at: 1 | 2 | 3 }) {
-  const labels = [t("auth.step.account"), t("auth.step.church"), t("auth.step.setup")];
-
   return (
-    <ol className="flex list-none items-start gap-0 p-0">
-      {labels.map((label, i) => {
-        const n = i + 1;
-        const done = n < at;
-        const here = n === at;
-        return (
-          <li key={label} className="flex min-w-0 flex-1 flex-col items-center gap-2">
-            <span className="flex w-full items-center">
-              <span
-                className={cn("h-0.5 flex-1 rounded-full", i === 0 ? "bg-transparent" : done || here ? "bg-primary" : "bg-line")}
-              />
-              <span
-                aria-hidden
-                className={cn(
-                  "mx-1 size-3 shrink-0 rounded-full",
-                  here ? "bg-primary ring-4 ring-primary/20" : done ? "bg-primary" : "bg-line",
-                )}
-              />
-              <span
-                className={cn(
-                  "h-0.5 flex-1 rounded-full",
-                  i === labels.length - 1 ? "bg-transparent" : done ? "bg-primary" : "bg-line",
-                )}
-              />
-            </span>
-            <span
-              className={cn(
-                "text-center text-[13px]",
-                here ? "font-semibold text-fg" : "text-fg-subtle",
-              )}
-            >
-              {label}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
+    <Stages
+      labels={[t("auth.step.account"), t("auth.step.church"), t("auth.step.setup")]}
+      at={at}
+    />
   );
 }
 
