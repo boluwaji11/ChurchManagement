@@ -1814,6 +1814,13 @@ GoDaddy, Domain List and Advanced DNS at Namecheap, Domains and the DNS Records 
 Change the church's website to a domain at a different company and confirm the words change with it.
 A company we do not know gets the general shape rather than a blank.
 
+There is nothing to press to find out whether the settings are in. Add them at the company, come
+back to this tab, and confirm the screen moves to Ready to send on its own. A tab left open does the
+same within half a minute. A tab in the background reads nothing.
+
+The one-click is in [docs/domain-connect](../docs/domain-connect/README.md): the template is
+written, and the submission and the signing key are named there as work outside this repository.
+
 Work item: HRT-289
 
 ### HRT-285, how to test it
