@@ -37,6 +37,14 @@ export default async function PeoplePage({
   searchParams: Promise<DirectoryParams>;
 }) {
   const params = await searchParams;
+
+  /* Everything the list is filtered by, as the address that shows it. */
+  const listQuery = new URLSearchParams(
+    Object.entries(params).flatMap(([key, value]) =>
+      typeof value === "string" && value ? [[key, value] as [string, string]] : [],
+    ),
+  ).toString();
+  const listHref = listQuery ? `/members?${listQuery}` : "/members";
   const session = await requireSession();
 
   const page = pageFromParams(params);
@@ -150,6 +158,13 @@ export default async function PeoplePage({
       ) : null}
 
       <Directory
+        /*
+         * R2.1. The list's own address, from the parameters this render was
+         * given. The browser cannot work it out once a record is open over the
+         * list, because then the address is the record's and the list's
+         * filters are inside its returnTo.
+         */
+        listHref={listHref}
         church={session.tenantSlug}
         putAway={putAway}
         canEdit={canEdit}

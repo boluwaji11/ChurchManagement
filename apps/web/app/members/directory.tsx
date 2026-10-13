@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FilterDrawer, SortDrawer } from "@/components/filter-drawer";
 import { MultiSelect } from "@/components/multi-select";
 import { ResizableTable } from "@/components/resizable-columns";
@@ -115,6 +115,7 @@ export function Directory({
   duplicates,
   lists,
   viewing,
+  listHref,
 }: {
   church: string;
   /** R2.4. The archived view: the same list, holding the people put away. */
@@ -135,12 +136,33 @@ export function Directory({
   lists: ListOption[];
   /** R1.14. The list being looked at, when one was opened. */
   viewing: { id: string; name: string; kind: "static" | "rule" } | null;
+  /**
+   * R2.1. The list's own address, filters and all, worked out on the server.
+   *
+   * It cannot be read from the browser once a record is open over the list:
+   * the address is then the record's, and the list's own filters are inside
+   * that record's returnTo. Reading it from there gave every row a way back to
+   * the record on top of it, wrapped in the way back to the one before that.
+   */
+  listHref: string;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
   const params = useSearchParams();
-  const directoryQuery = params.toString();
-  const directoryHref = directoryQuery ? `${pathname}?${directoryQuery}` : pathname;
+  /*
+   * R2.1, R24.6. The list's own address, which is always the list's.
+   *
+   * The window over the list is a parallel route, so while a record is open
+   * `usePathname()` reads that record and the parameters still carry the
+   * `returnTo` that opened it. Building the rows' links from those gave every
+   * row a way back to the record on top of it, wrapped in the way back to the
+   * record before that: a tap produced
+   * `/members/a?returnTo=/members/b?returnTo=%2Fmembers` and it grew with
+   * every tap.
+   *
+   * The list lives at /members whatever is open over it, and `returnTo` is
+   * never part of what it is looking at.
+   */
+  const directoryHref = listHref;
   const addMemberHref = `/members/new?returnTo=${encodeURIComponent(directoryHref)}`;
   const memberHref = (slug: string) =>
     `/members/${slug}?returnTo=${encodeURIComponent(directoryHref)}`;
@@ -182,10 +204,10 @@ export function Directory({
       // nothing, which reads as "no results" rather than "you moved".
       if (!("page" in changes)) next.delete("page");
       startNarrowing(() => {
-        router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+        router.replace(`/members?${next.toString()}`, { scroll: false });
       });
     },
-    [params, pathname, router],
+    [params, router],
   );
 
   /*
@@ -359,7 +381,7 @@ export function Directory({
           params={params}
           setParam={setParam}
           onClear={() =>
-            startNarrowing(() => router.replace(pathname, { scroll: false }))
+            startNarrowing(() => router.replace("/members", { scroll: false }))
           }
           narrowing={narrowing}
           busy={narrowingNow}
@@ -511,7 +533,7 @@ export function Directory({
           }
           action={
             filtersOn ? (
-              <Button variant="secondary" onClick={() => router.replace(pathname, { scroll: false })}>
+              <Button variant="secondary" onClick={() => router.replace("/members", { scroll: false })}>
                 <X /> {t("directory.clear")}
               </Button>
             ) : canEdit && !putAway ? (
