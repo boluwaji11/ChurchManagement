@@ -55,7 +55,7 @@ export function FundManager({
 }: {
   church: string;
   funds: Fund[];
-  /** R24.6. Whether this is the shelf of funds that have been put away. */
+  /** R24.6. Whether this is the shelf of funds that have been archived. */
   putAway?: boolean;
 }) {
   const router = useRouter();
@@ -123,7 +123,7 @@ export function FundManager({
             fund={fund}
             codesInUse={codes.filter((one) => one !== fund.code)}
             /* R13.9. A church keeps at least one fund, because a gift has
-               to go somewhere, so the last one cannot be put away. */
+               to go somewhere, so the last one cannot be archived. */
             onArchive={live.length > 1 ? () => setAsking(fund) : undefined}
             trigger={
               <button

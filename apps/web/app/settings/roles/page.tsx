@@ -79,7 +79,7 @@ export default async function RolesPage({
    */
   const shelf = rows.filter((role) => role.archived && role.builtin && role.key !== "member");
 
-  // R1.6. The roles this church wrote and later put away.
+  // R1.6. The roles this church wrote and later archived.
   const away = rows.filter((role) => role.archived && !role.builtin);
 
   return (

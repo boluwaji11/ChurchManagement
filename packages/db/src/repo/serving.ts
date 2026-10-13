@@ -175,7 +175,7 @@ export async function listTeams(
   return rows.map((r) => ({ ...r, hue: r.hue as TagHue }));
 }
 
-/** R10.1. How many teams have been put away, for the link that goes to them. */
+/** R10.1. How many teams have been archived, for the link that goes to them. */
 export async function countArchivedTeams(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

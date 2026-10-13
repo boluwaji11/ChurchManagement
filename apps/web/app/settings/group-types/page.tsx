@@ -30,7 +30,7 @@ export async function generateMetadata({
  * our vocabulary. The colour is the one its groups wear on every card, every
  * filter and every date tile.
  *
- * A kind that has been put away comes off this grid and sits behind the one
+ * A kind that has been archived comes off this grid and sits behind the one
  * link under it, which is also the way back to bringing it out again.
  */
 export default async function GroupTypesPage({

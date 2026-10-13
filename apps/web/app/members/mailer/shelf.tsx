@@ -36,9 +36,9 @@ export function Shelf({
   archivedCount = 0,
 }: {
   mailers: MailerCard[];
-  /** R24.6. Whether this is the list of the ones put away. */
+  /** R24.6. Whether this is the list of the ones archived. */
   putAway?: boolean;
-  /** How many are put away, for the link that reaches them. */
+  /** How many are archived, for the link that reaches them. */
   archivedCount?: number;
 }) {
   const router = useRouter();

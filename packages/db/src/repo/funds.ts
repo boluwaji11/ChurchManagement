@@ -68,7 +68,7 @@ export async function listFunds(
   }));
 }
 
-/** R13.9. How many funds have been put away, for the link that goes to them. */
+/** R13.9. How many funds have been archived, for the link that goes to them. */
 export async function countArchivedFunds(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

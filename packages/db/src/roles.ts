@@ -37,7 +37,7 @@ export const canManageGiving = (role: Who): boolean => can(role, "giving.manage"
 export const CAN_EDIT_PEOPLE: readonly TenantRole[] = rolesWith("members.edit");
 export const CAN_ARCHIVE_PEOPLE: readonly TenantRole[] = rolesWith("members.archive");
 
-/** R2.1. Who may name, merge and put away a household. */
+/** R2.1. Who may name, merge and archived a household. */
 export const CAN_MANAGE_HOUSEHOLDS: readonly TenantRole[] = rolesWith("members.households");
 
 export const canEditPeople = (role: Who): boolean => can(role, "members.edit");

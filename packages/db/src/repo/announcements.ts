@@ -75,7 +75,7 @@ export async function feedFor(
   db: Tx,
   today: string,
   limit = 10,
-  /** R16.11. Whoever is reading, so the ones they have put away stay away. */
+  /** R16.11. Whoever is reading, so the ones they have archived stay away. */
   userId?: string | null,
 ): Promise<Announcement[]> {
   const rows = await db

@@ -117,7 +117,7 @@ describe("skipping (R22.1)", () => {
   });
 });
 
-describe("putting it away (R22.1)", () => {
+describe("archiving it (R22.1)", () => {
   it("is remembered, and does not pretend the work is done", async () => {
     await run((tx) => dismissSetup(tx, as()));
     const progress = await run((tx) => setupProgress(tx, tenant));

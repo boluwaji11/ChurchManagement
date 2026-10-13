@@ -17,7 +17,7 @@ import { FormSearch } from "./form-search";
  * under it the two numbers somebody opening this screen came for. Whether it is
  * taking answers, and how many it has.
  *
- * A form that has been put away comes off this grid and sits behind the one
+ * A form that has been archived comes off this grid and sits behind the one
  * link under it, which is also the way back to bringing it out again.
  */
 export async function FormsListScreen({

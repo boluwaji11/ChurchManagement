@@ -20,7 +20,7 @@ export interface Notice {
  * R16.11. What the church has told everybody.
  *
  * On the same thread as everything else on this screen, and each one can be
- * put away by the member reading it. Theirs alone: the notice stays on the
+ * archived by the member reading it. Theirs alone: the notice stays on the
  * board and on everybody else's feed.
  */
 export function Notices({ notices }: { notices: Notice[] }) {

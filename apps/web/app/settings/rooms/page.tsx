@@ -23,7 +23,7 @@ export async function generateMetadata({
 /**
  * R8.14. The rooms children are checked into.
  *
- * A room that has been put away comes off this grid and sits behind the one
+ * A room that has been archived comes off this grid and sits behind the one
  * link under it, which is also the way back to bringing it out again.
  */
 export default async function RoomsPage({

@@ -499,7 +499,7 @@ export async function setEventArchived(
   if (changed.length === 0) throw new InvalidInputError("event.error.missing");
 }
 
-/** R14.1. How many have been put away, for the link that goes to them. */
+/** R14.1. How many have been archived, for the link that goes to them. */
 export async function countArchivedEvents(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

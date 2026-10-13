@@ -39,7 +39,7 @@ export function StationManager({
   putAway,
 }: {
   stations: StationItem[];
-  /** R24.6. Whether this is the shelf of stations that have been put away. */
+  /** R24.6. Whether this is the shelf of stations that have been archived. */
   putAway?: boolean;
 }) {
   const router = useRouter();

@@ -4,7 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Check, Globe, Lock, LockOpen, PencilLine, X } from "lucide-react";
 import {
-  Avatar, Banner, Button, IconButton, Spinner, Dialog, DialogContent, DialogFooter,
+  Avatar, Banner, Button, IconButton, Spinner, Tooltip, cn,
+  Dialog, DialogContent, DialogFooter,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import type { Meeting, MeetingPerson } from "@connectapp/db";
@@ -133,107 +134,75 @@ export function GroupDetail({
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger">{error}</Banner> : null}
 
-      {/* R9.4. Where the group stands, in one line: whether the open web can see
-          it, and whether it is taking members. The state is a mark with its own
-          colour and its own icon, and the two presses that change it sit at the
-          far end, so reading it and changing it are not the same gesture. */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-line bg-surface px-[18px] py-3">
-        <span
-          className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-semibold"
-          style={{
-            background:
-              status === "draft"
-                ? "color-mix(in oklch, var(--hue-amber-500) 16%, transparent)"
-                : openToJoin
-                  ? "color-mix(in oklch, var(--hue-fern-500) 16%, transparent)"
-                  : "var(--color-sunken)",
-            color:
-              status === "draft"
-                ? "var(--hue-amber-key)"
-                : openToJoin
-                  ? "var(--hue-fern-key)"
-                  : "var(--color-fg-muted)",
-          }}
-        >
-          {status === "draft" ? (
-            <PencilLine className="size-4" aria-hidden />
-          ) : openToJoin ? (
-            <Globe className="size-4" aria-hidden />
-          ) : (
-            <Lock className="size-4" aria-hidden />
-          )}
-          {status === "draft"
-            ? t("group.draftText")
-            : openToJoin ? t("group.openText") : t("group.closedText")}
-        </span>
-
-        {join ? <span className="ml-auto">{join}</span> : null}
-
-        {/* The two presses that change the state sit at the far end, after
-            everything that only says what the state is. */}
-        {canManage ? (
-          <div className="ml-auto flex shrink-0 flex-wrap items-center gap-1">
-            {status === "published" ? (
-              /* Drawn as the product draws anything it is pressed by: purple,
-                 underlined under the pointer. */
-              <Button
-                variant="ghost"
-                loading={doing === "openToJoin"}
-                disabled={pending}
-                onClick={() => run("openToJoin", () => setOpenToJoin(groupId, !openToJoin))}
-                className="h-[34px] min-h-0 px-2.5 text-[13px] font-medium text-primary hover:underline hover:decoration-primary hover:underline-offset-[3px]"
-              >
-                {openToJoin ? <Lock /> : <LockOpen />}
-                {openToJoin ? t("group.close") : t("group.open")}
-              </Button>
-            ) : null}
-
-            {/* R9.4. Published says where the group stands, and says what the
-                press does once somebody is over it. A button whose only word is
-                the undoing of the state reads as the state itself. */}
-            <Button
-              variant={status === "draft" ? "primary" : "ghost"}
-              loading={doing === "publish"}
-              disabled={pending}
-              onClick={() =>
-                run("publish", () =>
-                  publishGroup(groupId, status === "draft" ? "published" : "draft"),
-                )}
-              className={
-                status === "draft"
-                  ? "h-[34px] min-h-0 px-2.5 text-[13px]"
-                  : "group/pub h-[34px] min-h-0 px-2.5 text-[13px] font-medium hover:underline hover:underline-offset-[3px]"
-              }
-              /* Published is a state the church is pleased about, so it is the
-                 same green the open badge wears. */
-              style={status === "published" ? { color: "var(--hue-fern-key)" } : undefined}
-            >
-              {status === "draft" ? (
-                <>
-                  <Globe /> {t("group.publish")}
-                </>
-              ) : (
-                <>
-                  <Globe className="group-hover/pub:hidden group-focus-visible/pub:hidden" />
-                  <PencilLine className="hidden group-hover/pub:block group-focus-visible/pub:block" />
-                  <span className="group-hover/pub:hidden group-focus-visible/pub:hidden">
-                    {t("group.published")}
-                  </span>
-                  <span className="hidden group-hover/pub:inline group-focus-visible/pub:inline">
-                    {t("group.unpublish")}
-                  </span>
-                </>
-              )}
-            </Button>
-          </div>
-        ) : null}
-      </div>
-
       {/* R9.5, R24.6. The three parts of a group are sections of the window,
           named down its rail, which is how a record reads everywhere else.
           A reader who may not record attendance has one part and no rail. */}
       <>
         <section data-record-section id="overview" className="flex flex-col gap-7">
+        {/*
+          * R9.4. Where the group stands, and where this reader stands with it.
+          *
+          * Two facts about the group, each said once: whether the open web can
+          * see it, and whether it is taking members. Whoever runs groups presses
+          * the fact itself to change it, and the press says what it will do
+          * while they are over it, so the state and the control are not two
+          * chips repeating each other with opposite words.
+          *
+          * A rule between them, and another before what this reader may do, so
+          * three different kinds of thing do not read as one row of pills.
+          */}
+        <div className="flex flex-col rounded-xl border border-line bg-surface">
+          {/* What the group is. Two facts, a rule between them. */}
+          <div className="flex flex-wrap items-center gap-y-2 px-3 py-2">
+          <StateMark
+            tone={openToJoin ? "good" : "quiet"}
+            icon={openToJoin ? <Globe /> : <Lock />}
+            label={openToJoin ? t("group.openText") : t("group.closedText")}
+            /* Closing a group the open web cannot see yet is a press with
+               nothing behind it, so it waits for publishing. */
+            press={canManage && status === "published"
+              ? {
+                  icon: openToJoin ? <Lock /> : <LockOpen />,
+                  label: openToJoin ? t("group.close") : t("group.open"),
+                  busy: doing === "openToJoin",
+                  onPress: () => run("openToJoin", () => setOpenToJoin(groupId, !openToJoin)),
+                }
+              : undefined}
+            disabled={pending}
+          />
+
+          <Rule />
+
+          <StateMark
+            tone={status === "draft" ? "warn" : "good"}
+            icon={status === "draft" ? <PencilLine /> : <Globe />}
+            label={status === "draft" ? t("group.draftText") : t("group.published")}
+            press={canManage
+              ? {
+                  icon: status === "draft" ? <Globe /> : <PencilLine />,
+                  label: status === "draft" ? t("group.publish") : t("group.unpublish"),
+                  busy: doing === "publish",
+                  onPress: () =>
+                    run("publish", () =>
+                      publishGroup(groupId, status === "draft" ? "published" : "draft"),
+                    ),
+                }
+              : undefined}
+            disabled={pending}
+          />
+
+          </div>
+
+          {/* Where this reader stands with it, on its own row under a rule.
+              Side by side they wrapped into each other, and the rule between
+              them was left floating at the end of a line of its own. */}
+          {join ? (
+            <div className="flex flex-wrap items-center gap-2 border-t border-line px-3 py-2">
+              {join}
+            </div>
+          ) : null}
+        </div>
+
           <div className="flex flex-wrap items-stretch gap-10">
             <div className="flex min-w-0 flex-[2_1_440px] flex-col gap-7">
               {about ? (
@@ -711,5 +680,87 @@ function Register({
         </span>
       </div>
     </section>
+  );
+}
+
+/** R24.6. The hairline that separates one kind of thing from the next. */
+function Rule() {
+  return <span aria-hidden className="mx-1 h-6 w-px shrink-0 bg-line" />;
+}
+
+/**
+ * R9.4. One fact about the group, which whoever runs groups presses to change.
+ *
+ * It reads as the state until somebody is over it, and then it reads as what
+ * the press will do. A control whose only word is the undoing of the state
+ * reads as the state itself, and a second chip saying the state beside it is
+ * the same sentence twice.
+ */
+function StateMark({
+  tone,
+  icon,
+  label,
+  press,
+  disabled,
+}: {
+  tone: "good" | "warn" | "quiet";
+  icon: React.ReactNode;
+  label: string;
+  press?: { icon: React.ReactNode; label: string; busy: boolean; onPress: () => void };
+  disabled?: boolean;
+}) {
+  const colour =
+    tone === "good"
+      ? { background: "color-mix(in oklch, var(--hue-fern-500) 14%, transparent)", color: "var(--hue-fern-key)" }
+      : tone === "warn"
+        ? { background: "color-mix(in oklch, var(--hue-amber-500) 16%, transparent)", color: "var(--hue-amber-key)" }
+        : { background: "var(--color-sunken)", color: "var(--color-fg-muted)" };
+
+  const look =
+    "inline-flex h-8 shrink-0 items-center gap-2 rounded-full px-3 text-[13px] font-semibold"
+    + " [&_svg]:size-4";
+
+  if (!press) {
+    return (
+      <span className={look} style={colour}>
+        {icon}
+        {label}
+      </span>
+    );
+  }
+
+  return (
+    <Tooltip content={press.label}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={press.onPress}
+        aria-label={press.label}
+        className={cn(
+          look,
+          "group/mark cursor-pointer transition-colors",
+          "hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+          "disabled:cursor-default disabled:opacity-60",
+        )}
+        style={colour}
+      >
+        {press.busy ? (
+          <Spinner label={press.label} />
+        ) : (
+          <>
+            <span className="contents group-hover/mark:hidden group-focus-visible/mark:hidden">
+              {icon}
+            </span>
+            <span className="hidden contents group-hover/mark:inline-flex group-focus-visible/mark:inline-flex">
+              {press.icon}
+            </span>
+          </>
+        )}
+        <span className="group-hover/mark:hidden group-focus-visible/mark:hidden">{label}</span>
+        <span className="hidden group-hover/mark:inline group-focus-visible/mark:inline">
+          {press.label}
+        </span>
+      </button>
+    </Tooltip>
   );
 }

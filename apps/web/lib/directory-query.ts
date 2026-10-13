@@ -25,7 +25,7 @@ export interface DirectoryParams {
   dir?: string;
   show?: string;
   archived?: string;
-  /** R1.14. "archived" opens the saved lists that have been put away. */
+  /** R1.14. "archived" opens the saved lists that have been archived. */
   lists?: string;
   welcome?: string;
   /** R1.14. A saved list, which supplies either a set of members or its filters. */

@@ -59,7 +59,7 @@ export default async function ReportsPage({
 
   const here = ``;
 
-  /* R24.6. A report that was put away could be archived and then never seen
+  /* R24.6. A report that was archived could be archived and then never seen
      again: nothing listed it and nothing brought it back. */
   const putAway = params.archived === "1";
 

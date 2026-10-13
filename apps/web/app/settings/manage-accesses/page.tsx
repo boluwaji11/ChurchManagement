@@ -42,7 +42,7 @@ export default async function TeamPage({
     listInvitations(session.tenantId),
     // R1.6. The built-ins and whatever this church wrote beside them.
     /*
-     * R1.6. Including the ones put away: somebody can still be on a role the
+     * R1.6. Including the ones archived: somebody can still be on a role the
      * church has since taken off its list, and a picker with no row for the
      * role they hold shows an empty box.
      */

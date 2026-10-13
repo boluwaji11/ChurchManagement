@@ -42,7 +42,7 @@ export function RoomManager({
   putAway,
 }: {
   rooms: RoomItem[];
-  /** R24.6. Whether this is the shelf of rooms that have been put away. */
+  /** R24.6. Whether this is the shelf of rooms that have been archived. */
   putAway?: boolean;
 }) {
   const router = useRouter();

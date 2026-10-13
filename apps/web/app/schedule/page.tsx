@@ -107,7 +107,7 @@ export default async function ServingPage({
     async (tx) => {
       const profile = await getChurch(tx, session.tenantId);
       const clock = churchNow(profile?.timezone ?? "America/Chicago");
-      /* R10.1. The live teams. A team that has been put away is read in
+      /* R10.1. The live teams. A team that has been archived is read in
          Settings, where it is written down and where it is brought back. */
       const found = await listTeams(tx);
       const live = found.filter((one) => one.archivedAt === null);

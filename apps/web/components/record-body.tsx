@@ -26,26 +26,39 @@ export interface RecordSectionLink {
  */
 export function RecordBody({
   sections,
+  aside = [],
   showing,
   children,
   className,
 }: {
   sections: RecordSectionLink[];
+  /**
+   * R24.6. Parts the window can show that the rail does not name: a step
+   * somebody is taken to and comes back from, such as adding members to a
+   * group. The rail stays on the part they left, so the way back is where
+   * they expect it.
+   */
+  aside?: string[];
   /** The section the server drew, where the rail navigates rather than hides. */
   showing?: string;
   children: React.ReactNode;
   className?: string;
 }) {
   const [active, setActive] = React.useState(showing ?? sections[0]?.id ?? "");
+  /* Where a step was opened from, so closing it goes back there. */
+  const cameFrom = React.useRef<string | null>(null);
   const id = React.useId().replace(/[^a-zA-Z0-9]/g, "");
 
   /* A section that goes away, because a church turned giving off or a custom
      field was deleted, must not leave the rail pointing at nothing. */
   React.useEffect(() => {
     setActive((was) =>
-      sections.some((section) => section.id === was) ? was : (sections[0]?.id ?? ""),
+      sections.some((section) => section.id === was) || aside.includes(was)
+        ? was
+        : (sections[0]?.id ?? ""),
     );
-  }, [sections]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections, aside.join(",")]);
 
   /*
    * R24.6. An address can name the section it wants.
@@ -66,11 +79,27 @@ export function RecordBody({
   React.useEffect(() => {
     const selectSection = (event: Event) => {
       const id = (event as CustomEvent<string>).detail;
-      if (sections.some((section) => section.id === id)) setActive(id);
+      if (id === "__back__") {
+        setActive((was) => cameFrom.current ?? was);
+        cameFrom.current = null;
+        return;
+      }
+      if (aside.includes(id)) {
+        setActive((was) => {
+          cameFrom.current = was;
+          return id;
+        });
+        return;
+      }
+      if (sections.some((section) => section.id === id)) {
+        cameFrom.current = null;
+        setActive(id);
+      }
     };
     window.addEventListener("record-section", selectSection);
     return () => window.removeEventListener("record-section", selectSection);
-  }, [sections]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections, aside.join(",")]);
 
   return (
     <div

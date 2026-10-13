@@ -14,7 +14,7 @@ export interface ArchivedList {
 }
 
 /**
- * R1.14. The saved lists that have been put away, and the way to bring one back.
+ * R1.14. The saved lists that have been archived, and the way to bring one back.
  *
  * A list lives inside the directory rather than on a screen of its own, so this
  * is the directory's own archived view, reached by the link at its foot.

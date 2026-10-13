@@ -5,7 +5,7 @@
 -- product as ready-made answers: a church picks the ones it uses, and the rest
 -- sit on the shelf until it does.
 --
--- Only the ones nobody holds and nobody has edited are put away here, so a
+-- Only the ones nobody holds and nobody has edited are archived here, so a
 -- church already running on Staff and Pastoral keeps them exactly as they are.
 update tenant_roles r
    set archived_at = now()

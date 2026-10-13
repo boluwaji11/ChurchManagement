@@ -37,7 +37,7 @@ export async function GroupsListScreen({
   // same list inside the app.
   const portal = readsAsMember(session);
 
-  /* R9.2. A group that has been put away comes off this screen and sits behind
+  /* R9.2. A group that has been archived comes off this screen and sits behind
      the one link under it, which is also the way back to bringing it out. */
   const putAway = manage && archived === "1";
 

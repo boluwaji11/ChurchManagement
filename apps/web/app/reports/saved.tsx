@@ -39,7 +39,7 @@ export function SavedReports({
   canShare = false,
 }: {
   reports: SavedCard[];
-  /** R24.6. Whether this is the list of the ones put away. */
+  /** R24.6. Whether this is the list of the ones archived. */
   putAway?: boolean;
   /** R18.x. Whether this reader may put one in front of the church. */
   canShare?: boolean;
@@ -127,7 +127,7 @@ export function SavedReports({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {putAway ? (
-                    /* R24.6. A report that has been put away has one thing
+                    /* R24.6. A report that has been archived has one thing
                        that can be done to it. */
                     <DropdownMenuItem
                       onSelect={() => {

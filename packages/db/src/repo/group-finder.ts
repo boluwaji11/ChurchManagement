@@ -92,7 +92,7 @@ export interface JoinRequest {
 const called = (row: { firstName: string; lastName: string; preferredName: string | null }) =>
   `${row.preferredName?.trim() || row.firstName} ${row.lastName}`;
 
-/** R9.2. How many groups have been put away, for the link to them. */
+/** R9.2. How many groups have been archived, for the link to them. */
 export async function countArchivedGroups(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
@@ -127,7 +127,7 @@ export async function findGroups(
      */
     manage?: boolean;
     /**
-     * R9.2. Only the groups that have been put away, which is the archived
+     * R9.2. Only the groups that have been archived, which is the archived
      * view. Read with `manage`, since nobody else is shown an archived group.
      */
     archivedOnly?: boolean;

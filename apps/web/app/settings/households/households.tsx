@@ -102,7 +102,7 @@ export function HouseholdList({
   households: HouseholdItem[];
   /** R2.4. The church's own country, which names the address lines. */
   country?: string;
-  /** R2.1. The families that have been put away, rather than the ones in use. */
+  /** R2.1. The families that have been archived, rather than the ones in use. */
   onlyArchived?: boolean;
 }) {
   const router = useRouter();
