@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  withTenant, getChurch, listOccurrences, listEvents,
+  withTenant, getChurch, listOccurrences, listEvents, listGroups,
   canManageServices,
 } from "@connectapp/db";
+import { upcomingMeetings } from "@connectapp/db/rules";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
@@ -146,6 +147,13 @@ export default async function CalendarPage({
        * the church has on, and a draft is not yet something it has on.
        */
       const events = (await listEvents(tx)).filter((one) => one.status === "published");
+      /*
+       * R9.2, R15.1. The groups that meet, worked out from each one's pattern
+       * rather than stored. A church reading its calendar and a church reading
+       * the dashboard's week were given two different answers to the same
+       * question: the small groups were on one and not the other.
+       */
+      const groups = await listGroups(tx);
       // R15.1. One colour a kind of thing: the services in the church's
       // purple, what it is putting on in green, so a week reads at a glance.
       const SERVICE_HUE = "violet";
@@ -167,6 +175,27 @@ export default async function CalendarPage({
               hue: SERVICE_HUE,
               href: `/services/${o.slug}/plan`,
             }));
+
+          for (const group of groups) {
+            if (group.archivedAt) continue;
+            const meets = upcomingMeetings(
+              { dayOfWeek: group.dayOfWeek, frequency: group.frequency },
+              date,
+              1,
+            );
+            if (meets[0] !== date) continue;
+
+            entries.push({
+              id: `${group.id}-${date}`,
+              title: group.name,
+              detail: [group.startsAt ? clock(group.startsAt) : null, group.location]
+                .filter(Boolean)
+                .join(" \u00b7 "),
+              /* The kind's own colour, which is what it wears everywhere else. */
+              hue: group.typeHue ?? "sky",
+              href: `/groups/${group.slug}`,
+            });
+          }
 
           for (const one of events) {
             // An event runs from its first day to its last, so a camp appears

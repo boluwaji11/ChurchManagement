@@ -115,7 +115,6 @@ export function Board({
                 style={{ background: `var(--hue-${stage.hue}-500)` }}
               />
               {stage.label}
-              <span className="ml-auto text-fg-subtle">{inStage.length}</span>
             </div>
 
             <div className="flex flex-col gap-2 sm:min-h-[140px]">

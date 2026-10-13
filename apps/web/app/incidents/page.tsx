@@ -113,8 +113,6 @@ export default async function IncidentsPage({
       back={{ href: "/checkin", label: t("checkin.title") }}
       max="max-w-[760px]"
     >
-      <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("incident.reports")}</h2>
-
       {incidents.length === 0 ? (
         <Empty icon="incident" title={t("incident.none.title")}
           body={t("incident.none.body")} action={filing} />
