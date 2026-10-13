@@ -30,7 +30,7 @@ import { CountCards } from "./count-cards";
 import { RepeatMark } from "./repeat-mark";
 import { Download } from "@/components/download";
 import { StopRepeating } from "./stop-repeating";
-import { Button, Tooltip } from "@connectapp/ui";
+import { Button, Tooltip, Thead, Th } from "@connectapp/ui";
 import { Panel, Nothing, Destination } from "./panel";
 import { GivingFilters } from "./filters";
 import { narrowingFrom, narrowingCount, periodRange } from "./narrowing";
@@ -220,7 +220,12 @@ export default async function GivingPage({
         </div>
 
         {/* R13.21. The two totals a treasurer is asked for, what the church
-            can plan on, and whether the online door is open. */}
+            can plan on, and whether the online door is open.
+
+            A church that has recorded no giving met four noughts, which say
+            four times over that it has not started. The invitation below says
+            it once and says what to do about it. */}
+        {nothing ? null : (
         <Figures>
           <Figure
             icon={<Banknote />}
@@ -264,6 +269,7 @@ export default async function GivingPage({
             hue="amber"
           />
         </Figures>
+        )}
 
         {/* R13.17, R13.16. The rest of a treasurer's year. These were three
             small links wedged into the side of a heading about something
@@ -355,27 +361,27 @@ export default async function GivingPage({
                       it rather than offering handles and a sideways scroll. */}
                   <div className="hidden sm:block">
                     <table className="w-full table-fixed border-collapse">
-                      <thead>
-                        <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                          <th className="w-[18%] px-5 py-2 text-left font-bold">
+                      <Thead>
+                        <tr>
+                          <Th className="w-[18%] px-5">
                             {t("giving.col.date")}
-                          </th>
+                          </Th>
                           {/* The name takes whatever the others do not. */}
-                          <th className="w-[32%] px-3 py-2 text-left font-bold">
+                          <Th className="w-[32%] px-3">
                             {t("giving.count.name")}
-                          </th>
-                          <th className="w-[17%] px-3 py-2 text-left font-bold">
+                          </Th>
+                          <Th className="w-[17%] px-3">
                             {t("giving.col.fund")}
-                          </th>
-                          <th className="w-[10%] px-3 py-2 text-left font-bold">
+                          </Th>
+                          <Th className="w-[10%] px-3">
                             {t("giving.col.method")}
-                          </th>
-                          <th className="w-[16%] px-3 py-2 text-right font-bold">
+                          </Th>
+                          <Th className="w-[16%] px-3 text-right">
                             {t("giving.count.counted")}
-                          </th>
-                          <th className="w-[7%] px-3 py-2" />
+                          </Th>
+                          <Th className="w-[7%] px-3" />
                         </tr>
-                      </thead>
+                      </Thead>
 
                       <tbody>
                         {read.counts.map((count) => (
@@ -509,30 +515,30 @@ export default async function GivingPage({
 
                   <div className="hidden sm:block">
                     <table className="w-full table-fixed border-collapse">
-                      <thead>
-                        <tr className="bg-sunken text-[12px] font-bold uppercase tracking-[0.04em] text-fg">
-                          <th className="w-[17%] px-5 py-2 text-left font-bold">
+                      <Thead>
+                        <tr>
+                          <Th className="w-[17%] px-5">
                             {t("giving.col.date")}
-                          </th>
+                          </Th>
                           {/* The giver takes whatever the others do not. */}
-                          <th className="w-[24%] px-3 py-2 text-left font-bold">
+                          <Th className="w-[24%] px-3">
                             {t("giving.col.giver")}
-                          </th>
-                          <th className="w-[15%] px-3 py-2 text-left font-bold">
+                          </Th>
+                          <Th className="w-[15%] px-3">
                             {t("giving.col.fund")}
-                          </th>
-                          <th className="w-[10%] px-3 py-2 text-left font-bold">
+                          </Th>
+                          <Th className="w-[10%] px-3">
                             {t("giving.col.method")}
-                          </th>
-                          <th className="w-[14%] px-3 py-2 text-right font-bold">
+                          </Th>
+                          <Th className="w-[14%] px-3 text-right">
                             {t("giving.col.amount")}
-                          </th>
-                          <th className="w-[13%] px-3 py-2 text-left font-bold">
+                          </Th>
+                          <Th className="w-[13%] px-3">
                             {t("giving.col.status")}
-                          </th>
-                          <th className="w-[7%] px-3 py-2" />
+                          </Th>
+                          <Th className="w-[7%] px-3" />
                         </tr>
-                      </thead>
+                      </Thead>
 
                       <tbody>
                         {giftRows(read.recent).map((row) => {
