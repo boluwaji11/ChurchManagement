@@ -48,12 +48,22 @@ export function LetterSheet({
       {rows.map((one, at) => (
         <article
           key={one.householdId}
-          className={at === rows.length - 1 ? "" : "break-after-page"}
+          /*
+           * A page of its own each, and on screen a sheet the writer can see
+           * the shape of. The height comes off in print: 297mm is taller than
+           * the paper a US printer is loaded with, so every letter spilled a
+           * few millimetres onto a second page and the stack came out of the
+           * printer interleaved with blanks.
+           */
+          className={
+            at === rows.length - 1
+              ? "min-h-[297mm] print:min-h-0"
+              : "min-h-[297mm] break-after-page print:min-h-0"
+          }
           /* 25mm all round, which is what a letter is typed in and what a
              window envelope expects to find the address behind. */
           style={{
             padding: "25mm 25mm 20mm",
-            minHeight: "297mm",
             fontFamily: LETTER_FACE[faceOf(font)].css,
           }}
         >
