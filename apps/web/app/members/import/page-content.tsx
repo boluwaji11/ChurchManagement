@@ -1,7 +1,7 @@
 import { withTenant, listImports, canEditPeople, canArchivePeople } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
-import { ScreenPanel } from "../screen-panel";
+import { ScreenPanel } from "@/components/screen-panel";
 import { ImportWizard } from "@/app/import/wizard";
 import { ImportHistory } from "@/app/import/history";
 import { Denied } from "@/components/denied";
@@ -62,5 +62,5 @@ export async function ImportPanelPage({}: ImportPageProps) {
     <Denied role={session.role} action="addPerson" church={session.tenantSlug} />
   );
 
-  return <ScreenPanel title={t("import.heading")}>{body}</ScreenPanel>;
+  return <ScreenPanel title={t("import.heading")} closeTo="/members">{body}</ScreenPanel>;
 }

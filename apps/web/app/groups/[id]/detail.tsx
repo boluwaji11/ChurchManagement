@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Check, Globe, Lock, LockOpen, PencilLine, X } from "lucide-react";
 import {
   Avatar, Banner, Button, IconButton, Spinner, Dialog, DialogContent, DialogFooter,
-  Tabs, TabsList, TabsTrigger, TabsContent,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import type { Meeting, MeetingPerson } from "@connectapp/db";
@@ -43,6 +42,10 @@ export interface DetailRequest {
  * three tabs, and under Overview the description, what is coming, what has
  * happened, and a column of facts down the right.
  */
+/** R24.6. Asks the window's rail to open a section, from inside another one. */
+const openSection = (id: string) =>
+  window.dispatchEvent(new CustomEvent("record-section", { detail: id }));
+
 export function GroupDetail({
   groupId,
   groupName,
@@ -98,7 +101,6 @@ export function GroupDetail({
   attendanceDays: { on: string; label: string }[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = React.useState("overview");
   const [removing, setRemoving] = React.useState<DetailMember | null>(null);
   const [error, setError] = useFormError(removing);
   const [deciding, setDeciding] = React.useState<(DetailRequest & { approve: boolean }) | null>(
@@ -225,19 +227,11 @@ export function GroupDetail({
         ) : null}
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        {/* R3.1. A member reads what the group is and asks to join it, so they
-            have the one screen and no bar over it: a row of tabs with a single
-            tab in it names a choice nobody has. */}
-        {canRecord ? (
-          <TabsList>
-            <TabsTrigger value="overview">{t("group.tab.overview")}</TabsTrigger>
-            <TabsTrigger value="members">{t("group.tab.members")}</TabsTrigger>
-            <TabsTrigger value="attendance">{t("group.tab.attendance")}</TabsTrigger>
-          </TabsList>
-        ) : null}
-
-        <TabsContent value="overview">
+      {/* R9.5, R24.6. The three parts of a group are sections of the window,
+          named down its rail, which is how a record reads everywhere else.
+          A reader who may not record attendance has one part and no rail. */}
+      <>
+        <section data-record-section id="overview" className="flex flex-col gap-7">
           <div className="flex flex-wrap items-stretch gap-10">
             <div className="flex min-w-0 flex-[2_1_440px] flex-col gap-7">
               {about ? (
@@ -256,13 +250,13 @@ export function GroupDetail({
                 title={plural("group.upcoming", upcoming.length)}
                 rows={upcoming}
                 hue={hue}
-                onTake={() => setTab("attendance")}
+                onTake={() => openSection("attendance")}
               />
               <MeetingList
                 title={plural("group.past", past.length)}
                 rows={past}
                 hue={hue}
-                onTake={() => setTab("attendance")}
+                onTake={() => openSection("attendance")}
               />
             </div>
 
@@ -349,10 +343,10 @@ export function GroupDetail({
               ) : null}
             </aside>
           </div>
-        </TabsContent>
+        </section>
 
         {canRecord ? (
-        <TabsContent value="members">
+        <section data-record-section id="members" className="flex flex-col gap-7">
           <div className="flex max-w-[680px] flex-col gap-4">
             <section className="overflow-hidden rounded-lg border border-line bg-surface">
               {members.map((member) => (
@@ -403,11 +397,11 @@ export function GroupDetail({
               ))}
             </section>
           </div>
-        </TabsContent>
+        </section>
         ) : null}
 
         {canRecord ? (
-          <TabsContent value="attendance">
+          <section data-record-section id="attendance" className="flex flex-col gap-7">
             <Register
               groupId={groupId}
               meeting={meeting}
@@ -415,9 +409,9 @@ export function GroupDetail({
               date={attendanceDate}
               days={attendanceDays}
             />
-          </TabsContent>
+          </section>
         ) : null}
-      </Tabs>
+      </>
 
       {/* R9.6. Letting somebody in, or turning them down. Both are answers the
           person on the other side will see, so both are asked about first. */}

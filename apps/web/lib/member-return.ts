@@ -1,16 +1,5 @@
-export function memberDirectoryReturnTo(value: unknown): string {
-  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) {
-    return "/members";
-  }
+import { returnToList } from "./return-to";
 
-  const origin = "https://connectapp.local";
-  try {
-    const destination = new URL(value, origin);
-    if (destination.origin !== origin || destination.pathname !== "/members") {
-      return "/members";
-    }
-    return `${destination.pathname}${destination.search}`;
-  } catch {
-    return "/members";
-  }
+export function memberDirectoryReturnTo(value: unknown): string {
+  return returnToList(value, "/members");
 }

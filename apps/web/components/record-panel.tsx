@@ -5,29 +5,33 @@ import { useRouter, usePathname } from "next/navigation";
 import { Button, Sheet, SheetContent } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { useDirty } from "@/components/form-actions";
-import { RecordBody } from "./record-body";
+import { RecordBody } from "@/components/record-body";
 
-export interface MemberPanelSection {
+export interface RecordPanelSection {
   id: string;
   label: string;
 }
 
-export function MemberPanel({
+export function RecordPanel({
   title,
   sections,
   actions,
   footer,
   formId,
-  closeTo = "/members",
+  width,
+  closeTo,
   children,
 }: {
   title: string;
-  sections: MemberPanelSection[];
+  /** The rail. A record with one part to read has none. */
+  sections?: RecordPanelSection[];
   actions?: React.ReactNode;
   footer?: React.ReactNode;
   formId?: string;
+  /** The window's width, where a record needs more room than the usual one. */
+  width?: string;
   /** Where closing lands, which is the list the record was opened from. */
-  closeTo?: string;
+  closeTo: string;
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -97,11 +101,17 @@ export function MemberPanel({
         actions={actions}
         footer={panelFooter}
         layout="centered"
-        width="880px"
+        width={width ?? "880px"}
         className="gap-0"
-        bodyClassName="min-h-0 gap-0 overflow-hidden p-0"
+        bodyClassName={
+          sections ? "min-h-0 gap-0 overflow-hidden p-0" : "min-h-0 gap-6 overflow-y-auto"
+        }
       >
-        <RecordBody sections={sections} className="flex-1">{children}</RecordBody>
+        {sections ? (
+          <RecordBody sections={sections} className="flex-1">{children}</RecordBody>
+        ) : (
+          children
+        )}
       </SheetContent>
     </Sheet>
   );

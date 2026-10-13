@@ -7,7 +7,7 @@ import { t } from "@connectapp/i18n";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
 import { memberDirectoryReturnTo } from "@/lib/member-return";
-import { MemberPanel } from "../member-panel";
+import { RecordPanel } from "@/components/record-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +69,7 @@ export async function NewPersonPanelPage({
   ];
 
   return (
-      <MemberPanel
+      <RecordPanel
         title={t("personForm.addTitle")}
         sections={sections}
         formId="person-form"
@@ -77,6 +77,6 @@ export async function NewPersonPanelPage({
         footer={permitted ? <PersonFormActions editing={false} /> : undefined}
       >
         {form}
-      </MemberPanel>
+      </RecordPanel>
   );
 }

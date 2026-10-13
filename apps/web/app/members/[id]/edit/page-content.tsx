@@ -12,7 +12,7 @@ import { t } from "@connectapp/i18n";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
 import { memberDirectoryReturnTo } from "@/lib/member-return";
-import { MemberPanel } from "../../member-panel";
+import { RecordPanel } from "@/components/record-panel";
 
 /** R17.1. What the browser tab says until the record names itself. */
 export async function generateMetadata({
@@ -113,7 +113,7 @@ export async function EditPersonPanelPage({
   ];
 
   return (
-      <MemberPanel
+      <RecordPanel
         title={t("personForm.editHeading", { name: display })}
         sections={sections}
         formId="person-form"
@@ -126,6 +126,6 @@ export async function EditPersonPanelPage({
           </Banner>
         ) : null}
         {form}
-      </MemberPanel>
+      </RecordPanel>
   );
 }

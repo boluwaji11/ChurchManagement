@@ -28,7 +28,7 @@ import { customFieldValue } from "../field-values";
 import { canReadConfidentialNotes, canAnswerMessages } from "@connectapp/db";
 import { tabMetadata } from "@/lib/page-metadata";
 import { memberDirectoryReturnTo } from "@/lib/member-return";
-import { MemberPanel, type MemberPanelSection } from "../member-panel";
+import { RecordPanel, type RecordPanelSection } from "@/components/record-panel";
 import { Milestones } from "../milestones";
 import { TagEditor } from "../tag-editor";
 import { Checks } from "../checks";
@@ -90,7 +90,7 @@ function RecordSection({
   return (
     <section
       id={id}
-      data-member-panel-section={id ? "" : undefined}
+      data-record-section={id ? "" : undefined}
       /* No rule under it. The window shows one section at a time, so a line
          below the last thing on screen separates nothing. */
       className="scroll-mt-4 flex flex-col gap-6"
@@ -319,7 +319,7 @@ export async function PersonPanelPage({
    * several of them held one line each. Things that answer the same question
    * now share a section and keep their own names inside it.
    */
-  const panelSections: MemberPanelSection[] = [
+  const panelSections: RecordPanelSection[] = [
     { id: "overview", label: t("personForm.section.details") },
     { id: "contact", label: t("personForm.section.contact") },
     { id: "household", label: t("person.household") },
@@ -335,7 +335,7 @@ export async function PersonPanelPage({
       {/* Their name, status and personal facts open the record. */}
       <section
         id="overview"
-        data-member-panel-section=""
+        data-record-section=""
         className="scroll-mt-4 flex flex-col gap-6"
       >
       <div className="flex flex-wrap items-center gap-5">
@@ -555,7 +555,7 @@ export async function PersonPanelPage({
   );
 
   return (
-      <MemberPanel
+      <RecordPanel
         title={display}
         sections={panelSections}
         actions={actions}
@@ -563,6 +563,6 @@ export async function PersonPanelPage({
         closeTo={returnTo ?? "/members"}
       >
         <div className="flex flex-col gap-5">{content}</div>
-      </MemberPanel>
+      </RecordPanel>
   );
 }
