@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Badge, Button, Card } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -10,6 +11,25 @@ import { Desk, type DeskRoom, type DeskService } from "./desk";
 import { Kiosk } from "./kiosk";
 
 const REMEMBERED = "hearth_station";
+
+/**
+ * R8.x, R24.11. Puts the app behind the station out of reach.
+ *
+ * The station is drawn over the shell rather than instead of it, so the
+ * church's navigation stayed under the fingers of anybody at the kiosk who
+ * pressed Tab: six presses from a queue of families reached the directory.
+ * `inert` takes the whole shell out of the tab order and away from a screen
+ * reader while the station is up, and gives it back on the way out.
+ */
+function useShellOutOfReach(on: boolean) {
+  React.useEffect(() => {
+    if (!on) return;
+    const shell = document.querySelector<HTMLElement>("[data-app-shell]");
+    if (!shell) return;
+    shell.setAttribute("inert", "");
+    return () => shell.removeAttribute("inert");
+  }, [on]);
+}
 
 export interface StationOption {
   id: string;
@@ -85,6 +105,13 @@ export function StationPicker({
     });
   };
 
+  const station = stations.find((s) => s.id === chosen);
+
+  /* Above the early return, because a hook that runs only sometimes is a hook
+     that runs never: the dock this product once shipped was invisible for a
+     week for exactly that. */
+  useShellOutOfReach(ready && Boolean(station));
+
   if (!ready) return null;
 
   /*
@@ -101,6 +128,9 @@ export function StationPicker({
     chrome ? (
       <div className="mx-auto w-full max-w-3xl">{content}</div>
     ) : (
+      /* Out of the shell's own tree, so making the shell inert does not make
+         the station inert with it. */
+      createPortal(
       <div
         data-theme="light"
         data-density="station"
@@ -116,7 +146,9 @@ export function StationPicker({
         }}
       >
         <div className="mx-auto w-full max-w-3xl">{content}</div>
-      </div>
+      </div>,
+      document.body,
+      )
     );
 
   if (stations.length === 0) {
@@ -136,8 +168,6 @@ export function StationPicker({
       true,
     );
   }
-
-  const station = stations.find((s) => s.id === chosen);
 
   if (station) {
     return page(
