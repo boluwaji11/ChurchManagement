@@ -66,7 +66,20 @@ export function MemberPanel({
         </Button>
       </div>
     </div>
-  ) : footer;
+  ) : (
+    /*
+     * R24.6. The window's own footer: whatever the record puts there, and
+     * Close. Named rather than left to the square in the corner, because a
+     * standalone action keeps its words, and the square is a long way from
+     * where a reader finishes reading.
+     */
+    <div className="flex w-full flex-wrap items-center justify-end gap-2">
+      {footer}
+      <Button onClick={() => (dirty ? setConfirmClose(true) : leave())}>
+        {t("common.close")}
+      </Button>
+    </div>
+  );
 
   return (
     <Sheet
