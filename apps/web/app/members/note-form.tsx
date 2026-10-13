@@ -46,7 +46,9 @@ export function NoteForm({
   const [pending, startTransition] = React.useTransition();
 
   const formId = React.useId();
-  const full = useAnswered(formId, inline || open);
+  /* Both shapes now wait for a press, so both watch the form only once it is
+     on screen. Watching a form that is not rendered answers nothing. */
+  const full = useAnswered(formId, open);
 
   /*
    * Who may read it is a decision about this note. Inherited from the last one,
@@ -102,10 +104,31 @@ export function NoteForm({
   );
 
   if (inline) {
+    /*
+     * R24.6. Folded away until it is wanted.
+     *
+     * It used to stand open under the history, so every reader of a record met
+     * an empty box and a Save they had no use for, and the history they came
+     * to read was pushed below it. Writing a note is a thing somebody decides
+     * to do, so it begins with a press.
+     */
+    if (!open) {
+      return (
+        <div className="flex">
+          <Button variant="secondary" onClick={() => setOpen(true)}>
+            <Plus /> {t("notes.add")}
+          </Button>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col gap-4">
         {body}
         <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={() => close(false)}>
+            {t("action.cancel")}
+          </Button>
           <Button type="submit" form={formId} loading={pending} disabled={!full}>
             {t("notes.save")}
           </Button>
