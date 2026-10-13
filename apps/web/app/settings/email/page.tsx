@@ -88,46 +88,64 @@ export default async function EmailPage({
         </Banner>
       ) : null}
 
-      <EmailSetup
-        provider={read.provider}
-        domain={
-          read.domain
-            ? { ...read.domain, checkedAt: read.domain.checkedAt?.toISOString() ?? null }
-            : null
-        }
-      />
+      {/*
+        * R24.6. The job on the left, what is already there on the right.
+        *
+        * These were two screens and then one long one, and a volunteer
+        * checking a record against the reading was scrolling between two
+        * halves of the same question. The setting up is the wide column
+        * because its cards and its records need the width; the reading is a
+        * list of four lines and sits beside it. Under a wide screen they
+        * stack, setting up first.
+        */}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <EmailSetup
+          provider={read.provider}
+          domain={
+            read.domain
+              ? { ...read.domain, checkedAt: read.domain.checkedAt?.toISOString() ?? null }
+              : null
+          }
+          church={{
+            name: read.profile?.name ?? "",
+            email: read.profile?.email ?? "",
+          }}
+        />
 
-      <section className="flex flex-col gap-4 border-t border-line pt-6">
-        <h3 className="m-0 font-display text-[18px] leading-6 text-fg">
-          {t("settings.tab.domain")}
-        </h3>
+        <section className="flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5">
+          <h3 className="m-0 font-display text-[17px] leading-6 text-fg">
+            {t("settings.tab.domain")}
+          </h3>
 
-        {!website ? (
-          <Banner tone="info">
-            {t("domain.none")}{" "}
-            <Link href="/settings/church" className="font-medium text-primary">
-              {t("domain.addOne")}
-            </Link>
-          </Banner>
-        ) : !found ? (
-          <Banner tone="danger">{t("domain.error.notADomain")}</Banner>
-        ) : (
-          /* The records a church has to add come from its own provider, and
-             they are on the connection above. This says what is there today. */
-          <DomainReading
-            found={found}
-            plan={false}
-            fix={
-              <Link
-                href="/settings/church"
-                className="inline-flex items-center gap-1 font-medium text-primary underline-offset-2 hover:underline"
-              >
-                {t("domain.churchProfile")} <ArrowRight className="size-[14px]" aria-hidden />
+          {!website ? (
+            <Banner tone="info">
+              {t("domain.none")}{" "}
+              <Link href="/settings/church" className="font-medium text-primary">
+                {t("domain.addOne")}
               </Link>
-            }
-          />
-        )}
-      </section>
+            </Banner>
+          ) : !found ? (
+            <Banner tone="danger">{t("domain.error.notADomain")}</Banner>
+          ) : (
+            /* The records a church has to add come from its own provider, and
+               they are on the connection beside this. This says what is there
+               today. */
+            <DomainReading
+              found={found}
+              plan={false}
+              fix={
+                <Link
+                  href="/settings/church"
+                  className="inline-flex items-center gap-1 font-medium text-primary underline-offset-2 hover:underline"
+                >
+                  {t("domain.churchProfile")} <ArrowRight className="size-[14px]" aria-hidden />
+                </Link>
+              }
+            />
+          )}
+        </section>
+      </div>
+
     </>
   );
 }

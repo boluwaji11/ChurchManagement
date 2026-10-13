@@ -37,9 +37,12 @@ export interface DomainState {
 export function EmailSetup({
   provider,
   domain,
+  church,
 }: {
   provider: EmailProvider | null;
   domain: DomainState | null;
+  /** R16.1. What the church already told us, so nothing is asked twice. */
+  church: { name: string; email: string };
 }) {
   const router = useRouter();
   const [busy, setBusy] = React.useState<string | null>(null);
@@ -86,6 +89,7 @@ export function EmailSetup({
             what={t("email.smtp.what")}
             action={
               <SmtpSheet
+                church={church}
                 busy={busy !== null}
                 onSave={(data) => act(() => connectSmtp(data), t("email.testing"))}
               />
@@ -95,7 +99,7 @@ export function EmailSetup({
             icon={<Mail />}
             title={t("email.resend.title")}
             what={t("email.resend.what")}
-            action={<ResendSheet busy={busy !== null} />}
+            action={<ResendSheet church={church} busy={busy !== null} />}
           />
         </div>
       )}
@@ -293,16 +297,28 @@ function Copyable({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** The two fields both vendors need, asked in the same words in both panels. */
-function Sender() {
+/**
+ * The two fields both vendors need, asked in the same words in both panels.
+ *
+ * Filled in from what the church already told us on its own profile, because
+ * asking a church its own name twice is asking it to wonder which answer this
+ * screen means.
+ */
+function Sender({ church }: { church: { name: string; email: string } }) {
   return (
     <>
       <Field label={t("email.from.name")}>
-        <Input name="fromName" autoComplete="off" placeholder={t("email.from.namePlaceholder")} />
+        <Input
+          name="fromName"
+          defaultValue={church.name}
+          autoComplete="off"
+          placeholder={t("email.from.namePlaceholder")}
+        />
       </Field>
       <Field label={t("email.from.address")} required>
         <Input
           name="fromAddress"
+          defaultValue={church.email}
           autoComplete="off"
           inputMode="email"
           placeholder={t("email.from.addressPlaceholder")}
@@ -313,9 +329,11 @@ function Sender() {
 }
 
 function SmtpSheet({
+  church,
   busy,
   onSave,
 }: {
+  church: { name: string; email: string };
   busy: boolean;
   onSave: (data: FormData) => Promise<boolean>;
 }) {
@@ -370,7 +388,7 @@ function SmtpSheet({
           noValidate
           className="flex flex-col gap-4"
         >
-          <Sender />
+          <Sender church={church} />
 
           <Field label={t("email.smtp.host")} required>
             <Input name="host" autoComplete="off" placeholder={t("email.smtp.hostPlaceholder")} />
@@ -400,7 +418,13 @@ function SmtpSheet({
   );
 }
 
-function ResendSheet({ busy }: { busy: boolean }) {
+function ResendSheet({
+  church,
+  busy,
+}: {
+  church: { name: string; email: string };
+  busy: boolean;
+}) {
   const [open, setOpen] = React.useState(false);
   const [dirty, setDirty] = React.useState(false);
   const [going, setGoing] = React.useState(false);
@@ -429,7 +453,7 @@ function ResendSheet({ busy }: { busy: boolean }) {
             <Button type="button" variant="ghost" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form={formId} disabled={busy || going || !dirty || !full}>
+            <Button type="submit" form={formId} disabled={busy || going || !full}>
               {going ? t("email.resend.leaving") : t("email.resend.go")}
             </Button>
           </>
@@ -463,7 +487,7 @@ function ResendSheet({ busy }: { busy: boolean }) {
               rather than found out afterwards. */}
           <Banner tone="info">{t("email.resend.access")}</Banner>
 
-          <Sender />
+          <Sender church={church} />
 
           <p className="m-0 text-fg-muted">{t("email.resend.free")}</p>
         </form>
