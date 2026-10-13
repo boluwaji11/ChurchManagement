@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Archive, ArchiveRestore, ArrowLeft, Check, Download, Eye, Link2, Paperclip, Pencil,
+  Archive, ArchiveRestore, Check, Download, Eye, Link2, Paperclip, Pencil,
 } from "lucide-react";
 import {
   Banner, Button, IconButton, Spinner, cn,
@@ -23,8 +23,6 @@ import { Pages } from "@/components/pages";
 import { ResizableTable } from "@/components/resizable-columns";
 
 const PER_PAGE = 10;
-
-type Tab = "overview" | "registrations";
 
 /**
  * R4.1. The files on one answer, as links that sign themselves when pressed.
@@ -76,7 +74,6 @@ export function EventView({
   coverUrl,
   registrations,
   questions,
-  tab,
 }: {
   /** R14.2, R17.1. The address the public page answers on, built on the server. */
   publicLink: string;
@@ -86,7 +83,6 @@ export function EventView({
   registrations: EventRegistration[];
   /** R14.5. The event's questions, which name the roster's extra columns. */
   questions: { id: string; label: string; kind: string }[];
-  tab: Tab;
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -141,94 +137,8 @@ export function EventView({
   const address = oneLineAddress(place);
   const directions = directionsLink(place);
 
-  const showing: Tab = event.takesRegistrations ? tab : "overview";
-
-  const go = (next: Tab) => {
-    const query = next === "overview" ? "" : `&tab=${next}`;
-    router.push(`/events/${event.slug}${query}`, { scroll: false });
-  };
-
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {/* R24.6. Back on the left, and on the right the three things done to
-          the event itself: look at it as the congregation will, change it, put
-          it away. The bar below is about registrations. */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Link
-          href={"/events"}
-          className="inline-flex flex-1 items-center gap-1.5 font-medium text-primary"
-        >
-          <ArrowLeft className="size-4" /> {t("event.title")}
-        </Link>
-
-        <Button variant="secondary" asChild>
-          <a
-            href={`/events/${event.slug}/preview`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <Eye className="size-4" aria-hidden /> {t("event.preview")}
-          </a>
-        </Button>
-
-        <Button
-          variant="ghost"
-          asChild
-          className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
-        >
-          <Link
-            href={`/events/${event.slug}/edit`}
-            aria-label={t("action.edit")}
-            title={t("action.edit")}
-          >
-            <Pencil />
-          </Link>
-        </Button>
-
-        {event.archivedAt ? (
-          <IconButton
-            label={t("event.restore")}
-            disabled={pending}
-            onClick={() => run("restore", () => archiveEvent(event.id, false))}
-          >
-            {doing === "restore" ? (
-              <Spinner label={t("event.restore")} />
-            ) : (
-              <ArchiveRestore />
-            )}
-          </IconButton>
-        ) : (
-          <Dialog>
-            <DialogTrigger asChild>
-              <IconButton label={t("event.archive")} disabled={pending}>
-                <Archive />
-              </IconButton>
-            </DialogTrigger>
-            <DialogContent
-              title={t("event.archiveTitle", { name: event.name })}
-              closeLabel={t("common.close")}
-            >
-              <DialogFooter>
-                <Button
-                  type="button"
-                  loading={pending}
-                  onClick={() => {
-                    setDoing("archive");
-                    startTransition(async () => {
-                      const result = await archiveEvent(event.id, true);
-                      if (result.error) setError(result.error);
-                      else router.push("/events");
-                    });
-                  }}
-                >
-                  {t("event.archive")}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
-
       {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* The name and when on the left, the cover beside them, which is what
@@ -245,24 +155,18 @@ export function EventView({
             {t(`event.status.${event.status}` as never)}
           </span>
 
-          <h1 className="font-display text-[32px] leading-[38px] text-fg">{event.name}</h1>
-
-          <p className="text-[length:var(--d-text-body)] text-fg-muted">
-            {when}
-            {until ? ` ${t("event.toDate", { date: until })}` : ""}
-            {event.location ? ` · ${event.location}` : ""}
-          </p>
         </div>
 
+        {/* R24.6. A cover where there is one. The tinted block that stood in
+            for a missing picture was a third of the record in one colour,
+            above the thing somebody opened the event to read. */}
         {coverUrl ? (
-          <img src={coverUrl} alt="" className="aspect-[16/9] w-full rounded-[14px] object-cover" />
-        ) : (
-          <div
-            aria-hidden
-            className="aspect-[16/9] w-full rounded-[14px]"
-            style={{ background: `var(--hue-${event.hue}-tint)` }}
+          <img
+            src={coverUrl}
+            alt=""
+            className="aspect-[21/9] max-h-[260px] w-full rounded-[14px] object-cover"
           />
-        )}
+        ) : null}
       </div>
 
       {/* Whether it is taking registrations, and the actions that change it. */}
@@ -344,33 +248,7 @@ export function EventView({
 
       </div>
 
-      {/* The tabs, drawn only where there is a choice. An announcement has one
-          thing to look at, and a strip of one tab is a control that does
-          nothing. */}
-      {event.takesRegistrations ? (
-      <div className="flex items-center gap-1 self-start rounded-md bg-sunken p-[3px] -mb-1">
-        {(["overview", "registrations"] as const).map((one) => (
-          <button
-            key={one}
-            type="button"
-            onClick={() => go(one)}
-            aria-pressed={showing === one}
-            className={cn(
-              "h-8 cursor-pointer rounded-sm px-3.5 text-[13px] font-medium",
-              showing === one ? "bg-surface text-fg shadow-sm" : "text-fg-muted hover:text-fg",
-            )}
-          >
-            {t(`event.tab.${one}` as never)}
-          </button>
-        ))}
-      </div>
-      ) : null}
-
-      {/* A hairline under the tabs, so what they switch reads as the panel
-          they belong to rather than as the next thing down the page. */}
-      {event.takesRegistrations ? <span aria-hidden className="h-px w-full bg-line" /> : null}
-
-      {showing === "overview" ? (
+      <section data-record-section id="overview" className="flex flex-col gap-6">
         <div className="flex flex-wrap items-start gap-10">
           <div className="flex min-w-0 flex-[999_1_420px] flex-col gap-6">
             <Block label={t("event.about")}>
@@ -415,10 +293,14 @@ export function EventView({
 
           </aside>
         </div>
-      ) : null}
+      </section>
 
-      {showing === "registrations" ? (
-        registrations.length === 0 ? (
+      {/* R14.12. Only where there is something to register for. An
+          announcement had an empty roster under it saying nobody had signed up
+          for a thing nobody could sign up for. */}
+      {event.takesRegistrations ? (
+      <section data-record-section id="registrations" className="flex flex-col gap-6">
+        {registrations.length === 0 ? (
           <Empty icon="members" title={t("event.registrations.none")}
                 body={t("event.registrations.none.body")} />
         ) : (
@@ -616,7 +498,8 @@ export function EventView({
               anchor="event-registrations-rows"
             />
           </div>
-        )
+        )}
+      </section>
       ) : null}
 
     </div>
@@ -640,5 +523,103 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-[12px] font-bold tracking-[0.06em] text-fg uppercase">{label}</span>
       {children}
     </div>
+  );
+}
+
+/**
+ * R14.1, R24.6. What a church does to the event itself, on the window's own
+ * row of marks: look at it as the congregation will, change it, put it away.
+ */
+export function EventActions({ event }: { event: ChurchEvent }) {
+  const router = useRouter();
+  const [error, setError] = React.useState<string>();
+  const [pending, startTransition] = React.useTransition();
+  const [doing, setDoing] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!pending) setDoing(undefined);
+  }, [pending]);
+
+  const run = (key: string, work: () => Promise<{ error?: string }>) => {
+    setDoing(key);
+    startTransition(async () => {
+      const result = await work();
+      setError(result.error);
+      if (!result.error) router.refresh();
+    });
+  };
+
+  return (
+    <>
+      {error ? <Banner tone="danger">{error}</Banner> : null}
+      <div className="flex items-center gap-1">
+        {/* Looked at as the congregation will see it, in its own tab. */}
+        <Tooltip content={t("event.preview")}>
+          <a
+            href={`/events/${event.slug}/preview`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={t("event.preview")}
+            className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
+          >
+            <Eye />
+          </a>
+        </Tooltip>
+
+        <Tooltip content={t("action.edit")}>
+          <Link
+            href={`/events/${event.slug}/edit`}
+            aria-label={t("action.edit")}
+            className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
+          >
+            <Pencil />
+          </Link>
+        </Tooltip>
+
+        {event.archivedAt ? (
+          <IconButton
+            label={t("event.restore")}
+            disabled={pending}
+            onClick={() => run("restore", () => archiveEvent(event.id, false))}
+          >
+            {doing === "restore" ? (
+              <Spinner label={t("event.restore")} />
+            ) : (
+              <ArchiveRestore />
+            )}
+          </IconButton>
+        ) : (
+          <Dialog>
+            <DialogTrigger asChild>
+              <IconButton label={t("event.archive")} disabled={pending}>
+                <Archive />
+              </IconButton>
+            </DialogTrigger>
+            <DialogContent
+              title={t("event.archiveTitle", { name: event.name })}
+              closeLabel={t("common.close")}
+            >
+              <DialogFooter>
+                <Button
+                  type="button"
+                  loading={pending}
+                  onClick={() => {
+                    setDoing("archive");
+                    startTransition(async () => {
+                      const result = await archiveEvent(event.id, true);
+                      if (result.error) setError(result.error);
+                      else router.push("/events");
+                    });
+                  }}
+                >
+                  {t("event.archive")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+    </>
   );
 }

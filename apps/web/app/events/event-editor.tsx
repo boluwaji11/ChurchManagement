@@ -91,12 +91,15 @@ export function EventEditor({
   coverUrl,
   forms,
   today,
+  panelled,
 }: {
   church: string;
   event?: EventDraft;
   coverUrl?: string | null;
   /** R14.5. The forms this church has, to answer at registration. */
   forms: { id: string; name: string }[];
+  /** R24.6. Save rides the window's footer, so the form draws none of its own. */
+  panelled?: boolean;
   /** The church's own date, so a picker's floor is its today rather than ours. */
   today: string;
 }) {
@@ -359,10 +362,14 @@ export function EventEditor({
       {error ? <Banner tone="danger">{error}</Banner> : null}
 
       {/* Save sits at the top right, where every other edit screen puts it,
-          rather than at the end of a page somebody has to scroll to reach. */}
-      <div className="flex justify-end">
-        <FormActions form="event-form" label={event ? t("event.save") : t("event.create")} />
-      </div>
+          rather than at the end of a page somebody has to scroll to reach.
+          In the window it is on the footer, with the rest of the window's own
+          presses. */}
+      {panelled ? null : (
+        <div className="flex justify-end">
+          <EventFormActions editing={Boolean(event)} />
+        </div>
+      )}
 
       {/* The name and when on the left, the cover beside them, the two columns
           the event's own page opens with. */}
@@ -617,5 +624,12 @@ export function EventEditor({
       </div>
 
     </form>
+  );
+}
+
+/** R24.6. The press that saves an event, wherever the form is drawn. */
+export function EventFormActions({ editing }: { editing: boolean }) {
+  return (
+    <FormActions form="event-form" label={editing ? t("event.save") : t("event.create")} />
   );
 }
