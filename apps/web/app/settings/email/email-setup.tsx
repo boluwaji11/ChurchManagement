@@ -13,6 +13,7 @@ import type { EmailProvider, PlannedRecord } from "@connectapp/db";
 import { usePanelGuard } from "@/components/panel-guard";
 import { useAnswered } from "@/components/form-actions";
 import { when } from "@/lib/when";
+import { Stages } from "@/components/stages";
 import {
   connectSmtp, checkRecords, disconnectEmail, type EmailResult,
 } from "./actions";
@@ -40,6 +41,7 @@ export function EmailSetup({
   church,
   registrar,
   console_,
+  dkimTaken,
 }: {
   provider: EmailProvider | null;
   domain: DomainState | null;
@@ -48,8 +50,17 @@ export function EmailSetup({
   /** R22.2. Who answers for the domain, and where its settings are typed. */
   registrar: string | null;
   console_: string | null;
+  /** R22.2. Whether something else already signs mail for this domain. */
+  dkimTaken: boolean;
 }) {
   const router = useRouter();
+  /*
+   * Which way the church is going, once it has picked. Resend is two things in
+   * order and gets a path of its own rather than a panel, because a church
+   * that has done the first half should see the second half waiting rather
+   * than a screen that looks finished with it.
+   */
+  const [way, setWay] = React.useState<"resend" | null>(null);
   const [busy, setBusy] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -79,36 +90,51 @@ export function EmailSetup({
         <Connected
           provider={provider}
           domain={domain}
+          dkimTaken={dkimTaken}
           registrar={registrar}
           console_={console_}
           busy={busy !== null}
           onCheck={() => void act(checkRecords, t("email.checking"))}
           onDisconnect={() => void act(disconnectEmail, t("email.saving"))}
         />
+      ) : way === "resend" ? (
+        <ResendPath
+          church={church}
+          busy={busy !== null}
+          onBack={() => setWay(null)}
+        />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* A church picking between its own mail server and a sending
-              service cannot pick without being told the difference, so each
-              card says what that option does. */}
-          <Choice
-            icon={<Server />}
-            title={t("email.smtp.title")}
-            what={t("email.smtp.what")}
-            action={
-              <SmtpSheet
-                church={church}
-                busy={busy !== null}
-                onSave={(data) => act(() => connectSmtp(data), t("email.testing"))}
-              />
-            }
-          />
-          <Choice
-            icon={<Mail />}
-            title={t("email.resend.title")}
-            what={t("email.resend.what")}
-            action={<ResendSheet church={church} busy={busy !== null} />}
-          />
-        </div>
+        <section className="flex flex-col gap-4">
+          {/* R24.6. The screen opens on the question rather than on two cards
+              a church has to work out the point of. */}
+          <h3 className="m-0 font-display text-[18px] leading-6 text-fg">{t("email.choose")}</h3>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* A church picking between its own mail server and a sending
+                service cannot pick without being told the difference, so each
+                card says what that option does. */}
+            <Choice
+              icon={<Server />}
+              title={t("email.smtp.title")}
+              what={t("email.smtp.what")}
+              action={
+                <SmtpSheet
+                  church={church}
+                  busy={busy !== null}
+                  onSave={(data) => act(() => connectSmtp(data), t("email.testing"))}
+                />
+              }
+            />
+            <Choice
+              icon={<Mail />}
+              title={t("email.resend.title")}
+              what={t("email.resend.what")}
+              action={
+                <Button onClick={() => setWay("resend")}>{t("email.resend.connect")}</Button>
+              }
+            />
+          </div>
+        </section>
       )}
     </div>
   );
@@ -140,6 +166,7 @@ function Choice({
 function Connected({
   provider,
   domain,
+  dkimTaken,
   registrar,
   console_,
   busy,
@@ -148,14 +175,30 @@ function Connected({
 }: {
   provider: EmailProvider;
   domain: DomainState | null;
+  dkimTaken: boolean;
   registrar: string | null;
   console_: string | null;
   busy: boolean;
   onCheck: () => void;
   onDisconnect: () => void;
 }) {
+  const verified = domain?.state === "verified";
+
   return (
     <Card className="flex flex-col gap-5 p-5">
+      {/* R24.6. Resend is two things in order, and a church that has done the
+          first wants to see that there is one left rather than wonder whether
+          the screen is finished with it. The mail server a church already has
+          is one thing, so it shows none of this. */}
+      {provider.vendor === "resend" ? (
+        <div className="mx-auto w-full max-w-[460px] px-6 pb-1 pt-1">
+          <Stages
+            labels={[t("email.stage.connect"), t("email.stage.records")]}
+            at={verified ? 3 : 2}
+          />
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1">
           <span className="inline-flex items-center gap-2 font-display text-[17px] leading-6 text-fg">
@@ -174,12 +217,13 @@ function Connected({
           </span>
         </div>
 
-        <DisconnectDialog busy={busy} onConfirm={onDisconnect} />
+        <DisconnectDialog vendor={provider.vendor} busy={busy} onConfirm={onDisconnect} />
       </div>
 
       {domain ? (
         <Records
           domain={domain}
+          dkimTaken={dkimTaken}
           registrar={registrar}
           console_={console_}
           busy={busy}
@@ -190,7 +234,15 @@ function Connected({
   );
 }
 
-function DisconnectDialog({ busy, onConfirm }: { busy: boolean; onConfirm: () => void }) {
+function DisconnectDialog({
+  vendor,
+  busy,
+  onConfirm,
+}: {
+  vendor: string;
+  busy: boolean;
+  onConfirm: () => void;
+}) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -201,8 +253,12 @@ function DisconnectDialog({ busy, onConfirm }: { busy: boolean; onConfirm: () =>
           {t("email.disconnect")}
         </Button>
       </DialogTrigger>
-      <DialogContent title={t("email.disconnect.ask")} closeLabel={t("common.close")}>
-        <p className="m-0 text-fg-muted">{t("email.disconnect.what")}</p>
+      {/* R24.6. A destructive confirmation earns its title and its buttons.
+          The sentence that was under it said what Disconnect plainly does. */}
+      <DialogContent
+        title={t(`email.disconnect.ask.${vendor === "resend" ? "resend" : "smtp"}` as never)}
+        closeLabel={t("common.close")}
+      >
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
             {t("action.cancel")}
@@ -233,12 +289,15 @@ function DisconnectDialog({ busy, onConfirm }: { busy: boolean; onConfirm: () =>
  */
 function Records({
   domain,
+  dkimTaken,
   registrar,
   console_,
   busy,
   onCheck,
 }: {
   domain: DomainState;
+  /** R22.2. Whether something else already signs mail for this domain. */
+  dkimTaken: boolean;
   /** R22.2. The company that answers for the domain, where we know it. */
   registrar: string | null;
   /** The page at that company where these are typed in. */
@@ -274,6 +333,10 @@ function Records({
           </Button>
         </div>
       </div>
+
+      {/* R22.2. The only line worth keeping from the domain reading, which was
+          a panel of four and three of them nothing anybody could act on. */}
+      {dkimTaken ? <Banner tone="danger">{t("email.records.taken")}</Banner> : null}
 
       <Banner tone={domain.state === "verified" ? "success" : "info"}>
         {domain.state === "verified" ? t("email.domain.verified") : t("email.domain.pending")}
@@ -462,80 +525,72 @@ function SmtpSheet({
   );
 }
 
-function ResendSheet({
+/**
+ * HRT-288, R16.1. The Resend path, which is two things in order.
+ *
+ * On the screen rather than in a panel, because the second thing happens
+ * somewhere else entirely, at the company that answers for the church's
+ * domain, and a church comes back to this screen to finish it. A panel that
+ * opened, sent somebody to Resend and was gone when they returned would have
+ * told them nothing about where they had got to.
+ */
+function ResendPath({
   church,
   busy,
+  onBack,
 }: {
   church: { name: string; email: string };
   busy: boolean;
+  onBack: () => void;
 }) {
-  const [open, setOpen] = React.useState(false);
-  const [dirty, setDirty] = React.useState(false);
   const [going, setGoing] = React.useState(false);
   const formId = React.useId();
-  const full = useAnswered(formId, open);
-
-  const close = (next: boolean) => {
-    setOpen(next);
-    if (!next) {
-      setDirty(false);
-      setGoing(false);
-    }
-  };
-  const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
+  const full = useAnswered(formId);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetTrigger asChild>
-        <Button>{t("email.resend.connect")}</Button>
-      </SheetTrigger>
-      <SheetContent
-        title={t("email.resend.connect")}
-        closeLabel={t("common.close")}
-        footer={
-          <>
-            <Button type="button" variant="ghost" onClick={() => close(false)}>
-              {t("action.cancel")}
-            </Button>
-            <Button type="submit" form={formId} disabled={busy || going || !full}>
-              {going ? t("email.resend.leaving") : t("email.resend.go")}
-            </Button>
-          </>
-        }
+    <Card className="flex flex-col gap-6 p-5">
+      <Working open={going} label={t("email.resend.leaving")} />
+
+      {/* Held to the width of the form under it, so the two dots read as a
+          pair rather than as one at each end of the card. */}
+      <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
+        <Stages labels={[t("email.stage.connect"), t("email.stage.records")]} at={1} />
+      </div>
+
+      <form
+        id={formId}
+        /* It leaves the product rather than saving anything, and the whole
+           handshake is set up on the server: the browser never holds
+           anything Resend would accept. */
+        onSubmit={(event) => {
+          event.preventDefault();
+          const data = new FormData(event.currentTarget);
+          const where = new URL("/api/providers/resend/start", window.location.origin);
+          where.searchParams.set("from", String(data.get("fromAddress") ?? ""));
+          where.searchParams.set("name", String(data.get("fromName") ?? ""));
+          setGoing(true);
+          window.location.href = where.toString();
+        }}
+        noValidate
+        className="mx-auto flex w-full max-w-[460px] flex-col gap-4"
       >
-        {guard}
-        <Working open={going} label={t("email.resend.leaving")} />
+        {/* R21.15. What the church is agreeing to, said where the press is
+            rather than found out afterwards. */}
+        <Banner tone="info">{t("email.resend.access")}</Banner>
 
-        <form
-          id={formId}
-          onInput={() => setDirty(true)}
-          /*
-           * This one leaves the product rather than saving anything. The two
-           * answers go with it so the church is not asked them again on the
-           * way back, and the whole handshake is set up on the server: the
-           * browser never holds anything Resend would accept.
-           */
-          onSubmit={(event) => {
-            event.preventDefault();
-            const data = new FormData(event.currentTarget);
-            const where = new URL("/api/providers/resend/start", window.location.origin);
-            where.searchParams.set("from", String(data.get("fromAddress") ?? ""));
-            where.searchParams.set("name", String(data.get("fromName") ?? ""));
-            setGoing(true);
-            window.location.href = where.toString();
-          }}
-          noValidate
-          className="flex flex-col gap-4"
-        >
-          {/* R21.15. What the church is agreeing to, said where the press is
-              rather than found out afterwards. */}
-          <Banner tone="info">{t("email.resend.access")}</Banner>
+        <Sender church={church} />
 
-          <Sender church={church} />
+        <p className="m-0 text-fg-muted">{t("email.resend.free")}</p>
 
-          <p className="m-0 text-fg-muted">{t("email.resend.free")}</p>
-        </form>
-      </SheetContent>
-    </Sheet>
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <Button type="button" variant="ghost" onClick={onBack} disabled={going}>
+            {t("email.chooseBack")}
+          </Button>
+          <Button type="submit" disabled={busy || going || !full}>
+            {going ? t("email.resend.leaving") : t("email.resend.go")}
+          </Button>
+        </div>
+      </form>
+    </Card>
   );
 }
