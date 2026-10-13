@@ -584,7 +584,7 @@ function ResendPath({
 
         <div className="flex items-center justify-between gap-3 pt-1">
           <Button type="button" variant="ghost" onClick={onBack} disabled={going}>
-            {t("email.chooseBack")}
+            {t("action.back")}
           </Button>
           <Button type="submit" disabled={busy || going || !full}>
             {going ? t("email.resend.leaving") : t("email.resend.go")}
