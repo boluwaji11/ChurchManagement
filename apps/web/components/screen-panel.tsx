@@ -6,7 +6,7 @@ import { Sheet, SheetContent } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /**
- * R24.6. A member screen that is not a sectioned record, over the directory.
+ * R24.6. A screen that is not a sectioned record, over the list it belongs to.
  *
  * MemberPanel carries a section rail and a dirty-form guard because a record
  * is written in it. These screens read, so the panel is the window alone.
@@ -14,13 +14,18 @@ import { t } from "@connectapp/i18n";
 export function ScreenPanel({
   title,
   actions,
-  closeTo = "/members",
+  footer,
+  width,
+  closeTo,
   children,
 }: {
   title: string;
   actions?: React.ReactNode;
-  /** Where closing lands. */
-  closeTo?: string;
+  footer?: React.ReactNode;
+  /** The window's width, where a screen needs more room than the usual one. */
+  width?: string;
+  /** The list closing lands on. */
+  closeTo: string;
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -71,8 +76,9 @@ export function ScreenPanel({
         title={title}
         closeLabel={t("common.close")}
         actions={actions}
+        footer={footer}
         layout="centered"
-        width="880px"
+        width={width ?? "880px"}
       >
         {children}
       </SheetContent>

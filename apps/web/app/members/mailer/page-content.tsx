@@ -12,7 +12,7 @@ import { readingLocale } from "@/lib/reading-locale";
 import { Mailer } from "./mailer";
 import { Shelf } from "./shelf";
 import { tabMetadata } from "@/lib/page-metadata";
-import { ScreenPanel } from "../screen-panel";
+import { ScreenPanel } from "@/components/screen-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +62,7 @@ export async function MailerPanelPage({
     const denied = (
       <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
     );
-    return <ScreenPanel title={t("post.title")}>{denied}</ScreenPanel>;
+    return <ScreenPanel title={t("post.title")} closeTo="/members">{denied}</ScreenPanel>;
   }
 
   const ctx = {
@@ -129,7 +129,7 @@ export async function MailerPanelPage({
   );
 
   return (
-      <ScreenPanel title={title}>
+      <ScreenPanel title={title} closeTo="/members">
         {/* R24.6. The directory is behind the close square, so the only step
             back worth drawing is the one from a letter to the shelf. */}
         {toShelf ? back : null}

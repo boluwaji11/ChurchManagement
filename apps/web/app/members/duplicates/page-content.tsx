@@ -3,7 +3,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
-import { ScreenPanel } from "../screen-panel";
+import { ScreenPanel } from "@/components/screen-panel";
 import { Review, type PersonSide } from "./review";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -171,5 +171,5 @@ export async function DuplicatesPanelPage({
       />
   );
 
-  return <ScreenPanel title={t("merge.heading")}>{review}</ScreenPanel>;
+  return <ScreenPanel title={t("merge.heading")} closeTo="/members">{review}</ScreenPanel>;
 }

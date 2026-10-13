@@ -12,7 +12,7 @@ import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { tabMetadata } from "@/lib/page-metadata";
 import { ResizableTable } from "@/components/resizable-columns";
-import { ScreenPanel } from "../screen-panel";
+import { ScreenPanel } from "@/components/screen-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +74,7 @@ export async function CelebrationsPanelPage({
     const denied = (
       <Denied role={session.role} action="readPeople" church={session.tenantSlug} />
     );
-    return <ScreenPanel title={t("celebrations.title")}>{denied}</ScreenPanel>;
+    return <ScreenPanel title={t("celebrations.title")} closeTo="/members">{denied}</ScreenPanel>;
   }
 
   const view: View = params.view === "week" ? "week" : "month";
@@ -267,5 +267,5 @@ export async function CelebrationsPanelPage({
     </>
   );
 
-  return <ScreenPanel title={t("celebrations.title")}>{body}</ScreenPanel>;
+  return <ScreenPanel title={t("celebrations.title")} closeTo="/members">{body}</ScreenPanel>;
 }

@@ -127,7 +127,7 @@ function FormSection({
   return (
     <section
       id={id}
-      data-member-panel-section={id ? "" : undefined}
+      data-record-section={id ? "" : undefined}
       className="scroll-mt-4 flex flex-col gap-4 border-b border-line pb-7 last:border-b-0"
     >
       <div>
@@ -206,9 +206,9 @@ export function PersonForm({
       const first = Object.keys(found)[0];
       const el = first ? formRef.current?.elements.namedItem(first) : null;
       if (el instanceof HTMLElement) {
-        const section = el.closest<HTMLElement>("[data-member-panel-section]")?.id;
+        const section = el.closest<HTMLElement>("[data-record-section]")?.id;
         if (section) {
-          window.dispatchEvent(new CustomEvent("member-panel-section", { detail: section }));
+          window.dispatchEvent(new CustomEvent("record-section", { detail: section }));
           window.requestAnimationFrame(() => el.focus());
         }
       }

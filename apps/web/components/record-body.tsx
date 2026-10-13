@@ -58,8 +58,8 @@ export function RecordBody({
       const id = (event as CustomEvent<string>).detail;
       if (sections.some((section) => section.id === id)) setActive(id);
     };
-    window.addEventListener("member-panel-section", selectSection);
-    return () => window.removeEventListener("member-panel-section", selectSection);
+    window.addEventListener("record-section", selectSection);
+    return () => window.removeEventListener("record-section", selectSection);
   }, [sections]);
 
   return (
@@ -94,7 +94,7 @@ export function RecordBody({
 
       <div className="flex min-h-0 flex-col bg-surface">
         <div id={id} className="scroll-quiet min-h-0 flex-1 overflow-y-auto p-5 sm:p-8">
-          <style>{`#${id} [data-member-panel-section]:not([id="${active}"]) { display: none; }`}</style>
+          <style>{`#${id} [data-record-section]:not([id="${active}"]) { display: none; }`}</style>
           {children}
         </div>
       </div>
