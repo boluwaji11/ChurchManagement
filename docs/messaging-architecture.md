@@ -21,6 +21,31 @@ instructions and a key to paste.
 
 ## What is built
 
+**Email is connected, as of 13 October 2026.** HRT-287 shipped `/settings/email`, where a church
+connects the account its email leaves through. Two ways in, and both prove the connection against
+the church's own account before anything is written down, so a church never holds a saved provider
+that cannot send.
+
+- **Its own mail server.** Google Workspace, Microsoft 365, or whoever hosts its mail. Nothing
+  changes at the registrar, because a church already sending from its domain already has SPF, DKIM
+  and DMARC right. `verify` opens the session and authenticates without sending, and a refusal comes
+  back in the server's own words, which is how a volunteer learns they need an app password rather
+  than the one they sign in with.
+- **Resend.** The church pastes a full-access API key, we register the root of its From address as a
+  sending domain, and the three records Resend generates are kept and shown until they are published.
+
+Resend connects by API key rather than by OAuth. There is no dashboard screen for creating an OAuth
+client, the metadata-document route means hosting a file whose URL is the client id, and the loopback
+redirect a remote client has to use cannot reach a tenant subdomain in development. The grant is the
+same either way, because `full_access` is Resend's only scope that can create a domain, and the
+screen says so above the press. OAuth can be added later as a second way in, against the same
+tables.
+
+Whether the records are published is read from public DNS rather than from Resend, which is what
+every mail server on the internet reads anyway and which needs no credential. So nothing sealed is
+opened in a request path: the plaintext is in hand from the form at the moment the connection is
+proved, and after that only the worker that sends has any business reading it.
+
 | | |
 |---|---|
 | `packages/db/src/messaging/contract.ts` | One interface every provider implements, the registration state machine, and the two rules that decide whether anything may be sent. Pure, and tested. |
@@ -156,7 +181,7 @@ that document.
 | Vendor | What is needed |
 |---|---|
 | Twilio | A Connect app on the platform account: its SID, its secret, and the authorise URL. Plus a second account to stand in for a church while the spike runs. |
-| Resend | A client id. There is no dashboard screen for this: either Resend pre-registers us by email, or we host a Client ID Metadata Document on our own domain and its URL is the client id. The only scope that covers creating and verifying a domain is `full_access`. See [messaging-setup.md](messaging-setup.md). |
+| Resend | Nothing. Each church makes its own full-access key in its own Resend dashboard and pastes it in, which is HRT-287 as shipped. An OAuth client would only save it the paste, and it is in [messaging-setup.md](messaging-setup.md) if we ever want it. |
 | Both | `PROVIDER_CREDENTIAL_KEY`, 32 bytes base64. Generate with `openssl rand -base64 32`. |
 
 ## Sources

@@ -52,6 +52,22 @@ export const churchProviders = pgTable(
     credential: text("credential"),
     /** Which key sealed it, so a key rotates without the secret being read. */
     credentialKeyId: text("credential_key_id"),
+    /**
+     * R16.1. The name and address mail goes out as.
+     *
+     * What a member reads in their inbox, which is the church rather than us,
+     * so it is set once here and every send uses it.
+     */
+    fromName: text("from_name"),
+    fromAddress: text("from_address"),
+    /**
+     * HRT-287. The connection details that are not secret.
+     *
+     * A church's own mail server needs a host, a port and a username, none of
+     * which is a secret and all of which the screen has to show back. The
+     * password is the sealed credential above. Resend keeps this empty.
+     */
+    settings: jsonb("settings").notNull().default({}),
     connectedAt: timestamp("connected_at", { withTimezone: true }),
     connectedBy: uuid("connected_by"),
     lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),

@@ -1,0 +1,490 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Check, Copy, ExternalLink, Mail, Server } from "lucide-react";
+import {
+  Banner, Button, Card, Field, Input, Tooltip, Working,
+  Dialog, DialogTrigger, DialogContent, DialogFooter,
+  Sheet, SheetTrigger, SheetContent,
+} from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import type { EmailProvider, PlannedRecord } from "@connectapp/db";
+import { usePanelGuard } from "@/components/panel-guard";
+import { useAnswered } from "@/components/form-actions";
+import { when } from "@/lib/when";
+import {
+  connectSmtp, connectResend, checkRecords, disconnectEmail, type EmailResult,
+} from "./actions";
+
+/** The sending domain as the screen reads it, with the date already a string. */
+export interface DomainState {
+  id: string;
+  domain: string;
+  state: string;
+  records: PlannedRecord[];
+  checkedAt: string | null;
+  failureReason: string | null;
+}
+
+/**
+ * HRT-287, R16.1. Connecting the account a church's email leaves through.
+ *
+ * Not connected, it offers the two ways in. Connected, it says which account
+ * and what mail goes out as, and for Resend it holds the three records until
+ * they are published.
+ */
+export function EmailSetup({
+  provider,
+  domain,
+}: {
+  provider: EmailProvider | null;
+  domain: DomainState | null;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const act = async (run: () => Promise<EmailResult>, label: string) => {
+    setBusy(label);
+    setError(null);
+    const answer = await run();
+    setBusy(null);
+    if (answer.error) {
+      setError(answer.error);
+      return false;
+    }
+    router.refresh();
+    return true;
+  };
+
+  return (
+    <div className="flex flex-col gap-5">
+      <Working open={busy !== null} label={busy ?? ""} />
+
+      {/* R16.1. The vendor's own words. A volunteer whose app password was
+          refused needs to read "Username and Password not accepted" rather
+          than a sentence of ours that stands in front of it. */}
+      {error ? <Banner tone="danger">{error}</Banner> : null}
+
+      {provider ? (
+        <Connected
+          provider={provider}
+          domain={domain}
+          busy={busy !== null}
+          onCheck={() => void act(checkRecords, t("email.checking"))}
+          onDisconnect={() => void act(disconnectEmail, t("email.saving"))}
+        />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* A church picking between its own mail server and a sending
+              service cannot pick without being told the difference, so each
+              card says what that option does. */}
+          <Choice
+            icon={<Server />}
+            title={t("email.smtp.title")}
+            what={t("email.smtp.what")}
+            action={
+              <SmtpSheet
+                busy={busy !== null}
+                onSave={(data) => act(() => connectSmtp(data), t("email.testing"))}
+              />
+            }
+          />
+          <Choice
+            icon={<Mail />}
+            title={t("email.resend.title")}
+            what={t("email.resend.what")}
+            action={
+              <ResendSheet
+                busy={busy !== null}
+                onSave={(data) => act(() => connectResend(data), t("email.testing"))}
+              />
+            }
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Choice({
+  icon,
+  title,
+  what,
+  action,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  what: string;
+  action: React.ReactNode;
+}) {
+  return (
+    <Card className="flex flex-col gap-3 p-5">
+      <span className="grid size-9 place-items-center rounded-[10px] bg-sunken text-fg-muted [&_svg]:size-[18px]">
+        {icon}
+      </span>
+      <h3 className="m-0 font-display text-[17px] leading-6 text-fg">{title}</h3>
+      <p className="m-0 flex-1 text-fg-muted">{what}</p>
+      <div className="flex">{action}</div>
+    </Card>
+  );
+}
+
+function Connected({
+  provider,
+  domain,
+  busy,
+  onCheck,
+  onDisconnect,
+}: {
+  provider: EmailProvider;
+  domain: DomainState | null;
+  busy: boolean;
+  onCheck: () => void;
+  onDisconnect: () => void;
+}) {
+  return (
+    <Card className="flex flex-col gap-5 p-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="inline-flex items-center gap-2 font-display text-[17px] leading-6 text-fg">
+            <Check className="size-4 text-primary" aria-hidden />
+            {provider.vendor === "smtp"
+              ? t("email.connected.smtp", { host: provider.settings?.host ?? "" })
+              : t("email.connected.resend")}
+          </span>
+          <span className="text-fg-muted">
+            {t("email.sendingAs")}{" "}
+            <span className="font-medium text-fg">
+              {provider.fromName
+                ? `${provider.fromName} <${provider.fromAddress ?? ""}>`
+                : (provider.fromAddress ?? "")}
+            </span>
+          </span>
+        </div>
+
+        <DisconnectDialog busy={busy} onConfirm={onDisconnect} />
+      </div>
+
+      {domain ? (
+        <Records domain={domain} busy={busy} onCheck={onCheck} />
+      ) : null}
+    </Card>
+  );
+}
+
+function DisconnectDialog({ busy, onConfirm }: { busy: boolean; onConfirm: () => void }) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {/* A standalone action, so it keeps its words. */}
+        <Button variant="ghost" disabled={busy}>
+          {t("email.disconnect")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent title={t("email.disconnect.ask")} closeLabel={t("common.close")}>
+        <p className="m-0 text-fg-muted">{t("email.disconnect.what")}</p>
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            {t("action.cancel")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            onClick={() => {
+              setOpen(false);
+              onConfirm();
+            }}
+          >
+            {t("email.disconnect")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * R16.1. The three records, and whether they are published.
+ *
+ * Exactly as Resend generated them. The DKIM key goes at the root, and the
+ * sender policy and the return path go on a `send.` subdomain, so the church's
+ * own MX, the one its inbox runs on, is never touched. The return path carries
+ * bounces and complaints, so it is on the list like the other two.
+ */
+function Records({
+  domain,
+  busy,
+  onCheck,
+}: {
+  domain: DomainState;
+  busy: boolean;
+  onCheck: () => void;
+}) {
+  return (
+    <section className="flex flex-col gap-3 border-t border-line pt-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h4 className="m-0 font-display text-[15px] leading-6 text-fg">{t("email.records")}</h4>
+        <Button variant="ghost" onClick={onCheck} disabled={busy}>
+          {t("email.check")}
+        </Button>
+      </div>
+
+      <Banner tone={domain.state === "verified" ? "success" : "info"}>
+        {domain.state === "verified" ? t("email.domain.verified") : t("email.domain.pending")}
+        {domain.checkedAt ? ` · ${t("email.checkedAt", { when: when(domain.checkedAt) })}` : ""}
+      </Banner>
+
+      <ul className="m-0 flex list-none flex-col gap-3 p-0">
+        {domain.records.map((record) => (
+          <li
+            key={`${record.type}-${record.host}`}
+            className="flex flex-col gap-1.5 rounded-[12px] border border-line bg-sunken/40 p-3"
+          >
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="rounded-md bg-surface px-2 py-0.5 font-mono text-[12px] text-fg-muted">
+                {record.type}
+              </span>
+              <span className="text-fg-muted">
+                {t(`email.record.${record.purpose}` as never)}
+              </span>
+              {record.priority === undefined ? null : (
+                <span className="text-fg-subtle">
+                  {t("email.record.priority")} {record.priority}
+                </span>
+              )}
+            </div>
+            <Copyable label={t("email.record.host")} value={record.host} />
+            <Copyable label={t("email.record.value")} value={record.value ?? ""} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** A value somebody retypes into a registrar, which means they copy it. */
+function Copyable({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = React.useState(false);
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-20 shrink-0 text-caption text-fg-subtle">{label}</span>
+      <input
+        readOnly
+        value={value}
+        aria-label={label}
+        onFocus={(e) => e.currentTarget.select()}
+        className="min-w-0 flex-1 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-[12px] text-fg outline-none"
+      />
+      <Tooltip content={copied ? t("joining.copied") : t("joining.copy")}>
+        <button
+          type="button"
+          aria-label={copied ? t("joining.copied") : t("joining.copy")}
+          onClick={() => {
+            void navigator.clipboard?.writeText(value);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 2000);
+          }}
+          className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-4"
+        >
+          {copied ? <Check className="text-primary" /> : <Copy />}
+        </button>
+      </Tooltip>
+    </div>
+  );
+}
+
+/** The two fields both vendors need, asked in the same words in both panels. */
+function Sender() {
+  return (
+    <>
+      <Field label={t("email.from.name")}>
+        <Input name="fromName" autoComplete="off" placeholder={t("email.from.namePlaceholder")} />
+      </Field>
+      <Field label={t("email.from.address")} required>
+        <Input
+          name="fromAddress"
+          autoComplete="off"
+          inputMode="email"
+          placeholder={t("email.from.addressPlaceholder")}
+        />
+      </Field>
+    </>
+  );
+}
+
+function SmtpSheet({
+  busy,
+  onSave,
+}: {
+  busy: boolean;
+  onSave: (data: FormData) => Promise<boolean>;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [dirty, setDirty] = React.useState(false);
+  const formId = React.useId();
+  const full = useAnswered(formId, open);
+
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setDirty(false);
+  };
+  const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetTrigger asChild>
+        <Button>{t("email.smtp.connect")}</Button>
+      </SheetTrigger>
+      <SheetContent
+        title={t("email.smtp.connect")}
+        closeLabel={t("common.close")}
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => close(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button type="submit" form={formId} disabled={busy || !dirty || !full}>
+              {t("email.connect")}
+            </Button>
+          </>
+        }
+      >
+        {guard}
+
+        <form
+          id={formId}
+          onInput={() => setDirty(true)}
+          /*
+           * Submitted by hand rather than through the form's `action`, because
+           * React empties an uncontrolled form once an action returns. A mail
+           * server that refused the password would have left the volunteer
+           * retyping the host, the port and the username to change one field.
+           */
+          onSubmit={(event) => {
+            event.preventDefault();
+            const data = new FormData(event.currentTarget);
+            void onSave(data).then((ok) => {
+              if (ok) close(false);
+            });
+          }}
+          noValidate
+          className="flex flex-col gap-4"
+        >
+          <Sender />
+
+          <Field label={t("email.smtp.host")} required>
+            <Input name="host" autoComplete="off" placeholder={t("email.smtp.hostPlaceholder")} />
+          </Field>
+
+          {/* Typed rather than chosen. 587 and 465 cover nearly every church,
+              and the ones they do not cover are on 2525 or 2587 because their
+              host blocks the usual two, which a list of three would refuse. */}
+          <Field label={t("email.smtp.port")} required>
+            <Input name="port" defaultValue="587" inputMode="numeric" autoComplete="off" />
+          </Field>
+
+          <Field label={t("email.smtp.username")} required>
+            <Input
+              name="username"
+              autoComplete="off"
+              placeholder={t("email.smtp.usernamePlaceholder")}
+            />
+          </Field>
+
+          <Field label={t("email.smtp.password")} required>
+            <Input name="password" type="password" autoComplete="new-password" />
+          </Field>
+        </form>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function ResendSheet({
+  busy,
+  onSave,
+}: {
+  busy: boolean;
+  onSave: (data: FormData) => Promise<boolean>;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [dirty, setDirty] = React.useState(false);
+  const formId = React.useId();
+  const full = useAnswered(formId, open);
+
+  const close = (next: boolean) => {
+    setOpen(next);
+    if (!next) setDirty(false);
+  };
+  const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetTrigger asChild>
+        <Button>{t("email.resend.connect")}</Button>
+      </SheetTrigger>
+      <SheetContent
+        title={t("email.resend.connect")}
+        closeLabel={t("common.close")}
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => close(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button type="submit" form={formId} disabled={busy || !dirty || !full}>
+              {t("email.connect")}
+            </Button>
+          </>
+        }
+      >
+        {guard}
+
+        <form
+          id={formId}
+          onInput={() => setDirty(true)}
+          /*
+           * Submitted by hand rather than through the form's `action`, because
+           * React empties an uncontrolled form once an action returns, and a
+           * refused key would have left the volunteer retyping the address
+           * along with it.
+           */
+          onSubmit={(event) => {
+            event.preventDefault();
+            const data = new FormData(event.currentTarget);
+            void onSave(data).then((ok) => {
+              if (ok) close(false);
+            });
+          }}
+          noValidate
+          className="flex flex-col gap-4"
+        >
+          {/* R21.15. What the church is granting, said where the press is.
+              Resend's only scope that can create a sending domain is the one
+              that can do everything else, and a church should read that here
+              rather than find it out later. */}
+          <Banner tone="info">{t("email.resend.access")}</Banner>
+
+          <Sender />
+
+          <Field label={t("email.resend.key")} required>
+            <Input name="key" type="password" autoComplete="off" />
+          </Field>
+
+          <a
+            href="https://resend.com/api-keys"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-1.5 self-start font-medium text-primary underline-offset-2 hover:underline"
+          >
+            {t("email.resend.where")} <ExternalLink className="size-[14px]" aria-hidden />
+          </a>
+        </form>
+      </SheetContent>
+    </Sheet>
+  );
+}

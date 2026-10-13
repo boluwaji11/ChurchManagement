@@ -1,0 +1,253 @@
+import nodemailer from "nodemailer";
+import type { PlannedRecord, Resolver, SmtpSettings } from "@connectapp/db";
+
+/**
+ * HRT-287, R16.1. Talking to the thing a church is about to connect.
+ *
+ * Every call here acts as the church, with a credential the church typed in a
+ * moment ago. The plaintext is in hand at that moment, so nothing in this file
+ * ever opens a stored credential: a connection is proved before it is written
+ * down, and after that only the worker that sends has any business reading it.
+ *
+ * A refusal is handed back in the vendor's own words. "Invalid login:
+ * 535-5.7.8 Username and Password not accepted" tells a volunteer which of the
+ * two fields to look at. "Could not connect" tells them nothing.
+ */
+
+/** Whether the thing answered, and what it said if it did not. */
+export type Proof = { ok: true } | { ok: false; said: string };
+
+const RESEND = "https://api.resend.com";
+
+/** Long enough for a mail server on a slow link, short enough to not hang a form. */
+const PATIENCE = 10_000;
+
+/**
+ * R16.1. Whether a church's own mail server will take a message from us.
+ *
+ * `verify` opens the session and authenticates without sending anything, which
+ * is the whole question: a church on Google Workspace needs an app password
+ * rather than the one it signs in with, and a church on Microsoft 365 needs
+ * SMTP AUTH turned on for the mailbox. Both refuse here, by name, rather than
+ * silently failing on the first real send weeks later.
+ */
+export async function proveSmtp(
+  settings: SmtpSettings & { password: string },
+): Promise<Proof> {
+  const transport = nodemailer.createTransport({
+    host: settings.host,
+    port: settings.port,
+    secure: settings.secure,
+    auth: { user: settings.username, pass: settings.password },
+    connectionTimeout: PATIENCE,
+    greetingTimeout: PATIENCE,
+    socketTimeout: PATIENCE,
+  });
+
+  try {
+    await transport.verify();
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, said: said(error) };
+  } finally {
+    transport.close();
+  }
+}
+
+/** What a vendor or a socket actually said, trimmed to one line. */
+function said(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+  return raw.replace(/\s+/g, " ").trim().slice(0, 300);
+}
+
+async function resend(
+  key: string,
+  path: string,
+  init?: { method: string; body?: unknown },
+): Promise<{ ok: true; body: unknown } | { ok: false; said: string }> {
+  try {
+    const answer = await fetch(`${RESEND}${path}`, {
+      method: init?.method ?? "GET",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        ...(init?.body ? { "Content-Type": "application/json" } : {}),
+      },
+      body: init?.body ? JSON.stringify(init.body) : undefined,
+      signal: AbortSignal.timeout(PATIENCE),
+      cache: "no-store",
+    });
+
+    const body: unknown = await answer.json().catch(() => null);
+    if (answer.ok) return { ok: true, body };
+
+    /* Resend answers a refusal with its own sentence, which names the problem
+       better than a status code does. */
+    const message =
+      typeof body === "object" && body !== null && "message" in body
+        ? String((body as { message: unknown }).message)
+        : `${answer.status}`;
+    return { ok: false, said: message.slice(0, 300) };
+  } catch (error) {
+    return { ok: false, said: said(error) };
+  }
+}
+
+/**
+ * R16.1. Whether this key is a key, and whether it can do what we need.
+ *
+ * Reading the domains is the cheapest call that `emails:send` cannot make, so
+ * a key that answers it is a key with the access the rest of this screen
+ * depends on. A send-only key is refused here rather than at the point the
+ * church has typed in its domain and pressed Verify.
+ */
+export async function proveResend(key: string): Promise<Proof> {
+  const read = await resend(key, "/domains");
+  return read.ok ? { ok: true } : { ok: false, said: read.said };
+}
+
+/** A domain Resend holds for this account. */
+export interface ResendDomain {
+  id: string;
+  name: string;
+  records: PlannedRecord[];
+}
+
+const PURPOSE: Record<string, PlannedRecord["purpose"]> = {
+  dkim: "dkim",
+  spf: "spf",
+};
+
+/**
+ * R16.1. What Resend generated, in the shape a registrar's form asks for.
+ *
+ * Resend returns the DKIM key at the root and puts its SPF record and its
+ * return-path MX on a `send.` subdomain, so the church's own MX, the one
+ * pointing at Workspace or 365, is never in the picture. The return path
+ * carries bounces and complaints, and dropping it ruins a sending reputation
+ * faster than anything else on this screen, so every record Resend asks for is
+ * passed through exactly as it came.
+ */
+function recordsOf(raw: unknown): PlannedRecord[] {
+  if (!Array.isArray(raw)) return [];
+
+  return raw.flatMap((one): PlannedRecord[] => {
+    if (typeof one !== "object" || one === null) return [];
+    const held = one as Record<string, unknown>;
+    const type = String(held.type ?? "").toUpperCase();
+    if (type !== "TXT" && type !== "MX" && type !== "CNAME") return [];
+
+    const record = String(held.record ?? "").toLowerCase();
+    const purpose: PlannedRecord["purpose"] =
+      type === "MX" ? "returnPath" : (PURPOSE[record] ?? "spf");
+
+    return [
+      {
+        type,
+        host: String(held.name ?? ""),
+        value: String(held.value ?? "") || null,
+        ...(held.priority === undefined || held.priority === null
+          ? {}
+          : { priority: Number(held.priority) }),
+        purpose,
+      },
+    ];
+  });
+}
+
+/**
+ * R16.1. The church's domain on its own Resend account, created if it is new.
+ *
+ * Registered at the root, so the church sends as `sarah@its-own-domain` with
+ * the signature aligned to the address a member reads and DMARC passing on
+ * that alignment. Resend's inbound setting is what would take a church's mail,
+ * and it is never asked for.
+ */
+export async function resendDomain(
+  key: string,
+  domain: string,
+): Promise<{ ok: true; domain: ResendDomain } | { ok: false; said: string }> {
+  const listed = await resend(key, "/domains");
+  if (!listed.ok) return listed;
+
+  const rows =
+    typeof listed.body === "object" && listed.body !== null && "data" in listed.body
+      ? (listed.body as { data: unknown }).data
+      : null;
+
+  const already = Array.isArray(rows)
+    ? rows.find(
+        (one) =>
+          typeof one === "object" &&
+          one !== null &&
+          String((one as { name?: unknown }).name ?? "").toLowerCase() === domain,
+      )
+    : undefined;
+
+  let id = already ? String((already as { id?: unknown }).id ?? "") : "";
+  if (!id) {
+    const made = await resend(key, "/domains", { method: "POST", body: { name: domain } });
+    if (!made.ok) return made;
+    id = String((made.body as { id?: unknown })?.id ?? "");
+  }
+
+  /* Created or found, the records come from the domain's own row: a domain
+     this account already held was not created by us and its key is its own. */
+  const one = await resend(key, `/domains/${id}`);
+  if (!one.ok) return one;
+
+  const body = (one.body ?? {}) as { id?: unknown; name?: unknown; records?: unknown };
+  return {
+    ok: true,
+    domain: {
+      id: String(body.id ?? id),
+      name: String(body.name ?? domain),
+      records: recordsOf(body.records),
+    },
+  };
+}
+
+/**
+ * R16.1. Whether the records a church was given are actually published.
+ *
+ * Read from public DNS rather than from the provider, because public DNS is
+ * what every mail server on the internet reads and it needs no credential:
+ * nothing sealed is opened to answer the one question the church keeps coming
+ * back to this screen for.
+ *
+ * A TXT record is compared on what it says rather than on the exact string. A
+ * registrar wraps a long DKIM key across several strings and some of them add
+ * quotes, and none of that is a different record.
+ */
+export async function recordsPublished(
+  records: readonly PlannedRecord[],
+  resolver: Resolver,
+): Promise<{ host: string; found: boolean }[]> {
+  return Promise.all(
+    records.map(async (record) => {
+      const want = (record.value ?? "").replace(/\s+/g, "").replace(/"/g, "").toLowerCase();
+      if (!want) return { host: record.host, found: false };
+
+      try {
+        if (record.type === "MX") {
+          const found = await resolver.mx(record.host);
+          return {
+            host: record.host,
+            found: found.some((one) => one.exchange.toLowerCase().replace(/\.$/, "") === want),
+          };
+        }
+
+        const found = await resolver.txt(record.host);
+        return {
+          host: record.host,
+          found: found.some(
+            (parts) => parts.join("").replace(/\s+/g, "").toLowerCase() === want,
+          ),
+        };
+      } catch {
+        /* A name that does not resolve is a record that is not there yet,
+           which is the answer rather than an error worth showing. */
+        return { host: record.host, found: false };
+      }
+    }),
+  );
+}

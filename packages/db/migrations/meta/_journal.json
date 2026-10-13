@@ -1051,6 +1051,13 @@
       "when": 1791423000027,
       "tag": "0150_saved_list_slug",
       "breakpoints": true
+    },
+    {
+      "idx": 151,
+      "version": "7",
+      "when": 1791423000028,
+      "tag": "0151_email_provider_details",
+      "breakpoints": true
     }
   ]
 }

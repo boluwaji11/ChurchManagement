@@ -221,6 +221,15 @@ begin
     v_after  := v_after  - 'body_encrypted' - 'body';
   end if;
 
+  -- R21.15. Nor a church's own provider credential. It is sealed in the column
+  -- and no read path selects it, and an audit row carrying it would put every
+  -- church's mail password into a log that Owner can read and that nothing can
+  -- ever edit. Who connected what still lands here: only the secret comes out.
+  if tg_table_name = 'church_providers' then
+    v_before := v_before - 'credential';
+    v_after  := v_after  - 'credential';
+  end if;
+
   insert into public.audit_entries (tenant_id, actor_user_id, actor_role, action, entity, entity_id, before, after, ip)
   values (
     v_tenant,
