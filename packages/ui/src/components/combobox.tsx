@@ -10,6 +10,12 @@ export interface ComboboxOption {
   label: string;
   /** Matched on as well as the label, so an email address finds the person. */
   keywords?: string;
+  /**
+   * A rule under it, for the one option that is not one of the rest. The
+   * importer's "Do not import" sits above the fields and is a different kind
+   * of answer, so a line separates it from them.
+   */
+  apart?: boolean;
 }
 
 export interface ComboboxProps {
@@ -367,6 +373,11 @@ export function Combobox({
                   ? "bg-primary-soft font-semibold text-primary"
                   : "text-fg",
                 i === active && option.value !== value && "bg-sunken",
+                /* Set apart from the ones under it. Only while it is the first
+                   thing in the list: once a search has narrowed it away from
+                   the top the line has nothing to separate. */
+                option.apart && i === 0 && matches.length > 1
+                  && "mb-1 rounded-b-none border-b border-line pb-2.5",
               )}
             >
               <Check
