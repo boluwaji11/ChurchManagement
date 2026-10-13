@@ -130,7 +130,11 @@ export async function AppShell({
   }));
 
   return (
-    <div className="site-wash flex min-h-dvh">
+    /* R8.x, R24.11. Named so the check-in station can make everything behind
+       it inert. A kiosk must offer no way into the church's records, and a
+       screen drawn over the shell still leaves the shell's navigation under
+       the fingers of anybody pressing Tab. */
+    <div data-app-shell className="site-wash flex min-h-dvh">
       {/* R17.1. The screen and the church it belongs to, in the browser tab.
           React hoists it into the head. */}
       <TabTitle page={tab ?? title} church={session.tenantName} />
