@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { Button, Sheet, SheetContent } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { useDirty } from "@/components/form-actions";
-import { OPEN_INBOX } from "@/components/inbox/write-to";
 import { RecordBody } from "@/components/record-body";
 
 export interface RecordPanelSection {
@@ -79,21 +78,6 @@ export function RecordPanel({
     router.replace(closeTo);
   };
 
-
-  /*
-   * R16.9, R24.6. A press that opens the message thread steps the window
-   * aside first.
-   *
-   * The thread is drawn in the corner of the page, under this window and
-   * behind its overlay, where nothing of it can be seen or pressed. The
-   * record is one press away on the list, and the errand somebody started was
-   * the message.
-   */
-  React.useEffect(() => {
-    const stepAside = () => leave();
-    window.addEventListener(OPEN_INBOX, stepAside);
-    return () => window.removeEventListener(OPEN_INBOX, stepAside);
-  });
 
   const panelFooter = confirmClose ? (
     <div role="alert" className="flex w-full flex-wrap items-center justify-between gap-3">

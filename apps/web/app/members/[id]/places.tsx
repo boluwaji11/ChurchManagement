@@ -23,10 +23,13 @@ import { addPlace, removePlace, leadWithPlace } from "./contact-actions";
  */
 export function Places({
   memberId,
+  name,
   places,
   canEdit,
 }: {
   memberId: string;
+  /** Whose address it is, for the line that says there is not one. */
+  name: string;
   places: PersonAddress[];
   canEdit: boolean;
 }) {
@@ -119,8 +122,13 @@ export function Places({
         </span>
       ))}
 
+      {/* R2.4. A rule where a value goes says nothing. The record says whose
+          address is missing, because a reader looking at a household of six is
+          looking at six cards. */}
       {places.length === 0 ? (
-        <span aria-hidden className="inline-block h-px w-3 bg-line-strong align-middle" />
+        <span className="text-[length:var(--d-text-body)] text-fg-subtle">
+          {t("contact.noAddress", { name })}
+        </span>
       ) : null}
 
       {canEdit ? (

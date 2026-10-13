@@ -535,7 +535,18 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
  * R14.1, R24.6. What a church does to the event itself, on the window's own
  * row of marks: look at it as the congregation will, change it, archive it.
  */
-export function EventActions({ event }: { event: ChurchEvent }) {
+export function EventActions({
+  event,
+  only,
+}: {
+  event: ChurchEvent;
+  /**
+   * R24.6. Which of them to draw. Looking and editing ride the window's row of
+   * marks; archiving sits on its footer, at the far left, away from everything
+   * that is pressed often.
+   */
+  only?: "marks" | "archive";
+}) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [pending, startTransition] = React.useTransition();
@@ -558,6 +569,8 @@ export function EventActions({ event }: { event: ChurchEvent }) {
     <>
       {error ? <Banner tone="danger">{error}</Banner> : null}
       <div className="flex items-center gap-1">
+        {only === "archive" ? null : (
+        <>
         {/* Looked at as the congregation will see it, in its own tab. */}
         <Tooltip content={t("event.preview")}>
           <a
@@ -580,8 +593,10 @@ export function EventActions({ event }: { event: ChurchEvent }) {
             <Pencil />
           </Link>
         </Tooltip>
+        </>
+        )}
 
-        {event.archivedAt ? (
+        {only === "marks" ? null : event.archivedAt ? (
           <IconButton
             label={t("event.restore")}
             disabled={pending}

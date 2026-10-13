@@ -18,8 +18,15 @@ import { ArchiveDialog, type GroupDraft } from "../group-form";
  */
 export function ManageGroup({
   group,
+  only,
 }: {
   group: GroupDraft;
+  /**
+   * R24.6. Which of the two to draw. Editing rides the window's row of marks;
+   * archiving sits on its footer, at the far left, away from everything that
+   * is pressed often.
+   */
+  only?: "edit" | "archive";
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
@@ -29,10 +36,11 @@ export function ManageGroup({
     <div className="flex items-center gap-1" aria-busy={pending}>
       {error ? <Banner tone="danger">{error}</Banner> : null}
 
-      {/* A link rather than a button, because it opens a screen. Shaped from
+      {only === "archive" ? null : (
+      /* A link rather than a button, because it opens a screen. Shaped from
           the same tokens the IconButton beside it uses, so the pair reads as
           one, and carrying this product's own tooltip rather than the grey one
-          the operating system draws. */}
+          the operating system draws. */
       <Tooltip content={t("groups.edit")}>
         <Link
           href={`/groups/${group.slug}/edit`}
@@ -42,7 +50,9 @@ export function ManageGroup({
           <Pencil />
         </Link>
       </Tooltip>
+      )}
 
+      {only === "edit" ? null : (
       <ArchiveDialog
         name={group.name}
         pending={pending}
@@ -62,6 +72,7 @@ export function ManageGroup({
           });
         }}
       />
+      )}
     </div>
   );
 }
