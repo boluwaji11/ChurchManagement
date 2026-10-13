@@ -198,7 +198,7 @@ export const en = {
   "site.foot.pricing": "Pricing",
   "site.foot.source": "Source code",
   "site.foot.forum": "Community forum",
-  "site.foot.donate": "Support Our Work",
+  "site.foot.donate": "Support our work",
   "site.foot.supportEmail": "support@connectapp.church",
   "site.support.open": "Message support",
   "site.support.title": "Message support",

@@ -1,5 +1,5 @@
 import { Badge } from "@connectapp/ui";
-import { t, plural } from "@connectapp/i18n";
+import { t } from "@connectapp/i18n";
 import type { PublicGroup } from "@connectapp/db";
 
 const dayName = (day: number) =>
@@ -44,10 +44,10 @@ export function GroupLine({ group }: { group: PublicGroup }) {
         </span>
       ) : null}
 
+      {/* R3.1. How many are in a group is the church's record. The open web
+          was told it, and a signed-in member was not: the question a stranger
+          has is whether they may come, which the mark at the end answers. */}
       <span className="mt-1 flex flex-wrap items-center gap-2">
-        <span className="text-caption text-fg-muted tabular-nums">
-          {plural("publicGroups.size", group.memberCount)}
-        </span>
         {group.online ? <Badge tone="neutral">{t("publicGroups.online")}</Badge> : null}
         {group.childrenWelcome ? (
           <Badge tone="neutral">{t("publicGroups.children")}</Badge>
