@@ -1064,20 +1064,21 @@ marked for 0.3, so the shape of the feature is on the board while the money is b
 
 ### F16. Communication
 
-**Deferred, October 2026.** Built and then taken out again at the church's instruction. Nothing in
-this repo sends email, holds SMTP or Twilio credentials, or keeps a send queue, and nothing is to be
-built here until it is asked for.
+**Live again, 12 October 2026.** The deferral was lifted by name. Bring your own messaging still
+governs every row here: a church supplies its own credentials, we resell nothing, and the shared
+email quota stays transactional.
 
-What was removed: the SMTP settings screen, the shared transactional allowance and its ledger, the
-composer and template library, audience targeting, the send queue, and bounce handling. The tables
-behind them were dropped in migration 0058.
+HRT-287 is the way in, and it carries what HRT-137 was for. Nothing in this repo sends yet: what is
+built is the connection, proved against the church's own account before it is written down. The
+composer, the targeting, the queue and the bounces are still ahead, and the rows below carry their
+old state until each is picked up.
 
 | ID | Story | Req | State |
 |---|---|---|---|
-| HRT-137 | The church's own email provider | R16.1, R21.15 | **Removed, deferred** |
+| HRT-137 | The church's own email provider | R16.1, R21.15 | Folded into HRT-287 |
 | HRT-138 | The shared transactional quota | R16.3 | **Removed, deferred** |
 | HRT-286 | Connecting the church's own Twilio, and registering its carrier brand for it | R16.4, R16.13 | Wiring built. Blocked on the Twilio subaccount spike, see docs/messaging-architecture.md |
-| HRT-287 | Connecting the church's own Resend, and verifying the root domain by DKIM | R16.1, R21.15 | Wiring built. Waiting on an OAuth client |
+| HRT-287 | Connecting the church's own email, by its own mail server or by Resend | R16.1, R21.15 | Resolved |
 | HRT-139 | The composer, merge fields and the template library | R16.4 | **Removed, deferred** |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
 | HRT-141 | The send queue | R16.6 | **Removed, deferred** |
@@ -1747,6 +1748,31 @@ production pages and confirm page performance measurements begin appearing there
 
 Open `/design/type` and compare the same headline, staff list row and check-in label under Current,
 Source, IBM Plex, Atkinson and System. The platform pages should keep their existing fonts.
+
+### HRT-287, how to test it
+
+Set `PROVIDER_CREDENTIAL_KEY` in `.env.local` to 32 base64 bytes from `openssl rand -base64 32`, and
+run `pnpm db:migrate` so migration 0151 and the audit redaction are in place.
+
+As Owner or Admin, open Settings, then Email under Your church. Nothing is connected, so two ways in
+are offered. Press Connect your mail server and confirm Connect stays dark until the address, the
+server, the port, the username and the password all carry something. Enter a server that will refuse
+and confirm the screen shows what that server said rather than a sentence of ours. Enter one that
+will accept and confirm the panel closes and the screen reads Sending through that host, with the
+address mail goes out as beside it.
+
+Press Disconnect and confirm our own dialog asks first, and that connecting again starts from the
+same two choices.
+
+Connect Resend with a real API key and an address on a domain that account can hold. Confirm the
+panel says what a key that can create a sending domain can also do, before the press. After
+connecting, confirm the three records Resend generated are listed with their names and values, each
+copyable, and that the DKIM record is at the root while the sender policy and the return path are on
+`send.`. Publish them at the registrar, press Check the records, and confirm the banner turns and
+says when it last looked. Nothing on this screen asks for the credential again.
+
+In the database, confirm `church_providers.credential` holds a sealed value rather than the password,
+and that the `audit_entries` row for the connection carries no `credential` field at all.
 
 ### HRT-285, how to test it
 

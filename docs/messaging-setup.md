@@ -14,6 +14,11 @@ billed by Twilio and Resend directly.
 
 ## Part 1. Resend, for email (HRT-287)
 
+**Nothing in this part is needed any more.** HRT-287 shipped on 13 October 2026 with each church
+pasting its own full-access Resend key, made in its own Resend dashboard, so the platform holds no
+Resend application and there is nothing for you to obtain. The rest of this part is kept because an
+OAuth client would still save a church that paste, and if we ever want it this is what it takes.
+
 **There is no screen for this.** An earlier version of this document said to
 create an OAuth application in the Resend dashboard. That was wrong, and it is
 why looking for it found nothing. Resend's own guide says it plainly: "we don't
@@ -63,13 +68,8 @@ route 1 as the thing that makes us look legitimate later.
 
 ### What to send me
 
-| Item | Where it comes from |
-|---|---|
-| Whether `full_access` is acceptable | your decision, step 1 |
-| Resend's reply about pre-registration | step 2, if and when it arrives |
-| `client_id` and `client_secret` | only if Resend pre-registers us |
-
-If the reply never comes, HRT-287 still ships on route 2.
+Nothing. `full_access` was accepted on 13 October 2026, on the condition that the screen says what
+the key can do before the church presses Connect, and it does.
 
 ### The endpoints, for the record
 

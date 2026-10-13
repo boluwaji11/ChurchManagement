@@ -153,7 +153,13 @@ describe("field-level permissions apply to an export too (R1.5, R21.2)", () => {
       // The ciphertext column never leaves the module.
       expect(note).not.toHaveProperty("body_encrypted");
     }
-    expect(archive.meta.withheld).toEqual([]);
+    /*
+     * The note's own body is the thing this test is about. The list is not
+     * asserted empty, because a church that has connected its email withholds
+     * its sealed provider credential from every role including this one, and
+     * that is the archive doing its job rather than a role being refused.
+     */
+    expect(archive.meta.withheld).not.toContain("notes.body");
   });
 
   it("withholds them from a role that may not read them, and says so", async () => {
