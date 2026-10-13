@@ -230,30 +230,29 @@ async function renderPersonPage({
   const faces = await photoUrls([person.photoKey]);
   const canEdit = canEditPeople(session);
   const canMessage = canAnswerMessages(session);
-  const actions = canEdit || canMessage ? (
+  const editHref =
+    `/members/${person.slug}/edit?returnTo=${encodeURIComponent(returnTo ?? "/members")}`;
+
+  const actions = canMessage && presentation === "page" ? (
     <div className="flex items-center gap-2">
-      {/* R16.x. Messaging is deferred, and the launcher draws its own panel in
-          the corner over this window, so the record offers it on the page
-          alone until messaging comes back. */}
-      {canMessage && presentation === "page" ? (
-        <WriteTo at={person.slug} name={display} />
-      ) : null}
-      {canEdit ? (
-        <Tooltip content={t("action.edit")}>
-          <Button
-            variant="ghost"
-            asChild
-            className="size-[var(--d-tap)] min-h-0 rounded-[var(--d-radius-control)] px-0 [&_svg]:size-[var(--d-icon)]"
-          >
-            <Link
-              href={`/members/${person.slug}/edit?returnTo=${encodeURIComponent(returnTo ?? "/members")}`}
-              aria-label={t("action.edit")}
-            >
-              <Pencil />
-            </Link>
-          </Button>
-        </Tooltip>
-      ) : null}
+      <WriteTo at={person.slug} name={display} />
+    </div>
+  ) : undefined;
+
+  /*
+   * R24.6. Edit and Close, on the window's own footer.
+   *
+   * The design has them there, named, rather than a pencil in the corner. Edit
+   * is the one thing a reader does to a record they have opened, and an icon
+   * beside the close square is the quietest place on the window to put it.
+   */
+  const panelFooter = canEdit ? (
+    <div className="flex w-full items-center justify-end gap-2">
+      <Button variant="secondary" asChild>
+        <Link href={editHref}>
+          <Pencil /> {t("action.edit")}
+        </Link>
+      </Button>
     </div>
   ) : undefined;
 
@@ -486,6 +485,7 @@ async function renderPersonPage({
         title={display}
         sections={panelSections}
         actions={actions}
+        footer={panelFooter}
         closeTo={returnTo ?? "/members"}
       >
         <div className="flex flex-col gap-5">{content}</div>
