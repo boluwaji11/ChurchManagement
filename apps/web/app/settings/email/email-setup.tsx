@@ -265,9 +265,7 @@ function DisconnectDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {/* A standalone action, so it keeps its words. */}
-        <Button variant="ghost" disabled={busy}>
-          {t("email.disconnect")}
-        </Button>
+        <LinkButton disabled={busy}>{t("email.disconnect")}</LinkButton>
       </DialogTrigger>
       {/* R24.6. A destructive confirmation earns its title and its buttons.
           The sentence that was under it said what Disconnect plainly does. */}
@@ -327,14 +325,13 @@ function Records({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-col">
-          <h4 className="m-0 font-display text-[17px] leading-6 text-fg">{t("email.records")}</h4>
-          {/* R22.2. Named, because "where your domain lives" is still a place
-              somebody has to recognise. */}
-          {registrar ? (
-            <span className="text-fg-muted">{t("email.records.at", { name: registrar })}</span>
-          ) : null}
-        </div>
+        {/* R22.2. Named, because "your domain provider" is still a company
+            somebody has to recognise before they can open it. */}
+        <p className="m-0 min-w-0 flex-1 text-fg">
+          {registrar
+            ? t("email.records.lead", { name: registrar })
+            : t("email.records.leadPlain")}
+        </p>
         <div className="flex items-center gap-1">
           {registrar && console_ ? (
             <a
@@ -347,9 +344,9 @@ function Records({
               <ExternalLink className="size-[14px]" aria-hidden />
             </a>
           ) : null}
-          <Button variant="ghost" onClick={onCheck} disabled={busy}>
+          <LinkButton onClick={onCheck} disabled={busy}>
             {t("email.check")}
-          </Button>
+          </LinkButton>
           <DisconnectDialog vendor={vendor} busy={busy} onConfirm={onDisconnect} />
         </div>
       </div>
@@ -380,6 +377,32 @@ function Records({
     </section>
   );
 }
+
+/**
+ * R24.6. An action in a row of links, drawn as one.
+ *
+ * Beside "Open Vercel", a ghost button is a word in the body colour with no
+ * mark on it, and the two read as a link and a label rather than as two things
+ * to press.
+ */
+const LinkButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(function LinkButton({ className, ...rest }, ref) {
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className={[
+        "inline-flex min-h-[var(--d-tap)] cursor-pointer items-center rounded-md px-2",
+        "font-medium text-primary underline underline-offset-4",
+        "hover:no-underline disabled:cursor-default disabled:opacity-45",
+        className ?? "",
+      ].join(" ")}
+      {...rest}
+    />
+  );
+});
 
 /** A value somebody retypes somewhere else, which means they copy it. */
 function Copyable({
