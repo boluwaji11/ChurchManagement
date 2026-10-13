@@ -142,7 +142,6 @@ export default async function CardListPage({
         </tbody>
       </table>
 
-      <p className="mt-5 text-[14px] text-neutral-500">{t("celebrations.cards.tick")}</p>
     </PrintPage>
     </PrintSheet>
   );

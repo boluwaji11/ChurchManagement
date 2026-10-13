@@ -9,10 +9,10 @@ import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
  * others. A church that prints its directory and its giving statements in the
  * same week was handed two different documents from one product.
  *
- * The margin is zero because the browser prints its own date, title, address
- * and page number into the margin it keeps, and no church wants
- * "localhost:4488/members/print" across the foot of the thing it hands out.
- * The padding here puts the white space back where it belongs.
+ * The page margin is zero, because a browser draws its own date, title,
+ * address and page number into whatever margin the page leaves it, and no
+ * church wants "localhost:4488/members/print" across the foot of the thing it
+ * hands out. The room every page needs comes from `PrintPage` instead.
  *
  * Labels are not these. A label is geometry against a sheet of stock, checked
  * on the printer it comes out of, and it keeps its own page.
@@ -40,6 +40,12 @@ export function PrintSheet({
  * A document that prints a sheet per person, such as the giving statements,
  * repeats this and each one starts a new page. Everything else holds a single
  * one, where the break at the end falls away.
+ *
+ * The room at the top and the bottom is a table's own heading and footing
+ * rows, because a browser repeats those on every page it breaks onto. Padding
+ * gives the room to the first page and no other: a directory that ran to four
+ * pages started page two hard against the edge of the paper. The room at the
+ * sides is padding, which every page gets anyway.
  */
 export function PrintPage({
   wide = false,
@@ -54,13 +60,29 @@ export function PrintPage({
   return (
     <section
       className={[
-        "mx-auto px-10 py-9 print:max-w-none",
+        "mx-auto px-10 print:max-w-none print:px-[14mm]",
         wide ? "max-w-5xl" : "max-w-4xl",
         "break-after-page last:break-after-auto",
         className ?? "",
       ].join(" ")}
     >
-      {children}
+      <table className="w-full border-collapse">
+        <thead>
+          <tr>
+            <td className="h-[16mm]" />
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="align-top">{children}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td className="h-[12mm]" />
+          </tr>
+        </tfoot>
+      </table>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   withTenant, getChurch, statementFor, statementGivers, canReadGivingAmounts,
   type Statement,
@@ -84,6 +84,10 @@ export default async function StatementPrintPage({
   ]
     .filter(Boolean)
     .join(", ");
+
+  /* R13.17. A year a church gave nothing in prints nothing. Without this the
+     sheet went to the printer as a blank page. */
+  if (read.statements.length === 0) notFound();
 
   return (
     <PrintSheet>
