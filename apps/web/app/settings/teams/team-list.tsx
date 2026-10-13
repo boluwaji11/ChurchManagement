@@ -21,7 +21,7 @@ export interface TeamItem {
   archived: boolean;
 }
 
-/** R10.1. The one place a team is written down, renamed or put away. */
+/** R10.1. The one place a team is written down, renamed or archived. */
 export function TeamList({
   church,
   teams,
@@ -30,7 +30,7 @@ export function TeamList({
 }: {
   church: string;
   teams: TeamItem[];
-  /** R10.1. The teams that have been put away, rather than the ones in use. */
+  /** R10.1. The teams that have been archived, rather than the ones in use. */
   putAway?: boolean;
   /** R16.9. Whether this reader answers for the church. */
   canMessage?: boolean;

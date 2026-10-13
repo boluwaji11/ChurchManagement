@@ -31,7 +31,7 @@ export async function generateMetadata({
  * the church keeps once and lays onto a plan, rather than something that only
  * exists as a copy of a week that already happened.
  *
- * A shape that has been put away comes off this grid and sits behind the one
+ * A shape that has been archived comes off this grid and sits behind the one
  * link under it, which is also the way back to bringing it out again.
  */
 export default async function PlanTemplatesPage({

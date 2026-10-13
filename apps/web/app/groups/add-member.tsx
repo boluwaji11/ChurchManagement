@@ -1,22 +1,47 @@
 "use client";
 
 import * as React from "react";
-import { Plus, X } from "lucide-react";
+import { ArrowLeft, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   Avatar, Banner, Button, Checkbox, Field, IconButton,
-  Sheet, SheetTrigger, SheetContent,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { Searching } from "@/components/searching";
 import { SearchField } from "@/components/search-field";
 import { findPerson, join, type PersonHit } from "./actions";
 
+/** R24.6. The step this screen is, inside the group's own window. */
+const STEP = "add";
+
+/** Asks the window to show a part of itself. */
+const show = (id: string) =>
+  window.dispatchEvent(new CustomEvent("record-section", { detail: id }));
+
 /**
- * R9.4, R24.6. Putting people in a group, from a panel at the right.
+ * R9.4, R24.6. The mark that opens the step, in the window's row of marks.
  *
- * A membership is a record the church keeps, so it is written in the panel
- * rather than in a field above the roster.
+ * A filled button beside three icons reads as the only thing there.
+ */
+export function AddMemberMark() {
+  return (
+    <IconButton
+      label={t("groups.addMembers")}
+      variant="ghost"
+      onClick={() => show(STEP)}
+    >
+      <Plus />
+    </IconButton>
+  );
+}
+
+/**
+ * R9.4, R24.6. Putting people in a group, as a step of the group's own window.
+ *
+ * It was a second panel sliding in from the right over the first, which is two
+ * windows for one errand and leaves the group half covered behind it. The
+ * group's window shows this instead, and the way back out is at the top of it:
+ * a leader who has just added four people lands back on the group.
  *
  * Nobody joins on being picked. A leader typing up a roster is adding eight
  * people from a directory of four hundred, and a lookup that writes the moment
@@ -27,9 +52,8 @@ import { findPerson, join, type PersonHit } from "./actions";
  * Everybody joins as a member. Who leads it is set on the group itself, where
  * the question is asked once rather than on every row.
  */
-export function AddMember({ groupId }: { groupId: string }) {
+export function AddMemberStep({ groupId }: { groupId: string }) {
   const router = useRouter();
-  const [open, setOpen] = React.useState(false);
   const [picked, setPicked] = React.useState<PersonHit[]>([]);
   const [hits, setHits] = React.useState<PersonHit[]>([]);
   const [query, setQuery] = React.useState("");
@@ -67,17 +91,15 @@ export function AddMember({ groupId }: { groupId: string }) {
         ? was.filter((each) => each.id !== one.id)
         : [...was, one]);
 
-  /* Blank on every close, including Cancel and Escape: a panel that reopens
-     holding four names somebody walked away from is a panel that writes them
-     the next time anybody presses Add. */
-  const close = (next: boolean) => {
-    setOpen(next);
-    if (!next) {
-      setPicked([]);
-      setHits([]);
-      setQuery("");
-      setError(undefined);
-    }
+  /* Blank on the way out, however it is left: a step that reopens holding
+     four names somebody walked away from is a step that writes them the next
+     time anybody presses Add. */
+  const leave = () => {
+    setPicked([]);
+    setHits([]);
+    setQuery("");
+    setError(undefined);
+    show("__back__");
   };
 
   const save = () => {
@@ -90,35 +112,36 @@ export function AddMember({ groupId }: { groupId: string }) {
           return;
         }
       }
-      close(false);
+      leave();
       router.refresh();
     });
   };
 
   return (
-    <Sheet open={open} onOpenChange={close}>
-      <SheetTrigger asChild>
-        {/* R24.6. A mark, because it stands in the window's row of marks, where
-            a filled button beside three icons reads as the only thing there. */}
-        <IconButton label={t("groups.addMembers")} variant="ghost">
-          <Plus />
-        </IconButton>
-      </SheetTrigger>
+    <section data-record-section id={STEP} className="flex flex-col gap-5">
+      {/* R24.6. The way back, over the step rather than beside the window's
+          close square, because closing the window and leaving this step are
+          two different errands. */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={leave}
+          disabled={saving}
+          className="-ml-2 h-9 min-h-0 px-2 text-[13px] font-medium text-primary"
+        >
+          <ArrowLeft /> {t("groups.addBack")}
+        </Button>
 
-      <SheetContent
-        title={t("groups.addMembers")}
-        closeLabel={t("common.close")}
-        footer={
-          <>
-            <Button type="button" variant="secondary" disabled={saving} onClick={() => close(false)}>
-              {t("action.cancel")}
-            </Button>
-            <Button onClick={save} disabled={saving || picked.length === 0} loading={saving}>
-              {picked.length > 0 ? plural("groups.addCount", picked.length) : t("groups.addDo")}
-            </Button>
-          </>
-        }
-      >
+        <span className="flex-1" />
+
+        <Button onClick={save} disabled={saving || picked.length === 0} loading={saving}>
+          {picked.length > 0 ? plural("groups.addCount", picked.length) : t("groups.addDo")}
+        </Button>
+      </div>
+
+      <h3 className="font-display text-[22px] leading-7 text-fg">{t("groups.addMembers")}</h3>
+
         {error ? <Banner tone="danger">{error}</Banner> : null}
 
         <Field label={t("groups.findMember")}>
@@ -199,7 +222,6 @@ export function AddMember({ groupId }: { groupId: string }) {
           </ol>
           </>
         ) : null}
-      </SheetContent>
-    </Sheet>
+    </section>
   );
 }

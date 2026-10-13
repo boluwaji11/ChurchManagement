@@ -29,7 +29,7 @@ export async function generateMetadata({
  * congregation that runs a testimony every week writes it down here, and the
  * word it chooses is the word the whole order of service reads.
  *
- * A kind that has been put away comes off this grid and sits behind the one
+ * A kind that has been archived comes off this grid and sits behind the one
  * link under it, which is also the way back to bringing it out again.
  */
 export default async function ItemKindsPage({

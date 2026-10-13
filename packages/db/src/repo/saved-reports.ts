@@ -53,7 +53,7 @@ const mine = (actor: Actor) =>
     or ${savedReports.createdByUserId} = ${actor.userId ?? null})`;
 
 /**
- * R18.x, R2.13. Whose a report is once it has been put away.
+ * R18.x, R2.13. Whose a report is once it has been archived.
  *
  * Only its writer's. Somebody else's archive is their own housekeeping, and
  * a report taken off the list is off everybody's list but the one person who
@@ -125,7 +125,7 @@ export async function listSavedReports(
   );
 }
 
-/** R18.x, R24.6. How many a church has put away, for the link that reaches them. */
+/** R18.x, R24.6. How many a church has archived, for the link that reaches them. */
 export async function countArchivedSavedReports(db: Tx, actor: Actor): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

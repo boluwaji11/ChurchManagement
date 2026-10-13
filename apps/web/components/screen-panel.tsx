@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Sheet, SheetContent } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
+import { OPEN_INBOX } from "@/components/inbox/write-to";
 
 /**
  * R24.6. A screen that is not a sectioned record, over the list it belongs to.
@@ -62,14 +63,33 @@ export function ScreenPanel({
   }, [path]);
 
 
+  const leave = () => {
+    leaving.current = true;
+    setOpen(false);
+    router.replace(closeTo);
+  };
+
+  /*
+   * R16.9, R24.6. A press that opens the message thread steps the window
+   * aside first.
+   *
+   * The thread is drawn in the corner of the page, under this window and
+   * behind its overlay, where nothing of it can be seen or pressed. The
+   * record is one press away on the list, and the errand somebody started was
+   * the message.
+   */
+  React.useEffect(() => {
+    const stepAside = () => leave();
+    window.addEventListener(OPEN_INBOX, stepAside);
+    return () => window.removeEventListener(OPEN_INBOX, stepAside);
+  });
+
   return (
     <Sheet
       open={open}
       onOpenChange={(next) => {
         if (next) return;
-        leaving.current = true;
-        setOpen(false);
-        router.replace(closeTo);
+        leave();
       }}
     >
       <SheetContent

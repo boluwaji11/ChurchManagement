@@ -39,7 +39,7 @@ export function KindManager({
   kinds: KindRow[];
   /** R11.2. Every slug this church keeps, archived ones included. */
   taken: string[];
-  /** R24.6. Whether this is the shelf of kinds that have been put away. */
+  /** R24.6. Whether this is the shelf of kinds that have been archived. */
   putAway?: boolean;
 }) {
   const router = useRouter();

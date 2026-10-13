@@ -21,7 +21,7 @@ import { LeaveButton } from "./leave-button";
 import { ManageGroup } from "./manage";
 import { GroupDetail, type DetailMeeting } from "./detail";
 import { WriteTo } from "@/components/inbox/write-to";
-import { AddMember } from "../add-member";
+import { AddMemberMark, AddMemberStep } from "../add-member";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -224,7 +224,7 @@ export async function GroupPanelPage({
      marks. The way back is the close square. */
   const actions = (
       <div className="flex items-center gap-1">
-        {manage ? <AddMember groupId={group.id} /> : null}
+        {manage ? <AddMemberMark /> : null}
 
         {/* R9.7, R16.9. The group's own thread, for whoever may write into it:
             the office speaks for the church, and a member writes to the groups
@@ -280,10 +280,15 @@ export async function GroupPanelPage({
     <RecordPanel
       title={group.name}
       sections={sections.length > 1 ? sections : undefined}
+      /* R24.6. A step the rail does not name, which the mark above opens and
+         which hands the reader back to the part they left. */
+      aside={manage ? ["add"] : undefined}
       actions={actions}
       closeTo={closeTo}
       width="980px"
     >
+      {manage ? <AddMemberStep groupId={group.id} /> : null}
+
       <div className="flex flex-col gap-7">
       {/* R24.6. The kind and when it meets, over the picture. The name is the
           window's own title, so it is not written twice. */}

@@ -37,7 +37,7 @@ export interface PersonRow {
 /** How a directory query can be narrowed and ordered. */
 export interface DirectoryQuery {
   includeArchived?: boolean;
-  /** Only the people who have been put away, which is the archived view. */
+  /** Only the people who have been archived, which is the archived view. */
   archivedOnly?: boolean;
   /** Matches a name, an email, or a phone number. */
   q?: string;
@@ -992,7 +992,7 @@ export async function countPeople(db: Tx, opts: DirectoryQuery = {}): Promise<nu
   return Number(rows[0]?.n ?? 0);
 }
 
-/** R2.4. How many people have been put away, for the link to them. */
+/** R2.4. How many people have been archived, for the link to them. */
 export async function countArchivedPeople(db: Tx): Promise<number> {
   const rows = await db
     .select({ n: count() })

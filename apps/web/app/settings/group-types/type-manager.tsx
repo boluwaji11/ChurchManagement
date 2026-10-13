@@ -43,7 +43,7 @@ export function TypeManager({
   types: TypeRow[];
   /** R9.1. Every name this church keeps, archived ones included. */
   taken: string[];
-  /** R24.6. Whether this is the shelf of kinds that have been put away. */
+  /** R24.6. Whether this is the shelf of kinds that have been archived. */
   putAway?: boolean;
 }) {
   const router = useRouter();

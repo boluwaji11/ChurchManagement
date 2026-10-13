@@ -141,114 +141,119 @@ export function EventView({
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger">{error}</Banner> : null}
 
-      {/* The name and when on the left, the cover beside them, which is what
-          the designer was drawing. */}
-      <div className="grid items-center gap-7 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
-        <div className="flex flex-col gap-2.5">
+
+      <section data-record-section id="overview" className="flex flex-col gap-6">
+        {/* R14.1, R24.6. The cover, the state and the presses that change it
+            belong to the event itself, so they are read on the part about the
+            event. The roster is a table, and a picture of a mountain over it
+            is not a registration. */}
+        {/* The name and when on the left, the cover beside them, which is what
+            the designer was drawing. */}
+        <div className="grid items-center gap-7 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
+          <div className="flex flex-col gap-2.5">
+            <span
+              className="w-fit rounded-full px-2.5 py-0.5 text-[12px] font-medium"
+              style={{
+                background: `var(--hue-${event.hue}-tint)`,
+                color: `var(--hue-${event.hue}-key)`,
+              }}
+            >
+              {t(`event.status.${event.status}` as never)}
+            </span>
+
+          </div>
+
+          {/* R24.6. A cover where there is one. The tinted block that stood in
+              for a missing picture was a third of the record in one colour,
+              above the thing somebody opened the event to read. */}
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt=""
+              className="aspect-[21/9] max-h-[260px] w-full rounded-[14px] object-cover"
+            />
+          ) : null}
+        </div>
+
+        {/* Whether it is taking registrations, and the actions that change it. */}
+        <div className="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-[18px] py-3.5">
           <span
-            className="w-fit rounded-full px-2.5 py-0.5 text-[12px] font-medium"
+            className="size-2 shrink-0 rounded-full"
             style={{
-              background: `var(--hue-${event.hue}-tint)`,
-              color: `var(--hue-${event.hue}-key)`,
+              background: !event.takesRegistrations
+                ? "var(--hue-sky-500)"
+                : event.registrationOpen
+                  ? "var(--hue-fern-500)"
+                  : "var(--fg-subtle)",
             }}
-          >
-            {t(`event.status.${event.status}` as never)}
+          />
+          <span className="min-w-[180px] flex-1 font-medium text-fg">
+            {!event.takesRegistrations
+              ? t("event.registrationNone")
+              : event.registrationOpen
+                ? t("event.registrationOpen")
+                : t("event.registrationClosed")}
+            {left !== null ? ` · ${left === 0 ? t("event.full") : plural("event.placesLeft", left)}` : ""}
           </span>
+
+          {event.status === "published" ? (
+            <button
+              type="button"
+              onClick={async () => {
+                await navigator.clipboard.writeText(publicLink);
+                setCopied(true);
+                window.setTimeout(() => setCopied(false), 2500);
+              }}
+              className={cn(
+                "flex h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border px-3.5 text-label font-medium",
+                copied
+                  ? "border-[var(--hue-fern-500)] bg-[var(--hue-fern-tint)] text-[var(--hue-fern-key)]"
+                  : "border-line-strong bg-surface text-fg hover:bg-sunken",
+              )}
+            >
+              {copied ? <Check className="size-4" aria-hidden /> : <Link2 className="size-4" aria-hidden />}
+              {copied ? t("form.linkCopied") : t("form.copyLink")}
+            </button>
+          ) : null}
+
+          {event.takesRegistrations ? (
+            <Button
+              type="button"
+              variant="secondary"
+              loading={doing === "registration"}
+              disabled={pending}
+              onClick={() =>
+                run("registration", () =>
+                  openEventRegistration(event.id, !event.registrationOpen),
+                )}
+            >
+              {event.registrationOpen ? t("event.registrationClose") : t("event.registrationReopen")}
+            </Button>
+          ) : null}
+
+          {event.status === "published" ? (
+            <Button
+              type="button"
+              variant="secondary"
+              loading={doing === "unpublish"}
+              disabled={pending}
+              onClick={() => run("unpublish", () => publishEvent(event.id, "draft"))}
+            >
+              {t("event.unpublish")}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              loading={doing === "publish"}
+              disabled={pending}
+              onClick={() => run("publish", () => publishEvent(event.id, "published"))}
+            >
+              {t("event.publish")}
+            </Button>
+          )}
 
         </div>
 
-        {/* R24.6. A cover where there is one. The tinted block that stood in
-            for a missing picture was a third of the record in one colour,
-            above the thing somebody opened the event to read. */}
-        {coverUrl ? (
-          <img
-            src={coverUrl}
-            alt=""
-            className="aspect-[21/9] max-h-[260px] w-full rounded-[14px] object-cover"
-          />
-        ) : null}
-      </div>
-
-      {/* Whether it is taking registrations, and the actions that change it. */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl bg-sunken px-[18px] py-3.5">
-        <span
-          className="size-2 shrink-0 rounded-full"
-          style={{
-            background: !event.takesRegistrations
-              ? "var(--hue-sky-500)"
-              : event.registrationOpen
-                ? "var(--hue-fern-500)"
-                : "var(--fg-subtle)",
-          }}
-        />
-        <span className="min-w-[180px] flex-1 font-medium text-fg">
-          {!event.takesRegistrations
-            ? t("event.registrationNone")
-            : event.registrationOpen
-              ? t("event.registrationOpen")
-              : t("event.registrationClosed")}
-          {left !== null ? ` · ${left === 0 ? t("event.full") : plural("event.placesLeft", left)}` : ""}
-        </span>
-
-        {event.status === "published" ? (
-          <button
-            type="button"
-            onClick={async () => {
-              await navigator.clipboard.writeText(publicLink);
-              setCopied(true);
-              window.setTimeout(() => setCopied(false), 2500);
-            }}
-            className={cn(
-              "flex h-9 cursor-pointer items-center gap-1.5 rounded-[10px] border px-3.5 text-label font-medium",
-              copied
-                ? "border-[var(--hue-fern-500)] bg-[var(--hue-fern-tint)] text-[var(--hue-fern-key)]"
-                : "border-line-strong bg-surface text-fg hover:bg-sunken",
-            )}
-          >
-            {copied ? <Check className="size-4" aria-hidden /> : <Link2 className="size-4" aria-hidden />}
-            {copied ? t("form.linkCopied") : t("form.copyLink")}
-          </button>
-        ) : null}
-
-        {event.takesRegistrations ? (
-          <Button
-            type="button"
-            variant="secondary"
-            loading={doing === "registration"}
-            disabled={pending}
-            onClick={() =>
-              run("registration", () =>
-                openEventRegistration(event.id, !event.registrationOpen),
-              )}
-          >
-            {event.registrationOpen ? t("event.registrationClose") : t("event.registrationReopen")}
-          </Button>
-        ) : null}
-
-        {event.status === "published" ? (
-          <Button
-            type="button"
-            variant="secondary"
-            loading={doing === "unpublish"}
-            disabled={pending}
-            onClick={() => run("unpublish", () => publishEvent(event.id, "draft"))}
-          >
-            {t("event.unpublish")}
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            loading={doing === "publish"}
-            disabled={pending}
-            onClick={() => run("publish", () => publishEvent(event.id, "published"))}
-          >
-            {t("event.publish")}
-          </Button>
-        )}
-
-      </div>
-
-      <section data-record-section id="overview" className="flex flex-col gap-6">
         <div className="flex flex-wrap items-start gap-10">
           <div className="flex min-w-0 flex-[999_1_420px] flex-col gap-6">
             <Block label={t("event.about")}>
@@ -528,7 +533,7 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
 
 /**
  * R14.1, R24.6. What a church does to the event itself, on the window's own
- * row of marks: look at it as the congregation will, change it, put it away.
+ * row of marks: look at it as the congregation will, change it, archive it.
  */
 export function EventActions({ event }: { event: ChurchEvent }) {
   const router = useRouter();

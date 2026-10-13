@@ -54,7 +54,7 @@ export async function MailerPanelPage({
   searchParams: MailerPageProps["searchParams"];
 }) {
   const { open: id, archived } = await searchParams;
-  /** R24.6. The ones put away, reached from the shelf they came off. */
+  /** R24.6. The ones archived, reached from the shelf they came off. */
   const putAway = archived === "1";
   const session = await requireSession();
 

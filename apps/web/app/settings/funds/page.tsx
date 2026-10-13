@@ -27,7 +27,7 @@ export async function generateMetadata({
  * money given for a building is reported apart from the rest, because it
  * cannot be spent on the electricity bill.
  *
- * A fund that has been put away comes off this grid and sits behind the one
+ * A fund that has been archived comes off this grid and sits behind the one
  * link under it, which is also the way back to bringing it out again.
  */
 export default async function FundsPage({

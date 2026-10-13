@@ -125,7 +125,7 @@ export async function listHouseholdRows(
   }));
 }
 
-/** R2.1. How many households have been put away, for the link that goes to them. */
+/** R2.1. How many households have been archived, for the link that goes to them. */
 export async function countArchivedHouseholds(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

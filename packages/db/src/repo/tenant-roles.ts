@@ -156,12 +156,12 @@ export async function listRoles(
 }
 
 /**
- * R1.6. How many of the church's own roles have been put away.
+ * R1.6. How many of the church's own roles have been archived.
  *
  * The built-ins a church has not taken up are archived too, because the shelf
  * in the roles panel is where they are offered. They are the product's list, so
  * they are not counted here: this answers how many roles this church wrote and
- * later put away, which is what the link under the matrix goes to.
+ * later archived, which is what the link under the matrix goes to.
  */
 export async function countArchivedRoles(db: Tx, tenantId: string): Promise<number> {
   const [row] = await db

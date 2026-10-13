@@ -52,7 +52,7 @@ export function cleanRule(input: Record<string, string | undefined>): ListRule {
   return rule;
 }
 
-/** R1.14. How many saved lists have been put away, for the link to them. */
+/** R1.14. How many saved lists have been archived, for the link to them. */
 export async function countArchivedSavedLists(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

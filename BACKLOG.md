@@ -1815,7 +1815,7 @@ Everything is on the Members screen.
 ### HRT-254, how to test it
 
 Every screen that can put a record away now reads the same way: the live list is
-the whole screen, one quiet line under it says how many have been put away, and
+the whole screen, one quiet line under it says how many have been archived, and
 that opens them with the way back at the top.
 
 1. **Pick any of them.** Forms, events, members, groups, campaigns, reports,
@@ -2820,7 +2820,7 @@ The public link is HRT-150 and submissions are HRT-151. This is the writing.
    banner says which.
 7. Up and down reorder a question. Removing one asks first.
 8. **Close it after this many** takes a number, and refuses zero.
-9. **Put it away** closes the form as well as archiving it, and it leaves the list. Bringing it back
+9. **Archive it** closes the form as well as archiving it, and it leaves the list. Bringing it back
    restores it as a draft rather than silently reopening.
 10. Only Owner and Admin see any of it.
 
@@ -3324,7 +3324,7 @@ The **?** beside your name, on any screen.
 ### HRT-105 and HRT-108, how to test them
 
 **Settings**, then **Set up**. On the staff directory there is a line at the top until it is done or
-put away.
+archived.
 
 1. **Five steps**, each linking to the screen that does it rather than wrapping that screen in a
    wizard. A church that adds a service time here and another next March is in the same place both

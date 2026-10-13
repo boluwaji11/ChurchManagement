@@ -260,7 +260,7 @@ export async function listTemplateShapes(
   return [...held.values()];
 }
 
-/** R11.8. How many shapes have been put away, for the link that goes to them. */
+/** R11.8. How many shapes have been archived, for the link that goes to them. */
 export async function countArchivedTemplates(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

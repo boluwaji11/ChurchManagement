@@ -93,7 +93,7 @@ export async function listItemKinds(
   }));
 }
 
-/** R11.2. How many kinds have been put away, for the link that goes to them. */
+/** R11.2. How many kinds have been archived, for the link that goes to them. */
 export async function countArchivedItemKinds(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

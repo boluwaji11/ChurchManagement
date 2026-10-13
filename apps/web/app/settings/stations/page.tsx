@@ -25,7 +25,7 @@ export async function generateMetadata({
 /**
  * R8.1, R8.2. The devices a church checks members in on.
  *
- * A station that has been put away comes off this list and sits behind the one
+ * A station that has been archived comes off this list and sits behind the one
  * link under it, which is also the way back to bringing it out again.
  */
 export default async function StationsPage({

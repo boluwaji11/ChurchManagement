@@ -44,7 +44,7 @@ export async function MembersListScreen({
 
   const page = pageFromParams(params);
 
-  /* R2.4, R1.14. Two things on this screen can be put away: a person, and a
+  /* R2.4, R1.14. Two things on this screen can be archived: a person, and a
      saved list. Each has its own view of the same screen rather than a second
      section under the directory. */
   const putAway = params.show === "archived";
@@ -186,7 +186,7 @@ export async function MembersListScreen({
         }))}
       />
 
-      {/* R1.14. A saved list could be put away and then reached by nothing. */}
+      {/* R1.14. A saved list could be archived and then reached by nothing. */}
       {!putAway && canEdit && archivedLists > 0 ? (
         <Link
           href={"/members?lists=archived"}

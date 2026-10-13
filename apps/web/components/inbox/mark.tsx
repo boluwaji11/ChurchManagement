@@ -59,6 +59,15 @@ export function InboxMark({
   clear?: "none" | "tabs" | "dock";
 }) {
   const [open, setOpen] = React.useState(false);
+  /*
+   * R16.9, R24.6. Whether a record's own press opened this.
+   *
+   * The launcher gets out of the way of a window over the list, which is right
+   * while nobody asked for it. A press inside that window is somebody asking
+   * for it, and the thread then has to stand over the record rather than
+   * opening behind it where nothing of it can be seen.
+   */
+  const [raised, setRaised] = React.useState(false);
   const launcher = React.useRef<HTMLButtonElement>(null);
   const panel = React.useRef<HTMLDivElement>(null);
   const [view, setView] = React.useState<View>("inbox");
@@ -100,6 +109,7 @@ export function InboxMark({
     const open = (event: Event) => {
       const { at, name } = (event as CustomEvent<OpenInbox>).detail;
       setOpen(true);
+      setRaised(true);
       setWriting(false);
       setOpening({ key: at, name: name ?? "" });
       setKey(at);
@@ -128,7 +138,7 @@ export function InboxMark({
    * The launcher sits in the corner a panel's own footer lands in, so a church
    * pressing Filter met it sitting on top of Show. It comes back the moment
    * the panel closes, and its own panel is not an overlay, so opening it does
-   * not put it away.
+   * not archive it.
    */
   const covered = useOverlay() && !open;
 
@@ -171,10 +181,10 @@ export function InboxMark({
 
   return (
     <div
-      className={`${covered ? "pointer-events-none opacity-0" : ""} transition-opacity duration-fast ${floating
+      className={`${covered && !raised ? "pointer-events-none opacity-0" : ""} transition-opacity duration-fast ${floating
         /* Clear of the home indicator on a phone, of the tab bar above it,
            and of the setup path while a church is still walking it. */
-        ? `fixed right-[max(1rem,env(safe-area-inset-right))] z-40 ${
+        ? `fixed right-[max(1rem,env(safe-area-inset-right))] ${raised ? "z-[60]" : "z-40"} ${
             clear === "dock"
               ? "bottom-[calc(10rem+env(safe-area-inset-bottom))] sm:bottom-[13.5rem]"
               : clear === "tabs"
@@ -186,7 +196,10 @@ export function InboxMark({
       <button
         type="button"
         ref={launcher}
-        onClick={() => setOpen((was) => !was)}
+        onClick={() => {
+          setRaised(false);
+          setOpen((was) => !was);
+        }}
         /* R24.11. The count is drawn on the mark, so the name carries it for
            whoever is not looking at it. */
         aria-label={data.unread > 0 ? plural("inbox.unread", data.unread) : t("inbox.title")}
@@ -217,13 +230,17 @@ export function InboxMark({
 
       {open ? (
         <>
-          <div aria-hidden className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            aria-hidden
+            className={`fixed inset-0 ${raised ? "z-[60]" : "z-40"}`}
+            onClick={() => { setOpen(false); setRaised(false); }}
+          />
           <div
             ref={panel}
             tabIndex={-1}
             role="dialog"
             aria-label={t("inbox.title")}
-            className={`absolute right-0 z-50 flex h-[min(560px,calc(100vh-120px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg ${
+            className={`absolute right-0 ${raised ? "z-[70]" : "z-50"} flex h-[min(560px,calc(100vh-120px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg ${
               floating ? "bottom-[68px]" : "top-11"
             }`}
           >

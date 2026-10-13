@@ -131,7 +131,7 @@ const NOTHING: Chosen = {
 
 const AUDIENCES = ["anyone", "men", "women", "young_adults", "students", "parents", "seniors"] as const;
 
-/** Where this device remembers the requests it has put away. */
+/** Where this device remembers the requests it has archived. */
 const DISMISSED = "connectapp:groupRequestsPutAway";
 
 /**
@@ -170,7 +170,7 @@ export function Finder({
    * church is reading: "Create a Committee" rather than "Create a Group".
    */
   make?: React.ReactNode;
-  /** R9.2. The archived view: the same list, holding the groups put away. */
+  /** R9.2. The archived view: the same list, holding the groups archived. */
   putAway?: boolean;
 }) {
   const router = useRouter();
@@ -189,7 +189,7 @@ export function Finder({
   const [pending, startTransition] = React.useTransition();
 
   /*
-   * R9.6. Put away stays put away.
+   * R9.6. Archived stays archived.
    *
    * The ids that were dismissed are kept on this device, so the block does not
    * come back on the next visit. Only the ones that were there at the time:
@@ -208,7 +208,7 @@ export function Finder({
   }, []);
 
   /* R9.6, R24.6. A join request is about a group somebody can join, so it
-     has nothing to say on the list of the ones put away. */
+     has nothing to say on the list of the ones archived. */
   const waiting = putAway ? [] : requests.filter((one) => !dismissed.includes(one.id));
 
   const dismissRequests = () => {
@@ -356,7 +356,7 @@ export function Finder({
               {waiting.length}
             </span>
             <span className="flex-1" />
-            {/* Put away for now. It comes back on the next visit, and the
+            {/* Archived for now. It comes back on the next visit, and the
                 moment somebody new asks. */}
             <IconButton
               label={t("find.dismiss")}

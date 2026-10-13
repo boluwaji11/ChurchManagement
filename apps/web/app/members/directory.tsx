@@ -118,7 +118,7 @@ export function Directory({
   listHref,
 }: {
   church: string;
-  /** R2.4. The archived view: the same list, holding the people put away. */
+  /** R2.4. The archived view: the same list, holding the people archived. */
   putAway?: boolean;
   rows: Row[];
   tags: TagOption[];

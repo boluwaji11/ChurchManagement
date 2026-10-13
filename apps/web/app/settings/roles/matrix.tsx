@@ -179,7 +179,7 @@ export function Matrix({
 }
 
 /**
- * R1.6. The roles this church wrote and later put away.
+ * R1.6. The roles this church wrote and later archived.
  *
  * A role off the list grants nobody anything, so bringing one back is held to
  * the same reach as writing one: every permission it holds has to be one the

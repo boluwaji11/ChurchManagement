@@ -45,7 +45,7 @@ export function TemplateManager({
   taken: string[];
   /** R11.2. The kinds this church files an item under. */
   kinds: KindOption[];
-  /** R24.6. Whether this is the shelf of shapes that have been put away. */
+  /** R24.6. Whether this is the shelf of shapes that have been archived. */
   putAway?: boolean;
 }) {
   const router = useRouter();

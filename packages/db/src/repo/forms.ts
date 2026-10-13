@@ -560,7 +560,7 @@ export async function reorderFormFields(
   }
 }
 
-/** R4.1. How many forms have been put away, for the link that goes to them. */
+/** R4.1. How many forms have been archived, for the link that goes to them. */
 export async function countArchivedForms(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

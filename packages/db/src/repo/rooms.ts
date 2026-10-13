@@ -84,7 +84,7 @@ export async function listRooms(
   return rows;
 }
 
-/** R8.14. How many rooms have been put away, for the link that goes to them. */
+/** R8.14. How many rooms have been archived, for the link that goes to them. */
 export async function countArchivedRooms(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

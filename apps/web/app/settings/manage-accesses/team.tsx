@@ -28,7 +28,7 @@ export interface ChurchRoleOption {
   key: string;
   name: string;
   builtin: boolean;
-  /** R1.6. Put away: still held by whoever holds it, never offered again. */
+  /** R1.6. Archived: still held by whoever holds it, never offered again. */
   archived: boolean;
   permissions: string[];
 }
@@ -279,7 +279,7 @@ export function Team({
                       </SelectTrigger>
                       <SelectContent>
                         {/* The church's live roles, and the one this member is
-                            on where the church has since put it away. */}
+                            on where the church has since archive it. */}
                         {roles
                           .filter(
                             (role) =>

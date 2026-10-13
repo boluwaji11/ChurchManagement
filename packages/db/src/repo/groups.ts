@@ -189,7 +189,7 @@ async function freeTypeSlug(db: Tx, name: string): Promise<string> {
   return slug;
 }
 
-/** R9.1. How many kinds have been put away, for the link that goes to them. */
+/** R9.1. How many kinds have been archived, for the link that goes to them. */
 export async function countArchivedGroupTypes(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

@@ -47,7 +47,7 @@ export function Banner({
   const Icon = icons[tone ?? "info"];
 
   /*
-   * R24.9. Anything said on screen can be put away.
+   * R24.9. Anything said on screen can be archived.
    *
    * A screen holding the state passes `onClose` and decides what happens. A
    * screen that is not gets the cross anyway, and the banner remembers for

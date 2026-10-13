@@ -185,7 +185,7 @@ export async function listStations(
   return withLinks(db, rows);
 }
 
-/** R8.1. How many stations have been put away, for the link that goes to them. */
+/** R8.1. How many stations have been archived, for the link that goes to them. */
 export async function countArchivedStations(db: Tx): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })

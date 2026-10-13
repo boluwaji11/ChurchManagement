@@ -49,7 +49,7 @@ export default async function SetupPage({
   const session = await requireSession();
   const user = await currentUser();
 
-  // R1.3. Nobody else's business, and it is not their screen to put away.
+  // R1.3. Nobody else's business, and it is not their screen to archived.
   if (!canManageChurch(session)) {
     return (
       <Denied role={session.role} action="editChurch" church={session.tenantSlug} />
