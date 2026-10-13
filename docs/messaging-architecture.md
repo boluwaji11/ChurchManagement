@@ -31,15 +31,20 @@ that cannot send.
   and DMARC right. `verify` opens the session and authenticates without sending, and a refusal comes
   back in the server's own words, which is how a volunteer learns they need an app password rather
   than the one they sign in with.
-- **Resend.** The church pastes a full-access API key, we register the root of its From address as a
-  sending domain, and the three records Resend generates are kept and shown until they are published.
+- **Resend.** The church presses one button, lands on Resend's own consent screen, signs in or
+  signs up there, and comes back connected. We register the root of its From address as a sending
+  domain and keep the records it generates. No key is ever shown to anybody.
 
-Resend connects by API key rather than by OAuth. There is no dashboard screen for creating an OAuth
-client, the metadata-document route means hosting a file whose URL is the client id, and the loopback
-redirect a remote client has to use cannot reach a tenant subdomain in development. The grant is the
-same either way, because `full_access` is Resend's only scope that can create a domain, and the
-screen says so above the press. OAuth can be added later as a second way in, against the same
-tables.
+Resend connects by OAuth, as a public client with PKCE registered through Resend's own registration
+endpoint, so there is no client secret to keep and nothing to ask Resend for. Resend returns to one
+registered address and that address is the parent, because registering one a church is not
+registering one. The landing carries no session: which church asked, who pressed it, what mail goes
+out as and the PKCE verifier all travel sealed in the `state` with a key derived from the provider
+key, good for fifteen minutes. An earlier version put the session on the landing and asked the
+church to sign in again in the middle of connecting.
+
+`full_access` is Resend's only scope that can create a domain, and the screen says what that means
+above the press.
 
 Whether the records are published is read from public DNS rather than from Resend, which is what
 every mail server on the internet reads anyway and which needs no credential. So nothing sealed is
@@ -181,7 +186,7 @@ that document.
 | Vendor | What is needed |
 |---|---|
 | Twilio | A Connect app on the platform account: its SID, its secret, and the authorise URL. Plus a second account to stand in for a church while the spike runs. |
-| Resend | Nothing. Each church makes its own full-access key in its own Resend dashboard and pastes it in, which is HRT-287 as shipped. An OAuth client would only save it the paste, and it is in [messaging-setup.md](messaging-setup.md) if we ever want it. |
+| Resend | Nothing from Resend. One OAuth client is registered per environment with a single call, written into `.env.example`, and its id goes in `RESEND_OAUTH_CLIENT_ID`. |
 | Both | `PROVIDER_CREDENTIAL_KEY`, 32 bytes base64. Generate with `openssl rand -base64 32`. |
 
 ## Sources

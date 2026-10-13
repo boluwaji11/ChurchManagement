@@ -1,33 +1,95 @@
 import { NextResponse } from "next/server";
-import { here, ours } from "../hop";
+import {
+  withTenant, apexOf, connectEmailProvider, saveSendingDomain, type TenantRole,
+} from "@connectapp/db";
+import { exchangeCode, openHandshake, resendClientId } from "@/lib/resend-oauth";
+import { resendDomain } from "@/lib/email-provider";
+import { here, redirectUri } from "../hop";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
- * HRT-288, R16.1. The one address Resend knows, which is a doorstep.
+ * HRT-288, R16.1, R21.15. Back from Resend, connected, on the way to the
+ * screen the church started on.
  *
- * Resend returns to the parent, because that is the address registered with
- * it and because registering one a church is not the same as registering one.
- * Nothing is exchanged here: the code is handed on to the church's own
- * address, which is where the session is and where the verifier is waiting.
+ * Resend returns to one registered address and that address is the parent,
+ * which in development is a host the church's session cookie is never sent
+ * to. So nothing here reads a session or a cookie: the state carries which
+ * church this is, sealed with our own key fifteen minutes ago by a request
+ * that did have a session and did have the permission. An earlier version
+ * asked the church to sign in again halfway through connecting.
+ *
+ * Everything a church would have done by hand happens here. The code becomes a
+ * token, the root of the address it sends from becomes a domain on its own
+ * Resend account, and the settings that domain needs are written down so the
+ * screen can show them.
  */
 export async function GET(request: Request) {
   const asked = new URL(request.url);
-  const { proto, parent } = await here();
+  const { proto, host: parent } = await here();
 
+  const held = openHandshake(asked.searchParams.get("state") ?? "");
+  const home = held?.host ?? parent;
+  const back = new URL(`${proto}://${home}/settings/email`);
+
+  const refuse = (why: string) => {
+    back.searchParams.set("resend", why);
+    return NextResponse.redirect(back);
+  };
+
+  if (!held) return refuse("expired");
+
+  /* The church pressed No on Resend's own screen, which is an answer rather
+     than a fault. */
+  if (asked.searchParams.get("error")) return refuse("refused");
+
+  const clientId = resendClientId();
   const code = asked.searchParams.get("code") ?? "";
-  const [state, host] = (asked.searchParams.get("state") ?? "").split("~");
+  if (!clientId || !code) return refuse("expired");
 
-  /* R1.4. The address came back from outside, so it is checked against this
-     very parent before anybody is sent to it. */
-  const home = host && ours(host, parent) ? host : parent;
-  const on = new URL(`${proto}://${home}/api/providers/resend/finish`);
+  const got = await exchangeCode({
+    clientId,
+    redirectUri: await redirectUri(),
+    code,
+    verifier: held.verifier,
+  });
+  if (!got.ok) return refuse("exchange");
 
-  if (code) on.searchParams.set("code", code);
-  if (state) on.searchParams.set("state", state);
-  const refused = asked.searchParams.get("error");
-  if (refused) on.searchParams.set("error", refused);
+  const root = apexOf(held.from.split("@")[1] ?? "");
+  if (!root) return refuse("noAddress");
 
-  return NextResponse.redirect(on);
+  const made = await resendDomain(got.tokens.accessToken, root);
+  if (!made.ok) return refuse("domain");
+
+  const actor = {
+    tenantId: held.tenantId,
+    role: held.role as TenantRole,
+    userId: held.userId ?? undefined,
+  };
+
+  try {
+    await withTenant(actor, async (tx) => {
+      const providerId = await connectEmailProvider(tx, actor, {
+        vendor: "resend",
+        /* R21.15. The refresh token is what the worker sends with months from
+           now. Resend rotates it on every use and refuses one used twice, so
+           whatever refreshes it writes the new one back first. */
+        credential: got.tokens.refreshToken,
+        externalAccountId: made.domain.id,
+        fromName: held.name,
+        fromAddress: held.from,
+        settings: null,
+      });
+      await saveSendingDomain(tx, actor, {
+        providerId,
+        domain: made.domain.name,
+        records: made.domain.records,
+      });
+    });
+  } catch {
+    return refuse("exchange");
+  }
+
+  return refuse("connected");
 }

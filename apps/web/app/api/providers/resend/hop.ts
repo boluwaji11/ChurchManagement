@@ -11,9 +11,9 @@ import { slugUnderPlatform } from "@connectapp/db/rules";
  * and in development that cookie is host-only, so the address Resend returns
  * to cannot read it.
  *
- * So the landing is a doorstep. It takes the code, works out which church
- * asked, and hands it on to that church's own address, where there is a
- * session and where the verifier is waiting in a cookie.
+ * So the landing carries no session at all. Which church asked, and
+ * everything else the way back needs, travels sealed in the state and is
+ * opened here with our own key.
  */
 
 /** Where we are, as a browser would write it. */
@@ -32,18 +32,4 @@ export async function here(): Promise<{ proto: string; host: string; parent: str
 export async function redirectUri(): Promise<string> {
   const { proto, parent } = await here();
   return `${proto}://${parent}/api/providers/resend/callback`;
-}
-
-/**
- * R1.4. Whether a host named in the handshake is one of ours.
- *
- * The church's address travels through Resend and comes back, which means it
- * comes back from outside. A host that is not a name under this very parent is
- * refused, because sending somebody on to whatever the query asked for is how
- * a login screen ends up on a stranger's domain.
- */
-export function ours(asked: string, parent: string): boolean {
-  if (!asked || asked === parent) return true;
-  const under = slugUnderPlatform(asked);
-  return under !== null && asked.slice(under.length + 1) === parent;
 }

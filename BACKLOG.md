@@ -1790,8 +1790,12 @@ bills the church past it.
 
 Press Continue to Resend. Confirm the browser lands on Resend's own consent screen, and that a
 person with no Resend account can make one there. Approve it, and confirm the browser comes back to
-the church's own address already connected, with the three records listed. Go through it again and
-press No at Resend, and confirm the screen says so and nothing changed.
+the church's own address already connected, with the three settings listed, **without being asked to
+sign in on the way**. Go through it again and press No at Resend, and confirm the screen says so and
+nothing changed.
+
+The settings name the company that answers for the domain and offer the page at that company where
+they are typed. Publish them, press Check again, and confirm it turns.
 
 Press Disconnect. In the Resend dashboard, under the team's settings, confirm ConnectApp's access is
 gone rather than merely forgotten here.
