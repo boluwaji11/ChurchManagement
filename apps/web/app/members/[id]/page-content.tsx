@@ -395,22 +395,62 @@ export async function PersonPanelPage({
               </div>
               <div className="flex flex-col gap-1.5">
                 <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
-                <Places memberId={person.id} places={addresses} canEdit={canEdit} />
+                <Places memberId={person.id} name={display} places={addresses} canEdit={canEdit} />
               </div>
             </div>
           </RecordSection>
 
-          <RecordSection id="household" title={t("person.household")} action={editMark("household")}>
+          {/*
+            * R2.4, R24.6. A household is kept on its own screen, where it is
+            * named, addressed, merged and archived. The mark here went to this
+            * person's edit form, which does not hold any of that.
+            */}
+          <RecordSection
+            id="household"
+            title={t("person.household")}
+            action={household && canEdit ? (
+              <Link
+                href={`/settings/households?open=${household.id}`}
+                className="text-label font-medium text-primary underline underline-offset-4"
+              >
+                {t("person.manageHousehold")}
+              </Link>
+            ) : undefined}
+          >
             {household && household.members.length > 0 ? (
-              household.members.map((m) => (
-                <span key={m.id} className="flex items-center gap-2.5">
-                  <Avatar name={m.displayName} id={m.id} className="size-7 text-[12px] font-semibold" />
-                  <span className="min-w-0 flex-1 truncate font-medium text-fg">{m.displayName}</span>
-                  <span className="text-[13px] text-fg-subtle">
-                    {t(`householdRole.${m.role}` as never)}
-                  </span>
-                </span>
-              ))
+              /* R24.6. The rail the product uses wherever several things are
+                 one thing: a dot a row, and a line running between them. */
+              <ol className="m-0 flex list-none flex-col p-0">
+                {household.members.map((m) => (
+                  <li key={m.id} className="group flex items-stretch gap-3">
+                    {/* The line runs the height of the row, behind the face,
+                        and stops at the first and the last of them. */}
+                    <span className="relative flex w-7 shrink-0 justify-center py-1.5">
+                      <span
+                        aria-hidden
+                        className={
+                          "absolute inset-y-0 w-px bg-line"
+                          + " group-first:top-1/2 group-last:bottom-1/2"
+                        }
+                      />
+                      <Avatar
+                        name={m.displayName}
+                        id={m.id}
+                        className="relative size-7 shrink-0 text-[12px] font-semibold"
+                      />
+                    </span>
+
+                    <span className="flex min-w-0 flex-1 items-center gap-2.5 py-1.5">
+                      <span className="min-w-0 flex-1 truncate font-medium text-fg">
+                        {m.displayName}
+                      </span>
+                      <span className="text-[13px] text-fg-subtle">
+                        {t(`householdRole.${m.role}` as never)}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
             ) : (
               <p className="text-[13px] text-fg-muted">{t("person.noHousehold")}</p>
             )}

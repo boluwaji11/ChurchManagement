@@ -220,6 +220,33 @@ export async function GroupPanelPage({
     "/groups",
   );
 
+  /** R9.2. The group as the two marks that change it read it. */
+  const manageGroup = {
+    id: group.id,
+    slug: group.slug,
+    name: group.name,
+    description: group.description,
+    typeId: group.typeId,
+    dayOfWeek: group.dayOfWeek,
+    startsAt: group.startsAt,
+    endsAt: group.endsAt,
+    frequency: group.frequency,
+    endsOn: group.endsOn,
+    location: group.location,
+    addressLine1: group.addressLine1,
+    addressLine2: group.addressLine2,
+    city: group.city,
+    region: group.region,
+    postalCode: group.postalCode,
+    country: group.country,
+    capacity: group.capacity,
+    forWhom: group.forWhom,
+    online: group.online,
+    childrenWelcome: group.childrenWelcome,
+    openToJoin: group.openToJoin,
+    listed: group.listed,
+  };
+
   /* R24.6. What this church may do to the group, on the window's own row of
      marks. The way back is the close square. */
   const actions = (
@@ -233,35 +260,7 @@ export async function GroupPanelPage({
           <WriteTo at={`group/${group.slug}`} name={group.name} />
         ) : null}
 
-        {manage ? (
-          <ManageGroup
-            group={{
-              id: group.id,
-              slug: group.slug,
-              name: group.name,
-              description: group.description,
-              typeId: group.typeId,
-              dayOfWeek: group.dayOfWeek,
-              startsAt: group.startsAt,
-              endsAt: group.endsAt,
-              frequency: group.frequency,
-              endsOn: group.endsOn,
-              location: group.location,
-              addressLine1: group.addressLine1,
-              addressLine2: group.addressLine2,
-              city: group.city,
-              region: group.region,
-              postalCode: group.postalCode,
-              country: group.country,
-              capacity: group.capacity,
-              forWhom: group.forWhom,
-              online: group.online,
-              childrenWelcome: group.childrenWelcome,
-              openToJoin: group.openToJoin,
-              listed: group.listed,
-            }}
-          />
-        ) : null}
+        {manage ? <ManageGroup only="edit" group={manageGroup} /> : null}
       </div>
   );
 
@@ -284,6 +283,13 @@ export async function GroupPanelPage({
          which hands the reader back to the part they left. */
       aside={manage ? ["add"] : undefined}
       actions={actions}
+      /* R24.6. Archiving sits at the far left of the window's footer, away
+         from the marks that are pressed every day. */
+      footer={manage ? (
+        <div className="flex w-full items-center">
+          <ManageGroup only="archive" group={manageGroup} />
+        </div>
+      ) : undefined}
       closeTo={closeTo}
       width="980px"
     >
@@ -291,8 +297,12 @@ export async function GroupPanelPage({
 
       <div className="flex flex-col gap-7">
       {/* R24.6. The kind and when it meets, over the picture. The name is the
-          window's own title, so it is not written twice. */}
-      <div className="flex flex-col gap-5">
+          window's own title, so it is not written twice.
+
+          Marked as part of the overview, because it sits outside that section
+          and was being read over the roster and over the step that adds
+          members to it. */}
+      <div data-record-part="overview" className="flex flex-col gap-5">
         <div className="flex flex-col gap-2.5">
           <span className="flex flex-wrap items-center gap-2">
             {group.status === "draft" ? (

@@ -304,6 +304,7 @@ export function PersonForm({
               <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
               <Places
                 memberId={values!.id!}
+                name={`${values?.firstName ?? ""} ${values?.lastName ?? ""}`.trim()}
                 places={places ?? []}
                 canEdit
               />

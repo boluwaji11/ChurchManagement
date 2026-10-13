@@ -28,9 +28,9 @@ export async function generateMetadata({
 export default async function HouseholdsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ archived?: string }>;
+  searchParams: Promise<{ archived?: string; open?: string }>;
 }) {
-  const { archived } = await searchParams;
+  const { archived, open } = await searchParams;
   const session = await requireSession();
 
   if (!canManageHouseholds(session)) {
@@ -81,6 +81,7 @@ export default async function HouseholdsPage({
         />
       ) : (
         <HouseholdList
+          open={open}
           church={session.tenantSlug}
           households={rows}
           country={country}

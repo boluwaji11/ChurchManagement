@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ArrowLeft, Archive, MessageSquare, PenSquare, Users } from "lucide-react";
 import { Avatar, IconButton } from "@connectapp/ui";
@@ -60,14 +61,20 @@ export function InboxMark({
 }) {
   const [open, setOpen] = React.useState(false);
   /*
-   * R16.9, R24.6. Whether a record's own press opened this.
+   * R16.9, R24.6. Whether a record's own press opened this, and the window it
+   * was pressed inside.
    *
    * The launcher gets out of the way of a window over the list, which is right
    * while nobody asked for it. A press inside that window is somebody asking
-   * for it, and the thread then has to stand over the record rather than
-   * opening behind it where nothing of it can be seen.
+   * for it, so the thread stands over the record instead, with the record
+   * still behind it.
+   *
+   * It is drawn inside the window's own element rather than beside it. The
+   * window is modal: everything outside it is taken out of the tab order and
+   * stops answering a pointer, so a thread drawn beside it could be seen and
+   * not used.
    */
-  const [raised, setRaised] = React.useState(false);
+  const [raised, setRaised] = React.useState<HTMLElement | null>(null);
   const launcher = React.useRef<HTMLButtonElement>(null);
   const panel = React.useRef<HTMLDivElement>(null);
   const [view, setView] = React.useState<View>("inbox");
@@ -109,7 +116,9 @@ export function InboxMark({
     const open = (event: Event) => {
       const { at, name } = (event as CustomEvent<OpenInbox>).detail;
       setOpen(true);
-      setRaised(true);
+      /* The window that is up, if there is one, so the thread can be drawn
+         inside it. */
+      setRaised(document.querySelector<HTMLElement>("[data-overlay]"));
       setWriting(false);
       setOpening({ key: at, name: name ?? "" });
       setKey(at);
@@ -179,6 +188,16 @@ export function InboxMark({
     seen.current = data.unread;
   }, [data.unread]);
 
+  /*
+   * R16.9, R24.6. Draws the thread inside the window that asked for it.
+   *
+   * The window is modal, so anything outside its element is out of the tab
+   * order and deaf to a pointer. Drawn inside it, the thread is usable and the
+   * record stays where it was, behind it.
+   */
+  const panelled = (node: React.ReactNode) =>
+    raised ? createPortal(node, raised) : node;
+
   return (
     <div
       className={`${covered && !raised ? "pointer-events-none opacity-0" : ""} transition-opacity duration-fast ${floating
@@ -197,7 +216,7 @@ export function InboxMark({
         type="button"
         ref={launcher}
         onClick={() => {
-          setRaised(false);
+          setRaised(null);
           setOpen((was) => !was);
         }}
         /* R24.11. The count is drawn on the mark, so the name carries it for
@@ -228,21 +247,25 @@ export function InboxMark({
         ) : null}
       </button>
 
-      {open ? (
+      {open ? panelled(
         <>
           <div
             aria-hidden
             className={`fixed inset-0 ${raised ? "z-[60]" : "z-40"}`}
-            onClick={() => { setOpen(false); setRaised(false); }}
+            onClick={() => { setOpen(false); setRaised(null); }}
           />
           <div
             ref={panel}
             tabIndex={-1}
             role="dialog"
             aria-label={t("inbox.title")}
-            className={`absolute right-0 ${raised ? "z-[70]" : "z-50"} flex h-[min(560px,calc(100vh-120px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg ${
-              floating ? "bottom-[68px]" : "top-11"
-            }`}
+            className={`${
+              /* Inside a window it stands in the page's own corner rather
+                 than under a launcher that is not drawn there. */
+              raised
+                ? "fixed right-[max(1rem,env(safe-area-inset-right))] bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[70]"
+                : `absolute right-0 z-50 ${floating ? "bottom-[68px]" : "top-11"}`
+            } flex h-[min(560px,calc(100vh-120px))] w-[min(420px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg`}
           >
             <header className="flex items-center gap-2 border-b border-line px-3 py-2.5">
               {key || writing ? (

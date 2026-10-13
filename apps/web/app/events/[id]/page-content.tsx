@@ -93,7 +93,14 @@ export async function EventPanelPage({
     <RecordPanel
       title={result.event.name}
       sections={sections.length > 1 ? sections : undefined}
-      actions={<EventActions event={result.event} />}
+      actions={<EventActions only="marks" event={result.event} />}
+      /* R24.6. Archiving sits at the far left of the window's footer, away
+         from the marks that are pressed every day. */
+      footer={
+        <div className="flex w-full items-center">
+          <EventActions only="archive" event={result.event} />
+        </div>
+      }
       closeTo={closeTo}
       width="980px"
     >

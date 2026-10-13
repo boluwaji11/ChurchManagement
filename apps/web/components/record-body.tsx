@@ -79,16 +79,18 @@ export function RecordBody({
   React.useEffect(() => {
     const selectSection = (event: Event) => {
       const id = (event as CustomEvent<string>).detail;
+      /* The ref is read before the state is asked to change, because an
+         updater runs later: clearing it on the next line left the updater
+         reading null and the step staying where it was. */
       if (id === "__back__") {
-        setActive((was) => cameFrom.current ?? was);
+        const back = cameFrom.current;
         cameFrom.current = null;
+        if (back) setActive(back);
         return;
       }
       if (aside.includes(id)) {
-        setActive((was) => {
-          cameFrom.current = was;
-          return id;
-        });
+        cameFrom.current = active;
+        setActive(id);
         return;
       }
       if (sections.some((section) => section.id === id)) {
@@ -99,7 +101,7 @@ export function RecordBody({
     window.addEventListener("record-section", selectSection);
     return () => window.removeEventListener("record-section", selectSection);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sections, aside.join(",")]);
+  }, [sections, aside.join(","), active]);
 
   return (
     <div
@@ -147,7 +149,12 @@ export function RecordBody({
 
       <div className="flex min-h-0 flex-col bg-surface">
         <div id={id} className="scroll-quiet min-h-0 flex-1 overflow-y-auto p-5 sm:p-8">
-          <style>{`#${id} [data-record-section]:not([id="${showing ?? active}"]) { display: none; }`}</style>
+          {/* A part can also be marked by name rather than by id, for a block
+              that belongs to a section but sits outside it: a record can only
+              carry one element with a given id. */}
+          <style>{`#${id} [data-record-section]:not([id="${showing ?? active}"]),`
+            + `#${id} [data-record-part]:not([data-record-part="${showing ?? active}"])`
+            + ` { display: none; }`}</style>
           {children}
         </div>
       </div>

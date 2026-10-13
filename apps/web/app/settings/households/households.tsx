@@ -97,9 +97,15 @@ export function HouseholdList({
   households,
   country = "US",
   onlyArchived = false,
+  open,
 }: {
   church: string;
   households: HouseholdItem[];
+  /**
+   * R2.4, R24.6. The family to open on arrival, which is how a member's record
+   * hands somebody straight to the household it belongs to.
+   */
+  open?: string;
   /** R2.4. The church's own country, which names the address lines. */
   country?: string;
   /** R2.1. The families that have been archived, rather than the ones in use. */
@@ -160,6 +166,7 @@ export function HouseholdList({
                   over it rather than a wrapper around it, so merge, archive and
                   every person's chip stay controls of their own. */}
               <EditHousehold
+                startOpen={open === household.id}
                 household={household}
                 country={country}
                 pending={pending}
@@ -274,6 +281,7 @@ function EditHousehold({
   doing,
   run,
   trigger,
+  startOpen,
 }: {
   church: string;
   household: HouseholdItem;
@@ -283,8 +291,10 @@ function EditHousehold({
   doing?: string;
   run: (key: string, work: () => Promise<{ error?: string }>) => void;
   trigger: React.ReactNode;
+  /** Opened the moment the screen draws, because the address asked for it. */
+  startOpen?: boolean;
 }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(Boolean(startOpen));
   const [name, setName_] = React.useState(household.name);
   const [where, setWhere] = React.useState(() => parts(household.address));
   /** Where the cursor goes when a pick has nothing to copy. */
