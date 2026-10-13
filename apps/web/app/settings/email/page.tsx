@@ -98,7 +98,6 @@ export default async function EmailPage({
         }}
         registrar={found?.registrar ?? null}
         console_={consoleFor(found?.registrar)}
-        dkimTaken={found?.dkimTaken ?? false}
       />
 
     </>

@@ -41,7 +41,6 @@ export function EmailSetup({
   church,
   registrar,
   console_,
-  dkimTaken,
 }: {
   provider: EmailProvider | null;
   domain: DomainState | null;
@@ -50,8 +49,6 @@ export function EmailSetup({
   /** R22.2. Who answers for the domain, and where its settings are typed. */
   registrar: string | null;
   console_: string | null;
-  /** R22.2. Whether something else already signs mail for this domain. */
-  dkimTaken: boolean;
 }) {
   const router = useRouter();
   /*
@@ -90,7 +87,6 @@ export function EmailSetup({
         <Connected
           provider={provider}
           domain={domain}
-          dkimTaken={dkimTaken}
           registrar={registrar}
           console_={console_}
           busy={busy !== null}
@@ -184,7 +180,6 @@ function Choice({
 function Connected({
   provider,
   domain,
-  dkimTaken,
   registrar,
   console_,
   busy,
@@ -193,61 +188,64 @@ function Connected({
 }: {
   provider: EmailProvider;
   domain: DomainState | null;
-  dkimTaken: boolean;
   registrar: string | null;
   console_: string | null;
   busy: boolean;
   onCheck: () => void;
   onDisconnect: () => void;
 }) {
-  const verified = domain?.state === "verified";
+  /* A church connected to Resend with nothing published yet is not sending,
+     and a card headed "Sending through Resend" over a list of settings it has
+     not added says the opposite of what is true. */
+  const waiting = provider.vendor === "resend" && domain !== null && domain.state !== "verified";
 
   return (
     <Card className="flex flex-col gap-5 p-5">
-      {/* R24.6. Resend is two things in order, and a church that has done the
-          first wants to see that there is one left rather than wonder whether
-          the screen is finished with it. The mail server a church already has
-          is one thing, so it shows none of this. */}
+      {/* R24.6. Resend is three stages, and a church part way through wants to
+          see which one it is on rather than wonder whether the screen is
+          finished with it. The mail server a church already has is one thing,
+          so it shows none of this. */}
       {provider.vendor === "resend" ? (
-        <div className="mx-auto w-full max-w-[460px] px-6 pb-1 pt-1">
+        <div className="mx-auto w-full max-w-[520px] px-6 pb-1 pt-1">
           <Stages
-            labels={[t("email.stage.connect"), t("email.stage.records")]}
-            at={verified ? 3 : 2}
+            labels={[t("email.stage.connect"), t("email.stage.records"), t("email.stage.done")]}
+            at={waiting ? 2 : 3}
           />
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 flex-col gap-1">
-          <span className="inline-flex items-center gap-2 font-display text-[17px] leading-6 text-fg">
-            <Check className="size-4 text-primary" aria-hidden />
-            {provider.vendor === "smtp"
-              ? t("email.connected.smtp", { host: provider.settings?.host ?? "" })
-              : t("email.connected.resend")}
-          </span>
-          <span className="text-fg-muted">
-            {t("email.sendingAs")}{" "}
-            <span className="font-medium text-fg">
-              {provider.fromName
-                ? `${provider.fromName} <${provider.fromAddress ?? ""}>`
-                : (provider.fromAddress ?? "")}
-            </span>
-          </span>
-        </div>
-
-        <DisconnectDialog vendor={provider.vendor} busy={busy} onConfirm={onDisconnect} />
-      </div>
-
-      {domain ? (
+      {waiting && domain ? (
         <Records
           domain={domain}
-          dkimTaken={dkimTaken}
           registrar={registrar}
           console_={console_}
           busy={busy}
           onCheck={onCheck}
+          onDisconnect={onDisconnect}
+          vendor={provider.vendor}
         />
-      ) : null}
+      ) : (
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 flex-col gap-1">
+            <span className="inline-flex items-center gap-2 font-display text-[17px] leading-6 text-fg">
+              <Check className="size-4 text-primary" aria-hidden />
+              {provider.vendor === "smtp"
+                ? t("email.connected.smtp", { host: provider.settings?.host ?? "" })
+                : t("email.connected.resend")}
+            </span>
+            <span className="text-fg-muted">
+              {t("email.sendingAs")}{" "}
+              <span className="font-medium text-fg">
+                {provider.fromName
+                  ? `${provider.fromName} <${provider.fromAddress ?? ""}>`
+                  : (provider.fromAddress ?? "")}
+              </span>
+            </span>
+          </div>
+
+          <DisconnectDialog vendor={provider.vendor} busy={busy} onConfirm={onDisconnect} />
+        </div>
+      )}
     </Card>
   );
 }
@@ -298,38 +296,41 @@ function DisconnectDialog({
 }
 
 /**
- * R16.1. The three records, and whether they are published.
+ * R16.1. The three settings, exactly as Resend generated them.
  *
- * Exactly as Resend generated them. The DKIM key goes at the root, and the
- * sender policy and the return path go on a `send.` subdomain, so the church's
- * own MX, the one its inbox runs on, is never touched. The return path carries
- * bounces and complaints, so it is on the list like the other two.
+ * The key goes at the root and the other two on a `send.` name, so the
+ * church's own mail, the one its inbox runs on, is never touched.
+ *
+ * No banner over them. Where the church has got to is the stages at the top of
+ * the card, and saying it twice in a coloured strip put two answers to one
+ * question on one screen.
  */
 function Records({
   domain,
-  dkimTaken,
   registrar,
   console_,
+  vendor,
   busy,
   onCheck,
+  onDisconnect,
 }: {
   domain: DomainState;
-  /** R22.2. Whether something else already signs mail for this domain. */
-  dkimTaken: boolean;
   /** R22.2. The company that answers for the domain, where we know it. */
   registrar: string | null;
   /** The page at that company where these are typed in. */
   console_: string | null;
+  vendor: string;
   busy: boolean;
   onCheck: () => void;
+  onDisconnect: () => void;
 }) {
   return (
-    <section className="flex flex-col gap-3 border-t border-line pt-5">
+    <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 flex-col">
-          <h4 className="m-0 font-display text-[15px] leading-6 text-fg">{t("email.records")}</h4>
-          {/* R22.2. Named, because "your registrar" is a word for somebody
-              who already knows which company they are looking for. */}
+          <h4 className="m-0 font-display text-[17px] leading-6 text-fg">{t("email.records")}</h4>
+          {/* R22.2. Named, because "where your domain lives" is still a place
+              somebody has to recognise. */}
           {registrar ? (
             <span className="text-fg-muted">{t("email.records.at", { name: registrar })}</span>
           ) : null}
@@ -349,60 +350,58 @@ function Records({
           <Button variant="ghost" onClick={onCheck} disabled={busy}>
             {t("email.check")}
           </Button>
+          <DisconnectDialog vendor={vendor} busy={busy} onConfirm={onDisconnect} />
         </div>
       </div>
 
-      {/* R22.2. The only line worth keeping from the domain reading, which was
-          a panel of four and three of them nothing anybody could act on. */}
-      {dkimTaken ? <Banner tone="danger">{t("email.records.taken")}</Banner> : null}
-
-      <Banner tone={domain.state === "verified" ? "success" : "info"}>
-        {domain.state === "verified" ? t("email.domain.verified") : t("email.domain.pending")}
-        {domain.checkedAt ? ` · ${t("email.checkedAt", { when: when(domain.checkedAt) })}` : ""}
-      </Banner>
-
-      <ul className="m-0 flex list-none flex-col gap-3 p-0">
+      {/* One row a setting: the kind, the name, the value. A registrar's form
+         asks for those three and nothing else, and three bordered blocks for
+         three short values filled the screen with edges. */}
+      <ul className="m-0 flex list-none flex-col divide-y divide-line rounded-[12px] border border-line p-0">
         {domain.records.map((record) => (
           <li
             key={`${record.type}-${record.host}`}
-            className="flex flex-col gap-1.5 rounded-[12px] border border-line bg-sunken/40 p-3"
+            className="flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2"
           >
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              {/* The kind, because the registrar's own form asks for it, and
-                  nothing else. A line saying what each one is for was three
-                  guesses at a provider's own labels, and two of them read the
-                  same. */}
-              <span className="rounded-md bg-surface px-2 py-0.5 font-mono text-[12px] text-fg-muted">
-                {record.type}
-              </span>
-              {record.priority === undefined ? null : (
-                <span className="text-fg-subtle">
-                  {t("email.record.priority")} {record.priority}
-                </span>
-              )}
-            </div>
-            <Copyable label={t("email.record.host")} value={record.host} />
-            <Copyable label={t("email.record.value")} value={record.value ?? ""} />
+            <span className="w-[58px] shrink-0 font-mono text-[11px] text-fg-subtle">
+              {record.type}
+            </span>
+            <Copyable value={record.host} label={t("email.record.host")} width="w-[180px]" />
+            <Copyable value={record.value ?? ""} label={t("email.record.value")} />
           </li>
         ))}
       </ul>
+
+      {domain.checkedAt ? (
+        <span className="text-caption text-fg-subtle">
+          {t("email.checkedAt", { when: when(domain.checkedAt) })}
+        </span>
+      ) : null}
     </section>
   );
 }
 
-/** A value somebody retypes into a registrar, which means they copy it. */
-function Copyable({ label, value }: { label: string; value: string }) {
+/** A value somebody retypes somewhere else, which means they copy it. */
+function Copyable({
+  label,
+  value,
+  width,
+}: {
+  label: string;
+  value: string;
+  /** The name is short and the value is long, so they are not given equal room. */
+  width?: string;
+}) {
   const [copied, setCopied] = React.useState(false);
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="w-20 shrink-0 text-caption text-fg-subtle">{label}</span>
+    <div className={`flex min-w-0 items-center gap-1 ${width ?? "flex-1"}`}>
       <input
         readOnly
         value={value}
         aria-label={label}
         onFocus={(e) => e.currentTarget.select()}
-        className="min-w-0 flex-1 rounded-[var(--d-radius-control)] border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-[12px] text-fg outline-none"
+        className="min-w-0 flex-1 rounded-[var(--d-radius-control)] border border-line bg-sunken/40 px-2 py-1 font-mono text-[11px] text-fg outline-none"
       />
       <Tooltip content={copied ? t("joining.copied") : t("joining.copy")}>
         <button
@@ -413,7 +412,7 @@ function Copyable({ label, value }: { label: string; value: string }) {
             setCopied(true);
             window.setTimeout(() => setCopied(false), 2000);
           }}
-          className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-4"
+          className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-fg-muted hover:bg-sunken hover:text-fg [&_svg]:size-3.5"
         >
           {copied ? <Check className="text-primary" /> : <Copy />}
         </button>
