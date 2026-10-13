@@ -418,6 +418,45 @@ export const DNS_CONSOLE: Record<string, string> = {
 };
 
 /** The console for whoever answers for this domain, where we know it. */
+/**
+ * HRT-289, R22.2. Where the records go, at the company that answers for the domain.
+ *
+ * A church is told to "add a TXT record at your DNS provider" and goes looking
+ * for a thing called DNS on a screen that calls it something else. These are
+ * the words each company puts on its own menus, so a volunteer reads the same
+ * word here and there.
+ *
+ * A key in the catalogue rather than a sentence, because the words are a
+ * church's words and belong where every other string in the product is.
+ */
+export const DNS_STEPS: Record<string, string> = {
+  "GoDaddy": "dns.steps.godaddy",
+  "Cloudflare": "dns.steps.cloudflare",
+  "Namecheap": "dns.steps.namecheap",
+  "Squarespace": "dns.steps.squarespace",
+  "Wix": "dns.steps.wix",
+  "Amazon Route 53": "dns.steps.route53",
+  "Name.com": "dns.steps.namecom",
+  "DNSimple": "dns.steps.dnsimple",
+  "DigitalOcean": "dns.steps.digitalocean",
+  "Vercel": "dns.steps.vercel",
+  "Netlify": "dns.steps.netlify",
+  "IONOS": "dns.steps.ionos",
+  "Gandi": "dns.steps.gandi",
+  "Hover": "dns.steps.hover",
+  "DreamHost": "dns.steps.dreamhost",
+  "Bluehost": "dns.steps.bluehost",
+  "HostGator": "dns.steps.hostgator",
+  "SiteGround": "dns.steps.siteground",
+  "Shopify": "dns.steps.shopify",
+  "Weebly": "dns.steps.weebly",
+  "NS1": "dns.steps.ns1",
+};
+
+/** What to press at this company, or the general shape where we do not know it. */
+export const stepsFor = (registrar: string | null | undefined): string =>
+  (registrar ? DNS_STEPS[registrar] : null) ?? "dns.steps.unknown";
+
 export const consoleFor = (registrar: string | null | undefined): string | null =>
   (registrar && DNS_CONSOLE[registrar]) ?? null;
 

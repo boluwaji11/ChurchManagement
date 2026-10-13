@@ -1080,6 +1080,7 @@ old state until each is picked up.
 | HRT-286 | Connecting the church's own Twilio, and registering its carrier brand for it | R16.4, R16.13 | Wiring built. Blocked on the Twilio subaccount spike, see docs/messaging-architecture.md |
 | HRT-287 | Connecting the church's own email, by its own mail server or by Resend | R16.1, R21.15 | Resolved |
 | HRT-288 | Resend connects by a press and a yes, and the domain reading moves in with it | R16.1, R21.15, R22.2 | Resolved |
+| HRT-289 | Getting the three settings in: the right page, the right words, and one press where it is offered | R16.1, R22.2 | In progress |
 | HRT-139 | The composer, merge fields and the template library | R16.4 | **Removed, deferred** |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
 | HRT-141 | The send queue | R16.6 | **Removed, deferred** |
@@ -1803,6 +1804,17 @@ gone rather than merely forgotten here.
 Open `/settings/domain`. It lands on Email, where the reading of the church's domain is now a
 section: its mail provider, its sender policy, its forgery policy and its registrar, read live.
 Confirm Domain no longer has a name of its own in the settings menu.
+
+### HRT-289, how to test it
+
+As Owner or Admin with Resend connected and its settings outstanding, open Settings, then Email.
+Under the line naming the company that answers for the domain, confirm there is a second line
+saying what to press once you are there, in that company's own menu words: My Products and DNS at
+GoDaddy, Domain List and Advanced DNS at Namecheap, Domains and the DNS Records tab at Vercel.
+Change the church's website to a domain at a different company and confirm the words change with it.
+A company we do not know gets the general shape rather than a blank.
+
+Work item: HRT-289
 
 ### HRT-285, how to test it
 

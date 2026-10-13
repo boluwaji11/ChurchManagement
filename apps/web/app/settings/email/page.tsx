@@ -1,6 +1,6 @@
 import {
   withTenant, emailProvider, sendingDomain, canManageChurch,
-  getChurch, readDomain, dnsResolver, consoleFor,
+  getChurch, readDomain, dnsResolver, consoleFor, stepsFor,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -98,6 +98,7 @@ export default async function EmailPage({
         }}
         registrar={found?.registrar ?? null}
         console_={consoleFor(found?.registrar)}
+        steps={stepsFor(found?.registrar)}
       />
 
     </>
