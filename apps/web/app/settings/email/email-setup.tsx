@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, ExternalLink, Mail, Server } from "lucide-react";
+import { Check, Copy, Mail, Server } from "lucide-react";
 import {
   Banner, Button, Card, Field, Input, Tooltip, Working,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -14,7 +14,7 @@ import { usePanelGuard } from "@/components/panel-guard";
 import { useAnswered } from "@/components/form-actions";
 import { when } from "@/lib/when";
 import {
-  connectSmtp, connectResend, checkRecords, disconnectEmail, type EmailResult,
+  connectSmtp, checkRecords, disconnectEmail, type EmailResult,
 } from "./actions";
 
 /** The sending domain as the screen reads it, with the date already a string. */
@@ -95,12 +95,7 @@ export function EmailSetup({
             icon={<Mail />}
             title={t("email.resend.title")}
             what={t("email.resend.what")}
-            action={
-              <ResendSheet
-                busy={busy !== null}
-                onSave={(data) => act(() => connectResend(data), t("email.testing"))}
-              />
-            }
+            action={<ResendSheet busy={busy !== null} />}
           />
         </div>
       )}
@@ -405,21 +400,19 @@ function SmtpSheet({
   );
 }
 
-function ResendSheet({
-  busy,
-  onSave,
-}: {
-  busy: boolean;
-  onSave: (data: FormData) => Promise<boolean>;
-}) {
+function ResendSheet({ busy }: { busy: boolean }) {
   const [open, setOpen] = React.useState(false);
   const [dirty, setDirty] = React.useState(false);
+  const [going, setGoing] = React.useState(false);
   const formId = React.useId();
   const full = useAnswered(formId, open);
 
   const close = (next: boolean) => {
     setOpen(next);
-    if (!next) setDirty(false);
+    if (!next) {
+      setDirty(false);
+      setGoing(false);
+    }
   };
   const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
 
@@ -436,53 +429,43 @@ function ResendSheet({
             <Button type="button" variant="ghost" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form={formId} disabled={busy || !dirty || !full}>
-              {t("email.connect")}
+            <Button type="submit" form={formId} disabled={busy || going || !dirty || !full}>
+              {going ? t("email.resend.leaving") : t("email.resend.go")}
             </Button>
           </>
         }
       >
         {guard}
+        <Working open={going} label={t("email.resend.leaving")} />
 
         <form
           id={formId}
           onInput={() => setDirty(true)}
           /*
-           * Submitted by hand rather than through the form's `action`, because
-           * React empties an uncontrolled form once an action returns, and a
-           * refused key would have left the volunteer retyping the address
-           * along with it.
+           * This one leaves the product rather than saving anything. The two
+           * answers go with it so the church is not asked them again on the
+           * way back, and the whole handshake is set up on the server: the
+           * browser never holds anything Resend would accept.
            */
           onSubmit={(event) => {
             event.preventDefault();
             const data = new FormData(event.currentTarget);
-            void onSave(data).then((ok) => {
-              if (ok) close(false);
-            });
+            const where = new URL("/api/providers/resend/start", window.location.origin);
+            where.searchParams.set("from", String(data.get("fromAddress") ?? ""));
+            where.searchParams.set("name", String(data.get("fromName") ?? ""));
+            setGoing(true);
+            window.location.href = where.toString();
           }}
           noValidate
           className="flex flex-col gap-4"
         >
-          {/* R21.15. What the church is granting, said where the press is.
-              Resend's only scope that can create a sending domain is the one
-              that can do everything else, and a church should read that here
-              rather than find it out later. */}
+          {/* R21.15. What the church is agreeing to, said where the press is
+              rather than found out afterwards. */}
           <Banner tone="info">{t("email.resend.access")}</Banner>
 
           <Sender />
 
-          <Field label={t("email.resend.key")} required>
-            <Input name="key" type="password" autoComplete="off" />
-          </Field>
-
-          <a
-            href="https://resend.com/api-keys"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="inline-flex items-center gap-1.5 self-start font-medium text-primary underline-offset-2 hover:underline"
-          >
-            {t("email.resend.where")} <ExternalLink className="size-[14px]" aria-hidden />
-          </a>
+          <p className="m-0 text-fg-muted">{t("email.resend.free")}</p>
         </form>
       </SheetContent>
     </Sheet>

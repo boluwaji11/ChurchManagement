@@ -1079,6 +1079,7 @@ old state until each is picked up.
 | HRT-138 | The shared transactional quota | R16.3 | **Removed, deferred** |
 | HRT-286 | Connecting the church's own Twilio, and registering its carrier brand for it | R16.4, R16.13 | Wiring built. Blocked on the Twilio subaccount spike, see docs/messaging-architecture.md |
 | HRT-287 | Connecting the church's own email, by its own mail server or by Resend | R16.1, R21.15 | Resolved |
+| HRT-288 | Resend connects by a press and a yes, and the domain reading moves in with it | R16.1, R21.15, R22.2 | Resolved |
 | HRT-139 | The composer, merge fields and the template library | R16.4 | **Removed, deferred** |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
 | HRT-141 | The send queue | R16.6 | **Removed, deferred** |
@@ -1773,6 +1774,31 @@ says when it last looked. Nothing on this screen asks for the credential again.
 
 In the database, confirm `church_providers.credential` holds a sealed value rather than the password,
 and that the `audit_entries` row for the connection carries no `credential` field at all.
+
+### HRT-288, how to test it
+
+Register an OAuth client with Resend for this environment and put the client id in
+`RESEND_OAUTH_CLIENT_ID`. The call is in `.env.example`, it needs no account and no waiting, and the
+redirect address in it has to be the one this environment answers on: the **parent**, so
+`http://localhost:4488/api/providers/resend/callback` while working and
+`https://connectapp.church/api/providers/resend/callback` in production, never a church's own name.
+
+As Owner or Admin, open Settings, then Email. Press Connect Resend. The panel asks for the name and
+address mail goes out as and nothing else: no key, no dashboard, no instructions. It says what
+ConnectApp will be able to do on that Resend account, and that Resend is free to a hundred a day and
+bills the church past it.
+
+Press Continue to Resend. Confirm the browser lands on Resend's own consent screen, and that a
+person with no Resend account can make one there. Approve it, and confirm the browser comes back to
+the church's own address already connected, with the three records listed. Go through it again and
+press No at Resend, and confirm the screen says so and nothing changed.
+
+Press Disconnect. In the Resend dashboard, under the team's settings, confirm ConnectApp's access is
+gone rather than merely forgotten here.
+
+Open `/settings/domain`. It lands on Email, where the reading of the church's domain is now a
+section: its mail provider, its sender policy, its forgery policy and its registrar, read live.
+Confirm Domain no longer has a name of its own in the settings menu.
 
 ### HRT-285, how to test it
 

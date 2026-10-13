@@ -3,7 +3,7 @@ import type { Tx } from "../client";
 import { churchProviders, churchSendingDomains } from "../schema/messaging";
 import { PermissionError } from "../roles";
 import { canManageChurch } from "./church";
-import { sealCredential, CREDENTIAL_KEY_ID } from "../crypto";
+import { sealCredential, openCredential, CREDENTIAL_KEY_ID } from "../crypto";
 import type { PlannedRecord } from "../domain/preflight";
 import type { WriteActor } from "./members";
 import type { Vendor } from "../messaging/contract";
@@ -155,15 +155,37 @@ export async function connectEmailProvider(
 }
 
 /**
- * R16.1, R21.15. Taking the connection off, and the secret with it.
+ * R16.1, R21.15. Taking the connection off, and handing the grant back.
+ *
+ * The credential comes out of the column and is handed to the caller in the
+ * same breath, because the one thing left to do with it is give it back: a
+ * church that disconnected Resend has withdrawn its consent, and forgetting
+ * our copy while a live grant sits on its account is not the same as
+ * withdrawing it. There is no function here that reads a credential and
+ * leaves it in place, so a screen cannot ask for one.
  *
  * The row is kept, because a church reconnecting the same account should not
- * read as a new one. The credential is not: a church that disconnected its
- * mail server has withdrawn the password, and keeping it sealed in a column
- * against the chance they come back is keeping something nobody gave us.
+ * read as a new one.
  */
-export async function disconnectEmailProvider(db: Tx, actor: WriteActor): Promise<void> {
+export async function withdrawEmailProvider(
+  db: Tx,
+  actor: WriteActor,
+): Promise<{ vendor: Vendor; credential: string } | null> {
   if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  /* Read and clear in one transaction, so there is no moment where the
+     credential has been handed out and is still in the column. */
+  const [row] = await db
+    .select({
+      id: churchProviders.id,
+      vendor: churchProviders.vendor,
+      credential: churchProviders.credential,
+    })
+    .from(churchProviders)
+    .where(eq(churchProviders.channel, "email"))
+    .limit(1);
+
+  if (!row) return null;
 
   await db
     .update(churchProviders)
@@ -174,7 +196,12 @@ export async function disconnectEmailProvider(db: Tx, actor: WriteActor): Promis
       lastVerifiedAt: null,
       updatedAt: new Date(),
     })
-    .where(eq(churchProviders.channel, "email"));
+    .where(eq(churchProviders.id, row.id));
+
+  return {
+    vendor: row.vendor as Vendor,
+    credential: row.credential ? openCredential(row.credential) : "",
+  };
 }
 
 /** R16.1. A domain a church sends from, and how far its records have got. */

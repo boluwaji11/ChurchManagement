@@ -37,11 +37,9 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         ? [
             { href: "/settings/church", label: t("settings.tab.church") },
             { href: "/settings/website", label: t("settings.tab.website") },
-            /* HRT-283, R22.2. The church's own domain, which is a different
-               thing from the address members sign in at. */
-            { href: "/settings/domain", label: t("settings.tab.domain") },
-            /* HRT-287, R16.1. The account its email leaves through, which
-               sits with the rest of how the church speaks for itself. */
+            /* HRT-288, R16.1, R22.2. The account its email leaves through,
+               and the reading of the domain it leaves from. One name, because
+               a church looking at one is looking at the other. */
             { href: "/settings/email", label: t("settings.tab.email") },
             /* R16.11. What the church tells everybody, which sits with the
                rest of how the church speaks for itself. */
