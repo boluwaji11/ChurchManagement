@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight, Printer } from "lucide-react";
+import { ChevronLeft, ChevronRight, Printer } from "lucide-react";
 import {
   withTenant, listCelebrations, monthWindow, weekWindow, getChurch, canEditPeople,
   type CelebrationWindow,
@@ -8,7 +8,6 @@ import { HueTag } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
-import { AppShell } from "@/components/app-shell";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -63,12 +62,10 @@ const shiftMonths = (iso: string, months: number): string => {
 const monthName = (iso: string): string =>
   new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
-async function renderCelebrationsPage({
+export async function CelebrationsPanelPage({
   searchParams,
-  presentation,
 }: {
   searchParams: CelebrationsPageProps["searchParams"];
-  presentation: "page" | "panel";
 }) {
   const params = await searchParams;
   const session = await requireSession();
@@ -77,10 +74,7 @@ async function renderCelebrationsPage({
     const denied = (
       <Denied role={session.role} action="readPeople" church={session.tenantSlug} />
     );
-    if (presentation === "panel") {
-      return <ScreenPanel title={t("celebrations.title")}>{denied}</ScreenPanel>;
-    }
-    return denied;
+    return <ScreenPanel title={t("celebrations.title")}>{denied}</ScreenPanel>;
   }
 
   const view: View = params.view === "week" ? "week" : "month";
@@ -273,31 +267,5 @@ async function renderCelebrationsPage({
     </>
   );
 
-  if (presentation === "panel") {
-    return <ScreenPanel title={t("celebrations.title")}>{body}</ScreenPanel>;
-  }
-
-  return (
-    <AppShell
-      session={session}
-      title={t("celebrations.title")}
-      max="max-w-[880px]"
-    >
-      <Link
-        href={"/members"}
-        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
-      >
-        <ArrowLeft className="size-4" /> {t("members.title")}
-      </Link>
-      {body}
-    </AppShell>
-  );
-}
-
-export default function CelebrationsPage(props: CelebrationsPageProps) {
-  return renderCelebrationsPage({ ...props, presentation: "page" });
-}
-
-export function CelebrationsPanelPage(props: CelebrationsPageProps) {
-  return renderCelebrationsPage({ ...props, presentation: "panel" });
+  return <ScreenPanel title={t("celebrations.title")}>{body}</ScreenPanel>;
 }

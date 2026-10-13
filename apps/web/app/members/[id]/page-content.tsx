@@ -6,7 +6,7 @@ import {
   withTenant, getPerson, householdFor,
   personTimeline, servingForPerson, groupsForPerson,
   listContacts, listAddresses, givingForPerson, getChurch,
-  listCustomFields, getCustomValues, listTagsForPerson, listCampuses,
+  listCustomFields, getCustomValues, listTags, listTagsForPerson, listCampuses,
   canEditPeople, canArchivePeople, canReadGivingAmounts, anniversaryOf,
   checksFor, canSeeChecks, listMilestones,
 } from "@connectapp/db";
@@ -14,14 +14,12 @@ import { Avatar, Button, Tooltip } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { photoUrls } from "@/lib/photos";
-import { AppShell } from "@/components/app-shell";
 import { lifecycleLabel, maritalOptions } from "@/lib/person-input";
 import { longDate, shortDate } from "@/lib/dates";
 import { money } from "@/lib/money";
 import { churchNow } from "@/lib/church-now";
 import { Timeline } from "./timeline";
 import { ArchiveButton } from "../archive-button";
-import { RecordBody } from "../record-body";
 import { Contacts } from "./contacts";
 import { Places } from "./places";
 import { WriteTo } from "@/components/inbox/write-to";
@@ -32,6 +30,7 @@ import { tabMetadata } from "@/lib/page-metadata";
 import { memberDirectoryReturnTo } from "@/lib/member-return";
 import { MemberPanel, type MemberPanelSection } from "../member-panel";
 import { Milestones } from "../milestones";
+import { TagEditor } from "../tag-editor";
 import { Checks } from "../checks";
 
 /** R17.1. What the browser tab says until the record names itself. */
@@ -159,14 +158,12 @@ type PersonPageProps = {
   searchParams: Promise<{ returnTo?: string | string[] }>;
 };
 
-async function renderPersonPage({
+export async function PersonPanelPage({
   params,
   searchParams,
-  presentation,
 }: {
   params: PersonPageProps["params"];
   searchParams: PersonPageProps["searchParams"];
-  presentation: "page" | "panel";
 }) {
   const { id } = await params;
   const { returnTo: rawReturnTo } = await searchParams;
@@ -192,7 +189,7 @@ async function renderPersonPage({
 
     const [
       contacts, addresses, household, groups, serving, history, giving,
-      customFields, customValues, memberTags, campuses, anniversary, milestoneRows, checkStanding,
+      customFields, customValues, memberTags, allTags, campuses, anniversary, milestoneRows, checkStanding,
     ] = await Promise.all([
       // R2.4. Every way of reaching them, not only the one that leads.
       listContacts(tx, memberId),
@@ -217,6 +214,9 @@ async function renderPersonPage({
       listCustomFields(tx, "person"),
       getCustomValues(tx, "person", memberId),
       listTagsForPerson(tx, memberId),
+      /* R1.13. Every tag this church keeps, so one can be put on or taken off
+         from the record itself. */
+      listTags(tx),
       listCampuses(tx),
       anniversaryOf(tx, memberId),
       /* R2.6, R2.10. The dates a church is asked for and cannot produce, and
@@ -227,7 +227,7 @@ async function renderPersonPage({
 
     return {
       person, contacts, addresses, household, groups, serving, history, giving,
-      customFields, customValues, memberTags, campuses, anniversary, milestoneRows, checkStanding,
+      customFields, customValues, memberTags, allTags, campuses, anniversary, milestoneRows, checkStanding,
     };
   });
 
@@ -236,7 +236,7 @@ async function renderPersonPage({
   if (!result) notFound();
   const {
     person, contacts, addresses, household, groups, serving, history, giving,
-    customFields, customValues, memberTags, campuses, anniversary, milestoneRows, checkStanding,
+    customFields, customValues, memberTags, allTags, campuses, anniversary, milestoneRows, checkStanding,
   } = result;
 
   /* R1.10. Every custom field configured by the church has a place on the record. */
@@ -256,7 +256,7 @@ async function renderPersonPage({
   const editHref =
     `/members/${person.slug}/edit?returnTo=${encodeURIComponent(returnTo ?? "/members")}`;
 
-  const actions = canMessage && presentation === "page" ? (
+  const actions = canMessage ? (
     <div className="flex items-center gap-2">
       <WriteTo at={person.slug} name={display} />
     </div>
@@ -374,19 +374,28 @@ async function renderPersonPage({
       {/* Everything about the member stays grouped by section. The panel's left
           navigation keeps one part in view at a time. */}
       <div className="flex flex-col gap-7">
-          <RecordSection id="contact" title={t("personForm.section.contact")} action={editMark("contact")}>
+          {/*
+            * R2.4, R24.6. Written where it is read.
+            *
+            * An address and a way of reaching somebody are each a row of their
+            * own that is added and taken away one at a time, so there is no
+            * form to fill in: the pencil led to the same three lists on
+            * another address. They are edited here, and the edit form keeps
+            * them for the fields beside them.
+            */}
+          <RecordSection id="contact" title={t("personForm.section.contact")}>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <span className="text-caption text-fg-subtle">{t("contact.emails")}</span>
-                <Contacts memberId={person.id} kind="email" contacts={contacts} canEdit={false} />
+                <Contacts memberId={person.id} kind="email" contacts={contacts} canEdit={canEdit} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <span className="text-caption text-fg-subtle">{t("contact.phones")}</span>
-                <Contacts memberId={person.id} kind="phone" contacts={contacts} canEdit={false} />
+                <Contacts memberId={person.id} kind="phone" contacts={contacts} canEdit={canEdit} />
               </div>
               <div className="flex flex-col gap-1.5">
                 <span className="text-caption text-fg-subtle">{t("contact.addresses")}</span>
-                <Places memberId={person.id} places={addresses} canEdit={false} />
+                <Places memberId={person.id} places={addresses} canEdit={canEdit} />
               </div>
             </div>
           </RecordSection>
@@ -514,21 +523,19 @@ async function renderPersonPage({
             </RecordSection>
           ) : null}
 
-          <RecordSection id="tags" title={t("person.tags")} action={editMark("tags")}>
-            {memberTags.length === 0 ? (
-              <p className="text-[13px] text-fg-muted">{t("person.noTags")}</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {memberTags.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="rounded-full border border-line px-3 py-1 text-[13px] font-medium text-fg"
-                  >
-                    {tag.name}
-                  </span>
-                ))}
-              </div>
-            )}
+          {/* R1.13. A tag goes on and comes off with one press, so this
+              section carries no pencil either. */}
+          <RecordSection id="tags" title={t("person.tags")}>
+            {/* Keyed by the record, because the window is a parallel slot and
+                keeps its component alive: without this, opening a second
+                person showed the first person's tags. */}
+            <TagEditor
+              key={person.id}
+              memberId={person.id}
+              all={allTags.map((tag) => ({ id: tag.id, name: tag.name, hue: tag.hue }))}
+              assigned={memberTags.map((tag) => tag.id)}
+              canEdit={canEdit}
+            />
           </RecordSection>
 
           {customFields.length > 0 ? (
@@ -547,8 +554,7 @@ async function renderPersonPage({
     </>
   );
 
-  if (presentation === "panel") {
-    return (
+  return (
       <MemberPanel
         title={display}
         sections={panelSections}
@@ -558,38 +564,5 @@ async function renderPersonPage({
       >
         <div className="flex flex-col gap-5">{content}</div>
       </MemberPanel>
-    );
-  }
-
-  /*
-   * R2.1, R24.6. The same record, on its own address.
-   *
-   * This used to be a different screen: three columns, a row of marks beside
-   * the name, an Add note button and a message launcher, all of which the
-   * window had already left behind. A link somebody pasted, or a reload, gave
-   * them a record that looked like another product. It is now the same rail
-   * and the same sections, in a page instead of a window.
-   */
-  return (
-    <AppShell
-      session={session}
-      back={{ href: returnTo ?? "/members", label: t("members.title") }}
-      action={panelFooter}
-    >
-      <RecordBody
-        sections={panelSections}
-        className="overflow-hidden rounded-[14px] border border-line bg-surface"
-      >
-        <div className="flex flex-col gap-5">{content}</div>
-      </RecordBody>
-    </AppShell>
   );
-}
-
-export default function PersonPage(props: PersonPageProps) {
-  return renderPersonPage({ ...props, presentation: "page" });
-}
-
-export function PersonPanelPage(props: PersonPageProps) {
-  return renderPersonPage({ ...props, presentation: "panel" });
 }

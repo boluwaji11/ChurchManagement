@@ -1,10 +1,7 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import {
   withTenant, listHouseholds, listCustomFields, listCampuses, listTagsWithCounts, canEditPeople,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
-import { AppShell } from "@/components/app-shell";
 import { PersonForm, PersonFormActions } from "../person-form";
 import { t } from "@connectapp/i18n";
 import { Denied } from "@/components/denied";
@@ -28,12 +25,10 @@ type NewPersonPageProps = {
   searchParams: Promise<{ returnTo?: string | string[] }>;
 };
 
-async function renderNewPersonPage({
+export async function NewPersonPanelPage({
   searchParams,
-  presentation,
 }: {
   searchParams: NewPersonPageProps["searchParams"];
-  presentation: "page" | "panel";
 }) {
   const { returnTo: rawReturnTo } = await searchParams;
   const returnTo = memberDirectoryReturnTo(rawReturnTo);
@@ -73,8 +68,7 @@ async function renderNewPersonPage({
     ...(data.customFields.length > 0 ? [{ id: "custom", label: t("person.more") }] : []),
   ];
 
-  if (presentation === "panel") {
-    return (
+  return (
       <MemberPanel
         title={t("personForm.addTitle")}
         sections={sections}
@@ -84,32 +78,5 @@ async function renderNewPersonPage({
       >
         {form}
       </MemberPanel>
-    );
-  }
-
-  return (
-    <AppShell session={session} tab={t("personForm.addTitle")} max="max-w-[1080px]">
-      <Link
-        href={returnTo ?? "/members"}
-        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
-      >
-        <ArrowLeft className="size-4" /> {t("members.title")}
-      </Link>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-[22px] leading-[28px] text-fg">
-          {t("personForm.addHeading")}
-        </h1>
-        {permitted ? <PersonFormActions editing={false} /> : null}
-      </div>
-      {form}
-    </AppShell>
   );
-}
-
-export default function NewPersonPage(props: NewPersonPageProps) {
-  return renderNewPersonPage({ ...props, presentation: "page" });
-}
-
-export function NewPersonPanelPage(props: NewPersonPageProps) {
-  return renderNewPersonPage({ ...props, presentation: "panel" });
 }

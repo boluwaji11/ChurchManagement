@@ -44,7 +44,7 @@ export function TagEditor({
   if (!canEdit) {
     return (
       <div className="flex flex-wrap gap-2">
-        {on.length === 0 ? <span className="text-[length:var(--d-text-body)] text-fg-muted">{t("common.none")}</span> : null}
+        {on.length === 0 ? <span className="text-[length:var(--d-text-body)] text-fg-muted">{t("person.noTags")}</span> : null}
         {on.map((id) => {
           const tag = byId.get(id);
           return tag ? <HueTag key={id} hue={tag.hue as Hue}>{tag.name}</HueTag> : null;
@@ -83,7 +83,12 @@ export function TagEditor({
       return;
     }
     if (result.id) {
-      setOptions((prev) => [...prev, { id: result.id!, name, hue: "teal" }].sort((a, b) => a.name.localeCompare(b.name)));
+      /* The hue comes back from the write, because the church's next free hue
+         is chosen there and a guess here would show one colour and store
+         another. */
+      setOptions((prev) =>
+        [...prev, { id: result.id!, name, hue: result.hue ?? "teal" }]
+          .sort((a, b) => a.name.localeCompare(b.name)));
       setOn((prev) => [...prev, result.id!]);
       setCreating(false);
     }

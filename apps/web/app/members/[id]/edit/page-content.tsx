@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import {
   withTenant, getPersonForEdit, listHouseholds, listCustomFields, getCustomValues,
   listTagsWithCounts, listTagsForPerson, listContacts, listAddresses, listCampuses, canEditPeople,
@@ -8,7 +6,6 @@ import {
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { requireSession } from "@/lib/session";
-import { AppShell } from "@/components/app-shell";
 import { PersonForm, PersonFormActions } from "../../person-form";
 import { toAddress } from "@/lib/address";
 import { t } from "@connectapp/i18n";
@@ -32,14 +29,12 @@ type EditPersonPageProps = {
   searchParams: Promise<{ returnTo?: string | string[] }>;
 };
 
-async function renderEditPersonPage({
+export async function EditPersonPanelPage({
   params,
   searchParams,
-  presentation,
 }: {
   params: EditPersonPageProps["params"];
   searchParams: EditPersonPageProps["searchParams"];
-  presentation: "page" | "panel";
 }) {
   const { id } = await params;
   const { returnTo: rawReturnTo } = await searchParams;
@@ -117,8 +112,7 @@ async function renderEditPersonPage({
     ...(customFields.length > 0 ? [{ id: "custom", label: t("person.more") }] : []),
   ];
 
-  if (presentation === "panel") {
-    return (
+  return (
       <MemberPanel
         title={t("personForm.editHeading", { name: display })}
         sections={sections}
@@ -133,37 +127,5 @@ async function renderEditPersonPage({
         ) : null}
         {form}
       </MemberPanel>
-    );
-  }
-
-  return (
-    <AppShell session={session} max="max-w-[1080px]">
-      <Link
-        href={returnTo ?? `/members/${person.slug}`}
-        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
-      >
-        <ArrowLeft className="size-4" /> {display}
-      </Link>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-[22px] leading-[28px] text-fg">
-          {t("personForm.editHeading", { name: display })}
-        </h2>
-        {permitted ? <PersonFormActions editing /> : null}
-      </div>
-      {person.archivedAt ? (
-        <Banner tone="warning" title={t("personForm.archivedNotice.title")}>
-          {t("personForm.archivedNotice.body")}
-        </Banner>
-      ) : null}
-      {form}
-    </AppShell>
   );
-}
-
-export default function EditPersonPage(props: EditPersonPageProps) {
-  return renderEditPersonPage({ ...props, presentation: "page" });
-}
-
-export function EditPersonPanelPage(props: EditPersonPageProps) {
-  return renderEditPersonPage({ ...props, presentation: "panel" });
 }

@@ -562,6 +562,15 @@ celebrations, the mailer and the print sheets. Confirm each has one header, one 
 paginator and one set of chips, and that nothing in the area draws its own. Confirm the
 record window still opens over the list and still closes back to the filtered view.
 
+Open a record and add an email, a phone and an address from the card itself, mark one of
+them the main one, and take one off. Press a tag on and off, and name a new one. Each should
+land where it was pressed. Reload and confirm all of it held.
+
+Then type each of these addresses in rather than pressing for it: a member, their edit form,
+new, celebrations, duplicates, import and the mailer. Each should give the directory with
+the window standing over it, which is the same screen pressing for it gives. None of them
+should give a screen of its own with a way back to Members at the top.
+
 ### HRT-322, how to test it
 
 Open Groups as staff and as a member, and confirm the same screen in two shells now differs

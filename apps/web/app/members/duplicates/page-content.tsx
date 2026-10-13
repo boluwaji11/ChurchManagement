@@ -1,11 +1,8 @@
 import {
   withTenant, findDuplicateClusters, listMerges, countMerges, getPersonForEdit, canArchivePeople,
 } from "@connectapp/db";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
-import { AppShell } from "@/components/app-shell";
 import { ScreenPanel } from "../screen-panel";
 import { Review, type PersonSide } from "./review";
 import { Denied } from "@/components/denied";
@@ -36,12 +33,10 @@ type DuplicatesPageProps = {
   searchParams: Promise<{ a?: string; b?: string; page?: string; past?: string }>;
 };
 
-async function renderDuplicatesPage({
+export async function DuplicatesPanelPage({
   searchParams,
-  presentation,
 }: {
   searchParams: DuplicatesPageProps["searchParams"];
-  presentation: "page" | "panel";
 }) {
   const { a, b, page, past } = await searchParams;
 
@@ -176,33 +171,5 @@ async function renderDuplicatesPage({
       />
   );
 
-  if (presentation === "panel") {
-    return <ScreenPanel title={t("merge.heading")}>{review}</ScreenPanel>;
-  }
-
-  return (
-    <AppShell session={session} title={t("merge.title")} wide>
-      <Link
-        href={"/members"}
-        className="-my-1.5 inline-flex min-h-8 items-center gap-1.5 self-start py-1.5 font-medium text-primary"
-      >
-        <ArrowLeft className="size-4" /> {t("members.title")}
-      </Link>
-
-      <div>
-        <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("merge.heading")}</h2>
-        <p className="mt-1 text-fg-muted">{t("merge.lede")}</p>
-      </div>
-
-      {review}
-    </AppShell>
-  );
-}
-
-export default function DuplicatesPage(props: DuplicatesPageProps) {
-  return renderDuplicatesPage({ ...props, presentation: "page" });
-}
-
-export function DuplicatesPanelPage(props: DuplicatesPageProps) {
-  return renderDuplicatesPage({ ...props, presentation: "panel" });
+  return <ScreenPanel title={t("merge.heading")}>{review}</ScreenPanel>;
 }

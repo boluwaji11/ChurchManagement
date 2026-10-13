@@ -29,6 +29,20 @@ async function context() {
   };
 }
 
+
+/**
+ * R2.4. Redraws the record wherever it is being read.
+ *
+ * The record is addressed by its readable name and these writes carry the id,
+ * so a path built from the id revalidated nothing: a phone was added and the
+ * card it was added to kept showing what it held before.
+ */
+function revalidateRecord() {
+  revalidatePath("/members/[id]", "page");
+  revalidatePath("/members/[id]/edit", "page");
+  revalidatePath("/members");
+}
+
 export async function addOne(
   input: { memberId: string; kind: ContactKind; label: string; value: string },
   ): Promise<{ error?: string }> {
@@ -41,7 +55,7 @@ export async function addOne(
         value: input.value,
       }),
     );
-    revalidatePath(`/members/${input.memberId}`);
+    revalidateRecord();
     void slug;
     return {};
   } catch (error) {
@@ -49,28 +63,22 @@ export async function addOne(
   }
 }
 
-export async function removeOne(
-  id: string,
-  memberId: string,
-  ): Promise<{ error?: string }> {
+export async function removeOne(id: string): Promise<{ error?: string }> {
   const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeContact(tx, actor, id));
-    revalidatePath(`/members/${memberId}`);
+    revalidateRecord();
     return {};
   } catch (error) {
     return { error: explain(error) };
   }
 }
 
-export async function leadWithOne(
-  id: string,
-  memberId: string,
-  ): Promise<{ error?: string }> {
+export async function leadWithOne(id: string): Promise<{ error?: string }> {
   const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => makeContactPrimary(tx, actor, id));
-    revalidatePath(`/members/${memberId}`);
+    revalidateRecord();
     return {};
   } catch (error) {
     return { error: explain(error) };
@@ -93,35 +101,29 @@ export async function addPlace(
         country: input.values.country,
       }),
     );
-    revalidatePath(`/members/${input.memberId}`);
+    revalidateRecord();
     return {};
   } catch (error) {
     return { error: explain(error) };
   }
 }
 
-export async function removePlace(
-  id: string,
-  memberId: string,
-  ): Promise<{ error?: string }> {
+export async function removePlace(id: string): Promise<{ error?: string }> {
   const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => removeAddress(tx, actor, id));
-    revalidatePath(`/members/${memberId}`);
+    revalidateRecord();
     return {};
   } catch (error) {
     return { error: explain(error) };
   }
 }
 
-export async function leadWithPlace(
-  id: string,
-  memberId: string,
-  ): Promise<{ error?: string }> {
+export async function leadWithPlace(id: string): Promise<{ error?: string }> {
   const { actor, ctx } = await context();
   try {
     await withTenant(ctx, (tx) => makeAddressPrimary(tx, actor, id));
-    revalidatePath(`/members/${memberId}`);
+    revalidateRecord();
     return {};
   } catch (error) {
     return { error: explain(error) };

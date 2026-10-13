@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Star, Trash2 } from "lucide-react";
 import {
   Banner, Button, Field, IconButton, Spinner,
@@ -29,6 +30,7 @@ export function Places({
   places: PersonAddress[];
   canEdit: boolean;
 }) {
+  const router = useRouter();
   const [adding, setAdding] = React.useState(false);
   const [label, setLabel] = React.useState<string>("home");
   const [error, setError] = React.useState<string>();
@@ -46,9 +48,20 @@ export function Places({
     if (!next) setLabel("home");
   };
 
+  /*
+   * R24.6. Redraws the record the write belongs to.
+   *
+   * The record can be read inside the window over the list, which is a
+   * parallel slot the server's own revalidation does not reach, so the row
+   * added here asks for the tree it is in to be read again.
+   */
   const act = (key: string, work: () => Promise<{ error?: string }>) => {
     setDoing(key);
-    run(async () => setError((await work()).error));
+    run(async () => {
+      const result = await work();
+      setError(result.error);
+      if (!result.error) router.refresh();
+    });
   };
 
   return (
@@ -76,7 +89,7 @@ export function Places({
                   label={t("contact.makePrimary")}
                   disabled={pending}
                   onClick={() =>
-                    act(`primary:${one.id}`, () => leadWithPlace(one.id, memberId))
+                    act(`primary:${one.id}`, () => leadWithPlace(one.id))
                   }
                   className="size-8 min-h-0 [&_svg]:size-3.5"
                 >
@@ -91,7 +104,7 @@ export function Places({
                 label={t("contact.remove", { value: one.line1 })}
                 disabled={pending}
                 onClick={() =>
-                  act(`remove:${one.id}`, () => removePlace(one.id, memberId))
+                  act(`remove:${one.id}`, () => removePlace(one.id))
                 }
                 className="size-8 min-h-0 [&_svg]:size-3.5"
               >
