@@ -134,6 +134,12 @@ export function Sidebar({
 
   const area = groups.find((group) => group.id === shown) ?? groups[0];
   /*
+   * Settings sits on the rail rather than in an area, so while somebody is in
+   * it no area is the one they are in. Without this the rail went on showing
+   * Overview as chosen on every settings screen.
+   */
+  const onSettings = settings.some((entry) => entry.href === active);
+  /*
    * R24.14. An area with one screen in it draws no second column. Overview is
    * the Dashboard and nothing else, and a column holding a single row below a
    * heading naming the same thing is a list of one.
@@ -183,6 +189,18 @@ export function Sidebar({
     const next = !collapsed;
     setCollapsed(next);
     void setSidebarCollapsed(next);
+  };
+
+  /*
+   * R24.14. Pressing an area shows it, which means showing what is in it.
+   * Switching area with the column shut moved the mark on the rail and left
+   * the items where they could not be seen, so the only way to read the area
+   * somebody had just chosen was to find the reopen control.
+   */
+  const openColumn = () => {
+    if (!collapsed) return;
+    setCollapsed(false);
+    void setSidebarCollapsed(false);
   };
 
   const toggleLabel = collapsed ? t("shell.expand") : t("shell.collapse");
@@ -239,13 +257,14 @@ export function Sidebar({
           {groups.map((group) => {
             const Mark = group.icon;
             const here = group.id === activeGroup;
-            const looking = group.id === shown;
+            const looking = group.id === shown && !onSettings;
             return (
               <Tooltip key={group.id} content={t(group.label as never)} side="right">
                 <button
                   type="button"
                   onClick={() => {
                     setShown(group.id);
+                    openColumn();
                     /* R24.14. Into the area, at its first screen. Switching the
                        column and leaving the reader on the screen they were
                        already on puts the rail, the column and the page in
@@ -278,22 +297,33 @@ export function Sidebar({
         </nav>
 
         <div className="flex shrink-0 flex-col items-center gap-3 border-t border-shell-line pt-4">
-          {settings.map((entry) => (
-            <Tooltip key={entry.href} content={entry.label} side="right">
-              <Link
-                href={entry.href}
-                aria-current={active === entry.href ? "page" : undefined}
-                className={cn(
-                  "grid size-9 place-items-center rounded-lg [&_svg]:size-[18px]",
-                  active === entry.href
-                    ? "bg-surface text-fg shadow-sm"
-                    : "text-shell-muted hover:bg-shell-line hover:text-shell-fg",
-                )}
-              >
-                <Cog className="size-[18px]" aria-hidden />
-              </Link>
-            </Tooltip>
-          ))}
+          {settings.map((entry) => {
+            const on = active === entry.href;
+            return (
+              <Tooltip key={entry.href} content={entry.label} side="right">
+                <Link
+                  href={entry.href}
+                  aria-current={on ? "page" : undefined}
+                  className={cn(
+                    "flex w-11 shrink-0 flex-col items-center gap-2.5 rounded-2xl py-3 no-underline",
+                    "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
+                    on
+                      ? "bg-surface text-fg shadow-sm"
+                      : "text-shell-muted hover:bg-shell-line hover:text-shell-fg",
+                  )}
+                >
+                  <Cog className="size-[19px] shrink-0" aria-hidden />
+                  {/* The same shape the areas take, so the rail reads the same
+                      way wherever somebody is standing on it. */}
+                  {on ? (
+                    <span className="[writing-mode:vertical-rl] rotate-180 text-[13px] font-semibold uppercase tracking-[0.1em]">
+                      {entry.label}
+                    </span>
+                  ) : null}
+                </Link>
+              </Tooltip>
+            );
+          })}
 
           {/* The role rode under the name in the old footer. The rail has room
               for a face and nothing else, so it moves into the tooltip rather
