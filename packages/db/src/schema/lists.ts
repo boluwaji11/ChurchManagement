@@ -21,6 +21,13 @@ export const savedLists = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    /**
+     * R1.14. The list's name in an address.
+     *
+     * Set when the list is written and left alone through a rename, so an
+     * address somebody saved goes on working.
+     */
+    slug: text("slug"),
     /** "static" for a set somebody picked, "rule" for one that answers itself. */
     kind: text("kind").notNull().default("static"),
     /** The directory filters, for a rule list. Null on a static one. */
@@ -33,6 +40,7 @@ export const savedLists = pgTable(
   (t) => [
     index("saved_lists_tenant_idx").on(t.tenantId),
     uniqueIndex("saved_lists_name_unique").on(t.tenantId, t.name),
+    uniqueIndex("saved_lists_slug_unique").on(t.tenantId, t.slug),
   ],
 );
 

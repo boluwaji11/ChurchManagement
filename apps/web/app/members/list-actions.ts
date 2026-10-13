@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import {
-  withTenant, createStaticList, createRuleList, renameList, setListArchived,
+  withTenant, createStaticList, createRuleList, renameList, setListArchived, getSavedList,
   addToList, removeFromList, cleanRule, RULE_KEYS, canEditPeople, PermissionError,
 } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
@@ -11,6 +11,8 @@ import { explain } from "@/lib/explain";
 export interface ListResult {
   error?: string;
   id?: string;
+  /** R1.14. The list's name in an address, which is what a link carries. */
+  slug?: string;
   count?: number;
 }
 
@@ -32,10 +34,15 @@ export async function saveSelection(data: FormData): Promise<ListResult> {
 
     const result = await withTenant(session, async (tx) => {
       if (existing) {
-        return { id: existing, count: await addToList(tx, session, { listId: existing, personIds: ids }) };
+        const list = await getSavedList(tx, existing);
+        return {
+          id: existing,
+          slug: list?.slug ?? existing,
+          count: await addToList(tx, session, { listId: existing, personIds: ids }),
+        };
       }
       const made = await createStaticList(tx, session, { name: field(data, "name"), personIds: ids });
-      return { id: made.id, count: made.added };
+      return { id: made.id, slug: made.slug, count: made.added };
     });
 
     revalidatePath("/members");
@@ -61,7 +68,7 @@ export async function saveView(data: FormData): Promise<ListResult> {
     );
 
     revalidatePath("/members");
-    return { id: made.id };
+    return { id: made.id, slug: made.slug };
   } catch (error) {
     return { error: explain(error) };
   }

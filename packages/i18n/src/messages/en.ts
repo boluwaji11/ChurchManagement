@@ -2550,6 +2550,8 @@ export const en = {
   "queue.mine": "Mine",
   "queue.board": "Across the church",
   "board.dragHint": "Drag a card to the next stage",
+  "board.markDone": "Mark this step done for {name}",
+  "board.markDoneShort": "Mark done",
   "board.connected": "Connected",
   "board.due": "Due {date}",
   "board.noDate": "No date set",

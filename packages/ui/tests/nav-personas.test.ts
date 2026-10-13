@@ -42,16 +42,16 @@ const EXPECTED: Record<TenantRole, string[]> = {
     "/reports", "/settings/profile",
   ],
   // A treasurer opens the product for one thing.
-  finance: ["/home", "/giving", "/directory", "/groups", "/settings/profile"],
+  finance: ["/home", "/giving", "/groups", "/settings/profile"],
   // No check-in desk, no services, no events. The notes and the people.
   pastoral: [
     "/dashboard", "/members", "/messages", "/followups", "/groups",
     "/reports", "/settings/profile",
   ],
-  group_leader: ["/home", "/groups", "/directory", "/settings/profile"],
-  team_leader: ["/home", "/schedule", "/directory", "/groups", "/settings/profile"],
-  checkin_volunteer: ["/home", "/checkin", "/directory", "/groups", "/settings/profile"],
-  member: ["/home", "/groups", "/directory", "/settings/profile"],
+  group_leader: ["/home", "/groups", "/settings/profile"],
+  team_leader: ["/home", "/schedule", "/groups", "/settings/profile"],
+  checkin_volunteer: ["/home", "/checkin", "/groups", "/settings/profile"],
+  member: ["/home", "/groups", "/settings/profile"],
 };
 
 describe("the sidebar", () => {
@@ -76,13 +76,14 @@ describe("the sidebar", () => {
   });
 
   /*
-   * R3.1. Two directories, and nobody gets both. Staff work the church's
-   * records; everybody else sees what the church chose to publish.
+   * R3.1. The church's records are staff work. Everybody else reads what the
+   * church chose to publish, in the portal, which wears its own row of tabs:
+   * this list never offers them a directory of their own.
    */
-  it("gives nobody both directories", () => {
+  it("offers the records to staff and a directory to nobody else", () => {
     for (const role of TENANT_ROLES) {
       const hrefs = sidebar(role);
-      expect(hrefs.includes("/members") && hrefs.includes("/directory")).toBe(false);
+      expect(hrefs.includes("/directory")).toBe(false);
     }
   });
 

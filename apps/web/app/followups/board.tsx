@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Move, Plus, X } from "lucide-react";
+import { Check, Move, Plus, X } from "lucide-react";
 import {
   Banner, Button, Combobox, Field, IconButton, Input, Spinner,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -63,6 +63,30 @@ export function Board({
   const [error, setError] = React.useState<string>();
   /** Which card is being taken off, so its own mark spins. */
   const [leaving, setLeaving] = React.useState<string | null>(null);
+  /** Which card's step is being answered, so one mark spins rather than all. */
+  const [doing, setDoing] = React.useState<string | null>(null);
+
+  /*
+   * R5.5. The step the card is waiting on, answered.
+   *
+   * Dragging a card to the next column is the gesture this board was built
+   * around, and a pointer is not the only way somebody works: a volunteer on a
+   * phone, or on a keyboard, had no way to say a step was done at all.
+   */
+  const markDone = (card: BoardCard) => {
+    const at = stages.findIndex((s) => s.id === card.stage);
+    const next = stages[at + 1];
+    if (at < 0 || !next) return;
+    const position = next.id === "done" ? stages.length : Number(next.id);
+
+    setDoing(card.entryId);
+    startTransition(async () => {
+      const result = await moveToStage(card.entryId, position);
+      setError(result.error);
+      setDoing(null);
+      router.refresh();
+    });
+  };
 
   const drop = (stageId: string) => {
     setOver(null);
@@ -134,9 +158,28 @@ export function Board({
                       {card.who}
                     </Link>
 
-                    {/* R5.4. Taking somebody off the board, which the server
-                        will not do without a reason, so the box asks for one. */}
-                    <span className="relative z-10">
+                    <span className="relative z-10 flex items-center gap-0.5">
+                      {/* R5.5. The step answered without a pointer. The last
+                          column is where everybody has finished, so there is
+                          nothing left to answer there. */}
+                      {stage.id === "done" ? null : (
+                        <IconButton
+                          label={t("board.markDone", { name: card.who })}
+                          variant="ghost"
+                          disabled={pending}
+                          className="size-8 min-h-0 [&_svg]:size-4"
+                          onClick={() => markDone(card)}
+                        >
+                          {doing === card.entryId ? (
+                            <Spinner label={t("board.markDoneShort")} />
+                          ) : (
+                            <Check />
+                          )}
+                        </IconButton>
+                      )}
+
+                      {/* R5.4. Taking somebody off the board, which the server
+                          will not do without a reason, so the box asks for one. */}
                       <LeaveCard
                         name={card.who}
                         pending={pending}

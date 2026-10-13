@@ -1,5 +1,6 @@
 import {
-  withTenant, findDuplicateClusters, listMerges, countMerges, getPersonForEdit, canArchivePeople,
+  withTenant, findDuplicateClusters, listMerges, countMerges, getPerson, getPersonForEdit,
+  canArchivePeople,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
@@ -70,9 +71,19 @@ export async function DuplicatesPanelPage({
     async (tx) => {
       const found = await findDuplicateClusters(tx);
 
-      // Records chosen by hand in the directory. The detector misses real
-      // duplicates that share no email, no phone and no spelling of a name.
-      const picked = a && b && a !== b ? [a, b] : null;
+      /*
+       * Records chosen by hand in the directory. The detector misses real
+       * duplicates that share no email, no phone and no spelling of a name.
+       *
+       * The address names them, so each is read back to the record's own id
+       * before anything is compared against a cluster or written.
+       */
+      const chosen = a && b && a !== b
+        ? (await Promise.all([a, b].map((key) => getPerson(tx, key))))
+            .map((one) => one?.id)
+            .filter((one): one is string => Boolean(one))
+        : [];
+      const picked = chosen.length === 2 ? chosen : null;
 
       /*
        * Which groups, in order, before a single record is read. The screen

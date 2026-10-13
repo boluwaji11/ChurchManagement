@@ -121,7 +121,9 @@ export async function MembersListScreen({
 
       return {
         lists,
-        viewing: opened ? { id: params.list!, name: opened.name, kind: opened.kind } : null,
+        /* The list's own id, because what is taken off it is written against
+           that; the address carries its name. */
+        viewing: opened ? { id: opened.id, name: opened.name, kind: opened.kind } : null,
         members,
         matching,
         tags,
@@ -168,7 +170,14 @@ export async function MembersListScreen({
         perPage={PER_PAGE}
         matching={matching}
         duplicates={duplicates}
-        lists={lists}
+        lists={lists.map((one) => ({
+          id: one.id,
+          /* A list written before lists had names in them answers to its id. */
+          slug: one.slug ?? one.id,
+          name: one.name,
+          kind: one.kind,
+          count: one.count,
+        }))}
         viewing={viewing}
         tags={tags.map((x) => ({ id: x.id, slug: x.slug, name: x.name, hue: x.hue }))}
         groups={groups.map((g) => ({ id: g.id, name: g.name, hue: g.typeHue }))}

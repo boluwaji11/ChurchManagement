@@ -32,6 +32,8 @@ import { SearchField } from "@/components/search-field";
 
 export interface ListOption {
   id: string;
+  /** R1.14. The list's name in an address, which every link to it carries. */
+  slug: string;
   name: string;
   kind: "static" | "rule";
   count: number | null;
@@ -168,6 +170,9 @@ export function Directory({
     `/members/${slug}?returnTo=${encodeURIComponent(directoryHref)}`;
 
   const [selected, setSelected] = React.useState<string[]>([]);
+  /** R2.8. A row's own id read back as the name in its address. */
+  const slugOf = (id: string | undefined) =>
+    (id ? rows.find((row) => row.id === id)?.slug : undefined) ?? id ?? "";
   const [result, setResult] = React.useState<BulkResult>();
   const [pending, startTransition] = React.useTransition();
   /*
@@ -498,7 +503,9 @@ export function Directory({
           groups={groups}
           mergeHref={
             canArchive && selected.length === 2
-              ? `/members/duplicates?a=${selected[0]}&b=${selected[1]}`
+              /* R2.8. Named rather than numbered: a church sending this to a
+                 colleague should be sending something it can read. */
+              ? `/members/duplicates?a=${slugOf(selected[0])}&b=${slugOf(selected[1])}`
               : null
           }
           pending={pending}

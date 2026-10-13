@@ -31,6 +31,8 @@ export type ListRule = Partial<Record<RuleKey, string>>;
 
 export interface SavedList {
   id: string;
+  /** R1.14. The list's name in an address, so nobody copies a uuid. */
+  slug: string | null;
   name: string;
   kind: "static" | "rule";
   rule: ListRule | null;
@@ -68,6 +70,7 @@ export async function listSavedLists(
   const rows = await db
     .select({
       id: savedLists.id,
+      slug: savedLists.slug,
       name: savedLists.name,
       kind: savedLists.kind,
       rule: savedLists.rule,
@@ -94,6 +97,7 @@ export async function listSavedLists(
 
   return rows.map((row) => ({
     id: row.id,
+    slug: row.slug,
     name: row.name,
     kind: row.kind === "rule" ? "rule" : "static",
     rule: (row.rule as ListRule | null) ?? null,
@@ -103,16 +107,50 @@ export async function listSavedLists(
   }));
 }
 
-export async function getSavedList(db: Tx, id: string): Promise<SavedList | null> {
+/**
+ * R1.14. One list, by its name in an address or by its id.
+ *
+ * Both, because an address somebody saved before lists had names in them is
+ * still an address somebody saved.
+ */
+export async function getSavedList(db: Tx, key: string): Promise<SavedList | null> {
   const all = await listSavedLists(db, { includeArchived: true });
-  return all.find((list) => list.id === id) ?? null;
+  return all.find((list) => list.slug === key) ?? all.find((list) => list.id === key) ?? null;
+}
+
+/** The slug a name reads as: lower case, words joined by a hyphen. */
+function slugOf(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    || "list";
+}
+
+/**
+ * R1.14. The slug a new list gets.
+ *
+ * Two names can read the same once punctuation is dropped, so a second one
+ * takes a number. It is set when the list is written and stays as it is
+ * through a rename, so an address somebody saved goes on working.
+ */
+async function freeListSlug(db: Tx, name: string): Promise<string> {
+  const base = slugOf(name.slice(0, 60));
+  const taken = await db
+    .select({ slug: savedLists.slug })
+    .from(savedLists)
+    .where(sql`${savedLists.slug} = ${base} or ${savedLists.slug} like ${`${base}-%`}`);
+  const used = new Set(taken.map((one) => one.slug));
+  let slug = base;
+  for (let at = 2; used.has(slug); at += 1) slug = `${base}-${at}`;
+  return slug;
 }
 
 async function insert(
   db: Tx,
   actor: WriteActor,
   input: { name: string; kind: "static" | "rule"; rule?: ListRule | null },
-): Promise<{ id: string }> {
+): Promise<{ id: string; slug: string }> {
   if (!canEditPeople(actor)) throw new PermissionError(actor.role, "editPerson");
 
   const name = clean(input.name);
@@ -131,12 +169,13 @@ async function insert(
     .values({
       tenantId: actor.tenantId,
       name,
+      slug: await freeListSlug(db, name),
       kind: input.kind,
       rule: input.kind === "rule" ? (input.rule ?? {}) : null,
       createdByUserId: actor.userId ?? null,
     })
-    .returning({ id: savedLists.id });
-  return row!;
+    .returning({ id: savedLists.id, slug: savedLists.slug });
+  return { id: row!.id, slug: row!.slug ?? "" };
 }
 
 /** R1.14. A set somebody picked. */
@@ -144,10 +183,10 @@ export async function createStaticList(
   db: Tx,
   actor: WriteActor,
   input: { name: string; personIds: string[] },
-): Promise<{ id: string; added: number }> {
+): Promise<{ id: string; slug: string; added: number }> {
   const list = await insert(db, actor, { name: input.name, kind: "static" });
   const added = await addToList(db, actor, { listId: list.id, personIds: input.personIds });
-  return { id: list.id, added };
+  return { id: list.id, slug: list.slug, added };
 }
 
 /** R1.14. A question the church wants answered again. */
@@ -155,7 +194,7 @@ export async function createRuleList(
   db: Tx,
   actor: WriteActor,
   input: { name: string; rule: ListRule },
-): Promise<{ id: string }> {
+): Promise<{ id: string; slug: string }> {
   if (Object.keys(input.rule).length === 0) throw new InvalidInputError("lists.error.noRule");
   return insert(db, actor, { name: input.name, kind: "rule", rule: input.rule });
 }
@@ -262,22 +301,26 @@ export async function removeFromList(
  */
 export async function resolveList(
   db: Tx,
-  id: string,
-): Promise<{ name: string; kind: "static" | "rule"; ids?: string[]; rule?: ListRule } | null> {
-  const list = await getSavedList(db, id);
+  key: string,
+): Promise<
+  { id: string; name: string; kind: "static" | "rule"; ids?: string[]; rule?: ListRule } | null
+> {
+  const list = await getSavedList(db, key);
   if (!list) return null;
 
   if (list.kind === "rule") {
-    return { name: list.name, kind: "rule", rule: list.rule ?? {} };
+    return { id: list.id, name: list.name, kind: "rule", rule: list.rule ?? {} };
   }
 
+  /* The list's own id, because `key` can be the name in the address and the
+     rows are held against the id. */
   const rows = await db
     .select({ memberId: savedListMembers.memberId })
     .from(savedListMembers)
-    .where(eq(savedListMembers.listId, id))
+    .where(eq(savedListMembers.listId, list.id))
     .orderBy(desc(savedListMembers.addedAt));
 
-  return { name: list.name, kind: "static", ids: rows.map((row) => row.memberId) };
+  return { id: list.id, name: list.name, kind: "static", ids: rows.map((row) => row.memberId) };
 }
 
 /** Which lists this person is on, for their record. */
