@@ -9,6 +9,7 @@ import {
   Dialog, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Thead, Tr, Th, Td,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { useFormError } from "@/lib/form-error";
@@ -223,28 +224,26 @@ export function Team({
           were last here. The three a church checks when somebody leaves. */}
       <ResizableTable id="access" className="rounded-[14px] border border-line bg-surface">
         <table className="w-full border-collapse text-left">
-          <thead>
-            <tr className="border-b border-line">
-              <th className="px-5 py-3 text-[12px] font-semibold text-fg">
-                {t("team.person")}
-              </th>
-              <th className="w-66 px-5 py-3 text-[12px] font-semibold text-fg">
+          {/* R24.6. The shared heading and cell, so a row is the height the
+              density says and not the height this screen once chose. */}
+          <Thead>
+            <Tr className="border-t-0">
+              <Th className="px-5">{t("team.person")}</Th>
+              <Th className="w-66 px-5">
                 <span className="flex items-center gap-1">
                   {t("team.roleColumn")}
                   <RoleGuide roles={roles} />
                 </span>
-              </th>
-              <th className="w-44 px-5 py-3 text-[12px] font-semibold text-fg">
-                {t("team.lastSignedIn")}
-              </th>
-              <th className="w-12 px-2" />
-            </tr>
-          </thead>
+              </Th>
+              <Th className="w-44 px-5">{t("team.lastSignedIn")}</Th>
+              <Th className="w-12 px-2" />
+            </Tr>
+          </Thead>
 
           <tbody>
             {members.map((member) => (
-              <tr key={member.userId} className="border-b border-line last:border-0">
-                <td className="px-5 py-3">
+              <Tr key={member.userId}>
+                <Td className="px-5 py-3">
                   <span className="flex items-center gap-3">
                     <Avatar
                       name={member.name ?? member.email}
@@ -260,9 +259,9 @@ export function Team({
                       ) : null}
                     </span>
                   </span>
-                </td>
+                </Td>
 
-                <td className="px-5 py-3">
+                <Td className="px-5 py-3">
                   {/* R1.4. An owner's row is only an owner's to change. There
                       is nobody above them to undo it. */}
                   {member.isSelf || (member.role === "owner" && !iAmOwner) ? (
@@ -294,13 +293,13 @@ export function Team({
                       </SelectContent>
                     </Select>
                   )}
-                </td>
+                </Td>
 
-                <td className="px-5 py-3 text-[length:var(--d-text-body)] text-fg-muted">
+                <Td className="px-5 py-3 text-[length:var(--d-text-body)] text-fg-muted">
                   {member.lastSignedIn ?? t("team.neverSignedIn")}
-                </td>
+                </Td>
 
-                <td className="px-2 py-3">
+                <Td className="px-2 py-3">
                   {member.isSelf || member.role === "owner" ? null : (
                     <IconButton
                       label={t("team.remove")}
@@ -315,8 +314,8 @@ export function Team({
                       )}
                     </IconButton>
                   )}
-                </td>
-              </tr>
+                </Td>
+              </Tr>
             ))}
           </tbody>
         </table>
