@@ -333,6 +333,22 @@ export function Combobox({
            * dialog does not mistake a press here for a press outside.
            */
           data-portal-list=""
+          /*
+           * R24.6. The wheel scrolls this list.
+           *
+           * The list is portalled to the body so no panel can clip it, which
+           * also puts it outside the dialog whose scroll lock stops the wheel
+           * everywhere but inside itself. The list was scrollable by keyboard
+           * and by dragging and did nothing at all under a finger or a wheel.
+           * Scrolling it here, and keeping the event, is what the lock would
+           * have done if it knew this belonged to the dialog.
+           */
+          onWheel={(event) => {
+            const el = event.currentTarget;
+            if (el.scrollHeight <= el.clientHeight) return;
+            el.scrollTop += event.deltaY;
+            event.stopPropagation();
+          }}
           className={cn(
             "pointer-events-auto fixed z-50 overflow-y-auto p-1",
             "rounded-[var(--d-radius-control)] border border-line bg-surface shadow-lg",
