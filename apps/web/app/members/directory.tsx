@@ -10,6 +10,7 @@ import { Download as FileDownload } from "@/components/download";
 import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Tag, CheckCircle2, ListMinus, ChevronDown, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import {
   Avatar, Button, Field, Input, Textarea, Checkbox, Banner, HueDot, Tooltip,
+  Spinner,
   IconButton,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Switch,
   Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
@@ -680,7 +681,12 @@ export function Directory({
                   <td className="border-b border-sunken px-4 py-2.5 text-fg-muted">
                     {p.householdName ?? EMPTY}
                   </td>
-                  <td className="border-b border-sunken px-4 py-2.5">
+                  {/* The press stays here. The row opens the record, and
+                      choosing a status was opening it too. */}
+                  <td
+                    className="border-b border-sunken px-4 py-2.5"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <StatusCell
                       id={p.id}
                       status={p.lifecycleStatus}
@@ -874,11 +880,17 @@ function StatusCell({
       <Tooltip content={error ?? t("directory.bulkStatus")}>
         <DropdownMenuTrigger
           disabled={busy}
+          aria-busy={busy}
           className="inline-flex cursor-pointer items-center gap-1 rounded-full disabled:cursor-wait"
           aria-label={t("directory.bulkStatus")}
         >
           <StatusPill status={shown} />
-          <ChevronDown aria-hidden className="size-3.5 shrink-0 text-fg-subtle" />
+          {/* R24.6. The write goes to the server, so it says so while it is
+              gone. The pill has already changed, and a changed pill with
+              nothing else happening does not say whether it is saved. */}
+          {busy
+            ? <Spinner className="size-3.5 shrink-0 text-fg-subtle" />
+            : <ChevronDown aria-hidden className="size-3.5 shrink-0 text-fg-subtle" />}
         </DropdownMenuTrigger>
       </Tooltip>
       <DropdownMenuContent align="start">
