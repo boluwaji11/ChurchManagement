@@ -12,7 +12,7 @@ import {
   LIFT,
 } from "@connectapp/ui";
 import type { HouseholdAddress } from "@connectapp/db";
-import { t, plural, REGION_LABEL, POSTAL_LABEL } from "@connectapp/i18n";
+import { t, REGION_LABEL, POSTAL_LABEL } from "@connectapp/i18n";
 import { householdRoleOptions } from "@/lib/person-input";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
@@ -97,15 +97,17 @@ export function HouseholdList({
   households,
   country = "US",
   onlyArchived = false,
-  open,
+  find: asked,
 }: {
   church: string;
   households: HouseholdItem[];
   /**
-   * R2.4, R24.6. The family to open on arrival, which is how a member's record
-   * hands somebody straight to the household it belongs to.
+   * R2.4, R24.6. The family to look for on arrival, by name, which is how a
+   * member's record hands somebody to the household it belongs to. A name
+   * rather than an id, because an address a church can read is an address a
+   * church can keep.
    */
-  open?: string;
+  find?: string;
   /** R2.4. The church's own country, which names the address lines. */
   country?: string;
   /** R2.1. The families that have been archived, rather than the ones in use. */
@@ -113,7 +115,7 @@ export function HouseholdList({
 }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
-  const [find, setFind] = React.useState("");
+  const [find, setFind] = React.useState(asked ?? "");
   const [pending, startTransition] = React.useTransition();
   /* Which household's action is running, so one control spins rather than all. */
   const [doing, setDoing] = React.useState<string>();
@@ -141,6 +143,11 @@ export function HouseholdList({
 
   const shown = households.filter(matches);
 
+  /* Asked for by name and only one family answers to it: that is the one
+     somebody was sent here to look at, so it opens. Two families of the same
+     name open neither, because the screen cannot know which. */
+  const only = asked && shown.length === 1 ? shown[0]?.id : undefined;
+
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
       {error ? <Banner tone="danger">{error}</Banner> : null}
@@ -166,7 +173,7 @@ export function HouseholdList({
                   over it rather than a wrapper around it, so merge, archive and
                   every person's chip stay controls of their own. */}
               <EditHousehold
-                startOpen={open === household.id}
+                startOpen={only === household.id}
                 household={household}
                 country={country}
                 pending={pending}
@@ -349,7 +356,6 @@ function EditHousehold({
           <div className="py-4">
             <Part
               title={t("households.members")}
-              count={plural("households.memberCount", household.members.length)}
               open={openMembers}
               onOpen={setOpenMembers}
             >
