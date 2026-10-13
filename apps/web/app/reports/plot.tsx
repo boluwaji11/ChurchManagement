@@ -146,7 +146,15 @@ export function Keyed({
       }
     >
       {before ? legend : null}
-      <div className={fill ? "flex min-h-0 min-w-0 flex-1 flex-col" : "flex min-w-0 flex-col"}>
+      {/*
+        * The plot takes the width it is given.
+        *
+        * Without flex-1 this column sized itself to its contents, which are
+        * the labels under the axis, so a chart of thirteen short months drew
+        * itself across half the card and left the other half empty while a
+        * chart of eight long service names happened to fill it.
+        */}
+      <div className={fill ? "flex min-h-0 min-w-0 flex-1 flex-col" : "flex min-w-0 flex-1 flex-col"}>
         {children}
       </div>
       {before ? null : legend}
@@ -199,7 +207,15 @@ export function Frame({
         </span>
       ) : null}
 
-      <div className={fill ? "flex min-h-0 min-w-0 flex-1 flex-col" : "flex min-w-0 flex-col"}>
+      {/*
+        * The plot takes the width it is given.
+        *
+        * Without flex-1 this column sized itself to its contents, which are
+        * the labels under the axis, so a chart of thirteen short months drew
+        * itself across half the card and left the other half empty while a
+        * chart of eight long service names happened to fill it.
+        */}
+      <div className={fill ? "flex min-h-0 min-w-0 flex-1 flex-col" : "flex min-w-0 flex-1 flex-col"}>
         <div
           className={fill ? "flex min-h-0 flex-1" : "flex"}
           style={fill ? undefined : { height }}
