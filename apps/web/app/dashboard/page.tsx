@@ -194,6 +194,20 @@ export default async function DashboardPage({
   const last = numbers.lastService;
   const delta = last && last.average > 0 ? last.present - last.average : null;
 
+  /*
+   * R18.1. What a number is doing, beside the number.
+   *
+   * A tile that says 227 says nothing a church can act on. The stretch it is
+   * measured against is the same stretch of the month before, so a church
+   * three days into October is not read against all of September.
+   */
+  const since = (now: number, before: number, key: "dashboard.onLastMonth" | "dashboard.onPreviousMonth") => {
+    const change = now - before;
+    if (before === 0) return null;
+    if (change === 0) return t("dashboard.sameAsLastMonth");
+    return t(key, { delta: `${change > 0 ? "+" : ""}${change}` });
+  };
+
   const tiles: Tile[] = [
     {
       id: "attendance",
@@ -216,7 +230,9 @@ export default async function DashboardPage({
       id: "new-members",
       label: t("dashboard.newPeople"),
       value: String(numbers.newThisMonth),
-      sub: t("dashboard.thisMonth"),
+      sub:
+        since(numbers.newThisMonth, numbers.newByNowLastMonth, "dashboard.onLastMonth")
+        ?? t("dashboard.thisMonth"),
       hue: "indigo",
     },
     {
@@ -226,7 +242,8 @@ export default async function DashboardPage({
       sub:
         numbers.visitors.uncontacted > 0
           ? plural("dashboard.uncontacted", numbers.visitors.uncontacted)
-          : t("dashboard.allContacted"),
+          : since(numbers.visitors.total, numbers.visitors.before, "dashboard.onPreviousMonth")
+            ?? t("dashboard.allContacted"),
       hue: "amber",
     },
     {
@@ -240,6 +257,21 @@ export default async function DashboardPage({
       hue: numbers.followUps.overdue > 0 ? "rose" : "teal",
     },
   ];
+
+  /*
+   * R18.1. Whether this church has anything to count yet.
+   *
+   * Written down rather than inferred from each tile, because the row is
+   * either the week's numbers or it is nothing. A church that has written its
+   * first member down has one number and three noughts, which says four times
+   * over that it has not started: the checklist above says it once, and says
+   * what to do about it.
+   */
+  const nothingYet =
+    !numbers.lastService
+    && weeks.length === 0
+    && numbers.visitors.total === 0
+    && numbers.followUps.open === 0;
 
   // What to call them. Their first name, because the screen is theirs.
   const who = session.displayName.split(" ")[0] ?? session.displayName;
@@ -277,19 +309,31 @@ export default async function DashboardPage({
               .join(" · ")}
           </p>
         </div>
-        {/* The tiles are dragged with a pointer, and a phone has none. */}
-        <p className="hidden items-center gap-1.5 text-caption text-fg-subtle sm:flex">
+        {/* The tiles are dragged with a pointer, and a phone has none. Nor is
+            there anything to drag before a church has numbers. */}
+        <p
+          className={
+            nothingYet
+              ? "hidden"
+              : "hidden items-center gap-1.5 text-caption text-fg-subtle sm:flex"
+          }
+        >
           <GripVertical className="size-3.5" aria-hidden />
           {t("dashboard.reorder")}
         </p>
       </div>
 
-      <Tiles church={session.tenantSlug} tiles={tiles} />
+      {/* R18.1, R24.17. A church that has recorded nothing yet reads the
+          checklist above rather than a row of noughts, which says four times
+          over that it has not started. */}
+      {nothingYet ? null : <Tiles church={session.tenantSlug} tiles={tiles} />}
 
       <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
         {/* R18.2. What has been happening, which is the question the number
-            above cannot answer on its own. */}
-        <Weeks services={weeks} today={now.date} />
+            above cannot answer on its own. A church with no service on the
+            record has no line to draw, so the panel stays off the screen until
+            there is one. */}
+        {weeks.length > 0 ? <Weeks services={weeks} today={now.date} /> : null}
         <ThisWeek entries={week} />
         <FollowUp today={now.date} entries={tasks} />
       </div>

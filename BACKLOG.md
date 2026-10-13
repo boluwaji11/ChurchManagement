@@ -141,8 +141,8 @@ we do not. The reading that produced them is below the table.
 | HRT-322 | Groups against the new vocabulary, and the two shells that screen renders | R9.5, R24.6 | Resolved |
 | HRT-323 | Events against the new vocabulary: the list, the record and the roster | R14.1, R24.6 | Resolved |
 | HRT-324 | Forms against the new vocabulary: the list, the builder and the responses | R4.1, R24.6 | Resolved |
-| HRT-325 | The dashboard: tiles that carry a change, and the charts beside them | R18.1, R22.1, R24.6 | Active |
-| HRT-326 | Reports: the shared table, the promoted charts, and a catalogue that looks like them | R18.2, R24.6 | New |
+| HRT-325 | The dashboard: tiles that carry a change, and the charts beside them | R18.1, R22.1, R24.6 | Resolved |
+| HRT-326 | Reports: the shared table, the promoted charts, and a catalogue that looks like them | R18.2, R24.6 | Active |
 | HRT-327 | Settings: twenty-three screens to one header and one table | R1.1, R24.6 | New |
 | HRT-328 | Follow-ups, calendar, incidents, import and the website editor | R5.1, R15.1, R24.6 | New |
 | HRT-329 | Giving against the new vocabulary, inside what 0.3 already built | R13.21, R24.6 | New |
