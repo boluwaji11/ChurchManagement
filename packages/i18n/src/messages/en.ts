@@ -2831,7 +2831,7 @@ export const en = {
   "reports.attendance.overTime": "Every service",
   "reports.attendance.averageLine": "Average {count}",
   "reports.attendance.share": "Where the members are",
-  "reports.attendance.seats": "Seats filled",
+  "reports.attendance.seats": "Attendances",
   "reports.attendance.byWeekday": "By day of the week",
   "reports.attendance.byService": "Each service",
   "reports.attendance.everyService": "Service by service",

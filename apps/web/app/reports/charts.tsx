@@ -165,7 +165,14 @@ export function Donut({
 
 export interface Point {
   key: string;
+  /** The full name, which the hint shows. */
   label: string;
+  /**
+   * What is written under the axis, where the full name is too long for a
+   * column of it: eight services named and dated turned into eight truncated
+   * strings that said "First Service · Septem" and nothing else.
+   */
+  tick?: string;
   value: number;
 }
 
@@ -247,7 +254,7 @@ export function Line({
                 key={one.key}
                 className="min-w-0 flex-1 truncate text-center text-[12px] sm:text-[11px] text-fg-subtle"
               >
-                {i % every === 0 ? one.label : ""}
+                {i % every === 0 ? (one.tick ?? one.label) : ""}
               </span>
             ))}
           </div>
@@ -475,14 +482,17 @@ export function RowBars({
                   }}
                 />
               </span>
+              {/* The number the bar draws, then what it was counted over.
+                  The other way round, a row read "3 times 0" and the eye took
+                  the three for the bar. */}
+              {labels ? (
+                <span className="w-12 shrink-0 text-right text-[13px] font-medium text-fg tabular-nums">
+                  {labelled(one.value, one.value / sum, labelKind)}
+                </span>
+              ) : null}
               {one.note ? (
                 <span className="w-16 shrink-0 text-right text-[12px] text-fg-subtle tabular-nums">
                   {one.note}
-                </span>
-              ) : null}
-              {labels ? (
-                <span className="w-14 shrink-0 text-right text-[13px] font-medium text-fg tabular-nums">
-                  {labelled(one.value, one.value / sum, labelKind)}
                 </span>
               ) : null}
             </li>

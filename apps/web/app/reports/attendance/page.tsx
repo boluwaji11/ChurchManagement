@@ -155,6 +155,7 @@ export default async function AttendanceReport({
               points={services.map((one) => ({
                 key: one.occurrenceId,
                 label: `${one.name} · ${shortDate(one.occursOn)}`,
+                tick: shortDate(one.occursOn),
                 value: one.present,
               }))}
             />
