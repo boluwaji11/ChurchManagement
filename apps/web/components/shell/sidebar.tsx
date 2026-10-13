@@ -202,8 +202,8 @@ export function Sidebar({
       <aside
         aria-label={t("nav.areas")}
         className={cn(
-          "flex w-16 shrink-0 flex-col items-center gap-3 overflow-hidden",
-          "border-r border-shell-line bg-shell text-shell-fg px-2 py-4",
+          "flex w-16 shrink-0 flex-col items-center gap-5 overflow-hidden",
+          "border-r border-shell-line bg-shell text-shell-fg px-2 py-5",
         )}
       >
         <Link
@@ -235,7 +235,7 @@ export function Sidebar({
           </Tooltip>
         ) : null}
 
-        <nav className="scroll-quiet flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto">
+        <nav className="scroll-quiet flex min-h-0 flex-1 flex-col items-center gap-2.5 overflow-y-auto">
           {groups.map((group) => {
             const Mark = group.icon;
             const here = group.id === activeGroup;
@@ -246,14 +246,17 @@ export function Sidebar({
                   type="button"
                   onClick={() => {
                     setShown(group.id);
-                    /* One screen in it, so there is nothing to choose from: the
-                       press is the navigation. */
-                    if (group.entries.length === 1) router.push(group.entries[0]!.href);
+                    /* R24.14. Into the area, at its first screen. Switching the
+                       column and leaving the reader on the screen they were
+                       already on puts the rail, the column and the page in
+                       three different places at once. */
+                    const first = group.entries[0];
+                    if (first) router.push(first.href);
                   }}
                   aria-current={here ? "true" : undefined}
                   aria-pressed={looking}
                   className={cn(
-                    "flex w-11 shrink-0 cursor-pointer flex-col items-center gap-2 rounded-xl py-2.5",
+                    "flex w-11 shrink-0 cursor-pointer flex-col items-center gap-2.5 rounded-2xl py-3",
                     "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
                     looking
                       ? "bg-surface text-fg shadow-sm"
@@ -264,7 +267,7 @@ export function Sidebar({
                   {/* The one being looked at says its name down the rail, which
                       is what makes the rail readable without a tooltip. */}
                   {looking ? (
-                    <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-semibold uppercase tracking-[0.14em]">
+                    <span className="[writing-mode:vertical-rl] rotate-180 text-[13px] font-semibold uppercase tracking-[0.1em]">
                       {t(group.label as never)}
                     </span>
                   ) : null}
@@ -274,7 +277,7 @@ export function Sidebar({
           })}
         </nav>
 
-        <div className="flex shrink-0 flex-col items-center gap-1.5 border-t border-shell-line pt-3">
+        <div className="flex shrink-0 flex-col items-center gap-3 border-t border-shell-line pt-4">
           {settings.map((entry) => (
             <Tooltip key={entry.href} content={entry.label} side="right">
               <Link
@@ -356,10 +359,7 @@ export function Sidebar({
               </Tooltip>
             </div>
 
-            <nav className="scroll-quiet flex min-h-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto">
-              <span className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-shell-muted">
-                {area ? t(area.label as never) : null}
-              </span>
+            <nav className="scroll-quiet flex min-h-0 flex-1 flex-col gap-1.5 overflow-x-hidden overflow-y-auto">
               {area?.entries.map(renderEntry)}
 
               {/* Anything no area claims. Settings is on the rail, so this is
