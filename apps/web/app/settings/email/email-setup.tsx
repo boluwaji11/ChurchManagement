@@ -41,6 +41,7 @@ export function EmailSetup({
   church,
   registrar,
   console_,
+  steps,
 }: {
   provider: EmailProvider | null;
   domain: DomainState | null;
@@ -49,6 +50,7 @@ export function EmailSetup({
   /** R22.2. Who answers for the domain, and where its settings are typed. */
   registrar: string | null;
   console_: string | null;
+  steps: string;
 }) {
   const router = useRouter();
   /*
@@ -89,6 +91,7 @@ export function EmailSetup({
           domain={domain}
           registrar={registrar}
           console_={console_}
+          steps={steps}
           busy={busy !== null}
           onCheck={() => void act(checkRecords, t("email.checking"))}
           onDisconnect={() => void act(disconnectEmail, t("email.saving"))}
@@ -182,6 +185,7 @@ function Connected({
   domain,
   registrar,
   console_,
+  steps,
   busy,
   onCheck,
   onDisconnect,
@@ -190,6 +194,7 @@ function Connected({
   domain: DomainState | null;
   registrar: string | null;
   console_: string | null;
+  steps: string;
   busy: boolean;
   onCheck: () => void;
   onDisconnect: () => void;
@@ -219,6 +224,7 @@ function Connected({
           domain={domain}
           registrar={registrar}
           console_={console_}
+          steps={steps}
           busy={busy}
           onCheck={onCheck}
           onDisconnect={onDisconnect}
@@ -307,6 +313,7 @@ function Records({
   domain,
   registrar,
   console_,
+  steps,
   vendor,
   busy,
   onCheck,
@@ -317,6 +324,8 @@ function Records({
   registrar: string | null;
   /** The page at that company where these are typed in. */
   console_: string | null;
+  /** The catalogue key for what to press once they are there. */
+  steps: string;
   vendor: string;
   busy: boolean;
   onCheck: () => void;
@@ -327,11 +336,18 @@ function Records({
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* R22.2. Named, because "your domain provider" is still a company
             somebody has to recognise before they can open it. */}
-        <p className="m-0 min-w-0 flex-1 text-fg">
-          {registrar
-            ? t("email.records.lead", { name: registrar })
-            : t("email.records.leadPlain")}
-        </p>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <p className="m-0 text-fg">
+            {registrar
+              ? t("email.records.lead", { name: registrar })
+              : t("email.records.leadPlain")}
+          </p>
+          {/* R22.2. What to press once they are there, in that company's own
+              menu words. A church told to "add a TXT record at your DNS
+              provider" goes looking for a thing called DNS on a screen that
+              calls it something else. */}
+          <p className="m-0 text-fg-muted">{t(steps as never)}</p>
+        </div>
         <div className="flex items-center gap-1">
           {registrar && console_ ? (
             <a
