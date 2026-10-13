@@ -49,6 +49,7 @@ export async function EditGroupPanelPage({
       title={t("groups.editTitle", { name: group.name })}
       formId="group-form"
       closeTo={returnToUnder(returnTo, "/groups", `/groups/${group.slug}`)}
+      cancelTo={permitted ? `/groups/${group.slug}` : undefined}
       width="980px"
       footer={permitted ? <GroupFormActions editing /> : undefined}
     >

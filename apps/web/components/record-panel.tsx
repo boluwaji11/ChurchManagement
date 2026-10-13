@@ -22,6 +22,7 @@ export function RecordPanel({
   formId,
   width,
   closeTo,
+  cancelTo,
   children,
 }: {
   title: string;
@@ -38,6 +39,14 @@ export function RecordPanel({
   width?: string;
   /** Where closing lands, which is the list the record was opened from. */
   closeTo: string;
+  /**
+   * R24.6. Where a form's own Cancel lands, beside its Save.
+   *
+   * The close square leaves the record altogether; an edit form also needs the
+   * way back to the record it is editing, which is a different errand and a
+   * different address.
+   */
+  cancelTo?: string;
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -72,10 +81,27 @@ export function RecordPanel({
   const [confirmClose, setConfirmClose] = React.useState(false);
   const dirty = useDirty(formId ?? "");
 
-  const leave = () => {
+  /** Where a confirmed leave is going, which Cancel and the close square set. */
+  const going = React.useRef(closeTo);
+
+  const leave = (to = closeTo) => {
     leaving.current = true;
     setOpen(false);
-    router.replace(closeTo);
+    router.replace(to);
+  };
+
+  /* Cancel stays on the record it was editing. While there is unsaved work it
+     asks first, in the same words the close square uses. */
+  const cancel = () => {
+    if (!cancelTo) return;
+    if (dirty) {
+      going.current = cancelTo;
+      setConfirmClose(true);
+      return;
+    }
+    leaving.current = true;
+    setOpen(false);
+    router.push(cancelTo);
   };
 
 
@@ -86,10 +112,15 @@ export function RecordPanel({
         <Button variant="ghost" onClick={() => setConfirmClose(false)}>
           {t("unsaved.stay")}
         </Button>
-        <Button variant="danger" onClick={() => leave()}>
+        <Button variant="danger" onClick={() => leave(going.current)}>
           {t("unsaved.discard")}
         </Button>
       </div>
+    </div>
+  ) : cancelTo ? (
+    <div className="flex w-full flex-wrap items-center justify-end gap-2">
+      <Button variant="secondary" onClick={cancel}>{t("action.cancel")}</Button>
+      {footer}
     </div>
   ) : footer;
 
@@ -98,6 +129,7 @@ export function RecordPanel({
       open={open}
       onOpenChange={(next) => {
         if (next) return;
+        going.current = closeTo;
         if (dirty) setConfirmClose(true);
         else leave();
       }}
