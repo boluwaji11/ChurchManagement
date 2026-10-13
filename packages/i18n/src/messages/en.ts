@@ -4645,7 +4645,7 @@ export const en = {
   // HRT-287, R16.1, R21.15. Connecting the church's own email.
   "email.connect": "Connect",
   "email.smtp.title": "The mail you already have",
-  "email.smtp.what": "Google Workspace, Microsoft 365, or whoever hosts your church's mail. Nothing changes at your registrar.",
+  "email.smtp.what": "Send through the email your church already uses, like Google Workspace or Microsoft 365.",
   "email.smtp.connect": "Connect your mail server",
   "email.smtp.host": "Server",
   "email.smtp.hostPlaceholder": "e.g. smtp.gmail.com",
@@ -4654,7 +4654,8 @@ export const en = {
   "email.smtp.usernamePlaceholder": "e.g. office@your-church.org",
   "email.smtp.password": "Password",
   "email.resend.title": "Resend",
-  "email.resend.what": "For a church sending more in a day than its mail host allows. You sign in at Resend and we set up the rest.",
+  "email.resend.what": "An email service for sending to your whole church at once.",
+  "email.resend.learn": "See what Resend is",
   "email.resend.connect": "Connect Resend",
   "email.resend.access": "ConnectApp sets up your sending domain and sends your church's email from this account.",
   "email.resend.go": "Continue to Resend",

@@ -129,6 +129,9 @@ export function EmailSetup({
               icon={<Mail />}
               title={t("email.resend.title")}
               what={t("email.resend.what")}
+              /* Nobody has heard of Resend, so the card offers a look at it
+                 before it asks a church to open an account there. */
+              learn={{ href: "https://resend.com", label: t("email.resend.learn") }}
               action={
                 <Button onClick={() => setWay("resend")}>{t("email.resend.connect")}</Button>
               }
@@ -144,11 +147,14 @@ function Choice({
   icon,
   title,
   what,
+  learn,
   action,
 }: {
   icon: React.ReactNode;
   title: string;
   what: string;
+  /** Somewhere to read about a company a church has never heard of. */
+  learn?: { href: string; label: string };
   action: React.ReactNode;
 }) {
   return (
@@ -158,6 +164,18 @@ function Choice({
       </span>
       <h3 className="m-0 font-display text-[17px] leading-6 text-fg">{title}</h3>
       <p className="m-0 flex-1 text-fg-muted">{what}</p>
+
+      {learn ? (
+        <a
+          href={learn.href}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex items-center gap-1.5 self-start font-medium text-primary underline-offset-2 hover:underline"
+        >
+          {learn.label} <ExternalLink className="size-[14px]" aria-hidden />
+        </a>
+      ) : null}
+
       <div className="flex">{action}</div>
     </Card>
   );
