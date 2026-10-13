@@ -6,9 +6,9 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { PrintSheet, PrintPage } from "@/components/print-sheet";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
-import { AutoPrint } from "../../../checkin/rooms/print/auto-print";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -77,9 +77,8 @@ export default async function CardListPage({
     : monthName(window.from);
 
   return (
-    <main className="mx-auto min-h-dvh max-w-4xl px-10 py-9 bg-white text-black print:max-w-none">
-      <AutoPrint />
-      <style>{"@page { size: auto; margin: 0; }"}</style>
+    <PrintSheet>
+      <PrintPage>
 
       <div className="text-[13px] font-medium text-neutral-500">{session.tenantName}</div>
 
@@ -144,6 +143,7 @@ export default async function CardListPage({
       </table>
 
       <p className="mt-5 text-[14px] text-neutral-500">{t("celebrations.cards.tick")}</p>
-    </main>
+    </PrintPage>
+    </PrintSheet>
   );
 }

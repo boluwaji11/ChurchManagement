@@ -148,8 +148,8 @@ we do not. The reading that produced them is below the table.
 | HRT-329 | Giving against the new vocabulary, inside what 0.3 already built | R13.21, R24.6 | Resolved |
 | HRT-330 | The check-in screens, where the rules deliberately differ | R24.14, R8.8, R24.11 | Resolved |
 | HRT-331 | The public pages and the member portal | R17.1, R24.6 | Resolved |
-| HRT-332 | One paper style across eleven print sheets | R24.6, R2.14 | New |
-| HRT-333 | Tags belong to categories, with a colour and an order the church sets | R1.13, R24.4 | New |
+| HRT-332 | One paper style across eleven print sheets | R24.6, R2.14 | Resolved |
+| HRT-333 | Tags belong to categories, with a colour and an order the church sets | R1.13, R24.4 | Active |
 | HRT-334 | A record says how complete it is, and the directory says which are not | R2.1, R19.3 | New |
 | HRT-335 | The church's own activity feed, read from the log that already records it | R1.11, R18.1 | New |
 | HRT-336 | Sweep the dead ends: a link to nothing, two empty directories, components nothing renders | R24.18 | Resolved |
