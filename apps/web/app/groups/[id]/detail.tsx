@@ -137,7 +137,7 @@ export function GroupDetail({
           it, and whether it is taking members. The state is a mark with its own
           colour and its own icon, and the two presses that change it sit at the
           far end, so reading it and changing it are not the same gesture. */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface px-[18px] py-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-line bg-surface px-[18px] py-3">
         <span
           className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-semibold"
           style={{
@@ -169,8 +169,10 @@ export function GroupDetail({
 
         {join ? <span className="ml-auto">{join}</span> : null}
 
+        {/* The two presses that change the state sit at the far end, after
+            everything that only says what the state is. */}
         {canManage ? (
-          <div className="ml-auto flex flex-wrap items-center gap-1">
+          <div className="ml-auto flex shrink-0 flex-wrap items-center gap-1">
             {status === "published" ? (
               /* Drawn as the product draws anything it is pressed by: purple,
                  underlined under the pointer. */
