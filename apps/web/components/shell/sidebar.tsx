@@ -33,7 +33,7 @@ const SIDEBAR_GROUPS: {
     id: "people",
     label: "nav.group.people",
     icon: Users,
-    hrefs: ["/members", "/directory", "/messages", "/followups", "/groups"],
+    hrefs: ["/members", "/messages", "/followups", "/groups"],
   },
   {
     id: "gatherings",

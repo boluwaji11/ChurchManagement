@@ -77,18 +77,19 @@ export function navFor(role: Who): NavEntry[] {
     out.push({ label: t("dashboard.title"), href: "/dashboard", icon: LayoutDashboard });
   }
 
-  // R3.1. One directory each. Staff work in the church's records; a member sees
-  // what the rest of the church chose to publish.
-  out.push(
-    staff
-      ? {
-          label: t("nav.directory"),
-          href: "/members",
-          icon: Users,
-          owns: ["/members", "/members/duplicates", "/import", "/fields", "/tags"],
-        }
-      : { label: t("nav.directory"), href: "/directory", icon: Users },
-  );
+  /*
+   * R3.1. Staff work in the church's records. Everybody else reads what the
+   * church chose to publish, in the portal, which has its own row of tabs: the
+   * entry offered here pointed at an address that has never existed.
+   */
+  if (staff) {
+    out.push({
+      label: t("nav.directory"),
+      href: "/members",
+      icon: Users,
+      owns: ["/members", "/members/duplicates", "/import", "/fields", "/tags"],
+    });
+  }
 
   /*
    * R16.9. What members have written to the office. It sits beside the
