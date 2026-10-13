@@ -426,7 +426,7 @@ export function Directory({
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/import"><Upload /> {t("import.title")}</Link>
+                  <Link href="/members/import"><Upload /> {t("import.title")}</Link>
                 </DropdownMenuItem>
               </>
             ) : null}
@@ -522,7 +522,7 @@ export function Directory({
                   </Link>
                 </Button>
                 <Button variant="secondary" asChild>
-                  <Link href={"/import"}>
+                  <Link href={"/members/import"}>
                     <Upload /> {t("import.title")}
                   </Link>
                 </Button>

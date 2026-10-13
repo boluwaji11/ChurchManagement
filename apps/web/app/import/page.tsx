@@ -1,81 +1,12 @@
-import { withTenant, listImports, canEditPeople, canArchivePeople } from "@connectapp/db";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { t } from "@connectapp/i18n";
-import { requireSession } from "@/lib/session";
-import { AppShell } from "@/components/app-shell";
-import { ImportWizard } from "./wizard";
-import { ImportHistory } from "./history";
-import { Denied } from "@/components/denied";
-import { tabMetadata } from "@/lib/page-metadata";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-/** R17.1. What the browser tab says. */
-export async function generateMetadata({
-  searchParams,
-}: {
-  searchParams: Promise<{ }>;
-}) {
-  const {} = await searchParams;
-  return tabMetadata(t("import.heading"));
-}
-
-export default async function ImportPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ }>;
-}) {
-  const {} = await searchParams;
-  const session = await requireSession();
-
-  const batches = canEditPeople(session)
-    ? await withTenant({ tenantId: session.tenantId, role: session.role }, (tx) => listImports(tx))
-    : [];
-
-  return (
-    <AppShell
-      session={session}
-      tab={t("import.heading")}
-      max="max-w-[1180px]"
-    >
-      <Link
-        href={"/members"}
-        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
-      >
-        <ArrowLeft className="size-4" /> {t("members.title")}
-      </Link>
-
-      <h2 className="font-display text-[22px] leading-[28px] text-fg">{t("import.heading")}</h2>
-
-      {canEditPeople(session) ? (
-        <ImportWizard
-          church={session.tenantSlug}
-          history={
-            <ImportHistory
-              church={session.tenantSlug}
-              canUndo={canArchivePeople(session)}
-              batches={batches.map((b) => ({
-                id: b.id,
-                filename: b.filename,
-                kind: b.kind,
-                status: b.status,
-                rowsCreated: b.rowsCreated,
-                rowsUpdated: b.rowsUpdated,
-                rowsSkipped: b.rowsSkipped,
-                committedAt: b.committedAt
-                  ? b.committedAt.toLocaleDateString(undefined, {
-                      day: "numeric", month: "long", year: "numeric",
-                    })
-                  : null,
-                canRollBack: b.canRollBack,
-              }))}
-            />
-          }
-        />
-      ) : (
-        <Denied role={session.role} action="addPerson" church={session.tenantSlug} />
-      )}
-    </AppShell>
-  );
+/**
+ * R19.x, R24.6. The importer moved under Members, where it opens in the window
+ * over the list. This address is kept because churches have it written down and
+ * a link in an email should not meet a 404.
+ */
+export default function ImportMoved() {
+  redirect("/members/import");
 }
