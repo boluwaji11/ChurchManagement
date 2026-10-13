@@ -3,6 +3,7 @@ import { NewPersonPanelPage } from "../../new/page-content";
 import { MailerPanelPage } from "../../mailer/page-content";
 import { CelebrationsPanelPage } from "../../celebrations/page-content";
 import { DuplicatesPanelPage } from "../../duplicates/page-content";
+import { ImportPanelPage } from "../../import/page-content";
 
 /**
  * R2.1, R24.6. Everything under /members opens in the window over the list.
@@ -27,6 +28,7 @@ export default async function InterceptedMemberPage({
   if (id === "mailer") return <MailerPanelPage searchParams={searchParams} />;
   if (id === "celebrations") return <CelebrationsPanelPage searchParams={searchParams} />;
   if (id === "duplicates") return <DuplicatesPanelPage searchParams={searchParams as never} />;
+  if (id === "import") return <ImportPanelPage searchParams={searchParams} />;
 
   return <PersonPanelPage params={params} searchParams={searchParams} />;
 }
