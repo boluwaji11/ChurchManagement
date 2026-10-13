@@ -73,7 +73,7 @@ export function MemberPanel({
      * standalone action keeps its words, and the square is a long way from
      * where a reader finishes reading.
      */
-    <div className="flex w-full flex-wrap items-center justify-end gap-2">
+    <div className="flex w-full items-center justify-end gap-2">
       {footer}
       <Button onClick={() => (dirty ? setConfirmClose(true) : leave())}>
         {t("common.close")}
