@@ -183,10 +183,22 @@ Settings, the person and signing out moved onto the rail, which is the half
 that never shuts. The role moved into the avatar's tooltip rather than being
 dropped.
 
+The area being looked at is a tall rectangle carrying its own name down the
+rail, reading upward so the first letter sits at the bottom, with the mark above
+it. The others are marks alone. That is what makes a rail of icons readable
+without hovering each one.
+
+**An area holding one screen draws no column.** Overview is the Dashboard and
+nothing else, and a column with a single row under a heading naming the same
+thing is a list of one. Pressing that mark is the navigation, and no collapse
+control is drawn because there is nothing to collapse.
+
 **What the browser caught.** The first version put the reopen control floating
 beside the rail. The sticky header is `z-30` and the control was `z-10`, so the
 header swallowed the press: the column could be closed and then never reopened.
-The toggle moved onto the rail, where there is one of it and nothing covers it.
+Shutting the column now belongs to the column, beside the church's name.
+Opening it again cannot, so the rail carries that half and only that half, and
+only while the column is shut.
 
 ## Phase A folds into the screens, October 2026
 
