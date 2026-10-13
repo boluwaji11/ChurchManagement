@@ -1078,8 +1078,6 @@ export const en = {
   "households.rename": "Rename {name}",
   "households.add": "New household",
   "households.members": "Household members",
-  "households.memberCount.one": "{count} member",
-  "households.memberCount.other": "{count} members",
   "households.addPerson": "Add household member",
   "households.addPersonSearch": "Search members with no household",
   "households.addPersonNone": "Nobody with no household matches that",

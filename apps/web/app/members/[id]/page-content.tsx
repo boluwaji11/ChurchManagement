@@ -410,7 +410,7 @@ export async function PersonPanelPage({
             title={t("person.household")}
             action={household && canEdit ? (
               <Link
-                href={`/settings/households?open=${household.id}`}
+                href={`/settings/households?find=${encodeURIComponent(household.name)}`}
                 className="text-label font-medium text-primary underline underline-offset-4"
               >
                 {t("person.manageHousehold")}
