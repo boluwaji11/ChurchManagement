@@ -3176,7 +3176,6 @@ export const en = {
   "celebrations.cards.title": "Birthday and anniversary cards",
   "celebrations.cards.cardFor": "Card for",
   "celebrations.cards.address": "Address",
-  "celebrations.cards.tick": "Tick each card as it goes in the post.",
   "team.error.name": "Enter a name for the team.",
   "team.error.hue": "Choose a colour from the list.",
   "team.error.taken": "{name} is already a team.",
