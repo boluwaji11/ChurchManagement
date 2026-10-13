@@ -263,14 +263,24 @@ export function Sidebar({
                 <button
                   type="button"
                   onClick={() => {
+                    const same = group.id === shown;
+                    /* Pressing the area already open shuts it, so the mark is
+                       the way in and the way out of the same thing. */
+                    if (same && !collapsed && group.entries.length > 1) {
+                      toggle();
+                      return;
+                    }
                     setShown(group.id);
                     openColumn();
                     /* R24.14. Into the area, at its first screen. Switching the
                        column and leaving the reader on the screen they were
                        already on puts the rail, the column and the page in
-                       three different places at once. */
+                       three different places at once. Pressing the area they
+                       are already in only reopens the column, because yanking
+                       them back to its first screen is not what the press
+                       asked for. */
                     const first = group.entries[0];
-                    if (first) router.push(first.href);
+                    if (!same && first) router.push(first.href);
                   }}
                   aria-current={here ? "true" : undefined}
                   aria-pressed={looking}

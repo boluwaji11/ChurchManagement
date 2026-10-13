@@ -246,6 +246,19 @@ answer.
 `Tab` said `aria-expanded` where it meant `aria-current`. The mark says which
 area the reader is in, which is true whether or not a sheet is open.
 
+**What the sidecar shook out of the tables.** `ResizableTable` pins its columns
+in pixels and re-measured only on a window resize. Shutting the navigation
+column widens the card without touching the window, so the table kept its old
+total and left a band of empty card down the right, 112px of it on Members,
+until the page was reloaded. It now watches the room around it with a
+`ResizeObserver`.
+
+Re-measuring was the wrong answer and was tried first: once the widths are
+pinned, every heading reports the width it was pinned to, so a second
+measurement returns the same set and changes nothing. The set already in hand
+is scaled into the room there is now, through the same `fitted` and `squeezed`
+the component already had, which also keeps whatever the reader had dragged.
+
 ## Lint has never run, October 2026
 
 HRT-337. `pnpm lint` runs turbo's `lint` task in six packages and executes

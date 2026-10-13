@@ -175,7 +175,50 @@ export function ResizableTable({
      * and is not at the next one, gets measured again.
      */
     window.addEventListener("resize", read);
-    return () => window.removeEventListener("resize", read);
+
+    /*
+     * R24.6. And whenever the room around the table changes without the window
+     * changing at all.
+     *
+     * The widths are pinned in pixels, so a table that was measured beside an
+     * open navigation column keeps that total when the column is shut: the
+     * card grows, the table does not, and a band of empty card is left down
+     * the right hand side until the page is reloaded. The window never
+     * resized, so a window listener never heard about it.
+     */
+    /*
+     * Scaled rather than measured again. Once the widths are pinned, every
+     * heading reports the width it was pinned to, so measuring a second time
+     * returns the old set and changes nothing. The set already in hand is
+     * stretched or squeezed into the room there is now, which also keeps
+     * whatever the reader had dragged.
+     */
+    const refit = () => {
+      const room = host.current?.clientWidth ?? 0;
+      if (!room) return;
+      setWidths((was) => {
+        if (!was) return was;
+        const total = sum(was);
+        if (total === room) return was;
+        return total < room ? fitted(was, room) : squeezed(was, room);
+      });
+    };
+
+    const host_ = host.current;
+    let frame = 0;
+    const watch = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => {
+      /* Writing widths inside the callback that the writing can trigger is how
+         a resize loop starts. Doing it on the next frame breaks it. */
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(refit);
+    });
+    if (host_ && watch) watch.observe(host_);
+
+    return () => {
+      window.removeEventListener("resize", read);
+      cancelAnimationFrame(frame);
+      watch?.disconnect();
+    };
   }, [id]);
 
   /** Pins them, so the browser stops deciding and the handles mean something. */
