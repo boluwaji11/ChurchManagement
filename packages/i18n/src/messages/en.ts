@@ -3970,6 +3970,7 @@ export const en = {
   "event.archiveTitle": "Put {name} away?",
   "event.restore": "Bring it back",
   "event.failed": "That could not be saved",
+  "event.editTitle": "Edit {name}",
   "event.save": "Save changes",
   "event.create": "Create the event",
   "event.questions": "Registration questions",
