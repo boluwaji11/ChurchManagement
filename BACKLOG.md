@@ -137,7 +137,7 @@ we do not. The reading that produced them is below the table.
 | HRT-318 | How complete a record is, said once and the same way everywhere | R2.1, R24.9 | Dropped, folded into Phase C |
 | HRT-319 | The sidecar: four areas in a rail, their items beside it, and the accordion goes | R24.6, R24.14, R1.3 | Resolved |
 | HRT-320 | The phone follows the sidecar: four areas, one tab each | R24.6, R24.14 | Resolved |
-| HRT-321 | Members against the new vocabulary: the directory, the window, and every screen under it | R2.1, R2.14, R24.6 | New |
+| HRT-321 | Members against the new vocabulary: the directory, the window, and every screen under it | R2.1, R2.14, R24.6 | Active |
 | HRT-322 | Groups against the new vocabulary, and the two shells that screen renders | R9.5, R24.6 | New |
 | HRT-323 | Events against the new vocabulary: the list, the record and the roster | R14.1, R24.6 | New |
 | HRT-324 | Forms against the new vocabulary: the list, the builder and the responses | R4.1, R24.6 | New |

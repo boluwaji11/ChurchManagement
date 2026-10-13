@@ -7,7 +7,7 @@ import { FilterDrawer, SortDrawer } from "@/components/filter-drawer";
 import { MultiSelect } from "@/components/multi-select";
 import { ResizableTable } from "@/components/resizable-columns";
 import { Download as FileDownload } from "@/components/download";
-import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Tag, CheckCircle2, ListMinus, ChevronDown } from "lucide-react";
+import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Tag, CheckCircle2, ListMinus, ChevronDown, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import {
   Avatar, Button, Field, Input, Textarea, Checkbox, Banner, HueDot, Tooltip,
   IconButton,
@@ -163,6 +163,12 @@ export function Directory({
   const [search, setSearch] = React.useState(q);
   React.useEffect(() => setSearch(q), [q]);
 
+  /* R2.14. Which column the list is in, and which way. */
+  const sortNow = {
+    by: params.get("sort") ?? "name",
+    dir: params.get("dir") === "desc" ? "desc" as const : "asc" as const,
+  };
+
   /** Rewrites the URL, dropping empty values so a shared link stays readable. */
   const setParam = React.useCallback(
     (changes: Record<string, string | undefined>) => {
@@ -180,6 +186,19 @@ export function Directory({
     },
     [params, pathname, router],
   );
+
+  /*
+   * R2.14. Pressing a heading sorts by it. Pressing the one already sorted
+   * turns it over, which is what every table a church has ever used does.
+   */
+  const setSort = (by: string) => {
+    const same = sortNow.by === by;
+    const dir = same && sortNow.dir === "asc" ? "desc" : "asc";
+    setParam({
+      sort: by === "name" ? undefined : by,
+      dir: dir === "asc" ? undefined : dir,
+    });
+  };
 
   // Debounced, because a query per keystroke is a query per keystroke.
   React.useEffect(() => {
@@ -318,6 +337,9 @@ export function Directory({
             them: both are ways into the directory by name. */}
         <OpenList lists={lists} />
 
+        {/* R2.14. The headings sort by surname, household and status. This
+            keeps the two orderings no column offers, by first name and by when
+            somebody was added, and it is where a reader goes for those. */}
         <SortDrawer
           value={params.get("sort") ?? "name"}
           dir={params.get("dir") === "desc" ? "desc" : "asc"}
@@ -602,9 +624,14 @@ export function Directory({
                     />
                   </th>
                 ) : null}
-                <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.person")}</th>
-                <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.household")}</th>
-                <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.status")}</th>
+                {/* R2.14. The headings are the sort. The query has taken a
+                    column and a direction since it was written; until now the
+                    only way to reach them was a drawer behind a mark, so a
+                    reader looking at a column of surnames had no way to guess
+                    that the surnames could be ordered. */}
+                <SortColumn now={sortNow} set={setSort} by="name">{t("members.column.person")}</SortColumn>
+                <SortColumn now={sortNow} set={setSort} by="household">{t("members.column.household")}</SortColumn>
+                <SortColumn now={sortNow} set={setSort} by="status">{t("members.column.status")}</SortColumn>
                 <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.tags")}</th>
                 <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.email")}</th>
                 <th className="border-b border-line px-4 py-3 font-medium">{t("members.column.phone")}</th>
@@ -787,6 +814,42 @@ function StatusPill({ status }: { status: string }) {
  * them turns one cell into a paragraph that pushes every other row down, so the
  * rest are counted and named in the tooltip.
  */
+/**
+ * R2.14, R24.6. A heading that sorts, in this table's own padding.
+ *
+ * The mark is always drawn, greyed until the column is the sorted one, so a
+ * reader can see which columns can be ordered without hovering each in turn.
+ */
+function SortColumn({
+  by,
+  now,
+  set,
+  children,
+}: {
+  by: string;
+  now: { by: string; dir: "asc" | "desc" };
+  set: (by: string) => void;
+  children: React.ReactNode;
+}) {
+  const on = now.by === by;
+  const Mark = on ? (now.dir === "asc" ? ArrowUp : ArrowDown) : ChevronsUpDown;
+  return (
+    <th
+      aria-sort={on ? (now.dir === "asc" ? "ascending" : "descending") : "none"}
+      className="border-b border-line px-4 py-3 font-medium"
+    >
+      <button
+        type="button"
+        onClick={() => set(by)}
+        className="-mx-1 flex cursor-pointer items-center gap-1.5 rounded-md px-1 py-0.5 font-semibold text-fg transition-colors duration-instant hover:text-primary"
+      >
+        {children}
+        <Mark aria-hidden className={cn("size-3.5 shrink-0", on ? "text-primary" : "text-fg-subtle")} />
+      </button>
+    </th>
+  );
+}
+
 const TAGS_ON_A_ROW = 3;
 
 function TagChips({ tags }: { tags: { name: string; hue: string }[] }) {
