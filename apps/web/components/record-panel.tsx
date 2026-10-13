@@ -15,6 +15,7 @@ export interface RecordPanelSection {
 export function RecordPanel({
   title,
   sections,
+  showing,
   actions,
   footer,
   formId,
@@ -25,6 +26,8 @@ export function RecordPanel({
   title: string;
   /** The rail. A record with one part to read has none. */
   sections?: RecordPanelSection[];
+  /** The section the server drew, where the rail navigates rather than hides. */
+  showing?: string;
   actions?: React.ReactNode;
   footer?: React.ReactNode;
   formId?: string;
@@ -108,7 +111,9 @@ export function RecordPanel({
         }
       >
         {sections ? (
-          <RecordBody sections={sections} className="flex-1">{children}</RecordBody>
+          <RecordBody sections={sections} showing={showing} className="flex-1">
+            {children}
+          </RecordBody>
         ) : (
           children
         )}
