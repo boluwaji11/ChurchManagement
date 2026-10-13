@@ -258,21 +258,6 @@ export default async function DashboardPage({
     },
   ];
 
-  /*
-   * R18.1. Whether this church has anything to count yet.
-   *
-   * Written down rather than inferred from each tile, because the row is
-   * either the week's numbers or it is nothing. A church that has written its
-   * first member down has one number and three noughts, which says four times
-   * over that it has not started: the checklist above says it once, and says
-   * what to do about it.
-   */
-  const nothingYet =
-    !numbers.lastService
-    && weeks.length === 0
-    && numbers.visitors.total === 0
-    && numbers.followUps.open === 0;
-
   // What to call them. Their first name, because the screen is theirs.
   const who = session.displayName.split(" ")[0] ?? session.displayName;
 
@@ -309,31 +294,22 @@ export default async function DashboardPage({
               .join(" · ")}
           </p>
         </div>
-        {/* The tiles are dragged with a pointer, and a phone has none. Nor is
-            there anything to drag before a church has numbers. */}
-        <p
-          className={
-            nothingYet
-              ? "hidden"
-              : "hidden items-center gap-1.5 text-caption text-fg-subtle sm:flex"
-          }
-        >
+        {/* The tiles are dragged with a pointer, and a phone has none. */}
+        <p className="hidden items-center gap-1.5 text-caption text-fg-subtle sm:flex">
           <GripVertical className="size-3.5" aria-hidden />
           {t("dashboard.reorder")}
         </p>
       </div>
 
-      {/* R18.1, R24.17. A church that has recorded nothing yet reads the
-          checklist above rather than a row of noughts, which says four times
-          over that it has not started. */}
-      {nothingYet ? null : <Tiles church={session.tenantSlug} tiles={tiles} />}
+      {/* R18.1. The numbers, whatever they say. A church at nought is a church
+          that can see where its own screen will fill in, and the order of them
+          is this reader's to set from the first day. */}
+      <Tiles church={session.tenantSlug} tiles={tiles} />
 
       <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
         {/* R18.2. What has been happening, which is the question the number
-            above cannot answer on its own. A church with no service on the
-            record has no line to draw, so the panel stays off the screen until
-            there is one. */}
-        {weeks.length > 0 ? <Weeks services={weeks} today={now.date} /> : null}
+            above cannot answer on its own. */}
+        <Weeks services={weeks} today={now.date} />
         <ThisWeek entries={week} />
         <FollowUp today={now.date} entries={tasks} />
       </div>
