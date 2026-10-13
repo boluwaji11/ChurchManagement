@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Archive, ArchiveRestore } from "lucide-react";
-import { Button, Dialog, DialogTrigger, DialogContent, DialogClose, DialogFooter, Banner } from "@connectapp/ui";
+import { Button, IconButton, Dialog, DialogTrigger, DialogContent, DialogClose, DialogFooter, Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { setArchived } from "./actions";
 import { useFormError } from "@/lib/form-error";
@@ -20,11 +20,18 @@ export function ArchiveButton({
   id,
   name,
   archived,
+  mark,
 }: {
   church: string;
   id: string;
   name: string;
   archived: boolean;
+  /**
+   * R24.6. The mark alone, for the record's own footer, where it sits beside
+   * one other control and the words are carried by the tooltip instead. The
+   * confirmation it opens still says everything in full.
+   */
+  mark?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
   const [error, setError] = useFormError(open);
@@ -46,9 +53,15 @@ export function ArchiveButton({
         <input type="hidden" name="church" value={church} />
         <input type="hidden" name="id" value={id} />
         <input type="hidden" name="archived" value="0" />
-        <Button type="submit" variant="secondary" loading={pending}>
-          <ArchiveRestore /> {t("person.restore")}
-        </Button>
+        {mark ? (
+          <IconButton type="submit" variant="ghost" label={t("person.restore")} disabled={pending}>
+            <ArchiveRestore />
+          </IconButton>
+        ) : (
+          <Button type="submit" variant="secondary" loading={pending}>
+            <ArchiveRestore /> {t("person.restore")}
+          </Button>
+        )}
       </form>
     );
   }
@@ -56,9 +69,15 @@ export function ArchiveButton({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost">
-          <Archive /> {t("person.archive")}
-        </Button>
+        {mark ? (
+          <IconButton variant="ghost" label={t("person.archive")}>
+            <Archive />
+          </IconButton>
+        ) : (
+          <Button variant="ghost">
+            <Archive /> {t("person.archive")}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent alert title={t("person.archive.confirmTitle", { name })}>
         <p className="text-[length:var(--d-text-body)] text-fg-muted mb-5">
