@@ -206,9 +206,31 @@ export function useDirty(form: string): boolean {
   const settledCount = useSettled(form);
 
   React.useEffect(() => {
-    const element = document.getElementById(form);
-    if (!(element instanceof HTMLFormElement)) return;
+    /*
+     * R24.6. Waits for the form.
+     *
+     * A window reads this from outside the panel its form is drawn in, and the
+     * panel's content is attached a commit later than the window itself, so
+     * looking once found nothing and the window went on believing there was
+     * never anything unsaved in it: the close square left without asking.
+     */
+    let looking = 0;
+    let stopWatching: (() => void) | null = null;
+    let frames: number[] = [];
 
+    const attach = () => {
+      const element = document.getElementById(form);
+      if (!(element instanceof HTMLFormElement)) {
+        /* A handful of frames, which covers a panel that mounts its content
+           after it mounts itself, and gives up rather than spinning. */
+        if (looking++ > 20) return;
+        frames.push(requestAnimationFrame(attach));
+        return;
+      }
+      start(element);
+    };
+
+    const start = (element: HTMLFormElement) => {
     let opened = snapshot(element);
     const compare = () => setDirty(snapshot(element) !== opened);
 
@@ -246,12 +268,20 @@ export function useDirty(form: string): boolean {
 
     element.addEventListener("submit", onSubmit);
     const stop = watch(element, compare);
+    frames.push(first, second);
 
-    return () => {
-      cancelAnimationFrame(first);
-      cancelAnimationFrame(second);
+    stopWatching = () => {
       element.removeEventListener("submit", onSubmit);
       stop();
+    };
+    };
+
+    attach();
+
+    return () => {
+      for (const frame of frames) cancelAnimationFrame(frame);
+      frames = [];
+      stopWatching?.();
     };
   }, [form, settledCount]);
 

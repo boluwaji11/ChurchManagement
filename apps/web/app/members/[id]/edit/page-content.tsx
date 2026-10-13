@@ -118,6 +118,12 @@ export async function EditPersonPanelPage({
         sections={sections}
         formId="person-form"
         closeTo={returnTo ?? "/members"}
+        /* R24.6. Cancel goes back to the record being edited, which is where
+           somebody who opened the form to change one field wants to land. The
+           close square still leaves for the list. */
+        cancelTo={permitted
+          ? `/members/${person.slug}?returnTo=${encodeURIComponent(returnTo ?? "/members")}`
+          : undefined}
         footer={permitted ? <PersonFormActions editing /> : undefined}
       >
         {person.archivedAt ? (
