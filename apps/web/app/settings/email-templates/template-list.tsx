@@ -5,13 +5,22 @@ import { useRouter } from "next/navigation";
 import { Plus, Archive, ArchiveRestore, ArrowLeft } from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogFooter, Field, IconButton, Input,
-  Sheet, SheetTrigger, SheetContent, Spinner,
+  Sheet, SheetTrigger, SheetContent, Spinner, LIFT, cn,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { RichText } from "@/components/rich-text";
 import { keepTemplate, putAwayTemplate } from "./actions";
 import { LibraryPicker } from "@/components/library-picker";
 import { templateLibrary, type TemplatePreset } from "./library";
+
+/** R16.4. The first words of a message, with its marks taken off. */
+const plain = (body: string): string =>
+  body
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_+]{1,3}([^*_+]+)[*_+]{1,3}/g, "$1")
+    .replace(/^\s*([-*]|\d+\.)\s+/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
 export interface Template {
   id: string;
@@ -70,39 +79,46 @@ export function TemplateList({
     <div className="flex flex-col gap-4">
       {error ? <Banner tone="danger">{error}</Banner> : null}
 
-      <section className="rounded-[14px] border border-line bg-surface px-5 py-1">
-        {templates.map((one) => (
-          <div
-            key={one.id}
-            className="relative flex min-h-14 items-center gap-3 border-b border-sunken py-2 last:border-0"
-          >
-            {putAway ? (
+      {/* R24.6. One tile a template, and the whole tile is the press. */}
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))]">
+        {templates.map((one) =>
+          putAway ? (
+            <div
+              key={one.id}
+              className="flex items-start gap-2 rounded-[14px] border border-line bg-surface p-4"
+            >
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="truncate font-semibold text-fg-muted">{one.name}</span>
+                <span className="truncate text-[13px] text-fg-subtle">{one.subject}</span>
+              </span>
               <IconButton
                 label={t("mailTemplate.restore", { name: one.name })}
                 variant="ghost"
-                className="absolute right-0"
                 disabled={busy}
                 onClick={() => void bringBack(one.id)}
               >
                 <ArchiveRestore />
               </IconButton>
-            ) : (
-              <TemplateSheet template={one} taken={taken}>
-                <button
-                  type="button"
-                  aria-label={t("mailTemplate.edit", { name: one.name })}
-                  className="absolute inset-0 cursor-pointer rounded-md"
-                />
-              </TemplateSheet>
-            )}
-
-            <span className="pointer-events-none relative min-w-0 flex-1">
-              <span className="block font-medium text-fg">{one.name}</span>
-              <span className="block truncate text-[12px] text-fg-subtle">{one.subject}</span>
-            </span>
-          </div>
-        ))}
-      </section>
+            </div>
+          ) : (
+            <TemplateSheet key={one.id} template={one} taken={taken}>
+              <button
+                type="button"
+                aria-label={t("mailTemplate.edit", { name: one.name })}
+                className={cn(
+                  "flex cursor-pointer flex-col gap-1.5 rounded-[14px] border border-line",
+                  "bg-surface p-4 text-left",
+                  LIFT,
+                )}
+              >
+                <span className="truncate font-semibold text-fg">{one.name}</span>
+                <span className="truncate text-[13px] text-fg-muted">{one.subject}</span>
+                <span className="line-clamp-2 text-[13px] text-fg-subtle">{plain(one.body)}</span>
+              </button>
+            </TemplateSheet>
+          ),
+        )}
+      </div>
     </div>
   );
 }
