@@ -5,7 +5,7 @@ import { after } from "next/server";
 import { headers } from "next/headers";
 import {
   withTenant,
-  emailRecipientsFor, findEmailRecipients, wayOutFor, startSend,
+  emailRecipientsFor, findEmailRecipients, wayOutForAll, wayOutKey, startSend,
   emailProvider, readSend, restoreConsent, cancelSend,
   listSends, listWithdrawn, countAllWithdrawn,
   type Audience,
@@ -211,11 +211,12 @@ export async function sendEmail(data: FormData): Promise<SendResult> {
       /* R16.8. Each person's own way out, minted once and kept, so a link in
          a message sent last year still works. Minted here rather than in the
          worker, because this is the last point at which the church's own
-         session is what authorises writing to its records. */
-      for (const one of found) {
-        one.token = await wayOutFor(tx, actor, { memberId: one.memberId, address: one.address });
-      }
-      return found;
+         session is what authorises writing to its records, and minted for the
+         whole audience in one go, because a round trip each put eleven seconds
+         in front of a church-wide send. */
+      const tokens = await wayOutForAll(tx, actor, found);
+      for (const one of found) one.token = tokens.get(wayOutKey(one)) ?? "";
+      return found.filter((one) => one.token);
     });
 
     if (people.length === 0) return { error: t("send.error.nobody") };
