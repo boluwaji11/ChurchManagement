@@ -564,6 +564,7 @@ export async function readSend(db: Tx, id: string): Promise<SentEmailDetail | nu
       delivered: emailSends.delivered,
       failed: emailSends.failed,
       sentAt: emailSends.sentAt,
+      sendAt: emailSends.sendAt,
     })
     .from(emailSends)
     .where(eq(emailSends.id, id))
