@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   Bold, IndentDecrease, IndentIncrease, Italic, Link2, List, ListOrdered,
-  Redo2, RemoveFormatting, Undo2,
+  Redo2, RemoveFormatting, Underline, Undo2,
 } from "lucide-react";
 import {
   Button, Field, IconButton, Input, cn,
@@ -76,7 +76,7 @@ export function RichText({
 }) {
   const box = React.useRef<HTMLDivElement>(null);
   const [markdown, setMarkdown] = React.useState(defaultValue);
-  const [marks, setMarks] = React.useState({ bold: false, italic: false });
+  const [marks, setMarks] = React.useState({ bold: false, italic: false, under: false });
   const [asking, setAsking] = React.useState(false);
   const [href, setHref] = React.useState("https://");
   // The selection is lost the moment a dialog takes focus, so it is held here
@@ -114,6 +114,7 @@ export function RichText({
       setMarks({
         bold: document.queryCommandState("bold"),
         italic: document.queryCommandState("italic"),
+        under: document.queryCommandState("underline"),
       });
     } catch {
       // Some browsers refuse the query outside an editable region.
@@ -223,6 +224,9 @@ export function RichText({
         </Mark>
         <Mark label={t("rich.italic")} on={marks.italic} onPress={() => run("italic")}>
           <Italic />
+        </Mark>
+        <Mark label={t("rich.underline")} on={marks.under} onPress={() => run("underline")}>
+          <Underline />
         </Mark>
         {/* R16.12. A letter indents: an address block, a quoted line, a
             paragraph set in from the rest. The browser does this with a
