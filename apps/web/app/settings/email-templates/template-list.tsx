@@ -303,7 +303,6 @@ function TemplateSheet({
       >
         <Dialog open={leaving} onOpenChange={setLeaving}>
           <DialogContent alert title={t("mailTemplate.leaveTitle")}>
-            <p className="m-0 text-fg-muted">{t("mailTemplate.leaveBody")}</p>
             <DialogFooter>
               <Button variant="ghost" onClick={() => setLeaving(false)}>
                 {t("mailTemplate.keepWriting")}

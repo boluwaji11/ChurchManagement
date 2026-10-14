@@ -4719,7 +4719,6 @@ export const en = {
   "mailTemplate.live": "Back to templates",
   "mailTemplate.noneArchived": "Nothing archived",
   "mailTemplate.leaveTitle": "Leave without saving?",
-  "mailTemplate.leaveBody": "What you have written here is lost.",
   "mailTemplate.keepWriting": "Keep writing",
   "mailTemplate.discard": "Leave",
   "mailTemplate.error.name": "Give the template a name",
