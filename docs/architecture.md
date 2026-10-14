@@ -71,9 +71,13 @@ narrow, auditable exception for a blanket one.
 **Both connections go through the Supabase pooler.** `db.<project-ref>.supabase.co` publishes an
 AAAA record and no A record, so on a network without IPv6 it fails as `ENOTFOUND`, which reads like a
 mistyped hostname rather than like a routing problem. The pooler hostname carries the region and the
-username carries the project ref: `postgresql://<role>.<ref>@aws-0-<region>.pooler.supabase.com:5432`.
-Session mode, port 5432, because migrations take advisory locks. The client warns once if it is
-pointed at the direct host.
+username carries the project ref: `postgresql://<role>.<ref>@aws-0-<region>.pooler.supabase.com:6543`.
+Transaction mode, port 6543, for both connections, because a server connection is then held for the
+length of a transaction rather than the length of a client connection, and the pool sizes in
+`packages/db/src/client.ts` are written for that. Session mode on 5432 pins one per client and stops
+at fifteen per role, which two serverless instances reach on their own. This line used to say 5432,
+on the grounds that migrations take advisory locks; nothing in `scripts/migrate.ts` takes one and the
+whole set applies over 6543. The client warns once if it is pointed at the direct host.
 
 Exactly three operations run before a tenant context exists, because they cannot do otherwise, and
 each is named in the code:

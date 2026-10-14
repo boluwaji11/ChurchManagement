@@ -97,7 +97,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-234 | Speed: Turbopack in development, one trip to the database per frame, pipelined reads. [docs/performance.md](docs/performance.md) | R24.11 | Closed |
 | HRT-342 | The warning count comes down, and the landing page's shots are sized for the device they land on | R24.11, R22.1 | Resolved |
 | HRT-343 | A send mints every way out in one go, rather than one round trip a recipient | R24.11, R16.8 | Resolved |
-| HRT-344 | A claimed copy that never left goes back in the queue | R24.11, R16.6 | New |
+| HRT-344 | A claimed copy that never left goes back in the queue | R24.11, R16.6 | Resolved |
 | HRT-345 | Giving statements are read in set-based queries, not one giver at a time | R24.11, R18.9 | New |
 | HRT-346 | A bulk action over a selection is one write, not one a row | R24.11, R1.13 | New |
 | HRT-347 | The frame and the page read at the same time | R24.11 | New |
@@ -1946,6 +1946,37 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-344, how to test it
+
+Send to more than twenty-five people. The progress reaches the end and the send closes, which is the
+bug: the worker claimed twenty-five at a time, marked them 'sending', then sent them one at a time,
+and an invocation that ran out of time left the remainder marked 'sending' for ever. Nothing could
+see those rows. The due-sends query counts only 'queued', so the send reported nothing waiting and
+was never picked up again, while the progress the church was watching counted them as outstanding
+and never finished. Every send larger than one batch stranded its remainder.
+
+To see the recovery without waiting for a worker to die, take a send with copies still going and set
+one row back by hand:
+
+```sql
+update email_recipients set state = 'sending', claimed_at = now() - interval '20 minutes'
+ where id = '<some recipient id>';
+```
+
+The next pass of the worker puts it back in the queue and sends it. The log says how many it
+recovered. A row claimed a minute ago is left alone, so a worker still working is never robbed of
+what it holds.
+
+The case that matters most is the opposite one. A row that already carries a `provider_ref` was
+accepted by the provider, so it went. That row is marked sent rather than queued, because requeueing
+it would put a second copy in somebody's inbox. Set `provider_ref` on a stuck row and confirm it
+settles as sent and is not sent again.
+
+The claim also stopped asking two questions per recipient. The person's name and their way out were
+a query each, so a batch of twenty-five cost fifty round trips before the first message left; they
+are joined into the claim now. `packages/db/tests/claim-reaper.test.ts` covers both halves, and the
+test that matters is the one asserting Ada's copy carries Ada's token and not Bea's.
 
 ### HRT-343, how to test it
 
