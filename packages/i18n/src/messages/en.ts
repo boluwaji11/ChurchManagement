@@ -4705,7 +4705,7 @@ export const en = {
   "send.read.recipients": "Recipients",
   "send.read.failed": "Did not go",
   "mailTemplate.title": "Email templates",
-  "mailTemplate.lede": "Messages your church writes once and sends every year.",
+  "mailTemplate.lede": "Email messages your church can reuse",
   "mailTemplate.add": "Add a template",
   "mailTemplate.edit": "Edit {name}",
   "mailTemplate.name": "Name",
