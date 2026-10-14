@@ -185,43 +185,107 @@ export async function statementFor(
   year: string,
   by: "person" | "household" = "person",
 ): Promise<Statement | null> {
-  if (!canReadGivingAmounts(who)) throw new PermissionError(who.role, "manageGiving");
+  const [one] = await statementsFor(db, who, [memberId], year, by);
+  return one ?? null;
+}
 
-  const [person] = await db
+/**
+ * R13.17, R13.18. Every statement a church is printing, read together.
+ *
+ * Five queries, whatever the number of givers. One a time cost three round
+ * trips a person, or five where the church statements by household, so four
+ * hundred givers was two thousand of them in a row and the sheet never
+ * reached the printer: it ran past the function's limit first.
+ *
+ * The order given is the order returned, and a giver this church has no record
+ * of is left out rather than returned empty.
+ */
+export async function statementsFor(
+  db: Tx,
+  who: WriteActor,
+  memberIds: readonly string[],
+  year: string,
+  by: "person" | "household" = "person",
+): Promise<Statement[]> {
+  if (!canReadGivingAmounts(who)) throw new PermissionError(who.role, "manageGiving");
+  if (memberIds.length === 0) return [];
+
+  const wanted = [...new Set(memberIds)];
+
+  const people = await db
     .select({ id: members.id, first: members.firstName, last: members.lastName })
     .from(members)
-    .where(eq(members.id, memberId))
-    .limit(1);
-  if (!person) return null;
+    .where(inArray(members.id, wanted));
 
-  /* R13.18. Whose gifts go on this sheet, and whose name is at the top. */
-  let whose: string[] = [person.id];
-  let name = [person.first, person.last].filter(Boolean).join(" ");
+  const person = new Map(people.map((row) => [row.id, row]));
+
+  /* R13.18. Whose gifts go on each sheet, and whose name is at the top. */
+  const whose = new Map<string, string[]>();
+  const naming = new Map<string, string>();
+  const homeOf = new Map<string, string>();
+
+  for (const row of people) {
+    whose.set(row.id, [row.id]);
+    naming.set(row.id, [row.first, row.last].filter(Boolean).join(" "));
+  }
 
   if (by === "household") {
-    const [home] = await db
-      .select({ id: households.id, name: households.name })
+    const homes = await db
+      .select({
+        memberId: householdMemberships.memberId,
+        householdId: householdMemberships.householdId,
+        name: households.name,
+      })
       .from(householdMemberships)
       .innerJoin(households, eq(households.id, householdMemberships.householdId))
-      .where(eq(householdMemberships.memberId, person.id))
-      .limit(1);
+      .where(inArray(householdMemberships.memberId, wanted));
 
-    if (home) {
-      name = householdName(home.name);
+    /* A member listed in two households keeps the first, which is what the
+       one-at-a-time version's unordered `limit 1` did. */
+    for (const home of homes) {
+      if (homeOf.has(home.memberId)) continue;
+      homeOf.set(home.memberId, home.householdId);
+      naming.set(home.memberId, householdName(home.name));
+    }
+
+    const householdIds = [...new Set(homeOf.values())];
+    if (householdIds.length > 0) {
       const kin = await db
-        .select({ memberId: householdMemberships.memberId })
+        .select({
+          memberId: householdMemberships.memberId,
+          householdId: householdMemberships.householdId,
+        })
         .from(householdMemberships)
-        .where(eq(householdMemberships.householdId, home.id));
-      whose = kin.map((one) => one.memberId);
+        .where(inArray(householdMemberships.householdId, householdIds));
+
+      const byHousehold = new Map<string, string[]>();
+      for (const row of kin) {
+        const held = byHousehold.get(row.householdId);
+        if (held) held.push(row.memberId);
+        else byHousehold.set(row.householdId, [row.memberId]);
+      }
+
+      for (const [memberId, householdId] of homeOf) {
+        const found = byHousehold.get(householdId);
+        if (found) whose.set(memberId, found);
+      }
     }
   }
 
+  const everyone = [...new Set([...whose.values()].flat())];
+
   /*
-   * R13.17. Where the letter goes. Their own address first, the household's
-   * where they have none of their own, and the primary one of either.
+   * R13.17. Where each letter goes. Their own address first, the household's
+   * where they have none of their own, and the primary one of either. Read for
+   * everybody at once and then chosen per sheet, because the choice depends on
+   * which person the sheet is for.
    */
-  const [where] = await db
+  const homeIds = [...new Set(homeOf.values())];
+  const reach = await db
     .select({
+      memberId: addresses.memberId,
+      householdId: addresses.householdId,
+      isPrimary: addresses.isPrimary,
       line1: addresses.line1,
       line2: addresses.line2,
       city: addresses.city,
@@ -231,18 +295,14 @@ export async function statementFor(
     })
     .from(addresses)
     .where(
-      or(
-        inArray(addresses.memberId, whose),
-        sql`${addresses.householdId} in (
-          select household_id from household_memberships where member_id = ${person.id}
-        )`,
-      ),
-    )
-    .orderBy(desc(addresses.isPrimary), sql`${addresses.memberId} = ${person.id} desc`)
-    .limit(1);
+      homeIds.length > 0
+        ? or(inArray(addresses.memberId, everyone), inArray(addresses.householdId, homeIds))
+        : inArray(addresses.memberId, everyone),
+    );
 
   const rows = await db
     .select({
+      memberId: gifts.memberId,
       date: sql<string>`${gifts.receivedOn}::text`,
       fund: funds.name,
       amountCents: sql<number>`(${gifts.amountCents} - ${gifts.refundedCents})::int`,
@@ -254,23 +314,78 @@ export async function statementFor(
     .where(
       and(
         settled,
-        inArray(gifts.memberId, whose),
+        inArray(gifts.memberId, everyone),
         sql`${gifts.receivedOn} >= ${`${year}-01-01`}::date`,
         sql`${gifts.receivedOn} <= ${`${year}-12-31`}::date`,
       ),
     )
     .orderBy(asc(gifts.receivedOn));
 
-  return {
-    memberId: person.id,
-    name,
-    address: where ?? null,
-    lines: rows,
-    totalCents: rows.reduce((sum, row) => sum + (row.inKindDescription ? 0 : row.amountCents), 0),
-    needsAcknowledgment: rows.some((row) => row.amountCents >= ACKNOWLEDGE_FROM_CENTS),
-  };
-}
+  const giftsBy = new Map<string, StatementLine[]>();
+  for (const row of rows) {
+    if (!row.memberId) continue;
+    const line: StatementLine = {
+      date: row.date,
+      fund: row.fund,
+      amountCents: row.amountCents,
+      method: row.method,
+      inKindDescription: row.inKindDescription,
+    };
+    const held = giftsBy.get(row.memberId);
+    if (held) held.push(line);
+    else giftsBy.set(row.memberId, [line]);
+  }
 
+  const out: Statement[] = [];
+
+  for (const memberId of memberIds) {
+    const found = person.get(memberId);
+    if (!found) continue;
+
+    const mine = whose.get(memberId) ?? [memberId];
+    const household = homeOf.get(memberId);
+
+    /* The same precedence the one-at-a-time version ordered by: a primary
+       address first, then one of this person's own rather than their kin's. */
+    const candidates = reach
+      .filter(
+        (row) =>
+          (row.memberId && mine.includes(row.memberId)) ||
+          (household && row.householdId === household),
+      )
+      .sort(
+        (a, b) =>
+          Number(b.isPrimary) - Number(a.isPrimary) ||
+          Number(b.memberId === memberId) - Number(a.memberId === memberId),
+      );
+
+    const where = candidates[0];
+
+    const lines = mine
+      .flatMap((id) => giftsBy.get(id) ?? [])
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    out.push({
+      memberId: found.id,
+      name: naming.get(memberId) ?? "",
+      address: where
+        ? {
+            line1: where.line1,
+            line2: where.line2,
+            city: where.city,
+            region: where.region,
+            postalCode: where.postalCode,
+            country: where.country,
+          }
+        : null,
+      lines,
+      totalCents: lines.reduce((sum, row) => sum + (row.inKindDescription ? 0 : row.amountCents), 0),
+      needsAcknowledgment: lines.some((row) => row.amountCents >= ACKNOWLEDGE_FROM_CENTS),
+    });
+  }
+
+  return out;
+}
 
 /**
  * R13.18. The church's choice: one statement a person, or one a household.

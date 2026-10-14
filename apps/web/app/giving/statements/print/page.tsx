@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import {
-  withTenant, getChurch, statementFor, statementGivers, canReadGivingAmounts,
+  withTenant, getChurch, statementsFor, statementGivers, canReadGivingAmounts,
   type Statement,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -63,11 +63,11 @@ export default async function StatementPrintPage({
       ? [member]
       : (await statementGivers(tx, ctx, year, by)).map((one) => one.memberId);
 
-    const statements: Statement[] = [];
-    for (const id of people) {
-      const one = await statementFor(tx, ctx, id, year, by);
-      if (one && one.lines.length > 0) statements.push(one);
-    }
+    /* Read together. One a time was three round trips a giver, five where the
+       church statements by household, so a church of four hundred givers ran
+       past the function's limit before the sheet reached the printer. */
+    const every = await statementsFor(tx, ctx, people, year, by);
+    const statements: Statement[] = every.filter((one) => one.lines.length > 0);
 
     return { profile, year, statements };
   });

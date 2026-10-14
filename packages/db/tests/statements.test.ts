@@ -7,12 +7,14 @@
  * the acknowledgment line at $250, and a household's gifts on one sheet.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { withTenant, closeConnections, type Tx } from "../src/client";
+import { withTenant, owner, closeConnections, type Tx } from "../src/client";
 import { writeFund } from "../src/repo/funds";
 import { recordGift } from "../src/repo/giving";
 import { createPerson } from "../src/repo/members";
 import { createHousehold, addToHousehold } from "../src/repo/households";
-import { statementFor, statementGivers, setStatementsBy } from "../src/repo/statements";
+import {
+  statementFor, statementsFor, statementGivers, setStatementsBy,
+} from "../src/repo/statements";
 import {
   writeCampaign, listCampaigns, writePledge, listPledges, setCampaignArchived,
 } from "../src/repo/campaigns";
@@ -185,5 +187,82 @@ describe("a campaign", () => {
         "staff",
       ),
     ).rejects.toBeInstanceOf(PermissionError);
+  });
+});
+
+/*
+ * HRT-345. Every statement a church is printing, read together.
+ *
+ * Reading them one at a time cost three round trips a giver, so four hundred
+ * givers never reached the printer. The batch groups the gifts in memory, which
+ * is exactly where one giver's gifts could land on another's sheet, so that is
+ * what these check. The totals are read from the gifts table rather than
+ * written down here, because the campaign tests above give to this same church
+ * and a hardcoded figure would only be testing the order the file runs in.
+ */
+describe("reading every statement at once", () => {
+  /** What this person's own cash came to in the year, straight from the rows. */
+  const cashOf = async (memberId: string): Promise<number> => {
+    const [row] = await owner()<{ total: number }[]>`
+      select coalesce(sum(g.amount_cents - g.refunded_cents), 0)::int as total
+        from gifts g
+       where g.tenant_id = ${tenant} and g.member_id = ${memberId}
+         and g.in_kind_description is null
+         and g.received_on between '2031-01-01' and '2031-12-31'
+         and coalesce(g.status, 'settled') = 'settled'`;
+    return row!.total;
+  };
+
+  it("gives each giver their own gifts and nobody else's", async () => {
+    const sheets = await run((tx) => statementsFor(tx, as(), [ann, bob, carl], "2031"));
+    expect(sheets).toHaveLength(3);
+
+    for (const [i, memberId] of [ann, bob, carl].entries()) {
+      expect(sheets[i]!.memberId).toBe(memberId);
+      expect(sheets[i]!.totalCents).toBe(await cashOf(memberId));
+    }
+
+    /* The failure this guards: a giver's lines appearing on somebody else's
+       sheet. In person mode the three sets share nothing. */
+    const key = (one: { date: string; fund: string; amountCents: number }) =>
+      `${one.date}|${one.fund}|${one.amountCents}`;
+    const annLines = new Set(sheets[0]!.lines.map(key));
+    for (const line of sheets[2]!.lines) expect(annLines.has(key(line))).toBe(false);
+  });
+
+  it("returns them in the order it was given, and leaves out a stranger", async () => {
+    const sheets = await run((tx) =>
+      statementsFor(tx, as(), [carl, ann, "00000000-0000-0000-0000-000000000000"], "2031"),
+    );
+
+    expect(sheets.map((one) => one.memberId)).toEqual([carl, ann]);
+  });
+
+  /* R13.18. The household's gifts on one sheet, under the household's own
+     name, and the person outside it untouched by them. */
+  it("folds a household, and agrees with the single-statement wrapper", async () => {
+    const [together] = await run((tx) => statementsFor(tx, as(), [ann], "2031", "household"));
+    const alone = await run((tx) => statementFor(tx, as(), ann, "2031", "household"));
+
+    expect(together!.name).toContain("Smiths");
+    expect(together!.totalCents).toBe((await cashOf(ann)) + (await cashOf(bob)));
+    /* The member's own statement screen still goes through the wrapper, so the
+       two must never disagree. */
+    expect(together).toEqual(alone);
+
+    const [onHisOwn] = await run((tx) => statementsFor(tx, as(), [carl], "2031", "household"));
+    expect(onHisOwn!.totalCents).toBe(await cashOf(carl));
+  });
+
+  it("asks for nothing when there is nobody to print for", async () => {
+    expect(await run((tx) => statementsFor(tx, as(), [], "2031"))).toEqual([]);
+  });
+
+  it("puts the lines in date order across a whole household", async () => {
+    const [sheet] = await run((tx) => statementsFor(tx, as(), [ann], "2031", "household"));
+    const dates = sheet!.lines.map((one) => one.date);
+
+    expect(dates.length).toBeGreaterThan(1);
+    expect(dates).toEqual([...dates].sort());
   });
 });
