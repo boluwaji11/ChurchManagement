@@ -324,7 +324,17 @@ function TemplateSheet({
           <LibraryPicker
             ownLabel={t("mailTemplate.own")}
             items={library}
-            onOwn={() => setPicking(false)}
+            onOwn={() => {
+              /* R24.6. A blank form, even after a preset was looked at and
+                 put down: "write your own" that opens somebody else's words
+                 is a form somebody has to empty before they can start. */
+              setName("");
+              setSubject("");
+              setBody("");
+              setSeed({ text: "", at: Date.now() });
+              setDirty(false);
+              setPicking(false);
+            }}
             onPick={(item) => {
               const preset = library.find((one) => one.key === item.key);
               if (preset) start(preset);
