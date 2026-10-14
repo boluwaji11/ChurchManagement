@@ -109,6 +109,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | New |
 | HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | New |
 | HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | New |
+| HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | New |
+| HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | New |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
 | HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Closed |
 | HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Closed |
