@@ -112,6 +112,7 @@ export * from "./repo/item-kinds";
 export * from "./repo/gift-status";
 export * from "./repo/funds";
 export * from "./repo/giving";
+export * from "./repo/email-sends";
 export * from "./repo/providers";
 export * from "./repo/stripe-accounts";
 export * from "./repo/public-giving";

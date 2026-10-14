@@ -1058,6 +1058,13 @@
       "when": 1791423000028,
       "tag": "0151_email_provider_details",
       "breakpoints": true
+    },
+    {
+      "idx": 152,
+      "version": "7",
+      "when": 1791423000029,
+      "tag": "0152_email_sends",
+      "breakpoints": true
     }
   ]
 }
