@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   withTenant, emailProvider, sendingDomain, listSavedLists, listGroups,
-  listSends, countWithdrawn, canManageChurch,
+  listSends, countWithdrawn, listWithdrawn, canManageChurch,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -50,6 +50,7 @@ export async function EmailPanelPage() {
     groups: await listGroups(tx, {}),
     sent: await listSends(tx),
     withdrawn: await countWithdrawn(tx),
+    out: await listWithdrawn(tx),
   }));
 
   /* R16.1. Resend is only sending once its domain is verified, so a church
@@ -79,6 +80,12 @@ export async function EmailPanelPage() {
             delivered: one.delivered,
             failed: one.failed,
             sentAt: one.sentAt?.toISOString() ?? null,
+          }))}
+          out={read.out.map((one) => ({
+            id: one.id,
+            address: one.address,
+            name: one.name,
+            withdrawnAt: one.withdrawnAt?.toISOString() ?? null,
           }))}
           withdrawn={read.withdrawn}
         />

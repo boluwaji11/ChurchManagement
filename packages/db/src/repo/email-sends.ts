@@ -513,3 +513,67 @@ export async function readSend(db: Tx, id: string): Promise<SentEmailDetail | nu
 
   return { ...row, recipients: who };
 }
+
+export interface Withdrawn {
+  id: string;
+  address: string;
+  /** The person's own name where there is a record behind the address. */
+  name: string | null;
+  withdrawnAt: Date | null;
+}
+
+/**
+ * R16.8. Everybody who has asked this church to stop emailing them.
+ *
+ * Kept where a church can read it, because "we never sent them anything" is
+ * not an answer when somebody says they were written to after asking twice.
+ * Both kinds are here: people on the list, and addresses that belong to
+ * nobody on it.
+ */
+export async function listWithdrawn(db: Tx): Promise<Withdrawn[]> {
+  const rows = await db
+    .select({
+      id: contactConsent.id,
+      address: contactConsent.address,
+      memberId: contactConsent.memberId,
+      withdrawnAt: contactConsent.withdrawnAt,
+      name: sql<string | null>`(
+        select m.display_name from members m where m.id = ${contactConsent.memberId}
+      )`,
+      held: sql<string | null>`(
+        select cm.value from contact_methods cm
+        where cm.member_id = ${contactConsent.memberId}
+          and cm.kind = 'email' and cm.is_primary
+        limit 1
+      )`,
+    })
+    .from(contactConsent)
+    .where(and(eq(contactConsent.channel, "email"), eq(contactConsent.state, "withdrawn")))
+    .orderBy(desc(contactConsent.withdrawnAt));
+
+  return rows
+    .map((one) => ({
+      id: one.id,
+      address: one.address ?? one.held ?? "",
+      name: one.name,
+      withdrawnAt: one.withdrawnAt,
+    }))
+    .filter((one) => one.address !== "");
+}
+
+/**
+ * R16.8. Putting somebody back, when they have asked the church directly.
+ *
+ * A church hears "put me back on the newsletter" in the car park far more
+ * often than it hears it through a link, so the office needs the same press
+ * the person has. It records nothing about consent that was not collected:
+ * the row goes back to unknown, which is where everybody starts.
+ */
+export async function restoreConsent(db: Tx, actor: WriteActor, id: string): Promise<void> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  await db
+    .update(contactConsent)
+    .set({ state: "unknown", withdrawnAt: null, updatedAt: new Date() })
+    .where(eq(contactConsent.id, id));
+}

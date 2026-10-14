@@ -14,7 +14,8 @@ import * as React from "react";
 function inline(text: string, key: string, flat = false): React.ReactNode[] {
   const out: React.ReactNode[] = [];
   // The order matters: ** before _, so "**a_b**" is bold rather than half italic.
-  const pattern = /(\*\*([^*]+)\*\*)|(_([^_]+)_)|(\[([^\]]+)\]\(([^)\s]+)\))/g;
+  const pattern =
+    /(\*\*([^*]+)\*\*)|(_([^_]+)_)|(\[([^\]]+)\]\(([^)\s]+)\))|(\+\+([^+]+)\+\+)/g;
 
   let at = 0;
   let n = 0;
@@ -35,6 +36,10 @@ function inline(text: string, key: string, flat = false): React.ReactNode[] {
       );
     } else if (m[4] !== undefined) {
       out.push(<em key={`${key}i${n}`}>{inline(m[4], `${key}i${n}`, flat)}</em>);
+    } else if (m[9] !== undefined) {
+      out.push(
+        <u key={`${key}u${n}`}>{inline(m[9], `${key}u${n}`, flat)}</u>,
+      );
     } else if (m[6] !== undefined) {
       const href = m[7]!;
       // Only the two schemes a church link is ever written in. Anything else,

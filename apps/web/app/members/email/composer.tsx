@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Send, X } from "lucide-react";
+import { RotateCcw, Send, X } from "lucide-react";
 import {
   Banner, Button, Card, Combobox, Field, IconButton, Input, Working,
   Dialog, DialogContent, DialogFooter, Sheet, SheetContent,
@@ -10,7 +10,9 @@ import {
 import { t, plural } from "@connectapp/i18n";
 import { RichText } from "@/components/rich-text";
 import { when } from "@/lib/when";
-import { countAudience, findRecipients, openSend, sendEmail, type SendResult } from "./actions";
+import {
+  countAudience, findRecipients, openSend, putBack, sendEmail, type SendResult,
+} from "./actions";
 
 export interface Named {
   id: string;
@@ -23,6 +25,14 @@ export interface Sent {
   delivered: number;
   failed: number;
   sentAt: string | null;
+}
+
+/** R16.8. Somebody who has asked this church to stop. */
+export interface Out {
+  id: string;
+  address: string;
+  name: string | null;
+  withdrawnAt: string | null;
 }
 
 /**
@@ -62,18 +72,21 @@ export function Composer({
   lists,
   groups,
   sent,
+  out,
   withdrawn,
 }: {
   lists: Named[];
   groups: Named[];
   sent: Sent[];
+  /** R16.8. The list of who has asked to be left alone, kept where it can be read. */
+  out: Out[];
   /** R16.8. How many have asked to be left alone, said plainly. */
   withdrawn: number;
 }) {
   const router = useRouter();
   /* R24.6. Writing one and reading what went are two jobs, so they are two
      tabs rather than one screen a church scrolls through. */
-  const [doing, setDoing] = React.useState<"write" | "sent">("write");
+  const [doing, setDoing] = React.useState<"write" | "sent" | "out">("write");
   const [who, setWho] = React.useState(EVERYONE);
   /* R16.4. The people picked one by one, when that is how they were picked. */
   const [picked, setPicked] = React.useState<Chosen[]>([]);
@@ -200,6 +213,7 @@ export function Composer({
         {([
           { key: "write", label: t("send.tab.write") },
           { key: "sent", label: t("send.tab.sent") },
+          { key: "out", label: t("send.tab.out") },
         ] as const).map((one) => (
           <button
             key={one.key}
@@ -372,7 +386,7 @@ export function Composer({
           </Button>
         </div>
       </Card>
-      ) : (
+      ) : doing === "sent" ? (
       <section className="flex flex-col gap-2">
         {sent.length === 0 ? (
           <p className="m-0 text-fg-muted">{t("send.history.none")}</p>
@@ -401,6 +415,8 @@ export function Composer({
           </ul>
         )}
       </section>
+      ) : (
+      <Withdrawn out={out} />
       )}
 
       {/* R16.6. What went out, read back. Nothing here can be changed: a send
@@ -487,5 +503,65 @@ export function Composer({
       </Dialog>
 
     </div>
+  );
+}
+
+/**
+ * HRT-143, R16.8. Who has asked this church to stop, and the way back.
+ *
+ * Both kinds are here: people on the list, and addresses belonging to nobody
+ * on it, because both may ask and both have to be honoured. Putting somebody
+ * back is a press rather than a form, since the church has already been told
+ * by the person in front of them.
+ */
+function Withdrawn({ out }: { out: Out[] }) {
+  const [back, setBack] = React.useState<Set<string>>(new Set());
+  const [busy, setBusy] = React.useState<string | null>(null);
+
+  if (out.length === 0) {
+    return <p className="m-0 text-fg-muted">{t("send.out.none")}</p>;
+  }
+
+  return (
+    <ul className="m-0 flex list-none flex-col divide-y divide-line rounded-[12px] border border-line p-0">
+      {out.map((one) => {
+        const name = one.name ?? one.address;
+        return (
+          <li key={one.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5">
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate font-medium text-fg">{name}</span>
+              {one.name ? (
+                <span className="truncate text-caption text-fg-subtle">{one.address}</span>
+              ) : null}
+            </span>
+            {one.withdrawnAt ? (
+              <span className="text-caption text-fg-subtle">
+                {t("send.out.when", { when: when(one.withdrawnAt) })}
+              </span>
+            ) : null}
+            {back.has(one.id) ? (
+              <span className="text-caption text-fg-muted">
+                {t("send.out.backDone", { name })}
+              </span>
+            ) : (
+              <IconButton
+                label={t("send.out.back", { name })}
+                variant="ghost"
+                disabled={busy === one.id}
+                onClick={() => {
+                  setBusy(one.id);
+                  void putBack(one.id).then((ok) => {
+                    if (ok) setBack((was) => new Set(was).add(one.id));
+                    setBusy(null);
+                  });
+                }}
+              >
+                <RotateCcw />
+              </IconButton>
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }

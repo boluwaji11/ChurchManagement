@@ -52,6 +52,13 @@ export function htmlToMarkdown(root: Node): string {
       case "EM":
       case "I":
         return marked(kids(), "_");
+      /*
+       * R16.12. Markdown has no underline of its own, so it is kept as the
+       * pair this product uses for it. The alternative is storing a tag, and
+       * nothing a volunteer types is ever stored as a tag.
+       */
+      case "U":
+        return marked(kids(), "++");
       case "A": {
         const href = el.getAttribute("href") ?? "";
         return /^https?:\/\//i.test(href) ? `[${kids()}](${href})` : kids();
@@ -116,6 +123,7 @@ function inlineHtml(text: string): string {
   let out = escape(text);
   out = out.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
   out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  out = out.replace(/\+\+([^+]+)\+\+/g, "<u>$1</u>");
   out = out.replace(/_([^_]+)_/g, "<em>$1</em>");
   /*
    * A mark with nothing to close it runs to the end of its line, which is what
@@ -201,6 +209,7 @@ export function markdownToHtml(markdown: string): string {
 export function plainFromMarkdown(markdown: string): string {
   return markdown
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/\+\+([^+]+)\+\+/g, "$1")
     .replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, "$1")
     .replace(/^\s{0,3}(#{1,6}\s+|[-*+]\s+|\d+\.\s+|>\s?)/gm, "")
     .replace(/`([^`]*)`/g, "$1")

@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import {
   withTenant,
   emailRecipientsFor, findEmailRecipients, wayOutFor, startSend, recordDelivery, finishSend,
-  emailCredentialForSend, rotateEmailCredential, getChurch, readSend,
+  emailCredentialForSend, rotateEmailCredential, getChurch, readSend, restoreConsent,
   type Audience,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -104,6 +104,23 @@ export async function openSend(id: string) {
     sentAt: held.sentAt ? held.sentAt.toISOString() : null,
     html: markdownToHtml(held.body),
   };
+}
+
+/**
+ * R16.8. Putting somebody back on the list, from the office.
+ *
+ * A church is asked for this in the car park far more often than through a
+ * link, and the alternative is a volunteer being told it cannot be undone.
+ */
+export async function putBack(id: string): Promise<boolean> {
+  const { ctx, actor } = await context();
+  try {
+    await withTenant(ctx, (tx) => restoreConsent(tx, actor, id));
+    revalidatePath("/members/email");
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** R16.4. People matching what the writer typed, for choosing them one by one. */
