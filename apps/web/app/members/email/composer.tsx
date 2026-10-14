@@ -631,7 +631,9 @@ export function Composer({
               <div className="flex flex-wrap items-baseline gap-x-3 text-fg-muted">
                 {/* R16.6. One still waiting for its hour says when, not how
                     many it reached: it has reached nobody yet. */}
-                {waiting(reading) ? (
+                {reading.state === "cancelled" ? (
+                  <span>{t("send.cancelled.read")}</span>
+                ) : waiting(reading) ? (
                   <span>{t("send.scheduled", { when: dateAndTime(reading.sendAt ?? "") })}</span>
                 ) : (
                   <>
