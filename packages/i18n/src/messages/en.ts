@@ -2006,7 +2006,7 @@ export const en = {
   "lists.saveTitle": "Save this view as a list",
   "lists.addTo": "Add to a list",
   "lists.addToTitle": "Add {count} to a list",
-  "lists.newList": "A new list",
+  "lists.newList": "Add",
   "lists.name": "Name",
   "lists.namePlaceholder": "e.g. No email on file",
   "lists.takeOff": "Take off this list",
