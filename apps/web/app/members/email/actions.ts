@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import {
   withTenant,
   emailRecipientsFor, findEmailRecipients, wayOutFor, startSend, recordDelivery, finishSend,
-  emailCredentialForSend, rotateEmailCredential, getChurch,
+  emailCredentialForSend, rotateEmailCredential, getChurch, readSend,
   type Audience,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -86,6 +86,24 @@ export async function countAudience(
     emailRecipientsFor(tx, { audience, audienceId, memberIds, addresses }),
   );
   return { count: people.length, sample: people.slice(0, 3).map((one) => one.address) };
+}
+
+/**
+ * R16.6. One message as it went out, for reading back.
+ *
+ * A send cannot be edited or sent again from here. What it answers is the
+ * question a church actually asks weeks later: what did we say, and who did
+ * it reach.
+ */
+export async function openSend(id: string) {
+  const { ctx } = await context();
+  const held = await withTenant(ctx, (tx) => readSend(tx, id));
+  if (!held) return null;
+  return {
+    ...held,
+    sentAt: held.sentAt ? held.sentAt.toISOString() : null,
+    html: markdownToHtml(held.body),
+  };
 }
 
 /** R16.4. People matching what the writer typed, for choosing them one by one. */
