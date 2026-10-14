@@ -10,6 +10,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { merge } from "@connectapp/ui";
+import { markdownToHtml } from "@/lib/rich-text";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchOrigin } from "@/lib/church-address";
@@ -165,11 +166,26 @@ export async function sendEmail(data: FormData): Promise<SendResult> {
         church: session.tenantName,
       });
 
+      /* R16.8. The way out is a word rather than a line of random
+         characters, which is what a church would write and what a reader
+         will actually press. The plain copy keeps the whole address, because
+         there is nothing to hang a word on. */
+      const wayOut = `${origin}/u/${person.token}`;
+
       const message = {
         from,
         to: person.address,
-        subject: merge(subject, { first: person.first, name: person.name, church: session.tenantName }),
-        text: `${words}\n\n---\n${t("send.wayOut")}\n${origin}/u/${person.token}`,
+        subject: merge(subject, {
+          first: person.first,
+          name: person.name,
+          church: session.tenantName,
+        }),
+        text: `${words}\n\n---\n${t("send.wayOut")} ${wayOut}`,
+        html:
+          `${markdownToHtml(words)}` +
+          `<hr style="margin:24px 0;border:0;border-top:1px solid #ddd">` +
+          `<p style="font-size:13px;color:#666">${t("send.wayOut.before")} ` +
+          `<a href="${wayOut}">${t("send.wayOut.word")}</a>.</p>`,
       };
 
       const sent = access
