@@ -13,8 +13,8 @@ import { readsAsMember } from "@/lib/reads-as-member";
 import { TypesLanding, type TypeCard } from "./types-landing";
 import { Markdown } from "@/components/markdown";
 import { requireScreen } from "@/lib/shell-data";
+import { photoUrls } from "@/lib/photos";
 import { Finder } from "./finder";
-import { supabaseServer } from "@/lib/supabase/server";
 
 /**
  * R9.1 to R9.6. The one groups screen.
@@ -43,30 +43,41 @@ export async function GroupsListScreen({
 
   const { groups, types, requests, archivedCount } = await withTenant(actor, async (tx) => {
     const self = await personForUser(tx, session.userId);
+
+    /* Four reads, of which three want nothing from each other and the fourth
+       wants only who is reading. They went one round trip at a time. */
+    const [groups, types, requests, archivedCount] = await Promise.all([
+      findGroups(tx, { memberId: self, manage, archivedOnly: putAway }),
+      listGroupTypes(tx),
+      pendingRequests(tx, actor),
+      manage ? countArchivedGroups(tx) : 0,
+    ]);
+
     return {
-      groups: await findGroups(tx, { memberId: self, manage, archivedOnly: putAway }),
-      types: await listGroupTypes(tx),
-      requests: await pendingRequests(tx, actor),
-      archivedCount: manage ? await countArchivedGroups(tx) : 0,
+      groups,
+      types,
+      requests,
+      archivedCount,
     };
   });
 
   /*
    * R9.2. The bucket is private, so each picture is served through a link
    * signed for an hour. Signed here rather than in the card, because a client
-   * component cannot hold the key and one pass is one round trip.
+   * component cannot hold the key.
+   *
+   * The comment here used to say one pass was one round trip, and underneath it
+   * was a loop calling storage once a group: a church with sixty groups made
+   * sixty calls, in turn, on the screen a stranger follows from its website.
+   * They go up together now, and `photoUrls` holds what it signs.
    */
-  const photos = new Map<string, string>();
   const withPhotos = groups.filter((group) => group.photoKey);
-  if (withPhotos.length > 0) {
-    const supabase = await supabaseServer();
-    for (const group of withPhotos) {
-      const signed = await supabase.storage
-        .from("church")
-        .createSignedUrl(group.photoKey!, 3600);
-      if (signed.data?.signedUrl) photos.set(group.id, signed.data.signedUrl);
-    }
-  }
+  const signed = await photoUrls(withPhotos.map((group) => group.photoKey));
+  const photos = new Map<string, string>(
+    withPhotos
+      .map((group) => [group.id, signed[group.photoKey!]] as const)
+      .filter((pair): pair is readonly [string, string] => Boolean(pair[1])),
+  );
 
   /*
    * R9.5. The kinds of group lead, and a kind is what opens a list. A church

@@ -101,7 +101,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-345 | Giving statements are read in set-based queries, not one giver at a time | R24.11, R18.9 | Resolved |
 | HRT-346 | A bulk action over a selection is one write, not one a row | R24.11, R1.13 | Resolved |
 | HRT-347 | The frame and the page read at the same time | R24.11 | Resolved |
-| HRT-348 | Fifteen screens read their independent rows together | R24.11 | Six of them done, nine to go |
+| HRT-348 | Fifteen screens read their independent rows together | R24.11 | Nine done, six to go |
 | HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | Resolved |
 | HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | New |
 | HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | New |
@@ -109,7 +109,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | The dashboard done, as the pattern for the rest |
 | HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | New |
 | HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | New |
-| HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | New |
+| HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | The frame and the signed links done |
 | HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | New |
 | HRT-358 | A screen somebody just looked at is still in hand when they come back | R24.11, R24.12 | Resolved |
 | HRT-359 | Every area's links are always in the navigation, so the browser can fetch them before they are pressed | R24.11, R24.12 | New |
@@ -1951,6 +1951,38 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-356, how to test it
+
+Open any screen, then move to another part of the product and back. Nothing looks different. What
+changed is that the frame around a screen is no longer rebuilt every time.
+
+This was found by instrumenting the server rather than by reasoning about it, which is what the
+earlier guesses should have been. The measured answer, per navigation:
+
+| | before | after |
+|---|---|---|
+| the frame's data | 498ms, 508ms, 520ms | built once, then held |
+| signing the mark and the face | one storage call each time | 0ms |
+| resolving the session | 89ms | 85ms |
+
+Two defects came out of it. `photoUrls` was wrapped in React's `cache`, which keys on the argument's
+identity, and every caller passes a fresh array: it could never hit, not once, so the frame signed
+the church's mark and the reader's face again on every navigation, and so did every list under it.
+It holds each key for half an hour now, which is what the `heldPhotoUrls` beside it had been doing
+for one screen. And the frame read the reader's whole person record, which gathers their custom
+fields and tags with them, for the one photo column it puts in the corner.
+
+The groups list signed its pictures one at a time in a loop, under a comment claiming one pass was
+one round trip. A church with sixty groups made sixty storage calls, in turn, on the screen a
+stranger follows from its website. Confirm the group photos still appear.
+
+The frame's hold is twenty seconds, keyed on the reader's id, their church, their role and their
+permissions. A role change produces a different key, so a permission can never be served from it.
+
+What this does not fix: the frame is still rendered by every screen, so its markup is rebuilt and
+sent on every navigation even though its data is now free. That is HRT-360, and it is the difference
+between 65ms inside a layout and about 560ms across areas.
 
 ### HRT-360, how to test it
 
