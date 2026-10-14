@@ -405,9 +405,7 @@ export function Composer({
               is the right message going to the wrong list, and a number alone
               does not catch it. */}
           {reach?.sample.length ? (
-            <p className="m-0 text-fg-muted">
-              {t("send.ask.sample", { names: reach.sample.join(", ") })}
-            </p>
+            <p className="m-0 text-fg-muted">{reach.sample.join(", ")}</p>
           ) : null}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setAsking(false)}>
