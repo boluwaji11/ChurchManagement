@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import {
   withTenant, findGroups, personForUser, assignmentsForPerson,
   listEvents, listOccurrences, myChildren, canEditPeople, canReadIncidents,
-  getChurch, feedFor,
+  feedFor,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import {
@@ -20,7 +20,7 @@ const EVENT_ROWS = 5;
 
 /** R16.11. How many notices the feed opens with. */
 const NOTICE_ROWS = 4;
-import { requireSession } from "@/lib/session";
+import { requireScreen, shellData } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { Respond } from "./schedule/respond";
 import { CheckinCard } from "./checkin-card";
@@ -56,12 +56,20 @@ export default async function MemberHomePage({
   searchParams: Promise<{ }>;
 }) {
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   // Staff have their own screens, and this is not one of them.
   if (canEditPeople(session) || canReadIncidents(session)) {
     redirect("/dashboard");
   }
+
+  /*
+   * R17.1. The church's own clock, out of the frame, which has already read
+   * the church. A member in another state opening this at eleven at night
+   * should not be told the morning service is over.
+   */
+  const profile = (await shellData(session)).church;
+  const now = churchNow(profile?.timezone ?? "America/Chicago");
 
   const mine = await withTenant(
     {
@@ -71,36 +79,59 @@ export default async function MemberHomePage({
       permissions: session.permissions,
     },
     async (tx) => {
+      /*
+       * Nine reads waited on each other on the one screen a member opens.
+       * They fall into three groups: who is reading, what that answer is
+       * needed for, and the children on the service the second group found.
+       */
       const self = await personForUser(tx, session.userId);
-      // R17.1. The church's own clock. A member in another state opening this
-      // at eleven at night should not be told the morning service is over.
-      const profile = await getChurch(tx, session.tenantId);
-      const now = churchNow(profile?.timezone ?? "America/Chicago");
+
+      const actor = {
+        tenantId: session.tenantId,
+        role: session.role,
+        userId: session.userId,
+      };
+
+      /*
+       * R17.1, R17.8. One read of what is coming rather than two. The old
+       * pair asked for today and then for today onwards, and the second
+       * answer contained the first.
+       */
+      const [ahead, groups, serving, notices, events] = await Promise.all([
+        listOccurrences(tx, { from: now.date }),
+        /*
+         * R9.5, R17.5. The ones they are in, and the ones they have asked
+         * about. A member who presses Join and then sees nothing on their own
+         * screen has no way to tell whether the church heard them, so the
+         * group they asked for stands in the list with the answer pending.
+         */
+        findGroups(tx, { memberId: self }),
+        self ? assignmentsForPerson(tx, self, { from: now.date, limit: 6 }) : [],
+        /* R16.11. What the church has told everybody, which is the only
+           thing in communication that reaches a member without the church
+           holding anybody's credentials. */
+        feedFor(tx, now.date, NOTICE_ROWS, session.userId),
+        listEvents(tx, { from: now.date }),
+      ]);
+
+      const live = ahead.filter((one) => one.status !== "cancelled");
 
       /*
        * R17.8. The next service today, which is the only one a parent is
        * checking in to. Nothing to check in to is the common case and the card
        * stays off the screen.
        */
-      const today = await listOccurrences(tx, { from: now.date, to: now.date });
-      const next = today.find((one) => one.status !== "cancelled") ?? null;
+      const next = live.find((one) => one.occursOn === now.date) ?? null;
 
       /*
        * R17.1. The next service the church holds, today's or the one after.
        * The first question a member arrives with, and the screen answered it
        * nowhere.
        */
-      const coming = (await listOccurrences(tx, { from: now.date }))
-        .filter((one) => one.status !== "cancelled")
-        .sort(
-          (a, b) =>
-            a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
-        )[0] ?? null;
-      const actor = {
-        tenantId: session.tenantId,
-        role: session.role,
-        userId: session.userId,
-      };
+      const coming = [...live].sort(
+        (a, b) =>
+          a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
+      )[0] ?? null;
 
       return {
         profile,
@@ -108,24 +139,12 @@ export default async function MemberHomePage({
         service: next,
         children: next ? await myChildren(tx, actor, next.id) : [],
         today: now.date,
-        /*
-         * R9.5, R17.5. The ones they are in, and the ones they have asked
-         * about. A member who presses Join and then sees nothing on their own
-         * screen has no way to tell whether the church heard them, so the
-         * group they asked for stands in the list with the answer pending.
-         */
-        groups: (await findGroups(tx, { memberId: self }))
-          .filter((group) => group.mine || group.requested === "pending"),
-        serving: self
-          ? await assignmentsForPerson(tx, self, { from: now.date, limit: 6 })
-          : [],
-        /* R16.11. What the church has told everybody, which is the only
-           thing in communication that reaches a member without the church
-           holding anybody's credentials. */
-        notices: await feedFor(tx, now.date, NOTICE_ROWS, session.userId),
+        groups: groups.filter((group) => group.mine || group.requested === "pending"),
+        serving,
+        notices,
         // R14.2. Publishing is the gate, not listing. A draft's public page
         // answers 404 on purpose, so a card for one goes nowhere.
-        events: (await listEvents(tx, { from: now.date }))
+        events: events
           .filter((one) => one.listed && one.status === "published")
           .slice(0, EVENT_ROWS),
       };

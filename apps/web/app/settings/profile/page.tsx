@@ -5,7 +5,7 @@ import {
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Church, SunMoon } from "lucide-react";
 import { SettingsHeading } from "../heading";
 import { SettingCard, Details, Detail } from "../card";
@@ -43,31 +43,50 @@ export default async function ProfilePage({
   searchParams: Promise<{ }>;
 }) {
   const {} = await searchParams;
-  const session = await requireSession();
-  /* R24.x. What they chose, from their account rather than from this
-     browser, so the card answers the same on every device they sign in on. */
-  const theme = ((await themeFor(session.userId)) ?? "system") as Theme;
-  /* R1.4. The last owner cannot leave, and the card says so rather than
-     letting them find out by pressing. */
-  const alone = !(await anotherOwns(session.tenantId, session.userId));
+  const session = await requireScreen();
+
+  /*
+   * R24.x. What they chose, from their account rather than from this browser,
+   * so the card answers the same on every device they sign in on. R1.4. And
+   * whether the last owner is alone, because the last owner cannot leave and
+   * the card says so rather than letting them find out by pressing. Two reads
+   * of two different tables that waited on each other for nothing.
+   */
+  const [chosen, another] = await Promise.all([
+    themeFor(session.userId),
+    anotherOwns(session.tenantId, session.userId),
+  ]);
+  const theme = (chosen ?? "system") as Theme;
+  const alone = !another;
 
   const result = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
       const self = await personForUser(tx, session.userId);
       if (!self) return null;
-      const person = await getPerson(tx, self, { role: session.role, userId: session.userId });
-      const contact = await getPersonForEdit(tx, self);
+
+      /* Six reads about one person, none of which wanted anything from the
+         others once that person was known. */
+      const [person, contact, campuses, anniversary, customFields, customValues] =
+        await Promise.all([
+          getPerson(tx, self, { role: session.role, userId: session.userId }),
+          getPersonForEdit(tx, self),
+          listCampuses(tx),
+          anniversaryOf(tx, self),
+          /* R1.10, R17.1. Whatever this church asks about its people. The
+             ones it marked as theirs to change are theirs to change here. */
+          listCustomFields(tx, "person"),
+          getCustomValues(tx, "person", self),
+        ]);
+
       return {
         memberId: self,
         person,
         contact,
-        campuses: await listCampuses(tx),
-        anniversary: await anniversaryOf(tx, self),
-        /* R1.10, R17.1. Whatever this church asks about its people. The
-           ones it marked as theirs to change are theirs to change here. */
-        customFields: await listCustomFields(tx, "person"),
-        customValues: await getCustomValues(tx, "person", self),
+        campuses,
+        anniversary,
+        customFields,
+        customValues,
         photoKey: person?.photoKey ?? null,
       };
     },

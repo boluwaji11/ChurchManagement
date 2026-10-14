@@ -76,8 +76,14 @@ export async function GroupPanelPage({
   const manage = canManageGroups(session);
 
   const data = await withTenant(actor, async (tx) => {
-    const profile = await getChurch(tx, session.tenantId);
-    const self = await personForUser(tx, session.userId);
+    /* Eight reads waited on each other here. These three want nothing from
+       each other, and the rest of the screen wants all three. */
+    const [profile, self, types] = await Promise.all([
+      getChurch(tx, session.tenantId),
+      personForUser(tx, session.userId),
+      manage ? listGroupTypes(tx) : [],
+    ]);
+
     const group = await groupPage(tx, id, { memberId: self, manage });
     if (!group) return null;
 
@@ -96,6 +102,7 @@ export async function GroupPanelPage({
     // R9.7. Recording who came is the leader's job, so this is the group's own
     // leader or whoever runs groups. A member reads the dates and nothing else.
     const canRecord = manage || (await canRecordFor(tx, actor, group.id));
+
     /*
      * R9.7. A group that has not said when it meets has not met.
      *
@@ -105,9 +112,25 @@ export async function GroupPanelPage({
      * for comes from the pattern, so there has to be one.
      */
     const meets = group.dayOfWeek !== null || group.frequency === "daily";
-    if (canRecord && meets) {
-      metOn = lastMeetingDay(group.dayOfWeek, today);
-      const opened = await openMeeting(tx, actor, { groupId: group.id, metOn });
+    if (canRecord && meets) metOn = lastMeetingDay(group.dayOfWeek, today);
+
+    /* The register, the roster and the waiting requests all needed to know
+       whether this reader records for the group, and nothing else. */
+    const [opened, roster, requests] = await Promise.all([
+      canRecord && meets
+        ? openMeeting(tx, actor, { groupId: group.id, metOn })
+        : null,
+      /*
+       * R3.1, R9.5. Who is in a group is the church's record, not the finder's.
+       * A member reads what the group is and asks to join it; the roster goes
+       * to the people who run it. Withheld here rather than hidden on screen,
+       * so it is never in the page at all.
+       */
+      canRecord ? groupRoster(tx, group.id) : [],
+      manage ? pendingRequests(tx, actor) : [],
+    ]);
+
+    if (opened) {
       meeting = opened.meeting;
       members = opened.members;
     }
@@ -121,17 +144,9 @@ export async function GroupPanelPage({
       meeting,
       members,
       canRecord,
-      types: manage ? await listGroupTypes(tx) : [],
-      /*
-       * R3.1, R9.5. Who is in a group is the church's record, not the finder's.
-       * A member reads what the group is and asks to join it; the roster goes
-       * to the people who run it. Withheld here rather than hidden on screen,
-       * so it is never in the page at all.
-       */
-      roster: canRecord ? await groupRoster(tx, group.id) : [],
-      requests: manage
-        ? (await pendingRequests(tx, actor)).filter((one) => one.groupId === group.id)
-        : [],
+      types,
+      roster,
+      requests: requests.filter((one) => one.groupId === group.id),
     };
   });
 

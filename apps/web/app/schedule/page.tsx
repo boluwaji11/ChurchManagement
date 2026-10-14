@@ -2,13 +2,13 @@ import * as React from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  withTenant, listTeams, getTeam, getChurch, answerCounts, listOccurrences,
+  withTenant, listTeams, getTeam, answerCounts, listOccurrences,
   assignmentsForTeam, blockoutsFor, openSlots, positionsForTeams,
   canManageTeams, canLeadTeams,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireScreen } from "@/lib/shell-data";
+import { requireScreen, shellData } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { photoUrls } from "@/lib/photos";
@@ -102,14 +102,39 @@ export default async function ServingPage({
   const canManage = canManageTeams(session);
   const asked = /^\d{4}-\d{2}$/.test(params.at ?? "") ? params.at! : null;
 
+  /* The frame has already read the church, and the clock this board runs on
+     comes out of it. Reading it again was a trip for a timezone that every
+     read below then waited behind. */
+  const profile = (await shellData(session)).church;
+  const clock = churchNow(profile?.timezone ?? "America/Chicago");
+
+  /*
+   * R10.3. A month at a time. The month in the URL, so a leader planning
+   * December can send somebody the link to it.
+   */
+  const monthKey = asked ?? clock.date.slice(0, 7);
+  const [askedYear, askedMonth] = monthKey.split("-").map(Number);
+  const last = new Date(Date.UTC(askedYear!, askedMonth!, 0)).getUTCDate();
+
   const data = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
-      const profile = await getChurch(tx, session.tenantId);
-      const clock = churchNow(profile?.timezone ?? "America/Chicago");
-      /* R10.1. The live teams. A team that has been archived is read in
-         Settings, where it is written down and where it is brought back. */
-      const found = await listTeams(tx);
+      /*
+       * Nine reads waited on each other here, one round trip at a time. They
+       * fall into three groups: what needs nothing, what needs the teams and
+       * the services, and the one that needs the team's own roster. Three
+       * trips rather than nine.
+       */
+      const [found, everyOccurrence] = await Promise.all([
+        /* R10.1. The live teams. A team that has been archived is read in
+           Settings, where it is written down and where it is brought back. */
+        listTeams(tx),
+        listOccurrences(tx, {
+          from: `${monthKey}-01`,
+          to: `${monthKey}-${String(last).padStart(2, "0")}`,
+        }),
+      ]);
+
       const live = found.filter((one) => one.archivedAt === null);
 
       // R10.1. Found by its readable name or by its id, so a link somebody sent
@@ -117,19 +142,7 @@ export default async function ServingPage({
       const chosen = live.find((one) => one.slug === params.team || one.id === params.team)
         ?? live[0] ?? null;
 
-      /*
-       * R10.3. A month at a time. The month in the URL, so a leader planning
-       * December can send somebody the link to it.
-       */
-      const month = asked ?? clock.date.slice(0, 7);
-      const [y, m] = month.split("-").map(Number);
-      const last = new Date(Date.UTC(y!, m!, 0)).getUTCDate();
-      const inMonth = (
-        await listOccurrences(tx, {
-          from: `${month}-01`,
-          to: `${month}-${String(last).padStart(2, "0")}`,
-        })
-      )
+      const inMonth = everyOccurrence
         .sort(
           (a, b) =>
             a.occursOn.localeCompare(b.occursOn) || a.startsAt.localeCompare(b.startsAt),
@@ -149,19 +162,26 @@ export default async function ServingPage({
        * September is a deliberate act of looking back, and a board with
        * nothing on it is no answer to it.
        */
-      const current = month === clock.date.slice(0, 7);
+      const current = monthKey === clock.date.slice(0, 7);
       const keepFrom = new Date(`${clock.date}T00:00:00Z`);
       keepFrom.setUTCDate(keepFrom.getUTCDate() - RECENT_DAYS);
       const recent = inMonth.filter((one) => one.occursOn >= keepFrom.toISOString().slice(0, 10));
 
       /* A month wholly behind the grace is a month being read as a record. */
       const services = current && recent.length > 0 ? recent : inMonth;
+      const serviceIds = services.map((one) => one.id);
 
-      const team = chosen ? await getTeam(tx, chosen.id) : null;
-      const slots =
+      const [team, slots, counts, open, positions] = await Promise.all([
+        chosen ? getTeam(tx, chosen.id) : null,
         chosen && services.length > 0
-          ? await assignmentsForTeam(tx, chosen.id, services.map((one) => one.id))
-          : [];
+          ? assignmentsForTeam(tx, chosen.id, serviceIds)
+          : [],
+        answerCounts(tx, { teamIds: found.map((one) => one.id), from: clock.date }),
+        // R10.3. What is still to fill, team by team, across these dates.
+        openSlots(tx, serviceIds),
+        // R10.2. What each team is made of, for the cards.
+        positionsForTeams(tx, found.map((one) => one.id)),
+      ]);
 
       // R10.4. Who is away across these dates, and how much each of them is
       // already doing, read once for the whole grid.
@@ -174,23 +194,8 @@ export default async function ServingPage({
         : [];
 
       return {
-        clock,
-        month,
-        teams: found,
-        live,
-        chosen,
-        team,
-        services,
-        slots,
-        away,
-        counts: await answerCounts(tx, {
-          teamIds: found.map((one) => one.id),
-          from: clock.date,
-        }),
-        // R10.3. What is still to fill, team by team, across these dates.
-        open: await openSlots(tx, services.map((one) => one.id)),
-        // R10.2. What each team is made of, for the cards.
-        positions: await positionsForTeams(tx, found.map((one) => one.id)),
+        clock, month: monthKey, teams: found, live, chosen, team, services, slots, away,
+        counts, open, positions,
       };
     },
   );

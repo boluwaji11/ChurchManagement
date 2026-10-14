@@ -7,7 +7,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { Block, Thread, DateMark, Quiet } from "../timeline";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { Respond } from "./respond";
 import { Away } from "./away";
@@ -40,7 +40,7 @@ export default async function MyServingPage({
   searchParams: Promise<{ }>;
 }) {
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
   if (canEditPeople(session) || canReadIncidents(session)) {
     redirect("/schedule");
   }
