@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { GripVertical } from "lucide-react";
 import {
   withTenant, dashboard, attendanceByService, openFollowUps, setupProgress,
@@ -5,11 +6,12 @@ import {
   canEditPeople, canReadIncidents,
 } from "@connectapp/db";
 import { upcomingMeetings } from "@connectapp/db/rules";
+import { Skeleton } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireScreen } from "@/lib/shell-data";
+import { requireScreen, shellData } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
-import { shellData } from "@/lib/shell-data";
+import type { Session } from "@/lib/session";
 import { churchNow, hasHappened } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { SetupChecklist } from "./checklist";
@@ -91,10 +93,47 @@ export default async function DashboardPage({
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <Denied role={session.role} action="readPeople" church={session.tenantSlug} />
-      
     );
   }
 
+  /*
+   * R24.11. The frame goes to the browser now and the board arrives after it.
+   *
+   * Everything below used to be awaited before a single byte left, so a church
+   * on a slow connection looked at nothing at all until the last query
+   * returned. The shell is rendered by the screen rather than by a layout, so
+   * a loading.tsx here would take the frame away with it and read as the
+   * product blinking; a boundary inside the frame keeps the navigation and the
+   * church's name put and draws only the board as it comes.
+   */
+  return (
+    <AppShell session={session} title={t("dashboard.title")} wide>
+      <Suspense fallback={<BoardSkeleton />}>
+        <Board session={session} />
+      </Suspense>
+    </AppShell>
+  );
+}
+
+/** R24.6. The board's own shape, while it is being read. */
+function BoardSkeleton() {
+  return (
+    <div className="flex flex-col gap-6" aria-busy>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+        {[0, 1, 2, 3].map((one) => (
+          <Skeleton key={one} className="h-[104px] rounded-[14px]" />
+        ))}
+      </div>
+      <Skeleton className="h-[240px] rounded-[14px]" />
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
+        <Skeleton className="h-[200px] rounded-[14px]" />
+        <Skeleton className="h-[200px] rounded-[14px]" />
+      </div>
+    </div>
+  );
+}
+
+async function Board({ session }: { session: Session }) {
   const ctx = {
     tenantId: session.tenantId,
     role: session.role,
@@ -262,7 +301,7 @@ export default async function DashboardPage({
   const who = session.displayName.split(" ")[0] ?? session.displayName;
 
   return (
-    <AppShell session={session} title={t("dashboard.title")} wide>
+    <>
       {/* R22.1. Here while there is something left to do, and gone afterwards
           rather than sitting in the settings of a church that finished in
           March. */}
@@ -313,6 +352,6 @@ export default async function DashboardPage({
         <ThisWeek entries={week} />
         <FollowUp today={now.date} entries={tasks} />
       </div>
-    </AppShell>
+    </>
   );
 }
