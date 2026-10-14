@@ -96,6 +96,19 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-227 | The ConnectApp admin portal: churches, approval, archive, the operators and the log | R21.x, R22.x | Closed |
 | HRT-234 | Speed: Turbopack in development, one trip to the database per frame, pipelined reads. [docs/performance.md](docs/performance.md) | R24.11 | Closed |
 | HRT-342 | The warning count comes down, and the landing page's shots are sized for the device they land on | R24.11, R22.1 | Resolved |
+| HRT-343 | A send mints every way out in one go, rather than one round trip a recipient | R24.11, R16.8 | Resolved |
+| HRT-344 | A claimed copy that never left goes back in the queue | R24.11, R16.6 | New |
+| HRT-345 | Giving statements are read in set-based queries, not one giver at a time | R24.11, R18.9 | New |
+| HRT-346 | A bulk action over a selection is one write, not one a row | R24.11, R1.13 | New |
+| HRT-347 | The frame and the page read at the same time | R24.11 | New |
+| HRT-348 | Fifteen screens read their independent rows together | R24.11 | New |
+| HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | New |
+| HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | New |
+| HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | New |
+| HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | New |
+| HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | New |
+| HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | New |
+| HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | New |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
 | HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Closed |
 | HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Closed |
@@ -1933,6 +1946,28 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-343, how to test it
+
+Open `/members/email`, choose Everyone, write something and send it. It behaves as before: the same
+count, the same fine print, the same way out at the foot of the message that unsubscribes the person
+who pressed it and nobody else.
+
+What changed is underneath. Every recipient's token used to be minted with a round trip of its own,
+so the work grew with the size of the church and sat in front of the first message leaving. Measured
+against a church of 242 members, inside one transaction: 10.6 seconds for the reads alone, where a
+first-time send also wrote a row each. It is now 469ms, and it is four statements whatever the size
+of the audience.
+
+A member's row is written and read in one statement whose conflict target is the unique index, so
+two sends starting at once cannot mint two tokens for one person: the second finds the first's and
+keeps it. An address with nobody behind it has no index to conflict on, because this table counts a
+null member as distinct from every other null, so those are read and then the missing ones written.
+
+`packages/db/tests/way-out.test.ts` holds the properties that matter: every member gets their own
+token, no two people are handed the same one, asking twice returns the first answer, an address
+written `Twice@Example.org` and `  twice@example.org ` is one person, and a consent row captured by
+a form keeps its `granted` state when a send fills in its token.
 
 ### HRT-342, how to test it
 

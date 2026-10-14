@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, desc, eq, isNotNull, isNull, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { owner, type Tx } from "../client";
 import { emailSends, emailRecipients, contactConsent } from "../schema/messaging";
@@ -179,48 +179,122 @@ export async function findEmailRecipients(
 }
 
 /**
- * R16.8. The address that takes somebody off every later send.
+ * R16.8. The address that takes somebody off every later send, for a whole
+ * audience at once.
  *
  * Minted once a person and kept, so the link in a message sent last year still
  * works. A consent row is written at the same time, because the row is what
  * every send reads and a token with no row behind it would unsubscribe nobody.
+ *
+ * Four statements at most, whatever the size of the audience. Minting one
+ * person at a time cost a round trip each, which at 22ms put eleven seconds in
+ * front of a five-hundred-member send and would not finish inside the
+ * function's limit.
+ *
+ * The key in the returned map is `wayOutKey`'s: a member id, or the address
+ * with an `@` in front where nobody is behind it.
  */
-export async function wayOutFor(
+export async function wayOutForAll(
   db: Tx,
   actor: WriteActor,
-  who: { memberId: string | null; address: string },
-): Promise<string> {
-  const mine = who.memberId
-    ? eq(contactConsent.memberId, who.memberId)
-    : eq(contactConsent.address, who.address.trim().toLowerCase());
+  who: readonly { memberId: string | null; address: string }[],
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (who.length === 0) return out;
 
-  const [held] = await db
-    .select({ id: contactConsent.id, token: contactConsent.token })
-    .from(contactConsent)
-    .where(and(mine, eq(contactConsent.channel, "email")))
-    .limit(1);
+  /* One row stands for one person, so two recipients who share an address ask
+     for the same token once. */
+  const wanted = new Map<string, { memberId: string | null; address: string }>();
+  for (const one of who) wanted.set(wayOutKey(one), one);
 
-  if (held?.token) return held.token;
+  const mine = [...wanted.values()];
+  const byMember = mine.filter((one) => one.memberId);
+  const byAddress = mine.filter((one) => !one.memberId);
 
-  const token = randomBytes(24).toString("base64url");
-
-  if (held) {
-    await db
-      .update(contactConsent)
-      .set({ token, updatedAt: new Date() })
-      .where(eq(contactConsent.id, held.id));
-    return token;
+  /*
+   * A member's row is written and read in one statement. The conflict target
+   * is the unique index, so two sends starting at once cannot mint two tokens
+   * for the same person: the second one finds the first one's and keeps it.
+   * `coalesce` is what keeps it, because a consent row captured by a form
+   * carries no token until the first send needs one.
+   */
+  if (byMember.length > 0) {
+    const rows = byMember.map(
+      (one) => sql`(${one.memberId}::uuid, ${randomBytes(24).toString("base64url")})`,
+    );
+    const minted = (await db.execute(sql`
+      insert into contact_consent (tenant_id, member_id, channel, state, token)
+      select ${actor.tenantId}::uuid, v.member_id, 'email', 'unknown', v.token
+        from (values ${sql.join(rows, sql`, `)}) as v(member_id, token)
+      on conflict (tenant_id, member_id, channel) do update
+        set token = coalesce(contact_consent.token, excluded.token),
+            updated_at = case
+              when contact_consent.token is null then now()
+              else contact_consent.updated_at
+            end
+      returning member_id, token
+    `)) as unknown as { member_id: string; token: string }[];
+    for (const row of minted) out.set(row.member_id, row.token);
   }
 
-  await db.insert(contactConsent).values({
-    tenantId: actor.tenantId,
-    memberId: who.memberId,
-    address: who.memberId ? null : who.address.trim().toLowerCase(),
-    channel: "email",
-    state: "unknown",
-    token,
-  });
-  return token;
+  /*
+   * An address with nobody behind it has no unique index to conflict on,
+   * because the one on this table counts a null member as distinct from every
+   * other null. So those are read, then the missing ones written.
+   */
+  if (byAddress.length > 0) {
+    const addresses = byAddress.map((one) => one.address.trim().toLowerCase());
+
+    const held = await db
+      .select({ id: contactConsent.id, address: contactConsent.address, token: contactConsent.token })
+      .from(contactConsent)
+      .where(
+        and(
+          eq(contactConsent.channel, "email"),
+          isNull(contactConsent.memberId),
+          inArray(contactConsent.address, addresses),
+        ),
+      );
+
+    const rowFor = new Map(held.map((row) => [String(row.address), row]));
+    const toWrite: { tenantId: string; address: string; channel: string; state: string; token: string }[] = [];
+    const toFill: { id: string; token: string }[] = [];
+
+    for (const address of addresses) {
+      const row = rowFor.get(address);
+      const token = randomBytes(24).toString("base64url");
+      if (!row) {
+        toWrite.push({ tenantId: actor.tenantId, address, channel: "email", state: "unknown", token });
+        out.set(`@${address}`, token);
+        continue;
+      }
+      if (row.token) {
+        out.set(`@${address}`, row.token);
+        continue;
+      }
+      toFill.push({ id: row.id, token });
+      out.set(`@${address}`, token);
+    }
+
+    if (toWrite.length > 0) await db.insert(contactConsent).values(toWrite);
+
+    if (toFill.length > 0) {
+      const pairs = toFill.map((one) => sql`(${one.id}::uuid, ${one.token})`);
+      await db.execute(sql`
+        update contact_consent as c
+           set token = v.token, updated_at = now()
+          from (values ${sql.join(pairs, sql`, `)}) as v(id, token)
+         where c.id = v.id and c.token is null
+      `);
+    }
+  }
+
+  return out;
+}
+
+/** The key a recipient's token is held under: their id, or their address. */
+export function wayOutKey(who: { memberId: string | null; address: string }): string {
+  return who.memberId ?? `@${who.address.trim().toLowerCase()}`;
 }
 
 /**
