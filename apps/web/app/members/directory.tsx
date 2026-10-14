@@ -7,7 +7,7 @@ import { FilterDrawer, SortDrawer } from "@/components/filter-drawer";
 import { MultiSelect } from "@/components/multi-select";
 import { ResizableTable } from "@/components/resizable-columns";
 import { Download as FileDownload } from "@/components/download";
-import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Tag, CheckCircle2, ListMinus, ChevronDown, ArrowUp, ArrowDown, ChevronsUpDown, Send } from "lucide-react";
+import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Tag, CheckCircle2, ListMinus, ChevronDown, ArrowUp, ArrowDown, ChevronsUpDown, Send, FileText } from "lucide-react";
 import {
   Avatar, Button, Field, Input, Textarea, Checkbox, Banner, HueDot, Tooltip,
   Spinner,
@@ -450,7 +450,7 @@ export function Directory({
               <Link href="/members/email"><Send /> {t("send.title")}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/members/mailer"><Mail /> {t("post.title")}</Link>
+              <Link href="/members/mailer"><FileText /> {t("post.title")}</Link>
             </DropdownMenuItem>
             {canEdit ? (
               <>
