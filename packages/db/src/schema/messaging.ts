@@ -279,3 +279,25 @@ export const emailRecipients = pgTable(
     index("email_recipient_member_idx").on(t.tenantId, t.memberId),
   ],
 );
+
+/**
+ * HRT-291, R16.4. A message a church writes once and sends every year.
+ *
+ * The carol service invitation, the giving statement cover, the note to a
+ * first-time visitor. The composer starts from one rather than linking to it,
+ * so a church can change this year's wording without changing the template.
+ */
+export const emailTemplates = pgTable(
+  "email_templates",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    name: text("name").notNull(),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [index("email_template_tenant_idx").on(t.tenantId, t.archivedAt, t.name)],
+);

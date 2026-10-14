@@ -41,6 +41,9 @@ export default async function SettingsLayout({ children }: { children: React.Rea
                and the reading of the domain it leaves from. One name, because
                a church looking at one is looking at the other. */
             { href: "/settings/email", label: t("settings.tab.email") },
+            /* HRT-291, R16.4. The messages a church writes once, beside the
+               account they leave through. */
+            { href: "/settings/email-templates", label: t("mailTemplate.title") },
             /* R16.11. What the church tells everybody, which sits with the
                rest of how the church speaks for itself. */
             { href: "/settings/announcements", label: t("announce.title") },
