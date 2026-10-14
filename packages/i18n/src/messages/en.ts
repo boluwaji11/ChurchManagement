@@ -4697,6 +4697,8 @@ export const en = {
   "dns.steps.ns1": "Sign in, open Zones, pick your domain, then Add Record.",
   "dns.steps.unknown": "Sign in where your domain is registered and look for DNS, Name Servers, or Advanced DNS.",
   "dns.steps.title": "Where to find it",
+  "email.records.onepress": "Add them for me",
+  "email.records.onepressWhat": "Your domain provider can do this for you. You will be asked to approve it there.",
   "email.records.lead": "Add the three items below to your domain provider at {name}.",
   "email.records.leadPlain": "Add the three items below to your domain provider.",
   "email.records.open": "Open {name}",

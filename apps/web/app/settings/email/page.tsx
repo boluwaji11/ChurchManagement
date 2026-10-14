@@ -8,6 +8,8 @@ import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
 import { EmailSetup } from "./email-setup";
+import { discover, settingsFor, holdsOurTemplate, variablesFrom, applyUrl } from "@/lib/domain-connect";
+import { churchOrigin } from "@/lib/church-address";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -73,6 +75,37 @@ export default async function EmailPage({
   const website = read.profile?.website ?? null;
   const found = website ? await readDomain(website, dnsResolver()) : null;
 
+  /*
+   * HRT-289, R22.2. Whether this church's DNS company can do it in one press.
+   *
+   * Asked only while there is something outstanding to add, because it is
+   * three calls out to somebody else's servers and a church with nothing left
+   * to do has no use for the answer. A company that has never heard of us
+   * answers no, and the press is simply not drawn.
+   */
+  const onepress = await (async () => {
+    if (read.provider?.vendor !== "resend") return null;
+    if (!read.domain || read.domain.state === "verified") return null;
+
+    const variables = variablesFrom(read.domain.records);
+    if (!variables) return null;
+
+    const host = await discover(read.domain.domain, dnsResolver());
+    if (!host) return null;
+
+    const settings = await settingsFor(host, read.domain.domain);
+    if (!settings || !(await holdsOurTemplate(settings.urlAPI))) return null;
+
+    const origin = await churchOrigin(session.tenantSlug);
+    return applyUrl({
+      urlSyncUX: settings.urlSyncUX,
+      domain: read.domain.domain,
+      variables,
+      redirectUri: `${origin ?? ""}/settings/email`,
+      state: session.tenantId,
+    });
+  })();
+
   const said = SAID.find((one) => one === resend);
 
   return (
@@ -99,6 +132,7 @@ export default async function EmailPage({
         registrar={found?.registrar ?? null}
         console_={consoleFor(found?.registrar)}
         steps={stepsFor(found?.registrar)}
+        onepress={onepress}
       />
 
     </>
