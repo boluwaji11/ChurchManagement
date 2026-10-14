@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
-  withTenant, bulkSetArchived, bulkSetStatus, bulkSetPersonTag, listPeople, addToGroup,
+  withTenant, bulkSetArchived, bulkSetStatus, bulkSetPersonTag, listPeople, addManyToGroup,
   type LifecycleStatus,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -119,14 +119,12 @@ export async function bulkAddToGroup(data: FormData): Promise<BulkResult> {
 
   try {
     const today = new Date().toISOString().slice(0, 10);
-    await withTenant(ctx, async (tx) => {
-      for (const memberId of ids) {
-        await addToGroup(tx, actor, { groupId, memberId, joinedOn: today });
-      }
-    });
+    const changed = await withTenant(ctx, (tx) =>
+      addManyToGroup(tx, actor, { groupId, memberIds: ids, joinedOn: today }),
+    );
     revalidatePath("/members");
     revalidatePath("/groups");
-    return { changed: ids.length };
+    return { changed };
   } catch (error) {
     return { error: explain(error) };
   }

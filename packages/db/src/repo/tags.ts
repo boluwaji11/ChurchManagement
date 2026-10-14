@@ -317,14 +317,16 @@ export async function bulkSetPersonTag(
     .from(members)
     .where(inArray(members.id, personIds));
 
-  let applied = 0;
-  for (const person of visible) {
-    const inserted = await db.execute(sql`
-      insert into member_tags (tenant_id, member_id, tag_id)
-      values (${actor.tenantId}::uuid, ${person.id}::uuid, ${tagId}::uuid)
-      on conflict do nothing
-      returning member_id`);
-    applied += (inserted as unknown as unknown[]).length;
-  }
-  return applied;
+  if (visible.length === 0) return 0;
+
+  /* One statement. A row each was a round trip each, so tagging a whole
+     directory of five hundred stood there for eleven seconds. */
+  const rows = visible.map((person) => sql`(${actor.tenantId}::uuid, ${person.id}::uuid, ${tagId}::uuid)`);
+  const applied = await db.execute(sql`
+    insert into member_tags (tenant_id, member_id, tag_id)
+    values ${sql.join(rows, sql`, `)}
+    on conflict do nothing
+    returning member_id`);
+
+  return (applied as unknown as unknown[]).length;
 }

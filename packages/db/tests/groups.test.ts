@@ -10,7 +10,7 @@ import { withTenant, closeConnections, type Tx } from "../src/client";
 import {
   listGroupTypes, addGroupType, seedGroupTypes, DEFAULT_GROUP_TYPES,
   createGroup, updateGroup, listGroups, getGroup, setGroupArchived,
-  addToGroup, removeFromGroup, groupRoster, groupsForPerson, groupsLedBy,
+  addToGroup, addManyToGroup, removeFromGroup, groupRoster, groupsForPerson, groupsLedBy,
   canManageGroups, GROUP_ROLES,
 } from "../src/repo/groups";
 import { createPerson } from "../src/repo/members";
@@ -255,5 +255,85 @@ describe("another church's groups", () => {
     const theirs = await withTenant({ tenantId: otherId, role: "owner" }, (tx) => listGroups(tx));
     expect(theirs).toEqual([]);
     await dropTenants("grouptest2");
+  });
+});
+
+/*
+ * HRT-346, R9.4. Putting a whole selection into a group in one go.
+ *
+ * One at a time was five queries a person, the last of them reading the
+ * group's entire roster back and throwing it away, so a directory of five
+ * hundred was about two and a half thousand queries behind one press.
+ */
+describe("adding a selection to a group (R9.4)", () => {
+  let target: string;
+
+  beforeAll(async () => {
+    target = (await run((tx) =>
+      createGroup(tx, as(), { name: "HRT346 Selection", typeId: smallGroup }),
+    )).id;
+  });
+
+  it("puts everybody in with one call", async () => {
+    const put = await run((tx) =>
+      addManyToGroup(tx, as(), { groupId: target, memberIds: [ruth, sam, joy] }),
+    );
+
+    expect(put).toBe(3);
+    const roster = await run((tx) => groupRoster(tx, target));
+    expect(roster.map((one) => one.name).sort()).toEqual([
+      "Joy Grouptest", "Ruth Grouptest", "Sam Grouptest",
+    ]);
+  });
+
+  /* Somebody already in does not get a second row. Losing that would double
+     every roster the second time a church pressed the button. */
+  it("moves the role of somebody already in, without a second row", async () => {
+    const put = await run((tx) =>
+      addManyToGroup(tx, as(), { groupId: target, memberIds: [ruth, sam], role: "leader" }),
+    );
+
+    expect(put).toBe(2);
+    const roster = await run((tx) => groupRoster(tx, target));
+    expect(roster).toHaveLength(3);
+    expect(roster.filter((one) => one.role === "leader").map((one) => one.name).sort())
+      .toEqual(["Ruth Grouptest", "Sam Grouptest"]);
+  });
+
+  it("passes over an id this church cannot see", async () => {
+    const elsewhere = await testTenant("grouptest-other", "Another Church");
+    const stranger = await withTenant({ tenantId: elsewhere, role: "owner" }, (tx) =>
+      createPerson(tx, { tenantId: elsewhere, role: "owner" }, {
+        firstName: "Stranger", lastName: "Elsewhere", lifecycleStatus: "member",
+      } as never),
+    );
+
+    const put = await run((tx) =>
+      addManyToGroup(tx, as(), { groupId: target, memberIds: [ruth, stranger.id] }),
+    );
+
+    expect(put).toBe(1);
+    expect(await run((tx) => groupRoster(tx, target))).toHaveLength(3);
+    await dropTenants("grouptest-other");
+  });
+
+  it("asks for nothing when the selection is empty", async () => {
+    expect(await run((tx) => addManyToGroup(tx, as(), { groupId: target, memberIds: [] }))).toBe(0);
+  });
+
+  it("refuses a role that is not one of the three", async () => {
+    await expect(
+      run((tx) =>
+        addManyToGroup(tx, as(), {
+          groupId: target, memberIds: [ruth], role: "pastor" as never,
+        }),
+      ),
+    ).rejects.toThrow(InvalidInputError);
+  });
+
+  it("is not something a member may do", async () => {
+    await expect(
+      run((tx) => addManyToGroup(tx, as("member"), { groupId: target, memberIds: [ruth] }), "member"),
+    ).rejects.toThrow(PermissionError);
   });
 });
