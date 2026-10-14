@@ -75,17 +75,23 @@ own secrets as `DOMAIN_CONNECT_PRIVATE_KEY`, and the record's name goes in
    unaltered, with the test-results links in the field they ask for. **Merged, 14 October 2026:**
    [Domain-Connect/Templates#2318](https://github.com/Domain-Connect/Templates/pull/2318).
 
-   **IONOS answers for it the same day**, which is the whole thing working: asking IONOS whether it
-   holds `connectapp.church/email` returns 200, so a church whose domain is there sees one press.
-   Vercel answers 404 for our template and for every other one asked about, the canonical example
-   included, so it does not appear to implement the template check at all. Each company syncs on its
-   own schedule and some may never answer that endpoint, which is exactly why the screen asks before
-   it offers: a company that does not answer shows the three settings instead, and no volunteer meets
-   a button that fails.
+   **Nobody holds it yet, as of 14 October 2026.** An earlier note here said IONOS answered for it
+   the same day; that was wrong, and checking again by hand is what found it. IONOS, GoDaddy, Domain
+   Chief and Glauca all answer for the standard's own example template and return 404 for ours, which
+   is the shape of a company that implements the protocol and has not loaded us. Cloudflare and
+   Vercel answer for nothing, the canonical example included, so they do not serve the template
+   question at all.
+
+   Domain Connect publishes no sync schedule and the repository's own guidance says onboarding is
+   never automatic: each company pulls when it chooses. So the screen asks the domain before it
+   offers the press, and a church at a company that has not loaded us sees the three settings
+   instead. Nobody meets a button that fails.
+
+   The daily check at `/api/domain-connect/check` asks all seven and emails the answer, so this is a
+   notification rather than a question. By hand, for one company:
 
    ```
-   curl -s -o /dev/null -w "%{http_code}\n" \
-     https://api.domainconnect.ionos.com/v2/domainTemplates/providers/connectapp.church/services/email
+   curl -s https://api.domainconnect.ionos.com/v2/domainTemplates/providers/connectapp.church/services/email
    ```
 
    Two things cost a round each, worth knowing if the template is ever resubmitted. The repository

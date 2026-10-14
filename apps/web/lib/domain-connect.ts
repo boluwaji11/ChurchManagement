@@ -90,10 +90,36 @@ export async function settingsFor(host: string, domain: string): Promise<Setting
  * volunteer.
  */
 export async function holdsOurTemplate(urlAPI: string): Promise<boolean> {
-  const at = `${urlAPI.replace(/\/+$/, "")}/v2/domainTemplates/providers/${PROVIDER_ID}/services/${SERVICE_ID}`;
+  return holdsTemplate(urlAPI, PROVIDER_ID, SERVICE_ID);
+}
+
+/**
+ * R22.2. Whether a company holds a named template, proved by what it sends.
+ *
+ * A 200 on its own is not enough. One company answers every address under its
+ * API host with a redirect to a page that loads perfectly, so a status code
+ * alone said it held a template it has never seen. Redirects are refused
+ * rather than followed, and the answer has to be a JSON object, which is what
+ * a template is. The shape inside it is left alone: the companies that do hold
+ * templates return them in visibly different shapes, one of them `{version}`
+ * and nothing else.
+ */
+export async function holdsTemplate(
+  urlAPI: string,
+  providerId: string,
+  serviceId: string,
+): Promise<boolean> {
+  const at = `${urlAPI.replace(/\/+$/, "")}/v2/domainTemplates/providers/${providerId}/services/${serviceId}`;
   try {
-    const answer = await fetch(at, { signal: AbortSignal.timeout(PATIENCE), cache: "no-store" });
-    return answer.ok;
+    const answer = await fetch(at, {
+      signal: AbortSignal.timeout(PATIENCE),
+      cache: "no-store",
+      redirect: "manual",
+    });
+    if (answer.status !== 200) return false;
+
+    const body: unknown = await answer.json();
+    return typeof body === "object" && body !== null;
   } catch {
     return false;
   }
