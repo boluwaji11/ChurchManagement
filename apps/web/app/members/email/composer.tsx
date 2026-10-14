@@ -25,6 +25,19 @@ export interface Sent {
   sentAt: string | null;
 }
 
+/**
+ * R16.4. The marks a message can carry, as a church reads them.
+ *
+ * The same three the letter offers that make sense in an email. A letter's
+ * address and today's date belong on paper; a church's own phone and website
+ * are in the signature a church writes once rather than a mark it inserts.
+ */
+const FIELDS = [
+  { mark: "first", label: "post.field.first" },
+  { mark: "name", label: "post.field.name" },
+  { mark: "church", label: "post.field.church" },
+] as const;
+
 const EVERYONE = "everyone";
 const PEOPLE = "people";
 
@@ -61,6 +74,8 @@ export function Composer({
   /* R16.4. The people picked one by one, when that is how they were picked. */
   const [picked, setPicked] = React.useState<Chosen[]>([]);
   const [typed, setTyped] = React.useState("");
+  /* The editor hands back a way to write at the cursor, which the marks use. */
+  const write = React.useRef<((text: string) => void) | null>(null);
   const [hits, setHits] = React.useState<Chosen[]>([]);
   const [subject, setSubject] = React.useState("");
   const [body, setBody] = React.useState("");
@@ -284,8 +299,31 @@ export function Composer({
         </Field>
 
         <Field label={t("send.body")} required>
-          <RichText name="body" defaultValue="" onChange={setBody} minHeight={220} />
+          <RichText
+            name="body"
+            defaultValue=""
+            onChange={setBody}
+            minHeight={220}
+            insert={(put) => { write.current = put; }}
+          />
         </Field>
+
+        {/* R16.4. Each one says what it means and writes its own mark in
+            wherever the cursor is, the same as the letter. */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-label text-fg">{t("post.fields")}:</span>
+          {FIELDS.map((one) => (
+            <button
+              key={one.mark}
+              type="button"
+              onClick={() => write.current?.(`{${one.mark}}`)}
+              className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line-strong bg-surface px-3 text-[13px] text-fg hover:bg-sunken"
+            >
+              {t(one.label as never)}
+              <span className="font-mono text-[11px] text-fg-subtle">{`{${one.mark}}`}</span>
+            </button>
+          ))}
+        </div>
 
         <div className="flex items-center justify-end">
           <Button disabled={!full || busy} onClick={() => setAsking(true)}>
