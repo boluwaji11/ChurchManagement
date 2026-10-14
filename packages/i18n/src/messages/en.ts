@@ -544,7 +544,7 @@ export const en = {
   "directory.bulkArchiveTitle": "Archive {count} members?",
   "directory.bulkArchiveBody": "They come off every list. You can restore them one at a time.",
   "directory.bulkDone": "{count} changed.",
-  "directory.bulkMessage": "Message",
+  "directory.bulkMessage": "Send email",
   "directory.bulkGroup": "Add to group",
   "directory.bulkExport": "Export selected",
   "directory.exporting": "Building the file",
