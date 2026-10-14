@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, ExternalLink, Mail, Server, Unplug } from "lucide-react";
+import { Check, Copy, ExternalLink, Mail, Send, Server, Unplug } from "lucide-react";
 import {
   Banner, Button, Card, Field, Input, Tooltip, Working,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
@@ -15,7 +15,7 @@ import { useAnswered } from "@/components/form-actions";
 import { when } from "@/lib/when";
 import { Stages } from "@/components/stages";
 import {
-  connectSmtp, checkRecords, disconnectEmail, type EmailResult,
+  connectSmtp, checkRecords, disconnectEmail, sendTest, type EmailResult,
 } from "./actions";
 
 /** The sending domain as the screen reads it, with the date already a string. */
@@ -39,6 +39,7 @@ export function EmailSetup({
   provider,
   domain,
   church,
+  signedInAs,
   registrar,
   console_,
   steps,
@@ -48,6 +49,8 @@ export function EmailSetup({
   domain: DomainState | null;
   /** R16.1. What the church already told us, so nothing is asked twice. */
   church: { name: string; email: string };
+  /** Where a test message goes, which is whoever is pressing the button. */
+  signedInAs: string;
   /** R22.2. Who answers for the domain, and where its settings are typed. */
   registrar: string | null;
   console_: string | null;
@@ -75,6 +78,14 @@ export function EmailSetup({
     if (!answer.error) router.refresh();
   };
 
+  /* R16.1. What arrived, rather than what was accepted. */
+  const [sent, setSent] = React.useState<string | null>(null);
+  const test = async () => {
+    setSent(null);
+    const ok = await act(sendTest, t("email.test.sending"));
+    if (ok) setSent(t("email.test.sent", { address: signedInAs }));
+  };
+
   const act = async (run: () => Promise<EmailResult>, label: string) => {
     setBusy(label);
     setError(null);
@@ -96,6 +107,7 @@ export function EmailSetup({
           refused needs to read "Username and Password not accepted" rather
           than a sentence of ours that stands in front of it. */}
       {error ? <Banner tone="danger">{error}</Banner> : null}
+      {sent ? <Banner tone="success">{sent}</Banner> : null}
 
       {provider ? (
         <Connected
@@ -107,6 +119,7 @@ export function EmailSetup({
           onepress={onepress}
           busy={busy !== null}
           onCheck={() => void quietly(checkRecords)}
+          onTest={() => void test()}
           onDisconnect={() => void act(disconnectEmail, t("email.saving"))}
         />
       ) : way === "resend" ? (
@@ -202,6 +215,7 @@ function Connected({
   onepress,
   busy,
   onCheck,
+  onTest,
   onDisconnect,
 }: {
   provider: EmailProvider;
@@ -212,6 +226,7 @@ function Connected({
   onepress: string | null;
   busy: boolean;
   onCheck: () => void;
+  onTest: () => void;
   onDisconnect: () => void;
 }) {
   /* A church connected to Resend with nothing published yet is not sending,
@@ -267,8 +282,14 @@ function Connected({
 
       {/* R24.6. Rare, final, and nothing to do with the stage the church is
           on, so it sits under the work rather than in the row of things the
-          church came here to press. */}
-      <div className="flex justify-end border-t border-line pt-4">
+          church came here to press. The test sits beside it, offered only once
+          there is something that could actually carry a message. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+        {waiting ? <span /> : (
+          <Button variant="secondary" onClick={onTest} disabled={busy}>
+            <Send aria-hidden /> {t("email.test")}
+          </Button>
+        )}
         <DisconnectDialog vendor={provider.vendor} busy={busy} onConfirm={onDisconnect} />
       </div>
     </Card>

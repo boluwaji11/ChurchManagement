@@ -204,6 +204,95 @@ export async function withdrawEmailProvider(
   };
 }
 
+/**
+ * HRT-290, R16.1, R21.15. The credential, for the one thing it is for.
+ *
+ * Named for sending rather than for reading, because reading is not a thing
+ * anybody should be able to ask for. A screen that wants to show a church its
+ * own password has no business doing so, and there is no function here that
+ * would let it: this one is for the code that is about to send, and the only
+ * caller is the send itself.
+ */
+export interface SendingAccount {
+  providerId: string;
+  vendor: Vendor;
+  credential: string;
+  fromName: string | null;
+  fromAddress: string | null;
+  settings: SmtpSettings | null;
+}
+
+export async function emailCredentialForSend(
+  db: Tx,
+  actor: WriteActor,
+): Promise<SendingAccount | null> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  const [row] = await db
+    .select({
+      id: churchProviders.id,
+      vendor: churchProviders.vendor,
+      credential: churchProviders.credential,
+      fromName: churchProviders.fromName,
+      fromAddress: churchProviders.fromAddress,
+      settings: churchProviders.settings,
+    })
+    .from(churchProviders)
+    .where(and(eq(churchProviders.channel, "email"), eq(churchProviders.state, "connected")))
+    .limit(1);
+
+  if (!row?.credential) return null;
+
+  return {
+    providerId: row.id,
+    vendor: row.vendor as Vendor,
+    credential: openCredential(row.credential),
+    fromName: row.fromName,
+    fromAddress: row.fromAddress,
+    settings: asSmtp(row.settings),
+  };
+}
+
+/**
+ * HRT-290, R21.15. The new credential, written down before it is used.
+ *
+ * Resend rotates its refresh token on every refresh and refuses one that has
+ * been used twice, which can take the whole grant with it. So the new one
+ * lands here first and the send happens after: a send that fails costs a
+ * message, and a token written down after a crash costs the church its
+ * connection.
+ */
+export async function rotateEmailCredential(
+  db: Tx,
+  actor: WriteActor,
+  input: { providerId: string; credential: string },
+): Promise<void> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  await db
+    .update(churchProviders)
+    .set({
+      credential: sealCredential(input.credential),
+      credentialKeyId: CREDENTIAL_KEY_ID,
+      updatedAt: new Date(),
+    })
+    .where(eq(churchProviders.id, input.providerId));
+}
+
+/** R16.1. What the provider said when it last refused, kept for the screen. */
+export async function markEmailTrouble(
+  db: Tx,
+  actor: WriteActor,
+  input: { providerId: string; said: string | null },
+): Promise<void> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  await db
+    .update(churchProviders)
+    .set({ lastError: input.said, updatedAt: new Date() })
+    .where(eq(churchProviders.id, input.providerId));
+}
+
 /** R16.1. A domain a church sends from, and how far its records have got. */
 export interface SendingDomain {
   id: string;

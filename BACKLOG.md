@@ -1081,6 +1081,7 @@ old state until each is picked up.
 | HRT-287 | Connecting the church's own email, by its own mail server or by Resend | R16.1, R21.15 | Resolved |
 | HRT-288 | Resend connects by a press and a yes, and the domain reading moves in with it | R16.1, R21.15, R22.2 | Resolved |
 | HRT-289 | Getting the three settings in: the right page, the right words, and one press where it is offered | R16.1, R22.2 | In progress |
+| HRT-290 | A church sends one message to itself, through whatever it connected | R16.1, R21.15 | Resolved |
 | HRT-139 | The composer, merge fields and the template library | R16.4 | **Removed, deferred** |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
 | HRT-141 | The send queue | R16.6 | **Removed, deferred** |
@@ -1822,6 +1823,21 @@ The one-click is in [docs/domain-connect](../docs/domain-connect/README.md): the
 written, and the submission and the signing key are named there as work outside this repository.
 
 Work item: HRT-289
+
+### HRT-290, how to test it
+
+As Owner or Admin with email connected and ready to send, open Settings, then Email. Press Send a
+test email. The button goes busy, and a message arrives at the address you signed in with, from the
+church's own address and under the name the church set. Look in the spam folder if it does not
+arrive: a domain whose settings went in minutes ago has no sending history.
+
+Take one of the three settings off at the domain provider and try again. The screen shows what the
+provider said rather than a sentence of ours.
+
+On Resend, press it twice. The second one must work: Resend rotates its refresh token on every use
+and refuses one used twice, so a second press failing means the new token was not written down.
+
+Work item: HRT-290
 
 ### HRT-285, how to test it
 
