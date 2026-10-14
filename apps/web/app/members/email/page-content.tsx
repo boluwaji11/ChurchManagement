@@ -103,9 +103,13 @@ export async function EmailPanelPage({
           sent={read.sent.map((one) => ({
             id: one.id,
             subject: one.subject,
+            state: one.state,
+            total: one.total,
+            done: one.done ?? 0,
             delivered: one.delivered,
             failed: one.failed,
             sentAt: one.sentAt?.toISOString() ?? null,
+            sendAt: one.sendAt?.toISOString() ?? null,
           }))}
           out={read.out.map((one) => ({
             id: one.id,

@@ -1086,7 +1086,7 @@ old state until each is picked up.
 | HRT-291 | Email templates a church writes once, kept in settings beside the service templates | R16.4 | New |
 | HRT-341 | Send email from the selection: the directory's button opens the composer with those people in it | R16.4, R2.14 | Closed |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
-| HRT-141 | The send queue | R16.6 | **Removed, deferred** |
+| HRT-141 | The send queue, the progress on screen, and a send that waits for its hour | R16.6 | Resolved |
 | HRT-142 | Bounces and retries | R16.7 | **Removed, deferred** |
 | HRT-143 | Consent and unsubscribe | R16.8 | Resolved. Built with HRT-139, because a first send cannot be given a way out afterwards |
 | HRT-144 | The church's own Twilio, and opt-in before any SMS | R16.2, R16.8 | Deferred |
@@ -1865,6 +1865,24 @@ sign-in and no second question. Send the same thing again and confirm that perso
 counted and no longer receives it.
 
 What you have sent lists each one with how many it reached and how many did not.
+
+### HRT-141, how to test it
+
+As Owner or Admin with email connected, open the directory, More, Email members. Write something and
+send it to a group of a dozen or more. The press comes back at once saying it is sending, the screen
+moves to Sent, and the row reads how many of them are done and climbs on its own without the page
+being refreshed. Close the tab halfway through, open it again, and confirm the rest still arrived:
+the copies were written down before the first one went, so there is nothing left for the browser to
+do. The old five hundred cap is gone.
+
+Turn on Send later, pick a date and a time, and send. The row says when it is scheduled for and
+nothing goes until then. Confirm the hour is the church's own, not the browser's.
+
+Send to one person and confirm it still lands within a second or two: the press does the first pass
+itself rather than leaving a message to three people waiting for the next minute.
+
+`/api/email/drain` is the worker, on a one-minute cron, and it needs `CRON_SECRET`. Without it, a
+queued send waits for whoever presses next.
 
 ### HRT-291, how to test it
 

@@ -333,7 +333,13 @@ async function said(db: ReturnType<typeof drizzle>, row: Holder): Promise<WayOut
   };
 }
 
-/** R16.6. The send itself, written down before a single message goes. */
+/**
+ * HRT-141, R16.6. The send and every copy of it, written down before one goes.
+ *
+ * One transaction, so a church never ends up with a send that reaches some of
+ * its people and has no record of the rest. What the worker takes afterwards
+ * is rows that already exist, which is what lets the church close the laptop.
+ */
 export async function startSend(
   db: Tx,
   actor: WriteActor,
@@ -343,7 +349,12 @@ export async function startSend(
     audience: Audience;
     audienceId: string | null;
     audienceName: string | null;
-    total: number;
+    /** R16.6. When it should go. Null is now. */
+    sendAt: Date | null;
+    /** R16.8. The church's own address, so the worker's links are absolute. */
+    origin: string;
+    /** Everyone it is for, as the rules left them. */
+    recipients: readonly { memberId: string | null; address: string }[];
   },
 ): Promise<string> {
   if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
@@ -357,14 +368,30 @@ export async function startSend(
       audience: input.audience,
       audienceId: input.audienceId,
       audienceName: input.audienceName,
-      state: "sending",
-      total: input.total,
+      state: "queued",
+      total: input.recipients.length,
+      sendAt: input.sendAt,
+      origin: input.origin,
       sentBy: actor.userId ?? null,
-      sentAt: new Date(),
+      sentAt: input.sendAt ?? new Date(),
     })
     .returning({ id: emailSends.id });
 
-  return row!.id;
+  const sendId = row!.id;
+
+  if (input.recipients.length > 0) {
+    await db.insert(emailRecipients).values(
+      input.recipients.map((one) => ({
+        tenantId: actor.tenantId,
+        sendId,
+        memberId: one.memberId,
+        address: one.address,
+        state: "queued",
+      })),
+    );
+  }
+
+  return sendId;
 }
 
 /** R16.6, R16.7. What happened to one person's copy. */
@@ -424,6 +451,8 @@ export async function finishSend(
 export interface SentEmail {
   id: string;
   subject: string;
+  /** R16.6. How many copies are done, for one still on its way. */
+  done?: number;
   audienceName: string | null;
   audience: string;
   state: string;
@@ -431,6 +460,8 @@ export interface SentEmail {
   delivered: number;
   failed: number;
   sentAt: Date | null;
+  /** R16.6. When it is set to go, for one that has not gone yet. */
+  sendAt?: Date | null;
 }
 
 /** R16.6. What this church has sent, newest first, a page at a time. */
@@ -449,6 +480,11 @@ export async function listSends(
       delivered: emailSends.delivered,
       failed: emailSends.failed,
       sentAt: emailSends.sentAt,
+      sendAt: emailSends.sendAt,
+      done: sql<number>`(
+        select count(*)::int from email_recipients r
+        where r.send_id = ${emailSends.id} and r.state in ('sent','failed')
+      )`,
     })
     .from(emailSends)
     .where(ne(emailSends.state, "draft"))
