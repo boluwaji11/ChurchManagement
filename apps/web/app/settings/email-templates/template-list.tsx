@@ -9,6 +9,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { RichText } from "@/components/rich-text";
+import { DynamicFields } from "@/components/dynamic-fields";
 import { keepTemplate, putAwayTemplate } from "./actions";
 import { LibraryPicker } from "@/components/library-picker";
 import { templateLibrary, type TemplatePreset } from "./library";
@@ -85,7 +86,11 @@ export function TemplateList({
           putAway ? (
             <div
               key={one.id}
-              className="flex items-start gap-2 rounded-[14px] border border-line bg-surface p-4"
+              className={cn(
+                "relative flex items-start gap-2 overflow-hidden rounded-[14px]",
+                "border border-line bg-surface p-4 pl-5",
+                "before:absolute before:inset-y-0 before:left-0 before:w-1.5 before:bg-line-strong",
+              )}
             >
               <span className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="truncate font-semibold text-fg-muted">{one.name}</span>
@@ -106,8 +111,12 @@ export function TemplateList({
                 type="button"
                 aria-label={t("mailTemplate.edit", { name: one.name })}
                 className={cn(
-                  "flex cursor-pointer flex-col gap-1.5 rounded-[14px] border border-line",
-                  "bg-surface p-4 text-left",
+                  "relative flex cursor-pointer flex-col gap-1.5 overflow-hidden rounded-[14px]",
+                  "border border-line bg-surface p-4 pl-5 text-left",
+                  /* R24.4. A band of the church's own purple down the edge, so
+                     a wall of white cards reads as a set of things rather than
+                     as a page that has not finished loading. */
+                  "before:absolute before:inset-y-0 before:left-0 before:w-1.5 before:bg-primary",
                   LIFT,
                 )}
               >
@@ -146,10 +155,24 @@ function TemplateSheet({
   const [name, setName] = React.useState(template?.name ?? "");
   const [subject, setSubject] = React.useState(template?.subject ?? "");
   const [body, setBody] = React.useState(template?.body ?? "");
+  /*
+   * HRT-291. What the editor was last filled with.
+   *
+   * The box owns its own contents once it is written into, so new words reach
+   * it only by mounting it again. This is the seed and the count that force
+   * that, and it moves when the panel opens or a library preset goes in,
+   * never on a keystroke: re-seeding it a character at a time put the caret
+   * back at the start each time and the words came out backwards.
+   */
+  const [seed, setSeed] = React.useState({ text: template?.body ?? "", at: 0 });
   const [dirty, setDirty] = React.useState(false);
   const [asking, setAsking] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  /* R24.6. Closing a panel that has been typed in asks before it goes. */
+  const [leaving, setLeaving] = React.useState(false);
+  /* The editor hands back a way to write at the caret, which the marks use. */
+  const write = React.useRef<((text: string) => void) | null>(null);
 
   /* HRT-291, R16.4. Adding opens on the library. Editing opens on the record
      itself, because somebody who came to change a template is not shopping. */
@@ -167,8 +190,10 @@ function TemplateSheet({
     setName(template?.name ?? "");
     setSubject(template?.subject ?? "");
     setBody(template?.body ?? "");
+    setSeed({ text: template?.body ?? "", at: Date.now() });
     setDirty(false);
     setAsking(false);
+    setLeaving(false);
     setError(null);
     setPicking(!template && library.length > 0);
   }, [open, template, library.length]);
@@ -178,6 +203,7 @@ function TemplateSheet({
     setName(preset.name);
     setSubject(preset.subject);
     setBody(preset.body);
+    setSeed({ text: preset.body, at: Date.now() });
     setDirty(true);
     setPicking(false);
   };
@@ -206,7 +232,18 @@ function TemplateSheet({
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        /* R24.6. Typed in and not saved: our own box asks, rather than the
+           panel taking the work with it. */
+        if (!next && dirty && !busy) {
+          setLeaving(true);
+          return;
+        }
+        setOpen(next);
+      }}
+    >
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent
         title={template ? template.name : t("mailTemplate.add")}
@@ -251,7 +288,10 @@ function TemplateSheet({
               </>
             ) : null}
 
-            <Button variant="secondary" onClick={() => setOpen(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => (dirty ? setLeaving(true) : setOpen(false))}
+            >
               {t("action.cancel")}
             </Button>
             <Button loading={busy} disabled={!full || !dirty} onClick={keep}>
@@ -261,6 +301,26 @@ function TemplateSheet({
           )
         }
       >
+        <Dialog open={leaving} onOpenChange={setLeaving}>
+          <DialogContent alert title={t("mailTemplate.leaveTitle")}>
+            <p className="m-0 text-fg-muted">{t("mailTemplate.leaveBody")}</p>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setLeaving(false)}>
+                {t("mailTemplate.keepWriting")}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setLeaving(false);
+                  setOpen(false);
+                }}
+              >
+                {t("mailTemplate.discard")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {picking ? (
           <LibraryPicker
             ownLabel={t("mailTemplate.own")}
@@ -307,12 +367,17 @@ function TemplateSheet({
             <RichText
               /* A fresh editor whenever the words change underneath it, which
                  is the only way a contenteditable box takes new contents. */
-              key={`${open}:${name}`}
-              defaultValue={body}
+              key={seed.at}
+              defaultValue={seed.text}
               onChange={(next) => { setBody(next); setDirty(true); }}
               minHeight={260}
+              insert={(put) => { write.current = put; }}
             />
           </Field>
+
+          {/* R16.4. The same marks the composer offers, because these are the
+              same messages written a week earlier. */}
+          <DynamicFields onInsert={(text) => write.current?.(text)} />
         </div>
         )}
       </SheetContent>

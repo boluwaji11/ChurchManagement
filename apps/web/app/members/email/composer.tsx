@@ -12,6 +12,7 @@ import {
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { RichText } from "@/components/rich-text";
+import { DynamicFields } from "@/components/dynamic-fields";
 import { when } from "@/lib/when";
 import { DATE_LABELS } from "@/lib/date-labels";
 import { readingLocale } from "@/lib/reading-locale";
@@ -53,19 +54,6 @@ export interface Out {
   name: string | null;
   withdrawnAt: string | null;
 }
-
-/**
- * R16.4. The marks a message can carry, as a church reads them.
- *
- * The same three the letter offers that make sense in an email. A letter's
- * address and today's date belong on paper; a church's own phone and website
- * are in the signature a church writes once rather than a mark it inserts.
- */
-const FIELDS = [
-  { mark: "first", label: "post.field.first" },
-  { mark: "name", label: "post.field.name" },
-  { mark: "church", label: "post.field.church" },
-] as const;
 
 /** R16.6. How many sends a page of the Sent list holds. */
 const PER = 10;
@@ -503,20 +491,7 @@ export function Composer({
 
         {/* R16.4. Each one says what it means and writes its own mark in
             wherever the cursor is, the same as the letter. */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-label text-fg">{t("post.fields")}:</span>
-          {FIELDS.map((one) => (
-            <button
-              key={one.mark}
-              type="button"
-              onClick={() => write.current?.(`{${one.mark}}`)}
-              className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-line-strong bg-surface px-3 text-[13px] text-fg hover:bg-sunken"
-            >
-              {t(one.label as never)}
-              <span className="font-mono text-[11px] text-fg-subtle">{`{${one.mark}}`}</span>
-            </button>
-          ))}
-        </div>
+        <DynamicFields onInsert={(text) => write.current?.(text)} />
 
         {/* R16.6. A church writes on Tuesday evening for Friday morning. */}
         <div className="flex flex-wrap items-end gap-3">
