@@ -538,7 +538,8 @@ export async function listWithdrawn(db: Tx): Promise<Withdrawn[]> {
       memberId: contactConsent.memberId,
       withdrawnAt: contactConsent.withdrawnAt,
       name: sql<string | null>`(
-        select m.display_name from members m where m.id = ${contactConsent.memberId}
+        select coalesce(m.preferred_name, m.first_name) || ' ' || m.last_name
+        from members m where m.id = ${contactConsent.memberId}
       )`,
       held: sql<string | null>`(
         select cm.value from contact_methods cm
