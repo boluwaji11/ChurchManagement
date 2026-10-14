@@ -6,6 +6,13 @@ import { Button, Field, IconButton, Input, Textarea, Working } from "@connectapp
 import { t } from "@connectapp/i18n";
 import { email as validateEmail } from "@/lib/validate";
 
+/*
+ * R24.6. A field's label row is sized for a screen with room around it. This
+ * form stands in a panel over the page, where every row it does not need is a
+ * row the Send button falls below.
+ */
+const TIGHT = "gap-1 [&>div:first-child]:min-h-0";
+
 export function SupportMessage() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -106,8 +113,8 @@ export function SupportMessage() {
           </header>
           {/* R24.6. Tight, because the whole form has to stand in a panel over the
               page without the send button falling off the bottom of it. */}
-          <form noValidate onSubmit={sendMessage} className="flex flex-col gap-2.5">
-            <Field label={t("site.support.name")}>
+          <form noValidate onSubmit={sendMessage} className="flex flex-col gap-2">
+            <Field label={t("site.support.name")} className={TIGHT}>
               <Input
                 autoComplete="name"
                 value={name}
@@ -119,7 +126,7 @@ export function SupportMessage() {
                 }}
               />
             </Field>
-            <Field label={t("site.support.church")}>
+            <Field label={t("site.support.church")} className={TIGHT}>
               <Input
                 autoComplete="organization"
                 value={churchName}
@@ -131,7 +138,7 @@ export function SupportMessage() {
                 }}
               />
             </Field>
-            <Field label={t("site.support.email")} error={emailError} required>
+            <Field label={t("site.support.email")} error={emailError} required className={TIGHT}>
               <Input
                 ref={emailInput}
                 type="email"
@@ -146,9 +153,9 @@ export function SupportMessage() {
                 }}
               />
             </Field>
-            <Field label={t("site.support.message")} required>
+            <Field label={t("site.support.message")} required className={TIGHT}>
               <Textarea
-                rows={3}
+                rows={6}
                 value={message}
                 maxLength={5000}
                 disabled={sending}

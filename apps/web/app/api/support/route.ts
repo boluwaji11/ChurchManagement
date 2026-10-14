@@ -115,26 +115,43 @@ export async function POST(request: Request) {
     !!fromEmail && !validateEmail(fromEmail) &&
     (!!resendKey || (!!smtpUser && !!smtpPassword && !validateEmail(smtpUser)));
 
-  if (!redisUrl || !redisToken || !canSend) {
-    console.error("[support] Rate limiting or a way to send is not configured");
+  if (!canSend) {
+    console.error("[support] No way to send is configured");
     return errorResponse("service_unavailable", 503);
   }
 
-  const ip = clientIp(request);
-  if (!ip) return errorResponse("client_address_unavailable", 503);
+  /*
+   * R21.x. This address takes a message from anybody, so it is rate limited.
+   *
+   * Deployed, that is not optional: an open form with no limiter is a way to
+   * send mail through us. On a laptop there is no Redis and nobody to abuse
+   * it, and refusing to run there means the form can never be tested at all.
+   */
+  const deployed = !!process.env["VERCEL"];
+  const limited = !!redisUrl && !!redisToken;
 
-  try {
-    const limiter = new Ratelimit({
-      redis: new Redis({ url: redisUrl, token: redisToken }),
-      limiter: Ratelimit.slidingWindow(3, "10 m"),
-      prefix: "connectapp:support",
-    });
-    const identifier = createHash("sha256").update(ip).digest("hex");
-    const limit = await limiter.limit(identifier);
-    if (!limit.success) return errorResponse("rate_limited", 429);
-  } catch (error) {
-    console.error("[support] Rate limiting could not be applied", error);
+  if (deployed && !limited) {
+    console.error("[support] Rate limiting is not configured");
     return errorResponse("service_unavailable", 503);
+  }
+
+  if (limited) {
+    const ip = clientIp(request);
+    if (!ip) return errorResponse("client_address_unavailable", 503);
+
+    try {
+      const limiter = new Ratelimit({
+        redis: new Redis({ url: redisUrl, token: redisToken }),
+        limiter: Ratelimit.slidingWindow(3, "10 m"),
+        prefix: "connectapp:support",
+      });
+      const identifier = createHash("sha256").update(ip).digest("hex");
+      const limit = await limiter.limit(identifier);
+      if (!limit.success) return errorResponse("rate_limited", 429);
+    } catch (error) {
+      console.error("[support] Rate limiting could not be applied", error);
+      return errorResponse("service_unavailable", 503);
+    }
   }
 
   const body = [
