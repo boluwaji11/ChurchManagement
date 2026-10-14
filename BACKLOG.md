@@ -1084,6 +1084,7 @@ old state until each is picked up.
 | HRT-290 | A church sends one message to itself, through whatever it connected | R16.1, R21.15 | Resolved |
 | HRT-139 | The composer: write one message and send it to everyone, a list or a group | R16.4, R16.6 | Resolved |
 | HRT-291 | Email templates a church writes once, kept in settings beside the service templates | R16.4 | New |
+| HRT-341 | Message from the selection: the directory's Message opens the composer with those people in it | R16.4, R2.14 | New |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
 | HRT-141 | The send queue | R16.6 | **Removed, deferred** |
 | HRT-142 | Bounces and retries | R16.7 | **Removed, deferred** |
@@ -1871,6 +1872,15 @@ Not built. A church writes a message it sends every year, such as the carol serv
 the giving statement cover, once rather than every time. They belong in settings beside the service
 templates, which is where a church already looks for a thing it set up once, and the composer picks
 one up as a starting point rather than as a link it cannot edit.
+
+### HRT-341, how to test it
+
+Not built. Tick people in the directory and the bar offers Message, which today opens a dialog whose
+Send is dark and does nothing: it was drawn while messaging was deferred and never wired. The
+composer is the real sender, so pressing Message should open it with those people already chosen as
+recipients, each one a chip that can be taken off, and the Text tab should stay out of it until
+HRT-286 settles. Somebody in the selection with no email address drops out, and the count says who
+is left.
 
 ### HRT-285, how to test it
 
