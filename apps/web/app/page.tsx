@@ -21,7 +21,7 @@ import {
 import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { SiteFooter, SiteHeader, START } from "@/components/site/chrome";
-import { CheckinLabels, GiveCard } from "@/components/site/mocks";
+import { CheckinLabels } from "@/components/site/mocks";
 import { Art, InlineArt, type Piece } from "@/components/site/art";
 import {
   BrowserFrame,
@@ -264,29 +264,6 @@ export default async function Site() {
           </div>
         </section>
 
-        {/* Three screens, side by side: the week ahead, what came in, and what
-            it all added up to. One block rather than three sections, because
-            the claim is that they are one product. */}
-        <section className="border-t border-line">
-          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-6 py-16">
-            <div className="flex max-w-[640px] flex-col gap-3">
-              <SectionTitle>{t("site.week.title")}</SectionTitle>
-              <p className="m-0 text-[18px] text-fg-muted">{t("site.week.sub")}</p>
-            </div>
-            <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))]">
-              <BrowserFrame>
-                <Shot src="/marketing/services.png" />
-              </BrowserFrame>
-              <BrowserFrame>
-                <Shot src="/marketing/giving.png" />
-              </BrowserFrame>
-              <BrowserFrame>
-                <Shot src="/marketing/reports.png" />
-              </BrowserFrame>
-            </div>
-          </div>
-        </section>
-
         {/* People, on the left, with the office screen beside it. */}
         <section id="members" className="border-t border-line">
           <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-12 px-6 py-16">
@@ -336,8 +313,10 @@ export default async function Site() {
         {/* Giving, with the form a member actually sees. */}
         <section id="giving" className="border-t border-line">
           <div className="mx-auto flex w-full max-w-[1200px] flex-row-reverse flex-wrap items-center gap-12 px-6 py-16">
-            <div className="flex min-w-0 flex-[1.4_1_440px] justify-center rounded-[20px] bg-sunken px-6 py-12">
-              <GiveCard />
+            <div className="min-w-0 flex-[1.4_1_440px]">
+              <BrowserFrame>
+                <Shot src="/marketing/giving.png" />
+              </BrowserFrame>
             </div>
             <div className="flex flex-[1_1_360px] flex-col gap-5">
               <Eyebrow>{t("site.giving.eyebrow")}</Eyebrow>

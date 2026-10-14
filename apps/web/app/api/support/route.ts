@@ -4,6 +4,10 @@ import nodemailer from "nodemailer";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { email as validateEmail } from "@/lib/validate";
+import { sendByResend } from "@/lib/email-provider";
+
+/** R22.1. Where a church writing to us is answered. */
+const SUPPORT = "support@connectapp.church";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -94,19 +98,25 @@ export async function POST(request: Request) {
 
   const redisUrl = process.env["UPSTASH_REDIS_REST_URL"];
   const redisToken = process.env["UPSTASH_REDIS_REST_TOKEN"];
+
+  /*
+   * R22.1. Two ways out, and the platform's own account leads.
+   *
+   * Resend is what the rest of the platform sends through, and it is one key
+   * rather than a mailbox with an app password. The support mailbox's own SMTP
+   * stays as the fallback, so a deployment holding either one can answer.
+   */
+  const resendKey = process.env["RESEND_API_KEY"];
   const smtpUser = process.env["SUPPORT_SMTP_USER"];
   const smtpPassword = process.env["SUPPORT_SMTP_APP_PASSWORD"];
-  const fromEmail = process.env["SUPPORT_FROM_EMAIL"];
-  if (
-    !redisUrl ||
-    !redisToken ||
-    !smtpUser ||
-    !smtpPassword ||
-    !fromEmail ||
-    validateEmail(smtpUser) ||
-    validateEmail(fromEmail)
-  ) {
-    console.error("[support] Redis rate-limit or SMTP configuration is missing");
+  const fromEmail = process.env["PLATFORM_FROM_EMAIL"] ?? process.env["SUPPORT_FROM_EMAIL"];
+
+  const canSend =
+    !!fromEmail && !validateEmail(fromEmail) &&
+    (!!resendKey || (!!smtpUser && !!smtpPassword && !validateEmail(smtpUser)));
+
+  if (!redisUrl || !redisToken || !canSend) {
+    console.error("[support] Rate limiting or a way to send is not configured");
     return errorResponse("service_unavailable", 503);
   }
 
@@ -127,33 +137,51 @@ export async function POST(request: Request) {
     return errorResponse("service_unavailable", 503);
   }
 
-  try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 20_000,
-      auth: { user: smtpUser, pass: smtpPassword },
-    });
-    await transporter.sendMail({
-      from: `ConnectApp Support <${fromEmail}>`,
-      to: "support@connectapp.church",
-      replyTo: senderEmail,
-      subject: "ConnectApp support",
-      text: [
-        ...(senderName ? [`Name: ${senderName}`] : []),
-        ...(churchName ? [`Church: ${churchName}`] : []),
-        `Reply to: ${senderEmail}`,
-        "",
-        message,
-      ].join("\n"),
-    });
-  } catch (error) {
-    console.error("[support] Email delivery failed", error);
-    return errorResponse("delivery_failed", 502);
+  const body = [
+    ...(senderName ? [`Name: ${senderName}`] : []),
+    ...(churchName ? [`Church: ${churchName}`] : []),
+    `Reply to: ${senderEmail}`,
+    "",
+    message,
+  ].join("\n");
+
+  const sent = resendKey
+    ? await sendByResend(resendKey, {
+        from: `ConnectApp Support <${fromEmail}>`,
+        to: SUPPORT,
+        subject: "ConnectApp support",
+        text: body,
+        replyTo: senderEmail,
+      })
+    : { ok: false as const, said: "no key" };
+
+  if (!sent.ok) {
+    if (resendKey) console.error("[support] Resend refused the message", sent.said);
+
+    if (!smtpUser || !smtpPassword) return errorResponse("delivery_failed", 502);
+
+    try {
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        requireTLS: true,
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 20_000,
+        auth: { user: smtpUser, pass: smtpPassword },
+      });
+      await transporter.sendMail({
+        from: `ConnectApp Support <${fromEmail}>`,
+        to: SUPPORT,
+        replyTo: senderEmail,
+        subject: "ConnectApp support",
+        text: body,
+      });
+    } catch (error) {
+      console.error("[support] Email delivery failed", error);
+      return errorResponse("delivery_failed", 502);
+    }
   }
 
   return Response.json({ sent: true });
