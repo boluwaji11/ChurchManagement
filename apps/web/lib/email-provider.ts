@@ -274,6 +274,13 @@ export interface Message {
   to: string;
   subject: string;
   text: string;
+  /**
+   * R16.4. The same message marked up, where there is one.
+   *
+   * A reader gets whichever their mail program prefers, and the plain copy
+   * exists so the one that prefers text is not handed a page of tags.
+   */
+  html?: string;
 }
 
 /** The address a provider wants: the name, then the address in angle brackets. */
@@ -301,6 +308,7 @@ export async function sendBySmtp(
       to: message.to,
       subject: message.subject,
       text: message.text,
+      ...(message.html ? { html: message.html } : {}),
     });
     return { ok: true };
   } catch (error) {
@@ -319,6 +327,7 @@ export async function sendByResend(accessToken: string, message: Message): Promi
       to: [message.to],
       subject: message.subject,
       text: message.text,
+      ...(message.html ? { html: message.html } : {}),
     },
   });
   return answer.ok ? { ok: true } : { ok: false, said: answer.said };
