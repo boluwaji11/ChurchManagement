@@ -194,6 +194,27 @@ async function token(
 }
 
 /**
+ * HRT-290, R16.1. A fresh access token, and the new refresh token that came with it.
+ *
+ * The access token lasts fifteen minutes, so nothing is stored: it is asked
+ * for at the moment of sending. The refresh token that comes back is new every
+ * time, and the old one is spent, so the caller writes it down before it does
+ * anything else.
+ */
+export async function refreshTokens(
+  clientId: string,
+  refreshToken: string,
+): Promise<{ ok: true; tokens: Tokens } | { ok: false; said: string }> {
+  return token(
+    new URLSearchParams({
+      grant_type: "refresh_token",
+      client_id: clientId,
+      refresh_token: refreshToken,
+    }),
+  );
+}
+
+/**
  * R16.1, R21.15. Handing the grant back when a church disconnects.
  *
  * Forgetting our copy is not the same as the church being free of us. The

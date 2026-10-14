@@ -129,6 +129,7 @@ export default async function EmailPage({
           name: read.profile?.name ?? "",
           email: read.profile?.email ?? "",
         }}
+        signedInAs={session.email}
         registrar={found?.registrar ?? null}
         console_={consoleFor(found?.registrar)}
         steps={stepsFor(found?.registrar)}

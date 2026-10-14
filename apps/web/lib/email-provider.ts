@@ -267,3 +267,59 @@ export async function recordsPublished(
     }),
   );
 }
+
+/** HRT-290, R16.1. One message, as the church. */
+export interface Message {
+  from: string;
+  to: string;
+  subject: string;
+  text: string;
+}
+
+/** The address a provider wants: the name, then the address in angle brackets. */
+export const sender = (name: string | null, address: string): string =>
+  name?.trim() ? `${name.trim()} <${address}>` : address;
+
+/** R16.1. Sending through a church's own mail server. */
+export async function sendBySmtp(
+  settings: SmtpSettings & { password: string },
+  message: Message,
+): Promise<Proof> {
+  const transport = nodemailer.createTransport({
+    host: settings.host,
+    port: settings.port,
+    secure: settings.secure,
+    auth: { user: settings.username, pass: settings.password },
+    connectionTimeout: PATIENCE,
+    greetingTimeout: PATIENCE,
+    socketTimeout: PATIENCE,
+  });
+
+  try {
+    await transport.sendMail({
+      from: message.from,
+      to: message.to,
+      subject: message.subject,
+      text: message.text,
+    });
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, said: said(error) };
+  } finally {
+    transport.close();
+  }
+}
+
+/** R16.1. Sending through the church's own Resend account. */
+export async function sendByResend(accessToken: string, message: Message): Promise<Proof> {
+  const answer = await resend(accessToken, "/emails", {
+    method: "POST",
+    body: {
+      from: message.from,
+      to: [message.to],
+      subject: message.subject,
+      text: message.text,
+    },
+  });
+  return answer.ok ? { ok: true } : { ok: false, said: answer.said };
+}
