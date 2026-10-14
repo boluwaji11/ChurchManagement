@@ -2,7 +2,7 @@ import { withdrawByToken } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { publicTab } from "@/lib/page-metadata";
 import { supabaseServer } from "@/lib/supabase/server";
-import { WayBack } from "./way-out";
+import { WayOut } from "./way-out";
 
 export const dynamic = "force-dynamic";
 
@@ -61,20 +61,11 @@ export default async function WayOutPage({
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-2">
-          <h1 className="m-0 font-display text-[24px] leading-8 text-fg">
-            {gone ? t("wayOut.title") : t("wayOut.gone")}
-          </h1>
-          {gone ? (
-            <p className="m-0 text-fg-muted">
-              {gone.address
-                ? t("wayOut.body", { address: gone.address, church: gone.churchName })
-                : t("wayOut.bodyPlain", { church: gone.churchName })}
-            </p>
-          ) : null}
-        </div>
-
-        {gone ? <WayBack token={token} church={gone.churchName} /> : null}
+        {gone ? (
+          <WayOut token={token} church={gone.churchName} address={gone.address} />
+        ) : (
+          <h1 className="m-0 font-display text-[24px] leading-8 text-fg">{t("wayOut.gone")}</h1>
+        )}
       </div>
     </main>
   );
