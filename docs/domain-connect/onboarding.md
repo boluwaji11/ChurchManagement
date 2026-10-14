@@ -8,15 +8,16 @@ domainconnect.org/dns-providers says it in one line: DNS providers "use these te
 contact the Service Providers to onboard them". There is no automatic pull, no queue we are in, and
 no schedule anybody publishes.
 
-## What the daily check says
+## Where each company stood, 14 October 2026
 
-`/api/domain-connect/check` asks all seven every morning and emails the answer. On 14 October 2026:
+Asked by hand. The daily check that did this was taken out once the emails went: it answered the
+same question every morning and the answer only changes when a company acts on one of them.
 
 | Company | Answer | What it means |
 |---|---|---|
 | IONOS | Answers for the standard's example, 404 for ours | Implements it, has not loaded us |
 | GoDaddy | The same | The same |
-| Domain Chief | The same | The same |
+| Domain Chief | The same | Imports daily and skipped ours, see below |
 | Glauca Digital | The same | The same |
 | Cloudflare | 404 for everything, the example included | Does not serve the template question |
 | Vercel | The same | The same |
@@ -39,6 +40,16 @@ fewer churches than the nine-company list suggests. It costs us nothing either w
 each church's domain before it offers anything, so a church at a company that has not loaded us sees
 the three settings and the right page to type them into.
 
+## Domain Chief is different
+
+It asks nobody for anything: its importer reads the public repository every day and loads what it
+can. Ours is still a 404 there, which by their own documentation means the importer skipped it, for
+a record or a template option they do not support. `txtConflictMatchingMode` on the DKIM record is
+the likeliest.
+
+Their page says to write to `domainconnect@chief.app` when a published template is not recognised.
+https://docs.chief.tools/developers/domainchief/guides/domain-connect
+
 ## The emails to send
 
 One a company, from `hello@connectapp.church`. Short, names the template, says what it does, offers
@@ -54,12 +65,18 @@ whatever they need next.
 | Vercel | domainconnect@vercel.com |
 | WordPress.com | registrar@automattic.com |
 | Glauca Digital | hello@glauca.digital |
-| Domain Chief | https://aka.chief.app/domainconnect |
+| Domain Chief | domainconnect@chief.app |
 
 The wording to send is in [outreach.md](outreach.md).
+
+**Sent, 14 October 2026.**
 
 ## What happens when one of them says yes
 
 Nothing here changes. The screen asks the domain, that company now answers that it holds
-`connectapp.church/email`, and the church sees one press instead of three settings. The daily email
-is how we find out.
+`connectapp.church/email`, and the church sees one press instead of three settings. Asking by hand
+is one line:
+
+```
+curl -s https://api.domainconnect.ionos.com/v2/domainTemplates/providers/connectapp.church/services/email
+```

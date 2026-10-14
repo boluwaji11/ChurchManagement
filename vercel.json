@@ -1,10 +1,6 @@
 {
   "crons": [
     {
-      "path": "/api/domain-connect/check",
-      "schedule": "0 13 * * *"
-    },
-    {
       "path": "/api/email/drain",
       "schedule": "* * * * *"
     }
