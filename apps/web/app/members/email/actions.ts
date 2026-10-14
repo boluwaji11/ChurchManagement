@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import {
   withTenant,
   emailRecipientsFor, findEmailRecipients, wayOutFor, startSend,
-  emailProvider, readSend, restoreConsent,
+  emailProvider, readSend, restoreConsent, cancelSend,
   listSends, listWithdrawn, countAllWithdrawn,
   type Audience,
 } from "@connectapp/db";
@@ -113,6 +113,23 @@ export async function putBack(id: string): Promise<boolean> {
     await withTenant(ctx, (tx) => restoreConsent(tx, actor, id));
     revalidatePath("/members/email");
     return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * R16.6. Calling off a send that has not gone.
+ *
+ * Only what is still waiting stops. Anything the provider already took is on
+ * its way and nothing here can reach it.
+ */
+export async function callOffSend(id: string): Promise<boolean> {
+  const { ctx, actor } = await context();
+  try {
+    const stopped = await withTenant(ctx, (tx) => cancelSend(tx, actor, id));
+    revalidatePath("/members/email");
+    return stopped;
   } catch {
     return false;
   }

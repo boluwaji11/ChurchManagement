@@ -654,3 +654,50 @@ export async function restoreConsent(db: Tx, actor: WriteActor, id: string): Pro
     .set({ state: "unknown", withdrawnAt: null, updatedAt: new Date() })
     .where(eq(contactConsent.id, id));
 }
+
+/**
+ * HRT-141, R16.6. Calling off a send that has not gone.
+ *
+ * A church schedules the carol service invitation for Friday and on Thursday
+ * the service moves. Without this the only way out is to let four hundred
+ * wrong messages go and send an apology after them.
+ *
+ * Only what is still waiting is called off. A copy already handed to the
+ * provider is gone and saying otherwise would be a lie on the screen.
+ */
+export async function cancelSend(db: Tx, actor: WriteActor, id: string): Promise<boolean> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  const [row] = await db
+    .select({ state: emailSends.state })
+    .from(emailSends)
+    .where(eq(emailSends.id, id))
+    .limit(1);
+
+  if (!row || (row.state !== "queued" && row.state !== "sending")) return false;
+
+  await db
+    .update(emailRecipients)
+    .set({ state: "cancelled" })
+    .where(and(eq(emailRecipients.sendId, id), eq(emailRecipients.state, "queued")));
+
+  const [tally] = await db
+    .select({
+      delivered: sql<number>`count(*) filter (where ${emailRecipients.state} = 'sent')::int`,
+      failed: sql<number>`count(*) filter (where ${emailRecipients.state} = 'failed')::int`,
+    })
+    .from(emailRecipients)
+    .where(eq(emailRecipients.sendId, id));
+
+  await db
+    .update(emailSends)
+    .set({
+      state: "cancelled",
+      delivered: tally?.delivered ?? 0,
+      failed: tally?.failed ?? 0,
+      updatedAt: new Date(),
+    })
+    .where(eq(emailSends.id, id));
+
+  return true;
+}
