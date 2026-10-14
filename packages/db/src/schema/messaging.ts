@@ -163,7 +163,15 @@ export const contactConsent = pgTable(
   {
     id: pk(),
     tenantId: tenantId(),
-    memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+    /**
+     * R16.8. Null for somebody a church writes to who is not on its list: a
+     * roofer, a county office, a visiting speaker. They may ask to be left
+     * alone too, and a message with no way out is one this product will not
+     * send, so the address below stands in for the person.
+     */
+    memberId: uuid("member_id").references(() => members.id, { onDelete: "cascade" }),
+    /** The address, where there is no member behind it. */
+    address: text("address"),
     /** "email" or "sms". */
     channel: text("channel").notNull(),
     /** "granted", "withdrawn" or "unknown". */

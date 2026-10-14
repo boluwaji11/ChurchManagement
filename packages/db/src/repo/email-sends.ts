@@ -22,7 +22,8 @@ import { listPeople, type WriteActor } from "./members";
 export type Audience = "everyone" | "list" | "group" | "people";
 
 export interface EmailRecipient {
-  memberId: string;
+  /** Null for an address typed in that belongs to nobody on the list. */
+  memberId: string | null;
   address: string;
   first: string;
   name: string;
@@ -40,7 +41,13 @@ export interface EmailRecipient {
  */
 export async function emailRecipientsFor(
   db: Tx,
-  input: { audience: Audience; audienceId?: string | null; memberIds?: readonly string[] },
+  input: {
+    audience: Audience;
+    audienceId?: string | null;
+    memberIds?: readonly string[];
+    /** R16.8. Addresses typed in, belonging to nobody on the list. */
+    addresses?: readonly string[];
+  },
 ): Promise<EmailRecipient[]> {
   /* Everybody this church keeps, read once. The audience narrows it rather
      than fetching a second time, so one rule decides who is reachable. */
@@ -73,21 +80,24 @@ export async function emailRecipientsFor(
     return null;
   })();
 
-  if (wanted !== null && wanted.size === 0) return [];
+  /* An audience of nobody is nobody, unless addresses were typed in: those
+     belong to no member and would otherwise be dropped before they are read. */
+  if (wanted !== null && wanted.size === 0 && (input.addresses ?? []).length === 0) return [];
 
   /* R16.8. Who has asked to be left alone, read once rather than a query a
      person. Anything other than withdrawn may be written to: a church mailing
      its own congregation is not cold outreach, and silence is not a refusal. */
-  const refused = new Set(
-    (
-      await db
-        .select({ memberId: contactConsent.memberId })
-        .from(contactConsent)
-        .where(and(eq(contactConsent.channel, "email"), eq(contactConsent.state, "withdrawn")))
-    ).map((one) => one.memberId),
+  const out = await db
+    .select({ memberId: contactConsent.memberId, address: contactConsent.address })
+    .from(contactConsent)
+    .where(and(eq(contactConsent.channel, "email"), eq(contactConsent.state, "withdrawn")));
+
+  const refused = new Set(out.map((one) => one.memberId).filter(Boolean));
+  const refusedAddresses = new Set(
+    out.map((one) => one.address?.trim().toLowerCase()).filter(Boolean),
   );
 
-  const out: EmailRecipient[] = [];
+  const found: EmailRecipient[] = [];
   for (const row of people) {
     if (wanted !== null && !wanted.has(row.id)) continue;
     if (row.archivedAt !== null) continue;
@@ -96,7 +106,9 @@ export async function emailRecipientsFor(
     if (!address) continue;
     if (refused.has(row.id)) continue;
 
-    out.push({
+    if (refusedAddresses.has(address.toLowerCase())) continue;
+
+    found.push({
       memberId: row.id,
       address,
       first: row.preferredName?.trim() || row.firstName,
@@ -104,7 +116,18 @@ export async function emailRecipientsFor(
       token: "",
     });
   }
-  return out;
+
+  /* R16.8. Addresses typed in rather than chosen. Nobody on the list has
+     them, so there is no name to greet them by: the mark falls back to the
+     address, which is what a church would have written anyway. */
+  const already = new Set(found.map((one) => one.address.toLowerCase()));
+  for (const raw of input.addresses ?? []) {
+    const address = raw.trim().toLowerCase();
+    if (!address || already.has(address) || refusedAddresses.has(address)) continue;
+    already.add(address);
+    found.push({ memberId: null, address, first: address, name: address, token: "" });
+  }
+  return found;
 }
 
 /**
@@ -152,12 +175,16 @@ export async function findEmailRecipients(
 export async function wayOutFor(
   db: Tx,
   actor: WriteActor,
-  memberId: string,
+  who: { memberId: string | null; address: string },
 ): Promise<string> {
+  const mine = who.memberId
+    ? eq(contactConsent.memberId, who.memberId)
+    : eq(contactConsent.address, who.address.trim().toLowerCase());
+
   const [held] = await db
     .select({ id: contactConsent.id, token: contactConsent.token })
     .from(contactConsent)
-    .where(and(eq(contactConsent.memberId, memberId), eq(contactConsent.channel, "email")))
+    .where(and(mine, eq(contactConsent.channel, "email")))
     .limit(1);
 
   if (held?.token) return held.token;
@@ -174,7 +201,8 @@ export async function wayOutFor(
 
   await db.insert(contactConsent).values({
     tenantId: actor.tenantId,
-    memberId,
+    memberId: who.memberId,
+    address: who.memberId ? null : who.address.trim().toLowerCase(),
     channel: "email",
     state: "unknown",
     token,
@@ -269,7 +297,7 @@ export async function recordDelivery(
   actor: WriteActor,
   input: {
     sendId: string;
-    memberId: string;
+    memberId: string | null;
     address: string;
     ok: boolean;
     said: string | null;
