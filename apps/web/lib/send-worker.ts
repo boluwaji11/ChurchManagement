@@ -1,6 +1,6 @@
 import "server-only";
 import {
-  dueSends, claimBatch, settle, noteRef, closeIfDone, accountFor, rotateCredentialAsOwner,
+  dueSends, claimBatch, settle, noteRef, closeIfDone, accountFor, storeTokens,
   awaitingVerdict, recordVerdict,
   type DueSend, type Waiting,
 } from "@connectapp/db";
@@ -111,14 +111,28 @@ async function readyAccount(send: DueSend) {
     };
   }
 
-  const clientId = resendClientId();
-  if (!clientId) return null;
+  /* R16.1. The token this church already has, while it still has minutes on
+     it. Refreshing on every pass is a rotation a minute, and two passes
+     overlapping on a spent refresh token is how Resend revokes a grant. */
+  let token = held.access;
 
-  const fresh = await refreshTokens(clientId, held.credential);
-  if (!fresh.ok) return null;
+  if (!token) {
+    const clientId = resendClientId();
+    if (!clientId) return null;
 
-  await rotateCredentialAsOwner(send.tenantId, fresh.tokens.refreshToken);
-  const token = fresh.tokens.accessToken;
+    const fresh = await refreshTokens(clientId, held.credential);
+    if (!fresh.ok) {
+      console.error("[send] the account could not be refreshed", fresh.said);
+      return null;
+    }
+
+    await storeTokens(send.tenantId, {
+      refresh: fresh.tokens.refreshToken,
+      access: fresh.tokens.accessToken,
+      seconds: fresh.tokens.expiresIn,
+    });
+    token = fresh.tokens.accessToken;
+  }
 
   return {
     from,
@@ -180,7 +194,7 @@ export async function drain(passes = 8): Promise<{ attempted: number }> {
  * A bounce marks the address on the person's own record, so the office sees
  * it beside their name rather than wondering why they never hear back.
  */
-export async function checkVerdicts(limit = 60): Promise<{ asked: number }> {
+export async function checkVerdicts(limit = 60): Promise<{ looked: number; asked: number }> {
   const waiting = await awaitingVerdict(limit);
   let asked = 0;
 
@@ -216,5 +230,5 @@ export async function checkVerdicts(limit = 60): Promise<{ asked: number }> {
     await pause(PACE);
   }
 
-  return { asked };
+  return { looked: waiting.length, asked };
 }

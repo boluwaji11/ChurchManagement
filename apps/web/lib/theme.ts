@@ -5,18 +5,19 @@ import type { Theme } from "@/app/settings/theme-actions";
 /**
  * The addresses that are ConnectApp's own rather than a church's.
  *
- * The website and the way in. Everything else is a church at work, including
- * a church's own public pages, which stay as their visitors' devices ask.
+ * The website and the way in. These follow the visitor's own device.
+ * Everything else is a church at work, which opens light.
  */
 const OURS = ["/", "/trust", "/sign-in", "/sign-up", "/reset"];
 
 /**
  * R24.x. Which palette a surface opens in.
  *
- * Two surfaces with two different defaults. ConnectApp's own website opens
- * dark, because that is how the product presents itself. The platform opens
- * light, because that is what a church office is lit like and what a volunteer
- * expects of a working screen.
+ * Two surfaces with two different defaults. ConnectApp's own website takes
+ * whatever the device is set to, because somebody meeting the product for the
+ * first time has already told their computer how they like to read. The
+ * platform opens light, because that is what a church office is lit like and
+ * what a volunteer expects of a working screen.
  *
  * A choice beats both. "Match my device" is written down rather than removing
  * the cookie, so somebody who has asked for the device is told apart from
@@ -32,16 +33,17 @@ async function held(): Promise<string | undefined> {
 
 const settled = (
   value: string | undefined,
-  fallback: "light" | "dark",
+  fallback: Theme,
 ): { chosen: Theme; attr: "light" | "dark" | undefined } => {
   if (value === "light" || value === "dark") return { chosen: value, attr: value };
   if (value === "system") return { chosen: "system", attr: undefined };
+  if (fallback === "system") return { chosen: "system", attr: undefined };
   return { chosen: fallback, attr: fallback };
 };
 
 /** ConnectApp's own pages: the website, and the way in. */
 export async function siteTheme() {
-  return settled(await held(), "dark");
+  return settled(await held(), "system");
 }
 
 /** Everything a church works in. */
@@ -60,7 +62,7 @@ export async function appTheme() {
 export async function documentTheme() {
   const path = (await headers()).get("x-pathname") ?? "";
   const ours = OURS.includes(path);
-  return settled(await held(), ours ? "dark" : "light");
+  return settled(await held(), ours ? "system" : "light");
 }
 
 /**

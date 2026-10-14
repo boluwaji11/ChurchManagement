@@ -54,6 +54,9 @@ export const churchProviders = pgTable(
     credential: text("credential"),
     /** Which key sealed it, so a key rotates without the secret being read. */
     credentialKeyId: text("credential_key_id"),
+    /** R16.1. The short-lived token, sealed, kept for the minutes it lasts. */
+    accessToken: text("access_token"),
+    accessExpires: timestamp("access_expires", { withTimezone: true }),
     /**
      * R16.1. The name and address mail goes out as.
      *
