@@ -364,8 +364,11 @@ export function Composer({
         <Field label={t("send.who")}>
           <Combobox
             options={[
-              { value: EVERYONE, label: t("send.who.everyone") },
+              /* R16.4. Choosing people leads, because the audience somebody
+                 has in mind is nearly always a few of them, and everyone is
+                 the one that cannot be taken back. */
               { value: PEOPLE, label: t("send.who.people") },
+              { value: EVERYONE, label: t("send.who.everyone") },
               ...lists.map((one) => ({
                 value: `list:${one.id}`,
                 label: t("send.who.list", { name: one.name }),
@@ -408,13 +411,17 @@ export function Composer({
               </ul>
             ) : null}
 
-            <Input
-              value={typed}
-              onChange={(e) => setTyped(e.currentTarget.value)}
-              placeholder={t("send.find")}
-              autoComplete="off"
-              aria-label={t("send.find")}
-            />
+            {/* R24.6. The asterisk is a contract: nothing goes until somebody
+                is in the list, and Send stays dark until one is. */}
+            <Field label={t("send.who.people")} required>
+              <Input
+                value={typed}
+                onChange={(e) => setTyped(e.currentTarget.value)}
+                placeholder={t("send.find")}
+                autoComplete="off"
+                aria-label={t("send.find")}
+              />
+            </Field>
 
             {typed.trim() ? (
               <ul className="m-0 flex max-h-56 list-none flex-col overflow-auto rounded-[12px] border border-line p-0">
