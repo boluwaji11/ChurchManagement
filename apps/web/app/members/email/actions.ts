@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
   withTenant,
-  emailRecipientsFor, wayOutFor, startSend, recordDelivery, finishSend,
+  emailRecipientsFor, findEmailRecipients, wayOutFor, startSend, recordDelivery, finishSend,
   emailCredentialForSend, rotateEmailCredential,
   type Audience,
 } from "@connectapp/db";
@@ -73,10 +73,23 @@ export interface Reach {
 export async function countAudience(
   audience: Audience,
   audienceId: string | null,
+  memberIds: string[] = [],
 ): Promise<Reach> {
   const { ctx } = await context();
-  const people = await withTenant(ctx, (tx) => emailRecipientsFor(tx, { audience, audienceId }));
+  const people = await withTenant(ctx, (tx) =>
+    emailRecipientsFor(tx, { audience, audienceId, memberIds }),
+  );
   return { count: people.length, sample: people.slice(0, 3).map((one) => one.address) };
+}
+
+/** R16.4. People matching what the writer typed, for choosing them one by one. */
+export async function findRecipients(query: string) {
+  const { ctx } = await context();
+  try {
+    return await withTenant(ctx, (tx) => findEmailRecipients(tx, query));
+  } catch {
+    return [];
+  }
 }
 
 export async function sendEmail(data: FormData): Promise<SendResult> {
@@ -90,13 +103,14 @@ export async function sendEmail(data: FormData): Promise<SendResult> {
   const audience = (field(data, "audience") || "everyone") as Audience;
   const audienceId = field(data, "audienceId") || null;
   const audienceName = field(data, "audienceName") || null;
+  const memberIds = field(data, "memberIds").split(",").filter(Boolean);
 
   try {
     const held = await withTenant(ctx, (tx) => emailCredentialForSend(tx, actor));
     if (!held?.fromAddress) return { error: t("email.test.notConnected") };
 
     const people = await withTenant(ctx, async (tx) => {
-      const found = await emailRecipientsFor(tx, { audience, audienceId });
+      const found = await emailRecipientsFor(tx, { audience, audienceId, memberIds });
       /* R16.8. Each person's own way out, minted once and kept, so a link in
          a message sent last year still works. */
       for (const one of found) one.token = await wayOutFor(tx, actor, one.memberId);

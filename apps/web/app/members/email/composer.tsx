@@ -2,15 +2,15 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Send } from "lucide-react";
+import { Send, X } from "lucide-react";
 import {
-  Banner, Button, Card, Combobox, Field, Input, Working,
+  Banner, Button, Card, Combobox, Field, IconButton, Input, Working,
   Dialog, DialogContent, DialogFooter,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { RichText } from "@/components/rich-text";
 import { when } from "@/lib/when";
-import { countAudience, sendEmail, type SendResult } from "./actions";
+import { countAudience, findRecipients, sendEmail, type SendResult } from "./actions";
 
 export interface Named {
   id: string;
@@ -26,6 +26,13 @@ export interface Sent {
 }
 
 const EVERYONE = "everyone";
+const PEOPLE = "people";
+
+interface Chosen {
+  id: string;
+  name: string;
+  address: string;
+}
 
 /**
  * HRT-139, R16.4. Writing one message and sending it.
@@ -47,7 +54,14 @@ export function Composer({
   withdrawn: number;
 }) {
   const router = useRouter();
+  /* R24.6. Writing one and reading what went are two jobs, so they are two
+     tabs rather than one screen a church scrolls through. */
+  const [doing, setDoing] = React.useState<"write" | "sent">("write");
   const [who, setWho] = React.useState(EVERYONE);
+  /* R16.4. The people picked one by one, when that is how they were picked. */
+  const [picked, setPicked] = React.useState<Chosen[]>([]);
+  const [typed, setTyped] = React.useState("");
+  const [hits, setHits] = React.useState<Chosen[]>([]);
   const [subject, setSubject] = React.useState("");
   const [body, setBody] = React.useState("");
   const [reach, setReach] = React.useState<{ count: number; sample: string[] } | null>(null);
@@ -58,6 +72,7 @@ export function Composer({
 
   const chosen = React.useMemo(() => {
     if (who === EVERYONE) return { audience: "everyone" as const, id: null, name: null };
+    if (who === PEOPLE) return { audience: "people" as const, id: null, name: null };
     const [kind, id] = who.split(":");
     const from = kind === "list" ? lists : groups;
     return {
@@ -76,13 +91,31 @@ export function Composer({
   React.useEffect(() => {
     let current = true;
     setReach(null);
-    void countAudience(chosen.audience, chosen.id).then((n) => {
+    void countAudience(chosen.audience, chosen.id, picked.map((one) => one.id)).then((n) => {
       if (current) setReach(n);
     });
     return () => {
       current = false;
     };
-  }, [chosen.audience, chosen.id]);
+  }, [chosen.audience, chosen.id, picked]);
+
+  /*
+   * R16.4. Names as they are typed, newest answer wins.
+   *
+   * An answer that arrives after a later one was asked for is dropped, so a
+   * slow lookup for "jo" cannot overwrite the list for "jonah".
+   */
+  const ticket = React.useRef(0);
+  React.useEffect(() => {
+    if (who !== PEOPLE) return;
+    const mine = ++ticket.current;
+    const timer = window.setTimeout(() => {
+      void findRecipients(typed).then((found) => {
+        if (mine === ticket.current) setHits(found);
+      });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [typed, who]);
 
   const full = subject.trim() !== "" && body.trim() !== "" && (reach?.count ?? 0) > 0;
 
@@ -98,6 +131,9 @@ export function Composer({
     data.set("audience", chosen.audience);
     if (chosen.id) data.set("audienceId", chosen.id);
     if (chosen.name) data.set("audienceName", chosen.name);
+    if (chosen.audience === "people") {
+      data.set("memberIds", picked.map((one) => one.id).join(","));
+    }
 
     const answer: SendResult = await sendEmail(data);
     setBusy(false);
@@ -114,6 +150,8 @@ export function Composer({
     );
     setSubject("");
     setBody("");
+    setPicked([]);
+    setDoing("sent");
     router.refresh();
   };
 
@@ -124,11 +162,37 @@ export function Composer({
       {error ? <Banner tone="danger">{error}</Banner> : null}
       {done ? <Banner tone="success">{done}</Banner> : null}
 
+      <div
+        role="tablist"
+        aria-label={t("send.title")}
+        className="flex w-fit gap-1 rounded-full border border-line bg-sunken p-1"
+      >
+        {([
+          { key: "write", label: t("send.tab.write") },
+          { key: "sent", label: t("send.tab.sent") },
+        ] as const).map((one) => (
+          <button
+            key={one.key}
+            type="button"
+            role="tab"
+            aria-selected={doing === one.key}
+            onClick={() => setDoing(one.key)}
+            className={`flex min-h-9 cursor-pointer items-center rounded-full px-4 text-[13px] font-medium ${
+              doing === one.key ? "bg-surface text-fg shadow-sm" : "text-fg-muted hover:text-fg"
+            }`}
+          >
+            {one.label}
+          </button>
+        ))}
+      </div>
+
+      {doing === "write" ? (
       <Card className="flex flex-col gap-4 p-5">
         <Field label={t("send.who")}>
           <Combobox
             options={[
               { value: EVERYONE, label: t("send.who.everyone") },
+              { value: PEOPLE, label: t("send.who.people") },
               ...lists.map((one) => ({
                 value: `list:${one.id}`,
                 label: t("send.who.list", { name: one.name }),
@@ -146,6 +210,64 @@ export function Composer({
             clearLabel={t("common.close")}
           />
         </Field>
+
+        {who === PEOPLE ? (
+          <div className="flex flex-col gap-2">
+            {picked.length > 0 ? (
+              <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
+                {picked.map((one) => (
+                  <li
+                    key={one.id}
+                    className="inline-flex items-center gap-1 rounded-full border border-line bg-sunken py-0.5 pl-3 pr-0.5 text-[13px] text-fg"
+                  >
+                    {one.name}
+                    <IconButton
+                      label={t("send.remove", { name: one.name })}
+                      variant="ghost"
+                      onClick={() => setPicked((was) => was.filter((x) => x.id !== one.id))}
+                    >
+                      <X />
+                    </IconButton>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <Input
+              value={typed}
+              onChange={(e) => setTyped(e.currentTarget.value)}
+              placeholder={t("send.find")}
+              autoComplete="off"
+              aria-label={t("send.find")}
+            />
+
+            {typed.trim() ? (
+              <ul className="m-0 flex max-h-56 list-none flex-col overflow-auto rounded-[12px] border border-line p-0">
+                {hits.filter((one) => !picked.some((x) => x.id === one.id)).length === 0 ? (
+                  <li className="px-3 py-2 text-fg-muted">{t("send.find.none")}</li>
+                ) : (
+                  hits
+                    .filter((one) => !picked.some((x) => x.id === one.id))
+                    .map((one) => (
+                      <li key={one.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPicked((was) => [...was, one]);
+                            setTyped("");
+                          }}
+                          className="flex w-full cursor-pointer items-baseline gap-2 px-3 py-2 text-left hover:bg-sunken"
+                        >
+                          <span className="font-medium text-fg">{one.name}</span>
+                          <span className="min-w-0 truncate text-fg-muted">{one.address}</span>
+                        </button>
+                      </li>
+                    ))
+                )}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
 
         <p className="m-0 text-fg-muted">
           {reach === null ? t("common.searching") : plural("send.reaches", reach.count)}
@@ -171,6 +293,29 @@ export function Composer({
           </Button>
         </div>
       </Card>
+      ) : (
+      <section className="flex flex-col gap-2">
+        {sent.length === 0 ? (
+          <p className="m-0 text-fg-muted">{t("send.history.none")}</p>
+        ) : (
+          <ul className="m-0 flex list-none flex-col divide-y divide-line rounded-[12px] border border-line p-0">
+            {sent.map((one) => (
+              <li key={one.id} className="flex flex-wrap items-baseline gap-x-3 px-4 py-2.5">
+                <span className="min-w-0 flex-1 truncate font-medium text-fg">{one.subject}</span>
+                <span className="text-fg-muted">
+                  {one.failed
+                    ? t("send.sentSome", { delivered: one.delivered, failed: one.failed })
+                    : t("send.sent", { count: one.delivered })}
+                </span>
+                {one.sentAt ? (
+                  <span className="text-caption text-fg-subtle">{when(one.sentAt)}</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      )}
 
       {/* R16.6. A send cannot be taken back, so it is confirmed, and the thing
           worth confirming is how many people it reaches. */}
@@ -198,28 +343,6 @@ export function Composer({
         </DialogContent>
       </Dialog>
 
-      <section className="flex flex-col gap-2">
-        <h3 className="m-0 font-display text-[17px] leading-6 text-fg">{t("send.history")}</h3>
-        {sent.length === 0 ? (
-          <p className="m-0 text-fg-muted">{t("send.history.none")}</p>
-        ) : (
-          <ul className="m-0 flex list-none flex-col divide-y divide-line rounded-[12px] border border-line p-0">
-            {sent.map((one) => (
-              <li key={one.id} className="flex flex-wrap items-baseline gap-x-3 px-4 py-2.5">
-                <span className="min-w-0 flex-1 truncate font-medium text-fg">{one.subject}</span>
-                <span className="text-fg-muted">
-                  {one.failed
-                    ? t("send.sentSome", { delivered: one.delivered, failed: one.failed })
-                    : t("send.sent", { count: one.delivered })}
-                </span>
-                {one.sentAt ? (
-                  <span className="text-caption text-fg-subtle">{when(one.sentAt)}</span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </div>
   );
 }
