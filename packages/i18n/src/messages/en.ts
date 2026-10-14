@@ -4671,7 +4671,7 @@ export const en = {
   "email.checkedAt": "Last checked {when}",
   "email.choose": "How will your church send email?",
   "email.stage.connect": "Connect Resend",
-  "email.stage.records": "Add three settings at your domain",
+  "email.stage.records": "Update your domain provider",
   "email.stage.done": "Ready to send",
   // HRT-289, R22.2. Where the records go, in each company's own menu words.
   "dns.steps.godaddy": "Sign in, open My Products, press DNS beside your domain, then Add New Record.",
