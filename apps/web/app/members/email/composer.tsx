@@ -567,7 +567,11 @@ export function Composer({
                         className="flex flex-wrap items-baseline gap-x-2 text-fg-muted"
                       >
                         <span className="min-w-0 flex-1 truncate">{one.address}</span>
-                        {one.state === "failed" ? (
+                        {one.state === "bounced" ? (
+                          <span className="text-caption text-danger-text">
+                            {t("contact.bounced")}
+                          </span>
+                        ) : one.state === "failed" ? (
                           <span className="text-caption text-danger">
                             {one.said ?? t("send.read.failed")}
                           </span>

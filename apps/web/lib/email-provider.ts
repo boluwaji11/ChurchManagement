@@ -15,7 +15,17 @@ import type { PlannedRecord, Resolver, SmtpSettings } from "@connectapp/db";
  */
 
 /** Whether the thing answered, and what it said if it did not. */
-export type Proof = { ok: true } | { ok: false; said: string };
+/**
+ * R16.1, R16.7. What a provider said about one attempt.
+ *
+ * `again` is the difference between a bad minute and a dead address: a rate
+ * limit or a provider's own fault comes round again, and a refusal naming the
+ * address does not. `ref` is what the provider called the message, which is
+ * how its later verdict is matched back to the person it was for.
+ */
+export type Proof =
+  | { ok: true; ref?: string | null }
+  | { ok: false; said: string; again?: boolean };
 
 const RESEND = "https://api.resend.com";
 
@@ -64,7 +74,7 @@ async function resend(
   key: string,
   path: string,
   init?: { method: string; body?: unknown },
-): Promise<{ ok: true; body: unknown } | { ok: false; said: string }> {
+): Promise<{ ok: true; body: unknown } | { ok: false; said: string; again?: boolean }> {
   try {
     const answer = await fetch(`${RESEND}${path}`, {
       method: init?.method ?? "GET",
@@ -86,9 +96,15 @@ async function resend(
       typeof body === "object" && body !== null && "message" in body
         ? String((body as { message: unknown }).message)
         : `${answer.status}`;
-    return { ok: false, said: message.slice(0, 300) };
+
+    /* R16.7. Too many at once, or the provider's own fault. Both come round
+       again; a refusal naming the address does not. */
+    const again = answer.status === 429 || answer.status >= 500;
+    return { ok: false, said: message.slice(0, 300), again };
   } catch (error) {
-    return { ok: false, said: said(error) };
+    /* A timeout or a connection that failed is nobody's verdict on the
+       address, so it is worth another go. */
+    return { ok: false, said: said(error), again: true };
   }
 }
 
@@ -330,5 +346,36 @@ export async function sendByResend(accessToken: string, message: Message): Promi
       ...(message.html ? { html: message.html } : {}),
     },
   });
-  return answer.ok ? { ok: true } : { ok: false, said: answer.said };
+
+  if (!answer.ok) return answer;
+
+  const body = answer.body as { id?: unknown } | null;
+  return { ok: true, ref: typeof body?.id === "string" ? body.id : null };
+}
+
+/** R16.7. What became of one copy, as the provider last saw it. */
+export type Verdict = "delivered" | "bounced" | "complained" | "sent" | "unknown";
+
+/**
+ * R16.7. Asking the provider what happened to a message it accepted.
+ *
+ * Accepting a message is not delivering it. A provider takes it, tries the
+ * other side, and finds there is nobody at that address, and that answer
+ * arrives minutes later with nothing to tell us about it unless we ask.
+ */
+export async function verdictFromResend(
+  accessToken: string,
+  ref: string,
+): Promise<Verdict> {
+  const answer = await resend(accessToken, `/emails/${encodeURIComponent(ref)}`);
+  if (!answer.ok) return "unknown";
+
+  const body = answer.body as { last_event?: unknown } | null;
+  const event = typeof body?.last_event === "string" ? body.last_event : "";
+
+  if (event === "delivered") return "delivered";
+  if (event === "bounced") return "bounced";
+  if (event === "complained") return "complained";
+  if (event === "sent" || event === "delivery_delayed") return "sent";
+  return "unknown";
 }

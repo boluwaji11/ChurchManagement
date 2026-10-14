@@ -6,6 +6,7 @@ import { emailSends, emailRecipients, contactConsent } from "../schema/messaging
 import { tenants } from "../schema/tenancy";
 import { members } from "../schema/members";
 import { groupMemberships } from "../schema/groups";
+import { contactMethods } from "../schema/members";
 import { PermissionError } from "../roles";
 import { canManageChurch } from "./church";
 import { resolveList } from "./lists";
@@ -98,6 +99,15 @@ export async function emailRecipientsFor(
     out.map((one) => one.address?.trim().toLowerCase()).filter(Boolean),
   );
 
+  /* R16.7. Addresses a provider has already said nobody is at. Read once, the
+     same way the withdrawals are, because a church that keeps writing to a
+     dead address is a church whose other mail starts landing in spam. */
+  const dead = await db
+    .select({ value: contactMethods.value })
+    .from(contactMethods)
+    .where(and(eq(contactMethods.kind, "email"), eq(contactMethods.isValid, false)));
+  const bounced = new Set(dead.map((one) => one.value.trim().toLowerCase()));
+
   const found: EmailRecipient[] = [];
   for (const row of people) {
     if (wanted !== null && !wanted.has(row.id)) continue;
@@ -108,6 +118,7 @@ export async function emailRecipientsFor(
     if (refused.has(row.id)) continue;
 
     if (refusedAddresses.has(address.toLowerCase())) continue;
+    if (bounced.has(address.toLowerCase())) continue;
 
     found.push({
       memberId: row.id,
@@ -125,6 +136,7 @@ export async function emailRecipientsFor(
   for (const raw of input.addresses ?? []) {
     const address = raw.trim().toLowerCase();
     if (!address || already.has(address) || refusedAddresses.has(address)) continue;
+    if (bounced.has(address)) continue;
     already.add(address);
     found.push({ memberId: null, address, first: address, name: address, token: "" });
   }

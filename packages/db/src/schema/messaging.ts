@@ -259,10 +259,16 @@ export const emailRecipients = pgTable(
     sendId: uuid("send_id").notNull().references(() => emailSends.id, { onDelete: "cascade" }),
     memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
     address: text("address").notNull(),
-    /** "queued", "sent" or "failed". */
+    /** "queued", "sending", "sent", "failed" or "bounced". */
     state: text("state").notNull().default("queued"),
     /** What the provider said when it refused, in its own words. */
     said: text("said"),
+    /** R16.7. How many times this copy has been attempted. */
+    attempts: integer("attempts").notNull().default(0),
+    /** R16.7. Not before this. Null is now. */
+    nextTry: timestamp("next_try", { withTimezone: true }),
+    /** R16.7. What the provider called it, for matching its later verdict. */
+    providerRef: text("provider_ref"),
     at: timestamp("at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [

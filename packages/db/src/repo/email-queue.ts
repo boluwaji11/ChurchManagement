@@ -1,7 +1,8 @@
-import { and, asc, eq, isNull, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { owner } from "../client";
 import { emailSends, emailRecipients, contactConsent, churchProviders } from "../schema/messaging";
+import { contactMethods } from "../schema/members";
 import { tenants } from "../schema/tenancy";
 import { openCredential, sealCredential, CREDENTIAL_KEY_ID } from "../crypto";
 
@@ -57,6 +58,7 @@ export async function dueSends(limit = 5): Promise<DueSend[]> {
       waiting: sql<number>`(
         select count(*)::int from email_recipients r
         where r.send_id = ${emailSends.id} and r.state = 'queued'
+          and (r.next_try is null or r.next_try <= now())
       )`,
     })
     .from(emailSends)
@@ -111,6 +113,7 @@ export async function claimBatch(sendId: string, size = BATCH): Promise<Waiting[
     with taken as (
       select id from email_recipients
       where send_id = ${sendId} and state = 'queued'
+        and (next_try is null or next_try <= now())
       order by at
       limit ${size}
       for update skip locked
@@ -163,15 +166,75 @@ export async function claimBatch(sendId: string, size = BATCH): Promise<Waiting[
   return out;
 }
 
-/** R16.6, R16.7. What happened to one copy. */
+/**
+ * R16.7. How many goes one copy gets before a church is told it did not go.
+ *
+ * Four, with the waits below. Past that a provider is not having a bad minute,
+ * and a church is better off being told than having a row quietly retried for
+ * the rest of the afternoon.
+ */
+export const TRIES = 4;
+
+/** R16.7. How long to wait before each later go, in seconds. */
+const BACKOFF = [30, 120, 600];
+
+/**
+ * R16.6, R16.7. What happened to one copy.
+ *
+ * Two failures that look alike on the way out: a provider saying "slow down"
+ * or "try later", which is this copy's bad luck, and a provider saying there
+ * is nobody at that address, which is true of every send from now on. The
+ * first comes back round; the second stops here and marks the address.
+ */
 export async function settle(
   recipientId: string,
-  outcome: { ok: boolean; said: string | null },
+  outcome: { ok: boolean; said: string | null; again?: boolean },
 ): Promise<void> {
+  const db = drizzle(owner());
+
+  if (outcome.ok) {
+    await db
+      .update(emailRecipients)
+      .set({ state: "sent", said: null })
+      .where(eq(emailRecipients.id, recipientId));
+    return;
+  }
+
+  const [row] = await db
+    .select({ attempts: emailRecipients.attempts })
+    .from(emailRecipients)
+    .where(eq(emailRecipients.id, recipientId))
+    .limit(1);
+
+  const attempts = (row?.attempts ?? 0) + 1;
+  const wait = BACKOFF[attempts - 1];
+
+  if (outcome.again && attempts < TRIES && wait !== undefined) {
+    await db
+      .update(emailRecipients)
+      .set({
+        state: "queued",
+        said: outcome.said,
+        attempts,
+        nextTry: new Date(Date.now() + wait * 1000),
+      })
+      .where(eq(emailRecipients.id, recipientId));
+    return;
+  }
+
+  await db
+    .update(emailRecipients)
+    .set({ state: "failed", said: outcome.said, attempts })
+    .where(eq(emailRecipients.id, recipientId));
+}
+
+/** R16.6. What the provider called this copy, so its verdict can be matched. */
+export async function noteRef(recipientId: string, ref: string | null): Promise<void> {
+  if (!ref) return;
   const db = drizzle(owner());
   await db
     .update(emailRecipients)
-    .set({ state: outcome.ok ? "sent" : "failed", said: outcome.said })
+    .set({ providerRef: ref })
     .where(eq(emailRecipients.id, recipientId));
 }
 
@@ -287,4 +350,127 @@ export async function rotateCredentialAsOwner(
         eq(churchProviders.state, "connected"),
       ),
     );
+}
+
+export interface Awaiting {
+  id: string;
+  tenantId: string;
+  providerRef: string;
+  address: string;
+  memberId: string | null;
+}
+
+/**
+ * R16.7. Copies a provider took and has not been asked about.
+ *
+ * Only ones sent recently enough to still be worth asking: a provider's
+ * verdict arrives within minutes, and a week-old copy with no verdict is one
+ * nobody is going to get an answer on.
+ */
+export async function awaitingVerdict(limit = 60): Promise<Awaiting[]> {
+  const db = drizzle(owner());
+
+  const rows = await db
+    .select({
+      id: emailRecipients.id,
+      tenantId: emailRecipients.tenantId,
+      providerRef: emailRecipients.providerRef,
+      address: emailRecipients.address,
+      memberId: emailRecipients.memberId,
+    })
+    .from(emailRecipients)
+    .where(
+      and(
+        eq(emailRecipients.state, "sent"),
+        isNotNull(emailRecipients.providerRef),
+        gte(emailRecipients.at, new Date(Date.now() - 36 * 60 * 60 * 1000)),
+      ),
+    )
+    .orderBy(desc(emailRecipients.at))
+    .limit(limit);
+
+  return rows.filter((one): one is Awaiting => one.providerRef !== null);
+}
+
+/**
+ * R16.7. The provider's verdict, written down where it does some good.
+ *
+ * A bounce is not this send's problem, it is this address's. So it marks the
+ * copy and the address both: the send says who missed it, and the person's
+ * record says why, and every later send leaves them out until somebody fixes
+ * the address.
+ *
+ * A complaint is somebody pressing "this is spam". The address works
+ * perfectly and must never be written to again, which is the same consent
+ * withdrawal as pressing the link, recorded the same way.
+ */
+export async function recordVerdict(
+  recipientId: string,
+  verdict: "delivered" | "bounced" | "complained",
+): Promise<void> {
+  const db = drizzle(owner());
+
+  if (verdict === "delivered") {
+    await db
+      .update(emailRecipients)
+      .set({ state: "sent", said: null })
+      .where(eq(emailRecipients.id, recipientId));
+    return;
+  }
+
+  const [copy] = await db
+    .select({
+      tenantId: emailRecipients.tenantId,
+      memberId: emailRecipients.memberId,
+      address: emailRecipients.address,
+      sendId: emailRecipients.sendId,
+    })
+    .from(emailRecipients)
+    .where(eq(emailRecipients.id, recipientId))
+    .limit(1);
+
+  if (!copy) return;
+
+  await db
+    .update(emailRecipients)
+    .set({ state: verdict === "bounced" ? "bounced" : "sent" })
+    .where(eq(emailRecipients.id, recipientId));
+
+  if (verdict === "bounced") {
+    /* The send's own tally counted this copy as delivered when it closed,
+       because the provider had taken it. It did not arrive, and a church
+       reading "sent to 223" when four of them bounced is being told
+       something untrue. */
+    await db
+      .update(emailSends)
+      .set({
+        delivered: sql`greatest(${emailSends.delivered} - 1, 0)`,
+        failed: sql`${emailSends.failed} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(emailSends.id, copy.sendId));
+
+    await db
+      .update(contactMethods)
+      .set({ isValid: false, bouncedAt: new Date(), bounceReason: "bounced" })
+      .where(
+        and(
+          eq(contactMethods.tenantId, copy.tenantId),
+          eq(contactMethods.kind, "email"),
+          eq(contactMethods.value, copy.address),
+        ),
+      );
+    return;
+  }
+
+  /* R16.8. A complaint is a withdrawal somebody made in their mail program
+     rather than on our screen, and it binds exactly the same. */
+  const mine = copy.memberId
+    ? eq(contactConsent.memberId, copy.memberId)
+    : eq(contactConsent.address, copy.address.toLowerCase());
+
+  await db
+    .update(contactConsent)
+    .set({ state: "withdrawn", source: "portal", withdrawnAt: new Date(), updatedAt: new Date() })
+    .where(and(mine, eq(contactConsent.channel, "email")));
 }

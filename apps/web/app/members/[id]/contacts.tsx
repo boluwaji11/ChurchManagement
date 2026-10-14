@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Star, Trash2 } from "lucide-react";
 import {
-  Banner, Button, IconButton, Input, Spinner,
+  Banner, Button, IconButton, Input, Spinner, Tooltip,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -90,6 +90,17 @@ export function Contacts({
 
           {/* A column of its own, so Main and Mobile line up down the card
               rather than sitting wherever the value above them ended. */}
+          {/* R16.7. A provider said there is nobody here. Said on the record
+              rather than only in a send's tally, because the office is where
+              somebody can go and ask them for a new address. */}
+          {one.bouncedAt ? (
+            <Tooltip content={t("contact.bounced.why")}>
+              <span className="shrink-0 rounded-full bg-danger-soft px-2 py-0.5 text-caption font-medium text-danger-text">
+                {t("contact.bounced")}
+              </span>
+            </Tooltip>
+          ) : null}
+
           <span className="w-20 shrink-0 text-right text-caption text-fg-subtle">
             {one.isSignIn
               ? t("contact.signIn")

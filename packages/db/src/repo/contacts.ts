@@ -48,6 +48,7 @@ export async function listContacts(db: Tx, memberId: string): Promise<PersonCont
       label: contactMethods.label,
       value: contactMethods.value,
       isPrimary: contactMethods.isPrimary,
+      bouncedAt: contactMethods.bouncedAt,
     })
     .from(contactMethods)
     .where(eq(contactMethods.memberId, memberId))
@@ -124,6 +125,7 @@ export async function removeContact(db: Tx, actor: WriteActor, id: string): Prom
       kind: contactMethods.kind,
       value: contactMethods.value,
       isPrimary: contactMethods.isPrimary,
+      bouncedAt: contactMethods.bouncedAt,
     })
     .from(contactMethods)
     .where(eq(contactMethods.id, id))

@@ -124,6 +124,10 @@ export const contactMethods = pgTable(
     isPrimary: boolean("is_primary").notNull().default(false),
     /** R16.7. Bounces invalidate an address rather than silently failing forever. */
     isValid: boolean("is_valid").notNull().default(true),
+    /** R16.7. When the provider said there was nobody there. */
+    bouncedAt: timestamp("bounced_at", { withTimezone: true }),
+    /** R16.7. What it said, in its own words, so the office can judge it. */
+    bounceReason: text("bounce_reason"),
     createdAt: created(),
   },
   (t) => [index("contact_tenant_idx").on(t.tenantId), index("contact_person_idx").on(t.tenantId, t.memberId)],

@@ -30,6 +30,8 @@ export interface PersonContact {
   isPrimary: boolean;
   /** R17.1. The address this person signs in with, which cannot be removed. */
   isSignIn: boolean;
+  /** R16.7. The provider said there is nobody here, so nothing goes to it. */
+  bouncedAt: Date | null;
 }
 
 export interface PersonAddress {
