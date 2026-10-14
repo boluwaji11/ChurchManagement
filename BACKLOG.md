@@ -99,7 +99,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-343 | A send mints every way out in one go, rather than one round trip a recipient | R24.11, R16.8 | Resolved |
 | HRT-344 | A claimed copy that never left goes back in the queue | R24.11, R16.6 | Resolved |
 | HRT-345 | Giving statements are read in set-based queries, not one giver at a time | R24.11, R18.9 | Resolved |
-| HRT-346 | A bulk action over a selection is one write, not one a row | R24.11, R1.13 | New |
+| HRT-346 | A bulk action over a selection is one write, not one a row | R24.11, R1.13 | Resolved |
 | HRT-347 | The frame and the page read at the same time | R24.11 | New |
 | HRT-348 | Fifteen screens read their independent rows together | R24.11 | New |
 | HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | New |
@@ -1946,6 +1946,24 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-346, how to test it
+
+Open `/members`, tick everybody with the header checkbox, and apply a tag from the selection bar. It
+returns in well under a second where it used to stand there for about eleven, and the count it
+reports is the same. Measured against Riverside's 238 members: 11,161ms became 632ms.
+
+Do the same with Add to group. That one was worse: five queries a person, the last of them reading
+the group's whole roster back and throwing it away, so a directory of five hundred was roughly two
+and a half thousand queries behind one press.
+
+Three things to confirm it did not get looser while getting faster. Apply the same tag twice and
+confirm nobody ends up with it twice and the count still reads correctly. Add a selection to a group
+they are already in, with a different role, and confirm the roster does not double and their role
+moved. Tick somebody archived and confirm they are passed over rather than added.
+
+The other two bulk actions, archiving and setting a status, were already one statement and are
+untouched.
 
 ### HRT-345, how to test it
 

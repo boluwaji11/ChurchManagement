@@ -738,6 +738,87 @@ export async function addToGroup(
 }
 
 /**
+ * R9.4. Putting a whole selection into a group, in one go.
+ *
+ * Four statements, whatever the size of the selection. One at a time was five
+ * each: the person, whether they were already in, the write, and then the
+ * group's whole roster read back and thrown away. Adding a directory of five
+ * hundred was about two and a half thousand queries, and the press sat there
+ * for the length of it.
+ *
+ * Returns how many were put in, counting somebody already in the group whose
+ * role this changed, and silently passing over an id this church cannot see,
+ * which is what the one-at-a-time version did by way of its policy.
+ */
+export async function addManyToGroup(
+  db: Tx,
+  actor: WriteActor,
+  input: { groupId: string; memberIds: readonly string[]; role?: GroupRole; joinedOn?: string },
+): Promise<number> {
+  if (!canManageGroups(actor)) throw new PermissionError(actor.role, "manageGroups");
+
+  const role = input.role ?? "member";
+  if (!(GROUP_ROLES as readonly string[]).includes(role)) {
+    throw new InvalidInputError("group.error.role");
+  }
+
+  const joinedOn = input.joinedOn ?? new Date().toISOString().slice(0, 10);
+  if (!DATE.test(joinedOn)) throw new InvalidInputError("group.error.joined");
+
+  const wanted = [...new Set(input.memberIds)];
+  if (wanted.length === 0) return 0;
+
+  /* Only people this church can see, and not somebody it has archived. */
+  const people = await db
+    .select({ id: members.id })
+    .from(members)
+    .where(and(inArray(members.id, wanted), isNull(members.archivedAt)));
+  if (people.length === 0) return 0;
+
+  const visible = people.map((one) => one.id);
+
+  const already = await db
+    .select({ id: groupMemberships.id, memberId: groupMemberships.memberId })
+    .from(groupMemberships)
+    .where(
+      and(
+        eq(groupMemberships.groupId, input.groupId),
+        inArray(groupMemberships.memberId, visible),
+        isNull(groupMemberships.leftOn),
+      ),
+    );
+
+  if (already.length > 0) {
+    await db
+      .update(groupMemberships)
+      .set({ role, updatedAt: new Date() })
+      .where(
+        inArray(
+          groupMemberships.id,
+          already.map((one) => one.id),
+        ),
+      );
+  }
+
+  const held = new Set(already.map((one) => one.memberId));
+  const fresh = visible.filter((id) => !held.has(id));
+
+  if (fresh.length > 0) {
+    await db.insert(groupMemberships).values(
+      fresh.map((memberId) => ({
+        tenantId: actor.tenantId,
+        groupId: input.groupId,
+        memberId,
+        role,
+        joinedOn,
+      })),
+    );
+  }
+
+  return visible.length;
+}
+
+/**
  * R9.3. Whether this actor runs this particular group.
  *
  * A leader keeps their own roster. Whoever runs groups for the church keeps
