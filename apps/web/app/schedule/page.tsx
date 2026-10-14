@@ -8,7 +8,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { photoUrls } from "@/lib/photos";
@@ -90,7 +90,7 @@ export default async function ServingPage({
   }>;
 }) {
   const params = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (!canLeadTeams(session)) {
     return (

@@ -6,7 +6,7 @@ import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { Empty } from "@/components/empty";
 import { BackLink } from "@/components/back-link";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { Denied } from "@/components/denied";
 import { money } from "@/lib/money";
@@ -43,7 +43,7 @@ export default async function StatementsPage({
   searchParams: Promise<{ year?: string; page?: string }>;
 }) {
   const { year: asked, page: at } = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (!canReadGivingAmounts(session)) {
     return (

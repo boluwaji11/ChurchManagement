@@ -5,7 +5,7 @@ import { withTenant, liveFor, canManageServices } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { PageMeta } from "@/components/section";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { longDate, readableTime } from "@/lib/dates";
 import { Stage } from "./stage";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -38,7 +38,7 @@ export default async function LivePage({
 }) {
   const { id } = await params;
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   const live = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },

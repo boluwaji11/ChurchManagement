@@ -7,7 +7,7 @@ import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { Notify } from "./notify";
 import { FileReport } from "./file-report";
@@ -44,7 +44,7 @@ export default async function IncidentsPage({
   searchParams: Promise<{ }>;
 }) {
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (!canReadIncidents(session)) {
     return (

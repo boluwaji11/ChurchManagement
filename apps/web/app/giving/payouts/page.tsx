@@ -4,7 +4,7 @@ import { withTenant, getStripeAccount, canManageGiving } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { BackLink } from "@/components/back-link";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { Empty } from "@/components/empty";
 import { EmbeddedPayouts } from "./embedded";
@@ -37,7 +37,7 @@ export default async function PayoutsPage({
   searchParams: Promise<{ }>;
 }) {
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (!canManageGiving(session)) {
     return (

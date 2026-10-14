@@ -12,7 +12,7 @@ import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { readsAsMember } from "@/lib/reads-as-member";
 import { TypesLanding, type TypeCard } from "./types-landing";
 import { Markdown } from "@/components/markdown";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Finder } from "./finder";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -30,7 +30,7 @@ export async function GroupsListScreen({
   searchParams: Promise<{ type?: string; archived?: string }>;
 }) {
   const { type, archived } = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
   const manage = canManageGroups(session);
   // R17.5. A member reads this screen in the portal's frame. Staff read the

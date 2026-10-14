@@ -7,7 +7,7 @@ import {
 import { upcomingMeetings } from "@connectapp/db/rules";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { shellData } from "@/lib/shell-data";
 import { churchNow, hasHappened } from "@/lib/church-now";
@@ -85,7 +85,7 @@ export default async function DashboardPage({
   searchParams: Promise<{ }>;
 }) {
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   // Somebody who is not staff has their own screen, and this is not it.
   if (!canEditPeople(session) && !canReadIncidents(session)) {

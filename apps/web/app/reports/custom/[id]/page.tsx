@@ -7,7 +7,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { Answer } from "../../answer";
 import { DownloadMenu } from "../../download";
@@ -48,7 +48,7 @@ export default async function CustomReportPage({
 }) {
   const { id } = await params;
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <Denied role={session.role} action="readReports" church={session.tenantSlug} />

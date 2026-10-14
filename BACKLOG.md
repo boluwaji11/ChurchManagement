@@ -100,7 +100,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-344 | A claimed copy that never left goes back in the queue | R24.11, R16.6 | Resolved |
 | HRT-345 | Giving statements are read in set-based queries, not one giver at a time | R24.11, R18.9 | Resolved |
 | HRT-346 | A bulk action over a selection is one write, not one a row | R24.11, R1.13 | Resolved |
-| HRT-347 | The frame and the page read at the same time | R24.11 | New |
+| HRT-347 | The frame and the page read at the same time | R24.11 | Resolved |
 | HRT-348 | Fifteen screens read their independent rows together | R24.11 | New |
 | HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | New |
 | HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | New |
@@ -1946,6 +1946,27 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-347, how to test it
+
+Open the product and move between screens: the dashboard, the directory, giving, services, the
+schedule, reports, settings. Everything looks the same and holds the same rows. What changed is that
+the frame around a screen and the screen's own rows are now read at the same time rather than one
+after the other.
+
+Measured on a production build, signed in, three navigations a screen averaged, mean time to first
+byte across ten screens: **867ms before, 635ms after**. Giving went 1,152ms to 719ms, the schedule
+1,148ms to 742ms, services 929ms to 530ms, groups 810ms to 526ms.
+
+Two screens did not move, and both for the right reason. The dashboard takes the church out of the
+frame's data rather than reading it again, so it has to wait for the frame and there is nothing to
+overlap. Settings sits under its own layout, and Next already renders a layout alongside its page.
+
+A screen now asks for its session through `requireScreen`, which puts the frame's read in flight
+before the screen reads anything. A server action and an API route keep `requireSession`, because
+they draw no frame: there are 181 callers and only 37 are screens, so warming the frame in
+`requireSession` would have added a transaction to every button press in the product. That is what
+makes this 37 explicit changes rather than one clever one.
 
 ### HRT-346, how to test it
 

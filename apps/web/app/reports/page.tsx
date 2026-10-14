@@ -11,7 +11,7 @@ import {
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { SavedReports } from "./saved";
 import { StartReport } from "./start";
@@ -48,7 +48,7 @@ export default async function ReportsPage({
   searchParams: Promise<{ archived?: string }>;
 }) {
   const params = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (

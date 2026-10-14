@@ -4,7 +4,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { StationPicker } from "../station-picker";
 import { Denied } from "@/components/denied";
@@ -43,7 +43,7 @@ export default async function StationPage({
   searchParams: Promise<{ }>;
 }) {
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   // R8.14. The desk belongs to whoever is running check-in.
   if (!canCheckIn(session)) {

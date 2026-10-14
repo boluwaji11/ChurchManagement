@@ -6,7 +6,7 @@ import {
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { BackLink } from "@/components/back-link";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { Denied } from "@/components/denied";
 import { CampaignScreen } from "./campaign-screen";
@@ -36,7 +36,7 @@ export default async function CampaignPage({
 }) {
   const { slug } = await params;
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (!canReadGivingAmounts(session) && !canManageGiving(session)) {
     return (

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { MyGiving } from "./mine";
 import { Empty } from "@/components/empty";
@@ -51,7 +51,7 @@ export async function generateMetadata({
   searchParams: Promise<{ }>;
 }) {
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
   const theirs = !canManageGiving(session) && !canReadGivingAmounts(session);
   return tabMetadata(t(theirs ? "mine.giving.title" : "giving.title"));
 }
@@ -80,7 +80,7 @@ export default async function GivingPage({
   }>;
 }) {
   const asked = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
   const manage = canManageGiving(session);
   const amounts = canReadGivingAmounts(session);
 

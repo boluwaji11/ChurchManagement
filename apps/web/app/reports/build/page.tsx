@@ -6,7 +6,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { Builder } from "./builder";
 import { Empty } from "@/components/empty";
@@ -38,7 +38,7 @@ export default async function BuildReportPage({
   searchParams: Promise<{ id?: string }>;
 }) {
   const { id } = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <Denied role={session.role} action="buildReports" church={session.tenantSlug} />
