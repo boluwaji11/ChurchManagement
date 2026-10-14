@@ -7,7 +7,8 @@ import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
-import { TemplateList } from "./template-list";
+import { TemplateList, NewTemplate } from "./template-list";
+import { Empty } from "@/components/empty";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
@@ -58,12 +59,26 @@ export default async function EmailTemplatesPage({
       <SettingsHeading
         title={putAway ? "mailTemplate.archived" : "mailTemplate.title"}
         lede={putAway ? undefined : "mailTemplate.lede"}
+        /* R24.17. An empty screen offers its action in the middle, where the
+           reader is already looking. Two of the same button is one too many. */
+        action={
+          manage && !putAway && read.templates.length > 0
+            ? <NewTemplate taken={read.templates.map((one) => one.name)} />
+            : undefined
+        }
       />
 
-      {manage ? (
-        <TemplateList putAway={putAway} templates={read.templates} />
-      ) : (
+      {!manage ? (
         <Denied role={session.role} action="editChurch" church={session.tenantSlug} />
+      ) : read.templates.length === 0 && !putAway ? (
+        <Empty
+          icon="letter"
+          title={t("mailTemplate.none")}
+          body={t("mailTemplate.lede")}
+          action={<NewTemplate taken={[]} />}
+        />
+      ) : (
+        <TemplateList putAway={putAway} templates={read.templates} />
       )}
 
       {!putAway && manage && read.archived > 0 ? (

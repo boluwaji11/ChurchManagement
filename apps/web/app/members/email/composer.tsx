@@ -2,16 +2,19 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { RotateCcw, Send, X } from "lucide-react";
+import Link from "next/link";
+import { FileText, RotateCcw, Send, X } from "lucide-react";
 import {
   Banner, Button, Card, Combobox, Field, IconButton, Input, Working,
   Dialog, DialogContent, DialogFooter, Sheet, SheetContent,
   DatePicker, TimePicker, Switch,
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { RichText } from "@/components/rich-text";
 import { when } from "@/lib/when";
 import { DATE_LABELS } from "@/lib/date-labels";
+import { readingLocale } from "@/lib/reading-locale";
 import {
   countAudience, findRecipients, openSend, putBack, sendEmail, sentPage, withdrawnPage,
   type SendResult,
@@ -153,12 +156,23 @@ export function Composer({
   /* R16.6. The one being read back, which is a send rather than a draft. */
   const [reading, setReading] = React.useState<Awaited<ReturnType<typeof openSend>>>(null);
   /* R16.6. A send that waits for its hour. Off until somebody asks for it. */
-  /* HRT-291. Which written-once message this is starting from, and the ask
-     before it replaces anything already typed. */
+  /* HRT-291. Choosing a written-once message to put in, and the ask before it
+     replaces anything already typed. */
+  const [inserting, setInserting] = React.useState(false);
+  /*
+   * HRT-291. What the editor was last filled with.
+   *
+   * The box owns its own contents once it is written into, so new words can
+   * only reach it by mounting it again. This is the seed and the count that
+   * forces that, and it changes when a template goes in or a send clears the
+   * form, never on a keystroke.
+   */
+  const [seed, setSeed] = React.useState({ text: "", at: 0 });
+  const [chosenTemplate, setChosenTemplate] = React.useState("");
   const [starting, setStarting] = React.useState<Template | null>(null);
   const [later, setLater] = React.useState(false);
   const [day, setDay] = React.useState("");
-  const [hour, setHour] = React.useState("09:00");
+  const [hour, setHour] = React.useState("");
   /* R16.6. The page of the Sent list on screen, read a page at a time rather
      than all of it, because a church that has been here three years has sent
      a great many. */
@@ -186,6 +200,38 @@ export function Composer({
     }, 2500);
     return () => clearInterval(tick);
   }, [moving, doing, page]);
+
+  /*
+   * R16.6. Today's earliest hour, so a send cannot be scheduled for one that
+   * has gone. The date picker already refuses yesterday; a time list still
+   * offering nine in the morning at half past twelve is the same mistake an
+   * hour at a time.
+   */
+  const today = new Date().toISOString().slice(0, 10);
+  const soonest = React.useMemo(() => {
+    if (day !== today) return undefined;
+    const now = new Date();
+    /* The next quarter hour, because the list runs in quarters and offering
+       the one somebody is standing in is offering a minute to press it. */
+    const at = new Date(now.getTime() + 15 * 60 * 1000);
+    const minutes = Math.ceil(at.getMinutes() / 15) * 15;
+    const when = new Date(at);
+    when.setMinutes(minutes === 60 ? 0 : minutes, 0, 0);
+    if (minutes === 60) when.setHours(when.getHours() + 1);
+    return `${String(when.getHours()).padStart(2, "0")}:${String(when.getMinutes()).padStart(2, "0")}`;
+  }, [day, today]);
+
+  /* An hour that was fine yesterday is not fine for today, so it goes. */
+  React.useEffect(() => {
+    if (soonest && hour !== "" && hour < soonest) setHour("");
+  }, [soonest, hour]);
+
+  /** HRT-291. A template into the form, editor included. */
+  const fill = (one: Template) => {
+    setSubject(one.subject);
+    setBody(one.body);
+    setSeed({ text: one.body, at: Date.now() });
+  };
 
   const chosen = React.useMemo(() => {
     if (who === EVERYONE) return { audience: "everyone" as const, id: null, name: null };
@@ -261,7 +307,7 @@ export function Composer({
       );
     }
 
-    if (later && day) data.set("sendAt", new Date(`${day}T${hour || "09:00"}`).toISOString());
+    if (later && day && hour) data.set("sendAt", new Date(`${day}T${hour}`).toISOString());
 
     const answer: SendResult = await sendEmail(data);
     setBusy(false);
@@ -274,9 +320,11 @@ export function Composer({
     setDone(plural("send.queued", answer.queued ?? 0));
     setSubject("");
     setBody("");
+    setSeed({ text: "", at: Date.now() });
     setPicked([]);
     setLater(false);
     setDay("");
+    setHour("");
     setDoing("sent");
     router.refresh();
   };
@@ -428,26 +476,9 @@ export function Composer({
         </p>
 
         {templates.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-caption text-fg-subtle">{t("mailTemplate.start")}</span>
-            {templates.map((one) => (
-              <button
-                key={one.id}
-                type="button"
-                onClick={() => {
-                  if (subject.trim() || body.trim()) {
-                    setStarting(one);
-                    return;
-                  }
-                  setSubject(one.subject);
-                  setBody(one.body);
-                }}
-                className="flex min-h-8 cursor-pointer items-center rounded-full border border-line-strong bg-surface px-3 text-[13px] text-fg hover:bg-sunken"
-              >
-                {one.name}
-              </button>
-            ))}
-          </div>
+          <Button variant="secondary" className="self-start" onClick={() => setInserting(true)}>
+            <FileText aria-hidden /> {t("mailTemplate.insert")}
+          </Button>
         ) : null}
 
         <Field label={t("send.subject")} required>
@@ -461,8 +492,9 @@ export function Composer({
 
         <Field label={t("send.body")} required>
           <RichText
+            key={seed.at}
             name="body"
-            defaultValue=""
+            defaultValue={seed.text}
             onChange={setBody}
             minHeight={220}
             insert={(put) => { write.current = put; }}
@@ -499,7 +531,8 @@ export function Composer({
                 <DatePicker
                   value={day}
                   onChange={(next) => setDay(next ?? "")}
-                  min={new Date().toISOString().slice(0, 10)}
+                  min={today}
+                  locale={readingLocale()}
                   labels={DATE_LABELS()}
                 />
               </Field>
@@ -507,6 +540,9 @@ export function Composer({
                 <TimePicker
                   value={hour}
                   onChange={setHour}
+                  min={soonest}
+                  locale={readingLocale()}
+                  placeholder={t("send.later.pick")}
                   labels={{ open: t("date.open"), clear: t("date.clear") }}
                 />
               </Field>
@@ -515,7 +551,7 @@ export function Composer({
         </div>
 
         <div className="flex items-center justify-end">
-          <Button disabled={!full || busy || (later && !day)} onClick={() => setAsking(true)}>
+          <Button disabled={!full || busy || (later && (!day || !hour))} onClick={() => setAsking(true)}>
             <Send aria-hidden /> {t("send.send")}
           </Button>
         </div>
@@ -623,8 +659,63 @@ export function Composer({
         ) : null}
       </Sheet>
 
-      {/* HRT-291. Starting from a template over something already written is
-          the one press here that loses work, so it asks. */}
+      {/* HRT-291, R24.6. Which written-once message to put in, and the way to
+          the screen where they are kept, because somebody who opened this and
+          found nothing they wanted is one press from writing it. */}
+      <Dialog open={inserting} onOpenChange={setInserting}>
+        <DialogContent
+          title={t("mailTemplate.insert")}
+          closeLabel={t("common.close")}
+          actions={
+            <Link
+              href="/settings/email-templates"
+              className="text-label font-medium text-primary underline underline-offset-4"
+            >
+              {t("mailTemplate.manage")}
+            </Link>
+          }
+        >
+          <Field label={t("mailTemplate.which")}>
+            <Select value={chosenTemplate} onValueChange={setChosenTemplate}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("mailTemplate.pick")} />
+              </SelectTrigger>
+              <SelectContent>
+                {templates.map((one) => (
+                  <SelectItem key={one.id} value={one.id}>
+                    {one.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setInserting(false)}>
+              {t("action.cancel")}
+            </Button>
+            <Button
+              type="button"
+              disabled={chosenTemplate === ""}
+              onClick={() => {
+                const one = templates.find((x) => x.id === chosenTemplate);
+                if (!one) return;
+                setInserting(false);
+                if (subject.trim() || body.trim()) {
+                  setStarting(one);
+                  return;
+                }
+                fill(one);
+              }}
+            >
+              {t("mailTemplate.insertIt")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* HRT-291. Putting a template over something already written is the one
+          press here that loses work, so it asks. */}
       <Dialog open={starting !== null} onOpenChange={(next) => !next && setStarting(null)}>
         <DialogContent alert title={t("mailTemplate.replace")}>
           <p className="m-0 text-fg-muted">{t("mailTemplate.replaceBody")}</p>
@@ -635,14 +726,11 @@ export function Composer({
             <Button
               type="button"
               onClick={() => {
-                if (starting) {
-                  setSubject(starting.subject);
-                  setBody(starting.body);
-                }
+                if (starting) fill(starting);
                 setStarting(null);
               }}
             >
-              {t("mailTemplate.start")}
+              {t("mailTemplate.insertIt")}
             </Button>
           </DialogFooter>
         </DialogContent>
