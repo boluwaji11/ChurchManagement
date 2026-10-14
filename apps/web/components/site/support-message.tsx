@@ -24,6 +24,11 @@ export function SupportMessage() {
   const launcher = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLElement>(null);
   const emailInput = useRef<HTMLInputElement>(null);
+  /*
+   * R24.6. Send stays dark until the address is one, which says the same
+   * thing without telling somebody mid-way through typing that what they
+   * have typed so far is wrong.
+   */
   const emailError = email.trim() ? validateEmail(email) : undefined;
   const canSend = Boolean(email.trim() && !emailError && message.trim() && message.length <= 5000);
 
@@ -138,7 +143,7 @@ export function SupportMessage() {
                 }}
               />
             </Field>
-            <Field label={t("site.support.email")} error={emailError} required className={TIGHT}>
+            <Field label={t("site.support.email")} required className={TIGHT}>
               <Input
                 ref={emailInput}
                 type="email"
