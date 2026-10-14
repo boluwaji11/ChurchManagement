@@ -4659,7 +4659,7 @@ export const en = {
   "send.subject": "Subject",
   "send.subjectPlaceholder": "e.g. Carol service, Sunday the 21st",
   "send.body": "Message",
-  "send.send": "Send it",
+  "send.send": "Send",
   "send.sending": "Sending",
   "send.sent": "Sent to {count}",
   "send.sentSome": "Sent to {delivered}. {failed} did not go.",
