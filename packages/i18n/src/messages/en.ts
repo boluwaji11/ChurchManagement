@@ -4665,7 +4665,6 @@ export const en = {
   "send.sent.other": "Sent to {count} recipients",
   "send.sentSome": "Sent to {delivered}. {failed} did not go.",
   "send.ask": "Send this to {count} recipients?",
-  "send.ask.sample": "Starting with {names}",
   "send.notConnected": "Connect an email account before sending.",
   "send.connect": "Set up email",
   "send.tab.write": "Compose",
