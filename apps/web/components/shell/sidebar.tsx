@@ -263,7 +263,14 @@ export function Sidebar({
                 <button
                   type="button"
                   onClick={() => {
-                    const same = group.id === shown;
+                    /*
+                     * R24.14. Settings is not an area, so while somebody is in
+                     * it no area is the one they are in and every mark on the
+                     * rail is a way out. Without this the rail still held the
+                     * area they came from, pressing it counted as pressing the
+                     * one already open, and the press did nothing at all.
+                     */
+                    const same = group.id === shown && !onSettings;
                     /* Pressing the area already open shuts it, so the mark is
                        the way in and the way out of the same thing. */
                     if (same && !collapsed && group.entries.length > 1) {

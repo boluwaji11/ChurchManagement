@@ -9,6 +9,7 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { DATE_LABELS } from "@/lib/date-labels";
+import { readingLocale } from "@/lib/reading-locale";
 import { Empty } from "@/components/empty";
 import { Confirm } from "@/components/confirm";
 import { usePanelGuard } from "@/components/panel-guard";
@@ -310,6 +311,7 @@ function Writer({
             <DatePicker
               value={expires}
               onChange={(next) => { setExpires(next ?? ""); setDirty(true); }}
+              locale={readingLocale()}
               labels={DATE_LABELS()}
             />
           </Field>

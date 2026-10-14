@@ -36,6 +36,13 @@ export interface TimePickerProps {
   step?: number;
   /** The earliest time this field accepts, as 24-hour HH:MM. */
   min?: string;
+  /**
+   * R22.8. The language this church writes its times in.
+   *
+   * Passed rather than read off the browser, because a treasurer on a laptop
+   * set to British English is still looking at a church in Missouri.
+   */
+  locale?: string;
   labels: TimePickerLabels;
   className?: string;
   "aria-label"?: string;
@@ -109,21 +116,25 @@ export function TimePicker({
   placeholder,
   step = 15,
   min,
+  locale: given,
   labels,
   className,
   ...rest
 }: TimePickerProps) {
   const [open, setOpen] = React.useState(false);
   const [typed, setTyped] = React.useState<string | null>(null);
-  const [locale, setLocale] = React.useState<string | undefined>(undefined);
+  const [locale, setLocale] = React.useState<string | undefined>(given);
   const [active, setActive] = React.useState(0);
   const root = React.useRef<HTMLDivElement>(null);
   const list = React.useRef<HTMLUListElement>(null);
   const input = React.useRef<HTMLInputElement>(null);
   const listId = React.useId();
 
-  // Resolved after mount, so the server and the browser agree on the markup.
-  React.useEffect(() => setLocale(navigator.language), []);
+  /* Resolved after mount, so the server and the browser agree on the markup.
+     A church's own language wins; the browser's is the last resort. */
+  React.useEffect(() => {
+    if (!given) setLocale(navigator.language);
+  }, [given]);
 
   const options = React.useMemo(() => {
     const out: string[] = [];
