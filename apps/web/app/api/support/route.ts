@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { isIP } from "node:net";
 import nodemailer from "nodemailer";
 import { Ratelimit } from "@upstash/ratelimit";
@@ -162,11 +162,24 @@ export async function POST(request: Request) {
     message,
   ].join("\n");
 
+  /*
+   * R22.1. A subject of its own, so each message is its own conversation.
+   *
+   * Every one of these used to arrive as "ConnectApp support", which is how a
+   * mail program decides two messages are one thread. Two churches writing in
+   * the same afternoon collapsed into one, and the second one looked like a
+   * reply to the first. The reference is six characters of randomness, which
+   * is all it takes to keep them apart.
+   */
+  const reference = randomBytes(3).toString("hex");
+  const who = senderName || churchName || senderEmail;
+  const subject = `ConnectApp support: ${who} [${reference}]`;
+
   const sent = resendKey
     ? await sendByResend(resendKey, {
         from: `ConnectApp Support <${fromEmail}>`,
         to: SUPPORT,
-        subject: "ConnectApp support",
+        subject,
         text: body,
         replyTo: senderEmail,
       })
@@ -192,7 +205,7 @@ export async function POST(request: Request) {
         from: `ConnectApp Support <${fromEmail}>`,
         to: SUPPORT,
         replyTo: senderEmail,
-        subject: "ConnectApp support",
+        subject,
         text: body,
       });
     } catch (error) {
