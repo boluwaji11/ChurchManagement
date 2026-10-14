@@ -272,6 +272,12 @@ export const emailRecipients = pgTable(
     nextTry: timestamp("next_try", { withTimezone: true }),
     /** R16.7. What the provider called it, for matching its later verdict. */
     providerRef: text("provider_ref"),
+    /**
+     * R16.6. When the worker took this copy, which is what tells a stuck row
+     * from one in flight. A worker killed part way through a batch leaves rows
+     * marked 'sending' and nothing else to recognise them by.
+     */
+    claimedAt: timestamp("claimed_at", { withTimezone: true }),
     at: timestamp("at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [

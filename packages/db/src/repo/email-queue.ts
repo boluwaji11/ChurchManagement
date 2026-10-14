@@ -109,7 +109,16 @@ export interface Waiting {
 export async function claimBatch(sendId: string, size = BATCH): Promise<Waiting[]> {
   const db = drizzle(owner());
 
-  const rows = await db.execute(sql`
+  /*
+   * One statement claims the rows and brings back everything the copy needs:
+   * the person's name for the greeting and their way out for the fine print.
+   * Those were a query each, per recipient, so a batch of twenty-five cost
+   * fifty round trips before the first message left.
+   *
+   * `claimed_at` is stamped here because it is the only thing that can later
+   * tell a row a dead worker abandoned from one still in flight.
+   */
+  const rows = (await db.execute(sql`
     with taken as (
       select id from email_recipients
       where send_id = ${sendId} and state = 'queued'
@@ -117,46 +126,42 @@ export async function claimBatch(sendId: string, size = BATCH): Promise<Waiting[
       order by at
       limit ${size}
       for update skip locked
+    ),
+    claimed as (
+      update email_recipients r
+      set state = 'sending', claimed_at = now()
+      from taken
+      where r.id = taken.id
+      returning r.id, r.member_id, r.address
     )
-    update email_recipients r
-    set state = 'sending'
-    from taken
-    where r.id = taken.id
-    returning r.id, r.member_id, r.address
-  `);
+    select c.id, c.member_id, c.address,
+           coalesce(m.preferred_name, m.first_name) as first,
+           coalesce(m.preferred_name, m.first_name) || ' ' || m.last_name as name,
+           k.token
+      from claimed c
+      left join members m on m.id = c.member_id
+      left join contact_consent k
+        on k.channel = 'email'
+       and (case when c.member_id is null
+                 then k.address = c.address and k.member_id is null
+                 else k.member_id = c.member_id end)
+  `)) as unknown as {
+    id: string;
+    member_id: string | null;
+    address: string;
+    first: string | null;
+    name: string | null;
+    token: string | null;
+  }[];
 
-  const out: Waiting[] = [];
-  for (const raw of rows as unknown as { id: string; member_id: string | null; address: string }[]) {
-    const [person] = raw.member_id
-      ? await db.execute(sql`
-          select coalesce(m.preferred_name, m.first_name) as first,
-                 coalesce(m.preferred_name, m.first_name) || ' ' || m.last_name as name
-          from members m where m.id = ${raw.member_id}
-        `) as unknown as { first: string; name: string }[]
-      : [];
-
-    const [consent] = await db
-      .select({ token: contactConsent.token })
-      .from(contactConsent)
-      .where(
-        and(
-          eq(contactConsent.channel, "email"),
-          raw.member_id
-            ? eq(contactConsent.memberId, raw.member_id)
-            : eq(contactConsent.address, raw.address),
-        ),
-      )
-      .limit(1);
-
-    out.push({
-      id: raw.id,
-      memberId: raw.member_id,
-      address: raw.address,
-      first: person?.first ?? raw.address,
-      name: person?.name ?? raw.address,
-      token: consent?.token ?? null,
-    });
-  }
+  const out: Waiting[] = rows.map((raw) => ({
+    id: raw.id,
+    memberId: raw.member_id,
+    address: raw.address,
+    first: raw.first ?? raw.address,
+    name: raw.name ?? raw.address,
+    token: raw.token ?? null,
+  }));
 
   await db
     .update(emailSends)
@@ -164,6 +169,67 @@ export async function claimBatch(sendId: string, size = BATCH): Promise<Waiting[
     .where(eq(emailSends.id, sendId));
 
   return out;
+}
+
+/**
+ * R16.6. How long a claimed copy may sit before it is treated as abandoned.
+ *
+ * Longer than any invocation can live, so a worker still working is never
+ * robbed of a row it holds, and short enough that a church does not wait an
+ * afternoon for the rest of its message.
+ */
+const STUCK_MINUTES = 10;
+
+/**
+ * R16.6. Copies a dead worker left behind, put right.
+ *
+ * The worker claims a batch in one statement and then sends them one at a
+ * time, so an invocation that runs out of time leaves the remainder marked
+ * 'sending'. Nothing else in the product could recognise those: the due-sends
+ * query counts only 'queued', so the send reported nothing waiting and was
+ * never picked up again, while the progress the church was watching counted
+ * them as outstanding and never finished. Every send larger than one batch
+ * stranded its remainder.
+ *
+ * A stuck row is read by whether the provider was ever told about it, because
+ * the two cases want opposite answers:
+ *
+ *   A reference means the provider took the message. It went. Putting that row
+ *   back in the queue would send somebody a second copy, so it is marked sent,
+ *   which is what the worker was about to do when it died.
+ *
+ *   No reference means there is no evidence it left, so it goes back in the
+ *   queue and keeps its attempt count, so a copy that has already been refused
+ *   three times does not get a fresh four.
+ *
+ * One window stays open: a message accepted by the provider in the moment
+ * before its reference could be written looks like a row that never sent, and
+ * is sent again. That is one statement wide, and a church would rather somebody
+ * got two copies than have half a message never arrive.
+ */
+export async function reclaimStuck(): Promise<{ requeued: number; finished: number }> {
+  const db = drizzle(owner());
+  const cutoff = sql.raw(`now() - interval '${STUCK_MINUTES} minutes'`);
+
+  const finished = (await db.execute(sql`
+    update email_recipients
+       set state = 'sent', said = null, claimed_at = null
+     where state = 'sending'
+       and claimed_at is not null and claimed_at < ${cutoff}
+       and provider_ref is not null
+    returning id
+  `)) as unknown as { id: string }[];
+
+  const requeued = (await db.execute(sql`
+    update email_recipients
+       set state = 'queued', claimed_at = null
+     where state = 'sending'
+       and claimed_at is not null and claimed_at < ${cutoff}
+       and provider_ref is null
+    returning id
+  `)) as unknown as { id: string }[];
+
+  return { requeued: requeued.length, finished: finished.length };
 }
 
 /**

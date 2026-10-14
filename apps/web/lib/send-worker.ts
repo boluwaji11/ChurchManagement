@@ -1,6 +1,6 @@
 import "server-only";
 import {
-  dueSends, claimBatch, settle, noteRef, closeIfDone, accountFor, storeTokens,
+  dueSends, claimBatch, settle, noteRef, closeIfDone, reclaimStuck, accountFor, storeTokens,
   awaitingVerdict, recordVerdict,
   type DueSend, type Waiting,
 } from "@connectapp/db";
@@ -151,6 +151,19 @@ async function readyAccount(send: DueSend) {
 export async function drain(passes = 8): Promise<{ attempted: number }> {
   let attempted = 0;
 
+  /*
+   * R16.6. Anything a previous pass claimed and never finished, put right
+   * before claiming more. A pass that ran out of time left its remainder
+   * marked 'sending', where the due-sends count could not see it, so the rest
+   * of that church's message waited on this.
+   */
+  const recovered = await reclaimStuck();
+  if (recovered.requeued > 0 || recovered.finished > 0) {
+    console.info(
+      `[send] ${recovered.requeued} copies back in the queue, ${recovered.finished} already gone`,
+    );
+  }
+
   for (const send of await dueSends()) {
     const account = await readyAccount(send);
 
@@ -175,9 +188,11 @@ export async function drain(passes = 8): Promise<{ attempted: number }> {
         attempted += 1;
         await pause(PACE);
       }
-    }
 
-    await closeIfDone(send.id);
+      /* Checked after each pass rather than only at the end, so a send that
+         finished says so even if this invocation is cut short on the next. */
+      if (await closeIfDone(send.id)) break;
+    }
   }
 
   return { attempted };
