@@ -72,9 +72,21 @@ own secrets as `DOMAIN_CONNECT_PRIVATE_KEY`, and the record's name goes in
 2. Lint it: `dc-template-linter -tolerate warn connectapp.church.email.json`, which must exit 0.
    `-merge-or-fail` exiting 0 means it qualifies for the fast track.
 3. Open a pull request against `Domain-Connect/Templates` using their own pull request template
-   unaltered, with the test-results links in the field they ask for. **Done, 13 October 2026:**
-   [Domain-Connect/Templates#2318](https://github.com/Domain-Connect/Templates/pull/2318), every
-   check green and labelled `automerge-possible`.
+   unaltered, with the test-results links in the field they ask for. **Merged, 14 October 2026:**
+   [Domain-Connect/Templates#2318](https://github.com/Domain-Connect/Templates/pull/2318).
+
+   **IONOS answers for it the same day**, which is the whole thing working: asking IONOS whether it
+   holds `connectapp.church/email` returns 200, so a church whose domain is there sees one press.
+   Vercel answers 404 for our template and for every other one asked about, the canonical example
+   included, so it does not appear to implement the template check at all. Each company syncs on its
+   own schedule and some may never answer that endpoint, which is exactly why the screen asks before
+   it offers: a company that does not answer shows the three settings instead, and no volunteer meets
+   a button that fails.
+
+   ```
+   curl -s -o /dev/null -w "%{http_code}\n" \
+     https://api.domainconnect.ionos.com/v2/domainTemplates/providers/connectapp.church/services/email
+   ```
 
    Two things cost a round each, worth knowing if the template is ever resubmitted. The repository
    wants **two** links, one with a host and one without, and it refuses a token it cannot decode
