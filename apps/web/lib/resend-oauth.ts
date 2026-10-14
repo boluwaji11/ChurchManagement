@@ -129,6 +129,8 @@ export function authorizeUrl(input: {
 
 export interface Tokens {
   accessToken: string;
+  /** R16.1. How long the access token has, in seconds. */
+  expiresIn: number;
   /**
    * R16.1. What the worker sends with, months from now.
    *
@@ -186,7 +188,11 @@ async function token(
     const refreshToken = read("refresh_token");
     if (!accessToken || !refreshToken) return { ok: false, said: `${answer.status}` };
 
-    return { ok: true, tokens: { accessToken, refreshToken } };
+    /* A quarter of an hour unless told otherwise, which is what Resend gives. */
+    const seconds = Number(read("expires_in"));
+    const expiresIn = Number.isFinite(seconds) && seconds > 0 ? seconds : 900;
+
+    return { ok: true, tokens: { accessToken, refreshToken, expiresIn } };
   } catch (error) {
     const raw = error instanceof Error ? error.message : String(error);
     return { ok: false, said: raw.replace(/\s+/g, " ").trim().slice(0, 300) };
@@ -196,10 +202,10 @@ async function token(
 /**
  * HRT-290, R16.1. A fresh access token, and the new refresh token that came with it.
  *
- * The access token lasts fifteen minutes, so nothing is stored: it is asked
- * for at the moment of sending. The refresh token that comes back is new every
- * time, and the old one is spent, so the caller writes it down before it does
- * anything else.
+ * The access token lasts fifteen minutes and is worth keeping for them: the
+ * refresh token that comes back is new every time, the old one is spent, and
+ * Resend revokes the grant when a spent one is replayed. So the caller writes
+ * both down together, and asks again only when the access token is nearly out.
  */
 export async function refreshTokens(
   clientId: string,

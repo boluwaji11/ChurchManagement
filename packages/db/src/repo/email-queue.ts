@@ -291,6 +291,8 @@ export interface SendingAccountForWorker {
   fromName: string | null;
   fromAddress: string | null;
   settings: unknown;
+  /** R16.1. The short-lived token, where one is still good. */
+  access: string | null;
 }
 
 /**
@@ -309,6 +311,8 @@ export async function accountFor(tenantId: string): Promise<SendingAccountForWor
       fromName: churchProviders.fromName,
       fromAddress: churchProviders.fromAddress,
       settings: churchProviders.settings,
+      access: churchProviders.accessToken,
+      accessExpires: churchProviders.accessExpires,
     })
     .from(churchProviders)
     .where(
@@ -321,7 +325,52 @@ export async function accountFor(tenantId: string): Promise<SendingAccountForWor
     .limit(1);
 
   if (!row?.credential) return null;
-  return { ...row, credential: openCredential(row.credential) };
+
+  /* A minute's grace, so a token that expires mid-send is refreshed before it
+     is used rather than halfway through four hundred copies. */
+  const good =
+    row.access !== null &&
+    row.accessExpires !== null &&
+    row.accessExpires.getTime() > Date.now() + 60_000;
+
+  return {
+    vendor: row.vendor,
+    credential: openCredential(row.credential),
+    fromName: row.fromName,
+    fromAddress: row.fromAddress,
+    settings: row.settings,
+    access: good ? openCredential(row.access!) : null,
+  };
+}
+
+/**
+ * R16.1. The short-lived token, kept for the minutes it has left.
+ *
+ * Written with the rotated refresh token in one statement, because the two
+ * belong to the same exchange and a worker that stored one without the other
+ * would either replay a spent refresh token or throw away a good access one.
+ */
+export async function storeTokens(
+  tenantId: string,
+  tokens: { refresh: string; access: string; seconds: number },
+): Promise<void> {
+  const db = drizzle(owner());
+  await db
+    .update(churchProviders)
+    .set({
+      credential: sealCredential(tokens.refresh),
+      credentialKeyId: CREDENTIAL_KEY_ID,
+      accessToken: sealCredential(tokens.access),
+      accessExpires: new Date(Date.now() + tokens.seconds * 1000),
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(churchProviders.tenantId, tenantId),
+        eq(churchProviders.channel, "email"),
+        eq(churchProviders.state, "connected"),
+      ),
+    );
 }
 
 /**

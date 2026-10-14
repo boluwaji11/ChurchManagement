@@ -81,7 +81,9 @@ export const viewport: Viewport = {
  * one and nobody gets a white flash at 7am in a dark building. A church that
  * has chosen nothing works in light: an office is lit, and a working screen
  * that arrives dark because somebody's laptop is set that way is a surprise.
- * ConnectApp's own website opens dark instead, which `lib/theme.ts` holds.
+ * ConnectApp's own website follows the device instead, which `lib/theme.ts`
+ * holds: somebody meeting the product has already told their computer how
+ * they like to read.
  */
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   /* R1.1, R17.1. A church that picked a name is reached at it. The slug it
