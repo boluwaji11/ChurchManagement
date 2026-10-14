@@ -221,23 +221,23 @@ and their role, so it needs no new writes.
 
 ## Critical files
 
-- `packages/ui/src/components/` — Phase A lands here. `table.tsx`, `tabs.tsx`,
+- `packages/ui/src/components/`: Phase A lands here. `table.tsx`, `tabs.tsx`,
   `stat-tile.tsx`, `hue.tsx` are extended rather than replaced; `packages/ui/src/index.ts`
   is the barrel each one joins.
 - `apps/web/components/shell/nav.ts`, `shell/sidebar.tsx`, `shell/section-memory.ts`,
-  `components/app-shell.tsx`, `components/shell/top-bar.tsx` — the sidecar, HRT-319.
-- `apps/web/app/reports/charts.tsx` and `plot.tsx` — moved in HRT-315.
-- `apps/web/components/section.tsx` + `app-shell.tsx` + `shell/top-bar.tsx` — the three
+  `components/app-shell.tsx`, `components/shell/top-bar.tsx`: the sidecar, HRT-319.
+- `apps/web/app/reports/charts.tsx` and `plot.tsx`: moved in HRT-315.
+- `apps/web/components/section.tsx` + `app-shell.tsx` + `shell/top-bar.tsx`: the three
   header mechanisms HRT-307 replaces.
-- `apps/web/components/pager.tsx` and `components/pages.tsx` — the two paginators, merged
+- `apps/web/components/pager.tsx` and `components/pages.tsx`: the two paginators, merged
   in HRT-310.
-- `apps/web/lib/when.ts` and `apps/admin/components/since.tsx` — merged in HRT-311.
-- `apps/web/app/members/directory.tsx` — the hand-rolled table, `HuePill`, `TagChips` and
+- `apps/web/lib/when.ts` and `apps/admin/components/since.tsx`: merged in HRT-311.
+- `apps/web/app/members/directory.tsx`: the hand-rolled table, `HuePill`, `TagChips` and
   `StatusPill` that HRT-308, HRT-312 and HRT-317 absorb.
 - `apps/web/app/reports/figure.tsx`, `app/dashboard/tiles.tsx`,
-  `app/giving/campaigns/[slug]/campaign-screen.tsx` line 302 — the three stat tiles.
-- `CLAUDE.md` line 253 and `docs/design-system.md` line 441 — the lede rule, in HRT-307.
-- `BACKLOG.md` F24 table — where every row above is written.
+  `app/giving/campaigns/[slug]/campaign-screen.tsx` line 302: the three stat tiles.
+- `CLAUDE.md` line 253 and `docs/design-system.md` line 441: the lede rule, in HRT-307.
+- `BACKLOG.md` F24 table: where every row above is written.
 
 ## Reuse, do not rebuild
 
@@ -253,7 +253,7 @@ rather than reading the browser · the `Donut`/`Line`/`Columns`/`RowBars` drawin
 - Next free ID is **HRT-307**; the highest in use is HRT-306.
 - Rows go in the F24 table in `BACKLOG.md`: `| HRT-n | Title | Reqs | State |`,
   single-space padding, no trailing stop.
-- Requirements cited explicitly, never `R24.x` — `check-backlog.mjs` does not expand
+- Requirements cited explicitly, never `R24.x`: `check-backlog.mjs` does not expand
   wildcards. Ranges use the literal word `to`: `R24.1 to R24.3`.
 - Every row gets a `### HRT-n, how to test it` section in hard-wrapped imperative prose.
 - Every row enters as **New**.
