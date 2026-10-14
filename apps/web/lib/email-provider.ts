@@ -297,6 +297,13 @@ export interface Message {
    * exists so the one that prefers text is not handed a page of tags.
    */
   html?: string;
+  /**
+   * R22.1. Where a reply should go, where that is not the sender.
+   *
+   * A church writing to support is answered by pressing reply, and the
+   * message leaves through the platform's own address rather than theirs.
+   */
+  replyTo?: string;
 }
 
 /** The address a provider wants: the name, then the address in angle brackets. */
@@ -325,6 +332,7 @@ export async function sendBySmtp(
       subject: message.subject,
       text: message.text,
       ...(message.html ? { html: message.html } : {}),
+      ...(message.replyTo ? { replyTo: message.replyTo } : {}),
     });
     return { ok: true };
   } catch (error) {
@@ -344,6 +352,7 @@ export async function sendByResend(accessToken: string, message: Message): Promi
       subject: message.subject,
       text: message.text,
       ...(message.html ? { html: message.html } : {}),
+      ...(message.replyTo ? { reply_to: message.replyTo } : {}),
     },
   });
 

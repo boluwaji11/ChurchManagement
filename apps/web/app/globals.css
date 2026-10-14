@@ -105,6 +105,14 @@ select:-webkit-autofill {
   visibility: hidden;
 }
 
+/* R24.4. Both words in the same cell rather than stacked in two rows.
+   The sizer is here to hold the width of the longer one; stacked, it also
+   held the height of two lines, and the hero carried an empty line under
+   itself all the way down to the buttons. */
+.site-hero-typewriter__sizer > span {
+  grid-area: 1 / 1;
+}
+
 .site-hero-typewriter__line {
   justify-self: start;
   text-align: left;

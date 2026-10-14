@@ -90,7 +90,7 @@ export function SupportMessage() {
           ref={panel}
           role="dialog"
           aria-label={t("site.support.title")}
-          className="absolute bottom-16 right-0 flex max-h-[min(560px,calc(100dvh-7rem))] w-[min(400px,calc(100vw-2rem))] flex-col gap-4 overflow-y-auto rounded-xl border border-line bg-surface p-4 shadow-lg sm:p-5"
+          className="absolute bottom-16 right-0 flex max-h-[min(560px,calc(100dvh-7rem))] w-[min(400px,calc(100vw-2rem))] flex-col gap-3 overflow-y-auto rounded-xl border border-line bg-surface p-4 shadow-lg sm:p-5"
         >
           <header className="flex items-center justify-between gap-3">
             <h2 className="m-0 font-display text-heading text-fg">{t("site.support.title")}</h2>
@@ -104,7 +104,9 @@ export function SupportMessage() {
               <X />
             </IconButton>
           </header>
-          <form noValidate onSubmit={sendMessage} className="flex flex-col gap-4">
+          {/* R24.6. Tight, because the whole form has to stand in a panel over the
+              page without the send button falling off the bottom of it. */}
+          <form noValidate onSubmit={sendMessage} className="flex flex-col gap-2.5">
             <Field label={t("site.support.name")}>
               <Input
                 autoComplete="name"
@@ -146,7 +148,7 @@ export function SupportMessage() {
             </Field>
             <Field label={t("site.support.message")} required>
               <Textarea
-                rows={4}
+                rows={3}
                 value={message}
                 maxLength={5000}
                 disabled={sending}
