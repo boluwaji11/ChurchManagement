@@ -2,7 +2,7 @@ import {
   withTenant, getChurch, canEditPeople, canReadIncidents,
   milestoneCounts, milestoneList, newMembers,
 } from "@connectapp/db";
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
@@ -97,7 +97,7 @@ export default async function MilestonesReport({
       {
         text: one.daysToJoin === null || one.daysToJoin < 0
           ? ""
-          : t("reports.milestones.days", { count: String(one.daysToJoin) }),
+          : plural("reports.milestones.days", one.daysToJoin),
         numeric: true,
       },
     ],

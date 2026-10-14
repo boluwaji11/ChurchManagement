@@ -341,7 +341,7 @@ export function Composer({
 
         <p className="m-0 text-fg-muted">
           {reach === null ? t("common.searching") : plural("send.reaches", reach.count)}
-          {withdrawn > 0 ? ` · ${t("send.withdrawn", { count: withdrawn })}` : ""}
+          {withdrawn > 0 ? ` · ${plural("send.withdrawn", withdrawn)}` : ""}
         </p>
 
         <Field label={t("send.subject")} required>
@@ -482,7 +482,7 @@ export function Composer({
           worth confirming is how many people it reaches. */}
       <Dialog open={asking} onOpenChange={setAsking}>
         <DialogContent
-          title={t("send.ask", { count: reach?.count ?? 0 })}
+          title={plural("send.ask", reach?.count ?? 0)}
           closeLabel={t("common.close")}
         >
           {/* R16.4. A few of the addresses, because the mistake worth catching
@@ -541,11 +541,11 @@ function Withdrawn({ out }: { out: Out[] }) {
             ) : null}
             {back.has(one.id) ? (
               <span className="text-caption text-fg-muted">
-                {t("send.out.backDone", { name })}
+                {t("send.out.backDone")}
               </span>
             ) : (
               <IconButton
-                label={t("send.out.back", { name })}
+                label={t("send.out.back")}
                 variant="ghost"
                 disabled={busy === one.id}
                 onClick={() => {

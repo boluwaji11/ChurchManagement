@@ -1,4 +1,4 @@
-import { t } from "@connectapp/i18n";
+import { t, plural } from "@connectapp/i18n";
 
 /**
  * Shared validators, so two forms cannot disagree about what a valid email is.
@@ -29,7 +29,7 @@ export const email: Validator = (value) => {
 export const minLength =
   (count: number, what: string): Validator =>
   (value) =>
-    value.length >= count ? undefined : t("validate.minLength", { what, count });
+    value.length >= count ? undefined : plural("validate.minLength", count, { what });
 
 /** Runs validators in order and returns the first message, or undefined. */
 export const check = (value: string, ...validators: Validator[]): string | undefined => {
