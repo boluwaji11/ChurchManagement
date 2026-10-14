@@ -174,7 +174,7 @@ export function Composer({
     setDone(
       answer.failed
         ? t("send.sentSome", { delivered: answer.delivered ?? 0, failed: answer.failed })
-        : t("send.sent", { count: answer.delivered ?? 0 }),
+        : plural("send.sent", answer.delivered ?? 0),
     );
     setSubject("");
     setBody("");
@@ -382,7 +382,7 @@ export function Composer({
                 <span className="text-fg-muted">
                   {one.failed
                     ? t("send.sentSome", { delivered: one.delivered, failed: one.failed })
-                    : t("send.sent", { count: one.delivered })}
+                    : plural("send.sent", one.delivered)}
                 </span>
                 {one.sentAt ? (
                   <span className="text-caption text-fg-subtle">{when(one.sentAt)}</span>
