@@ -79,7 +79,7 @@ export function Checkout({
       setError(result.error);
       setPeople(result.members ?? []);
     });
-  }, [open, childId, church, offline]);
+  }, [open, childId, church, offline, setError]);
 
   const go = (override: { kind: string; reason: string } | null) => {
     startTransition(async () => {

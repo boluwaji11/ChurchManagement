@@ -322,6 +322,10 @@ export function RoleForm({
     setPicking(!role && shelf.length > 0);
     setTaking(null);
     setError(undefined);
+    // The panel resets to what is stored as it opens. Depending on the record
+    // itself re-runs this on every render of the screen behind it, which throws
+    // away whatever has been typed into the open panel.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, role?.name, role?.permissions]);
 
   /* Which of the two footer controls was pressed. */

@@ -381,7 +381,7 @@ export function NewPipeline({
   const [open, setOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const formId = React.useId();
-  const library = React.useMemo(() => followupLibrary(taken), [taken.join("|")]);
+  const library = followupLibrary(taken);
   /** The journey being started from, or null for a blank one. */
   const [preset, setPreset] = React.useState<FlowPreset | null>(null);
   const [picking, setPicking] = React.useState(library.length > 0);

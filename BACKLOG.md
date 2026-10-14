@@ -95,6 +95,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-226 | A church writes its own vocabulary: group types and teams start empty, teams configured in Settings | R9.1, R10.1 | Closed |
 | HRT-227 | The ConnectApp admin portal: churches, approval, archive, the operators and the log | R21.x, R22.x | Closed |
 | HRT-234 | Speed: Turbopack in development, one trip to the database per frame, pipelined reads. [docs/performance.md](docs/performance.md) | R24.11 | Closed |
+| HRT-342 | The warning count comes down, and the landing page's shots are sized for the device they land on | R24.11, R22.1 | Resolved |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
 | HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Closed |
 | HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Closed |
@@ -1932,6 +1933,28 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-342, how to test it
+
+Run `pnpm lint`. It reports 44 warnings and no errors, where it reported 60, and CI's ceiling has
+come down to match, so the next warning anybody adds fails the build rather than being absorbed.
+Four of the sixteen were a `useMemo` over a filter of about fifteen hardcoded items, which cost two
+warnings each and saved nothing; three were a panel's reset-on-open effect, where listing the record
+itself would re-run the reset on every render of the screen behind it and throw away whatever had
+been typed, so those carry a comment saying why the record is left out.
+
+Open the landing page and look at the four product shots. They are the same pictures. In the network
+panel, each now arrives through `/_next/image` at the width its frame actually gives it: the first
+shot is about 30KB where the file on disk is 658KB, and a phone is sent about 11KB of it. The member
+shot renders 300px wide from a 1242px capture, which was the worst of the four. All four together
+came to 2.3MB of PNG, which was roughly ten times the page's entire JavaScript.
+
+`.env.example` now says which pooler port each connection takes and why they differ. The application
+takes 6543, the transaction pooler, which is what the pool size in `packages/db/src/client.ts` is
+written for; migrations stay on 5432 because advisory locks outlive a transaction. An application
+left on 5432 reaches the fifteen-client ceiling at two or three serverless instances and then fails
+every request with EMAXCONNSESSION. The file had both on 5432, which is how a deployment set up from
+it would have been wrong.
 
 ### HRT-341, how to test it
 

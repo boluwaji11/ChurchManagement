@@ -239,7 +239,7 @@ export default async function Site() {
             demo is a button in the hero and another at the foot. */}
         <section id="product" className="mx-auto w-full max-w-[1280px] px-6 py-14">
           <BrowserFrame>
-            <Shot src="/marketing/office.png" />
+            <Shot src="/marketing/office.png" sizes="(min-width: 1312px) 1232px, 100vw" />
           </BrowserFrame>
         </section>
 
@@ -281,7 +281,7 @@ export default async function Site() {
             </div>
             <div className="min-w-0 flex-[1.4_1_440px]">
               <BrowserFrame>
-                <Shot src="/marketing/people.png" />
+                <Shot src="/marketing/people.png" sizes="(min-width: 1024px) 700px, 100vw" />
               </BrowserFrame>
             </div>
           </div>
@@ -304,7 +304,7 @@ export default async function Site() {
             </div>
             <div className="min-w-0 flex-[1.4_1_440px]">
               <PhoneFrame>
-                <Shot src="/marketing/member.png" />
+                <Shot src="/marketing/member.png" sizes="300px" />
               </PhoneFrame>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default async function Site() {
           <div className="mx-auto flex w-full max-w-[1200px] flex-row-reverse flex-wrap items-center gap-12 px-6 py-16">
             <div className="min-w-0 flex-[1.4_1_440px]">
               <BrowserFrame>
-                <Shot src="/marketing/giving.png" />
+                <Shot src="/marketing/giving.png" sizes="(min-width: 1024px) 700px, 100vw" />
               </BrowserFrame>
             </div>
             <div className="flex flex-[1_1_360px] flex-col gap-5">

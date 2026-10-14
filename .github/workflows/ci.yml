@@ -41,7 +41,7 @@ jobs:
 
       # A hook behind a condition is a crash, and a typecheck cannot see it.
       - name: Lint (R22.7)
-        run: pnpm lint --max-warnings 60
+        run: pnpm lint --max-warnings 44
 
       - name: Contrast audit (R22.7)
         run: pnpm --filter @connectapp/ui test

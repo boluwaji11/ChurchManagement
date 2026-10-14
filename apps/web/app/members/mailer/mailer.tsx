@@ -187,8 +187,6 @@ export function Mailer({
       live = false;
       clearTimeout(timer);
     };
-    // The names of the two sentinels never change, so they are left out.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saved.id, name, list, paper, skip, font, size, letter, church]);
 
   const put = (mark: string) => {

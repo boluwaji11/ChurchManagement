@@ -81,7 +81,7 @@ export function Kiosk({
     setFinished([]);
     setSeen(false);
     setError(undefined);
-  }, []);
+  }, [setError]);
 
   // Back to the start on its own, so a family who walked away does not leave
   // their children's names on a screen in the lobby.
