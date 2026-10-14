@@ -433,8 +433,11 @@ export interface SentEmail {
   sentAt: Date | null;
 }
 
-/** R16.6. What this church has sent, newest first. */
-export async function listSends(db: Tx, limit = 20): Promise<SentEmail[]> {
+/** R16.6. What this church has sent, newest first, a page at a time. */
+export async function listSends(
+  db: Tx,
+  input: { limit?: number; offset?: number } = {},
+): Promise<SentEmail[]> {
   return db
     .select({
       id: emailSends.id,
@@ -450,7 +453,17 @@ export async function listSends(db: Tx, limit = 20): Promise<SentEmail[]> {
     .from(emailSends)
     .where(ne(emailSends.state, "draft"))
     .orderBy(desc(emailSends.sentAt))
-    .limit(limit);
+    .limit(input.limit ?? 20)
+    .offset(input.offset ?? 0);
+}
+
+/** R16.6. How many there are in all, so the pager knows where it ends. */
+export async function countSends(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(emailSends)
+    .where(ne(emailSends.state, "draft"));
+  return row?.n ?? 0;
 }
 
 /** R16.8. How many of this church's people have asked to be left alone. */
@@ -465,6 +478,15 @@ export async function countWithdrawn(db: Tx): Promise<number> {
         isNotNull(contactConsent.memberId),
       ),
     );
+  return row?.n ?? 0;
+}
+
+/** R16.8. How many rows the unsubscribed list holds, so the pager knows its end. */
+export async function countAllWithdrawn(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(contactConsent)
+    .where(and(eq(contactConsent.channel, "email"), eq(contactConsent.state, "withdrawn")));
   return row?.n ?? 0;
 }
 
@@ -530,7 +552,10 @@ export interface Withdrawn {
  * Both kinds are here: people on the list, and addresses that belong to
  * nobody on it.
  */
-export async function listWithdrawn(db: Tx): Promise<Withdrawn[]> {
+export async function listWithdrawn(
+  db: Tx,
+  input: { limit?: number; offset?: number } = {},
+): Promise<Withdrawn[]> {
   const rows = await db
     .select({
       id: contactConsent.id,
@@ -550,7 +575,9 @@ export async function listWithdrawn(db: Tx): Promise<Withdrawn[]> {
     })
     .from(contactConsent)
     .where(and(eq(contactConsent.channel, "email"), eq(contactConsent.state, "withdrawn")))
-    .orderBy(desc(contactConsent.withdrawnAt));
+    .orderBy(desc(contactConsent.withdrawnAt))
+    .limit(input.limit ?? 20)
+    .offset(input.offset ?? 0);
 
   return rows
     .map((one) => ({

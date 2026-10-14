@@ -1,7 +1,8 @@
 import Link from "next/link";
 import {
   withTenant, emailProvider, sendingDomain, listSavedLists, listGroups,
-  listSends, countWithdrawn, listWithdrawn, canManageChurch,
+  listSends, countSends, countWithdrawn, listWithdrawn, countAllWithdrawn,
+  canManageChurch,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -12,6 +13,9 @@ import { Composer } from "./composer";
 import { tabMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
+
+/** R16.6. How many sends a page of the Sent list holds. */
+const PAGE = 10;
 
 /** R17.1. What the browser tab says. */
 export async function generateMetadata() {
@@ -48,9 +52,11 @@ export async function EmailPanelPage() {
     domain: await sendingDomain(tx),
     lists: await listSavedLists(tx),
     groups: await listGroups(tx, {}),
-    sent: await listSends(tx),
+    sent: await listSends(tx, { limit: PAGE }),
+    sends: await countSends(tx),
     withdrawn: await countWithdrawn(tx),
-    out: await listWithdrawn(tx),
+    out: await listWithdrawn(tx, { limit: PAGE }),
+    outs: await countAllWithdrawn(tx),
   }));
 
   /* R16.1. Resend is only sending once its domain is verified, so a church
@@ -87,6 +93,8 @@ export async function EmailPanelPage() {
             name: one.name,
             withdrawnAt: one.withdrawnAt?.toISOString() ?? null,
           }))}
+          sends={read.sends}
+          outs={read.outs}
           withdrawn={read.withdrawn}
         />
       )}

@@ -11,8 +11,10 @@ import { t, plural } from "@connectapp/i18n";
 import { RichText } from "@/components/rich-text";
 import { when } from "@/lib/when";
 import {
-  countAudience, findRecipients, openSend, putBack, sendEmail, type SendResult,
+  countAudience, findRecipients, openSend, putBack, sendEmail, sentPage, withdrawnPage,
+  type SendResult,
 } from "./actions";
+import { Pages } from "@/components/pages";
 
 export interface Named {
   id: string;
@@ -48,6 +50,9 @@ const FIELDS = [
   { mark: "church", label: "post.field.church" },
 ] as const;
 
+/** R16.6. How many sends a page of the Sent list holds. */
+const PER = 10;
+
 const EVERYONE = "everyone";
 const PEOPLE = "people";
 
@@ -72,14 +77,20 @@ export function Composer({
   lists,
   groups,
   sent,
+  sends,
   out,
+  outs,
   withdrawn,
 }: {
   lists: Named[];
   groups: Named[];
   sent: Sent[];
+  /** R16.6. How many sends there are in all, which the pager needs. */
+  sends: number;
   /** R16.8. The list of who has asked to be left alone, kept where it can be read. */
   out: Out[];
+  /** R16.8. How many there are in all, which the pager needs. */
+  outs: number;
   /** R16.8. How many have asked to be left alone, said plainly. */
   withdrawn: number;
 }) {
@@ -103,6 +114,17 @@ export function Composer({
   const [done, setDone] = React.useState<string | null>(null);
   /* R16.6. The one being read back, which is a send rather than a draft. */
   const [reading, setReading] = React.useState<Awaited<ReturnType<typeof openSend>>>(null);
+  /* R16.6. The page of the Sent list on screen, read a page at a time rather
+     than all of it, because a church that has been here three years has sent
+     a great many. */
+  const [page, setPage] = React.useState(1);
+  const [rows, setRows] = React.useState<Sent[]>(sent);
+
+  /* A send refreshes the screen, which hands back a fresh first page. */
+  React.useEffect(() => {
+    setRows(sent);
+    setPage(1);
+  }, [sent]);
 
   const chosen = React.useMemo(() => {
     if (who === EVERYONE) return { audience: "everyone" as const, id: null, name: null };
@@ -387,12 +409,12 @@ export function Composer({
         </div>
       </Card>
       ) : doing === "sent" ? (
-      <section className="flex flex-col gap-2">
-        {sent.length === 0 ? (
+      <section className="flex flex-col gap-3">
+        {rows.length === 0 ? (
           <p className="m-0 text-fg-muted">{t("send.history.none")}</p>
         ) : (
           <ul className="m-0 flex list-none flex-col divide-y divide-line rounded-[12px] border border-line p-0">
-            {sent.map((one) => (
+            {rows.map((one) => (
               <li key={one.id}>
                 <button
                   type="button"
@@ -414,9 +436,20 @@ export function Composer({
             ))}
           </ul>
         )}
+
+        {sends > PER ? (
+          <Pages
+            page={page}
+            last={Math.ceil(sends / PER)}
+            onPage={(next) => {
+              setPage(next);
+              void sentPage(next).then(setRows);
+            }}
+          />
+        ) : null}
       </section>
       ) : (
-      <Withdrawn out={out} />
+      <Withdrawn out={out} total={outs} />
       )}
 
       {/* R16.6. What went out, read back. Nothing here can be changed: a send
@@ -514,17 +547,25 @@ export function Composer({
  * back is a press rather than a form, since the church has already been told
  * by the person in front of them.
  */
-function Withdrawn({ out }: { out: Out[] }) {
+function Withdrawn({ out, total }: { out: Out[]; total: number }) {
   const [back, setBack] = React.useState<Set<string>>(new Set());
   const [busy, setBusy] = React.useState<string | null>(null);
+  const [page, setPage] = React.useState(1);
+  const [rows, setRows] = React.useState<Out[]>(out);
 
-  if (out.length === 0) {
+  React.useEffect(() => {
+    setRows(out);
+    setPage(1);
+  }, [out]);
+
+  if (rows.length === 0) {
     return <p className="m-0 text-fg-muted">{t("send.out.none")}</p>;
   }
 
   return (
+    <section className="flex flex-col gap-3">
     <ul className="m-0 flex list-none flex-col divide-y divide-line rounded-[12px] border border-line p-0">
-      {out.map((one) => {
+      {rows.map((one) => {
         const name = one.name ?? one.address;
         return (
           <li key={one.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5">
@@ -563,5 +604,17 @@ function Withdrawn({ out }: { out: Out[] }) {
         );
       })}
     </ul>
+
+    {total > PER ? (
+      <Pages
+        page={page}
+        last={Math.ceil(total / PER)}
+        onPage={(next) => {
+          setPage(next);
+          void withdrawnPage(next).then(setRows);
+        }}
+      />
+    ) : null}
+    </section>
   );
 }

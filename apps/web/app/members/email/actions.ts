@@ -6,6 +6,7 @@ import {
   withTenant,
   emailRecipientsFor, findEmailRecipients, wayOutFor, startSend, recordDelivery, finishSend,
   emailCredentialForSend, rotateEmailCredential, getChurch, readSend, restoreConsent,
+  listSends, listWithdrawn,
   type Audience,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -121,6 +122,35 @@ export async function putBack(id: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/** R16.6. A page of what this church has sent. */
+export async function sentPage(page: number) {
+  const { ctx } = await context();
+  const rows = await withTenant(ctx, (tx) =>
+    listSends(tx, { limit: 10, offset: Math.max(0, page - 1) * 10 }),
+  );
+  return rows.map((one) => ({
+    id: one.id,
+    subject: one.subject,
+    delivered: one.delivered,
+    failed: one.failed,
+    sentAt: one.sentAt?.toISOString() ?? null,
+  }));
+}
+
+/** R16.8. A page of who has asked this church to stop. */
+export async function withdrawnPage(page: number) {
+  const { ctx } = await context();
+  const rows = await withTenant(ctx, (tx) =>
+    listWithdrawn(tx, { limit: 10, offset: Math.max(0, page - 1) * 10 }),
+  );
+  return rows.map((one) => ({
+    id: one.id,
+    address: one.address,
+    name: one.name,
+    withdrawnAt: one.withdrawnAt?.toISOString() ?? null,
+  }));
 }
 
 /** R16.4. People matching what the writer typed, for choosing them one by one. */
