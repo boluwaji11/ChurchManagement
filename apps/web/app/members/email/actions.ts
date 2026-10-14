@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import {
   withTenant,
   emailRecipientsFor, findEmailRecipients, wayOutFor, startSend, recordDelivery, finishSend,
-  emailCredentialForSend, rotateEmailCredential,
+  emailCredentialForSend, rotateEmailCredential, getChurch,
   type Audience,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -58,6 +58,10 @@ async function context() {
 
 const field = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
 
+/** Nothing a church typed reaches the markup as markup. */
+const safe = (raw: string): string =>
+  raw.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+
 /**
  * R16.4. How many this would reach, and a few of them by name.
  *
@@ -94,6 +98,30 @@ export async function findRecipients(query: string) {
   }
 }
 
+/**
+ * R16.8. The fine print under every message.
+ *
+ * Centred and quiet, the way every church already recognises it: who it was
+ * sent to, the way out, and the church's own name and postal address. The
+ * address is what the law asks of anybody sending in bulk, and it is also what
+ * a reader looks for when deciding whether this is really their church.
+ */
+function footer(input: { address: string; wayOut: string; church: string; postal: string }): string {
+  const lines = [
+    `${t("send.foot.sentTo", { address: safe(input.address) })}`,
+    `<a href="${input.wayOut}" style="color:#6b7280">${t("send.wayOut.word")}</a>`,
+    [safe(input.church), input.postal ? safe(input.postal) : null].filter(Boolean).join(" · "),
+  ];
+
+  return (
+    `<div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;` +
+    `text-align:center;font-family:system-ui,sans-serif;font-size:12px;` +
+    `line-height:1.7;color:#6b7280">` +
+    lines.map((one) => `<div>${one}</div>`).join("") +
+    `</div>`
+  );
+}
+
 export async function sendEmail(data: FormData): Promise<SendResult> {
   const { session, actor, ctx } = await context();
 
@@ -125,6 +153,23 @@ export async function sendEmail(data: FormData): Promise<SendResult> {
     if (people.length === 0) return { error: t("send.error.nobody") };
 
     const origin = (await churchOrigin(session.tenantSlug)) ?? "";
+
+    /*
+     * R16.8. The church's own name and postal address, under every message.
+     *
+     * It is what the law asks of anybody sending in bulk, and it is what a
+     * reader looks for when they are deciding whether this is really their
+     * church writing to them.
+     */
+    const profile = await withTenant(ctx, (tx) => getChurch(tx, session.tenantId));
+    const postal = [
+      profile?.addressLine1,
+      profile?.city,
+      [profile?.region, profile?.postalCode].filter(Boolean).join(" "),
+    ]
+      .map((one) => one?.trim())
+      .filter(Boolean)
+      .join(" · ");
     const from = sender(held.fromName, held.fromAddress);
 
     /* R16.1. One access token for the whole send, and the refresh token it
@@ -180,12 +225,19 @@ export async function sendEmail(data: FormData): Promise<SendResult> {
           name: person.name,
           church: session.tenantName,
         }),
-        text: `${words}\n\n---\n${t("send.wayOut")} ${wayOut}`,
+        text:
+          `${words}\n\n---\n` +
+          `${t("send.foot.sentTo", { address: person.address })}\n` +
+          `${t("send.wayOut")} ${wayOut}\n` +
+          [session.tenantName, postal].filter(Boolean).join(" · "),
         html:
-          `${markdownToHtml(words)}` +
-          `<hr style="margin:24px 0;border:0;border-top:1px solid #ddd">` +
-          `<p style="font-size:13px;color:#666">${t("send.wayOut.before")} ` +
-          `<a href="${wayOut}">${t("send.wayOut.word")}</a>.</p>`,
+          markdownToHtml(words) +
+          footer({
+            address: person.address,
+            wayOut,
+            church: session.tenantName,
+            postal,
+          }),
       };
 
       const sent = access

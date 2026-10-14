@@ -4676,6 +4676,7 @@ export const en = {
   "send.wayOut": "To stop receiving these emails, unsubscribe here:",
   "send.wayOut.before": "To stop receiving these emails,",
   "send.wayOut.word": "unsubscribe",
+  "send.foot.sentTo": "This email was sent to {address}",
   "send.error.subject": "Give the message a subject",
   "send.error.body": "Write something to send",
   "send.error.nobody": "Nobody in that audience has an email address",
