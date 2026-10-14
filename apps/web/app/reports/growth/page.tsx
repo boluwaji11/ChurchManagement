@@ -4,7 +4,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { Empty } from "@/components/empty";
 import { churchNow } from "@/lib/church-now";
@@ -42,7 +42,7 @@ export default async function GrowthReport({
   searchParams: Promise<{ days?: string }>;
 }) {
   const { days } = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
   if (!canEditPeople(session) && !canReadIncidents(session)) {
     return (
       <Denied role={session.role} action="readReports" church={session.tenantSlug} />

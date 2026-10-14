@@ -8,7 +8,7 @@ import {
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { Flash } from "@/components/said";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { AppShell } from "@/components/app-shell";
 import { Directory } from "./directory";
@@ -40,7 +40,7 @@ export async function MembersListScreen({
     ),
   ).toString();
   const listHref = listQuery ? `/members?${listQuery}` : "/members";
-  const session = await requireSession();
+  const session = await requireScreen();
 
   const page = pageFromParams(params);
 

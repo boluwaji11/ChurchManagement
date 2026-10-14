@@ -3,7 +3,7 @@ import {
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { Board, DragHint, type BoardCard, type BoardStage } from "./board";
@@ -40,7 +40,7 @@ export default async function FollowUpsPage({
   searchParams: Promise<{ pipeline?: string }>;
 }) {
   const params = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (!canFollowUp(session)) {
     return (

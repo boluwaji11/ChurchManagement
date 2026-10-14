@@ -3,7 +3,7 @@ import {
 } from "@connectapp/db";
 import { Empty } from "@/components/empty";
 import { t } from "@connectapp/i18n";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { AppShell } from "@/components/app-shell";
 import { churchNow } from "@/lib/church-now";
 import { AddService } from "./add-service";
@@ -77,7 +77,7 @@ export default async function ServicesPage({
   searchParams: Promise<{ }>;
 }) {
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
   const canEdit = canManageServices(session);
 
   const { rows, past, plans, now } = await withTenant(

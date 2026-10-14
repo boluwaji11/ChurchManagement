@@ -4,7 +4,7 @@ import {
   listTemplates, itemKindsForPlans, rosterFor, listOccurrences, getChurch,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { AppShell } from "@/components/app-shell";
 import { longDate, readableTime, shortDate } from "@/lib/dates";
@@ -42,7 +42,7 @@ export default async function PlanPage({
 }) {
   const { id } = await params;
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (!canManageServices(session)) {
     return (

@@ -4,7 +4,7 @@ import { withTenant, listForms, countArchivedForms, canManageChurch } from "@con
 import { LIFT } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { Empty } from "@/components/empty";
 import { NewFormButton } from "./new-form";
@@ -26,7 +26,7 @@ export async function FormsListScreen({
   searchParams: Promise<{ archived?: string }>;
 }) {
   const { archived } = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (!canManageChurch(session)) {
     return (

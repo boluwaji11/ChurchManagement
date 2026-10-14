@@ -4,7 +4,7 @@ import {
   canManageServices, canManageGiving,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { AppShell } from "@/components/app-shell";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
 import { readsAsMember } from "@/lib/reads-as-member";
@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
  * This is the drawer.
  */
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
-  const session = await requireSession();
+  const session = await requireScreen();
 
   /*
    * R24.6. Six headings, in the order a church reads them: what this church

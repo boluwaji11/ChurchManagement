@@ -7,7 +7,7 @@ import {
 import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { PageMeta } from "@/components/section";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { AppShell } from "@/components/app-shell";
 import { Roster } from "./roster";
 import { ServiceActions } from "./service-actions";
@@ -39,7 +39,7 @@ export default async function RosterPage({
 }) {
   const { id } = await params;
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   const result = await withTenant({ tenantId: session.tenantId, role: session.role }, async (tx) => {
     const occurrence = await getOccurrence(tx, id);

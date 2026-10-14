@@ -5,7 +5,7 @@ import {
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { supabaseServer } from "@/lib/supabase/server";
 import { churchNow } from "@/lib/church-now";
 import { Empty } from "@/components/empty";
@@ -43,7 +43,7 @@ export async function EventsListScreen({
   searchParams: Promise<{ archived?: string }>;
 }) {
   const { archived } = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   /*
    * R14.2, R17.1. A member reads the same list from the other side: what the

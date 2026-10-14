@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { withTenant, getLabelLayout, canManageStations } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { LabelLayoutForm } from "./layout-form";
 import { Denied } from "@/components/denied";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -32,7 +32,7 @@ export default async function LabelsPage({
   searchParams: Promise<{ }>;
 }) {
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (!canManageStations(session)) {
     return (

@@ -1,7 +1,7 @@
 import {
   withTenant, canManageWebsite, websiteForEditor, listServiceTimes, isApproved, getChurch,
 } from "@connectapp/db";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { AppShell } from "@/components/app-shell";
 import { tabMetadata } from "@/lib/page-metadata";
@@ -16,7 +16,7 @@ export async function generateMetadata() {
 }
 
 export default async function WebsiteEditorPage() {
-  const session = await requireSession();
+  const session = await requireScreen();
   if (!canManageWebsite(session)) {
     return <Denied role={session.role} action="manageWebsite" church={session.tenantSlug} />;
   }

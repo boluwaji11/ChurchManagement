@@ -6,7 +6,7 @@ import {
   demoChurchInfo, unreadFor,
   type Notification, type ChurchProfile, type SetupProgress, type ChurchStanding,
 } from "@connectapp/db";
-import type { Session } from "@/lib/session";
+import { requireSession, type Session } from "@/lib/session";
 
 export interface ShellData {
   unread: number;
@@ -87,3 +87,33 @@ export const shellData = cache(async (session: Session): Promise<ShellData> => {
 
   return { ...inTenant, demo };
 });
+
+/**
+ * R24.11. The session for a screen that draws the frame around itself.
+ *
+ * Every staff screen awaits its own rows and then returns `<AppShell>`, which
+ * is the first thing that asks for the frame's data. So the two ran one after
+ * the other although neither needs the other: the frame wants the bell, the
+ * church, the setup path and the reader's face, and the page wants its own
+ * rows. The frame's trip, measured at about 130ms, was added to every screen
+ * rather than overlapped with it.
+ *
+ * Starting it here puts it in flight before the screen reads anything, and
+ * `shellData` is held for the request, so the `await` inside `AppShell` later
+ * joins this one instead of opening a second.
+ *
+ * A screen uses this; a server action and an API route use `requireSession`,
+ * because they draw no frame and reading one would be a transaction spent on
+ * nothing. There are 181 callers of `requireSession` and 37 of them are
+ * screens, so this is the smaller half and it is the half that is explicit.
+ */
+export async function requireScreen(asked?: string): Promise<Session> {
+  const session = await requireSession(asked);
+
+  /* Not awaited. The rejection is swallowed here and met again at the `await`
+     in AppShell, which is where it belongs: an unhandled rejection now would
+     take down a render that has not asked for this yet. */
+  void shellData(session).catch(() => undefined);
+
+  return session;
+}

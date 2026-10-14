@@ -11,7 +11,7 @@ import { Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { AppShell } from "@/components/app-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { shellData } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { ageLine } from "@/lib/room-ages";
@@ -53,7 +53,7 @@ export default async function CheckinPage({
   searchParams: Promise<{ service?: string }>;
 }) {
   const params = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   // R1.5. Asked before anything is read, so a role that cannot run check-in
   // does not set the board's dozen queries going on its way to being refused.
