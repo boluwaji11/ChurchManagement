@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FileText, RotateCcw, Send, X } from "lucide-react";
+import { Ban, FileText, RotateCcw, Send, X } from "lucide-react";
 import {
   Banner, Button, Card, Combobox, Field, IconButton, Input, Working,
   Dialog, DialogContent, DialogFooter, Sheet, SheetContent,
@@ -18,7 +18,8 @@ import { dateAndTime } from "@/lib/dates";
 import { DATE_LABELS } from "@/lib/date-labels";
 import { readingLocale } from "@/lib/reading-locale";
 import {
-  countAudience, findRecipients, openSend, putBack, sendEmail, sentPage, withdrawnPage,
+  callOffSend, countAudience, findRecipients, openSend, putBack, sendEmail, sentPage,
+  withdrawnPage,
   type SendResult,
 } from "./actions";
 import { Pages } from "@/components/pages";
@@ -59,6 +60,10 @@ export interface Out {
 /** R16.6. How many sends a page of the Sent list holds. */
 const PER = 10;
 
+/** R16.6. Still stoppable: queued, and its hour has not come. */
+const waiting = (one: { state: string; sendAt: string | null }): boolean =>
+  one.state === "queued" && one.sendAt !== null && new Date(one.sendAt) > new Date();
+
 /**
  * R16.6. What a row says about itself.
  *
@@ -66,6 +71,7 @@ const PER = 10;
  * its hour, one on its way with how far it has got, and one that is done.
  */
 function tally(one: Sent): string {
+  if (one.state === "cancelled") return t("send.cancelled");
   if (one.state === "queued" && one.sendAt && new Date(one.sendAt) > new Date()) {
     return t("send.scheduled", { when: dateAndTime(one.sendAt) });
   }
@@ -144,6 +150,9 @@ export function Composer({
   const [done, setDone] = React.useState<string | null>(null);
   /* R16.6. The one being read back, which is a send rather than a draft. */
   const [reading, setReading] = React.useState<Awaited<ReturnType<typeof openSend>>>(null);
+  /* R16.6. Calling off a send that has not gone, which is the one thing on
+     this panel that changes anything. */
+  const [callingOff, setCallingOff] = React.useState(false);
   /* R16.6. A send that waits for its hour. Off until somebody asks for it. */
   /* HRT-291. Choosing a written-once message to put in, and the ask before it
      replaces anything already typed. */
@@ -580,14 +589,50 @@ export function Composer({
             title={reading.subject}
             closeLabel={t("common.close")}
             width="560px"
+            footer={
+              waiting(reading) ? (
+                <Button
+                  variant="ghost"
+                  className="mr-auto text-danger-text"
+                  disabled={busy}
+                  onClick={() => setCallingOff(true)}
+                >
+                  <Ban aria-hidden /> {t("send.callOff")}
+                </Button>
+              ) : undefined
+            }
           >
+            <Dialog open={callingOff} onOpenChange={setCallingOff}>
+              <DialogContent alert title={t("send.callOff.title")}>
+                <DialogFooter>
+                  <Button variant="ghost" onClick={() => setCallingOff(false)}>
+                    {t("send.callOff.keep")}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    loading={busy}
+                    onClick={() => {
+                      setBusy(true);
+                      void callOffSend(reading.id).then(() => {
+                        setBusy(false);
+                        setCallingOff(false);
+                        setReading(null);
+                        router.refresh();
+                      });
+                    }}
+                  >
+                    {t("send.callOff.do")}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             <div className="flex flex-col gap-5">
               <div className="flex flex-wrap items-baseline gap-x-3 text-fg-muted">
                 {/* R16.6. One still waiting for its hour says when, not how
                     many it reached: it has reached nobody yet. */}
-                {reading.state === "queued" && reading.sendAt
-                 && new Date(reading.sendAt) > new Date() ? (
-                  <span>{t("send.scheduled", { when: dateAndTime(reading.sendAt) })}</span>
+                {waiting(reading) ? (
+                  <span>{t("send.scheduled", { when: dateAndTime(reading.sendAt ?? "") })}</span>
                 ) : (
                   <>
                     <span>

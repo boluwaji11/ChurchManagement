@@ -1875,8 +1875,13 @@ being refreshed. Close the tab halfway through, open it again, and confirm the r
 the copies were written down before the first one went, so there is nothing left for the browser to
 do. The old five hundred cap is gone.
 
-Turn on Send later, pick a date and a time, and send. The row says when it is scheduled for and
-nothing goes until then. Confirm the hour is the church's own, not the browser's.
+Turn on Send later, pick a date and a time, and send. The row names the day and the hour it will go,
+written the way this church's country writes it, and nothing goes until then. Confirm no hour that
+has already passed is offered for today.
+
+Open that row and press Call off this send. It asks, and afterwards the row reads Called off and
+nothing goes. Anything the provider had already taken is on its way and is counted as sent, because
+nothing here can reach it.
 
 Send to one person and confirm it still lands within a second or two: the press does the first pass
 itself rather than leaving a message to three people waiting for the next minute.
