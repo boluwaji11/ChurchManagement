@@ -1,4 +1,4 @@
-import { drain } from "@/lib/send-worker";
+import { drain, checkVerdicts } from "@/lib/send-worker";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -16,5 +16,9 @@ export async function GET(request: Request): Promise<Response> {
     return new Response(null, { status: 401 });
   }
 
-  return Response.json(await drain());
+  /* R16.7. What is waiting to go, then what became of what went. The second
+     is cheap and only asks about copies sent in the last day and a half. */
+  const sent = await drain();
+  const checked = await checkVerdicts();
+  return Response.json({ ...sent, ...checked });
 }

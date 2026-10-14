@@ -966,6 +966,8 @@ export const en = {
   "contact.makePrimary": "Make this the main one",
   "contact.primary": "Main",
   "contact.signIn": "Sign-in",
+  "contact.bounced": "Bounced",
+  "contact.bounced.why": "The provider said there is nobody at this address. Nothing is sent to it.",
   "contact.remove": "Remove {value}",
   "contactLabel.home": "Home",
   "contact.personal": "Personal",

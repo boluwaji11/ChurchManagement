@@ -1087,7 +1087,7 @@ old state until each is picked up.
 | HRT-341 | Send email from the selection: the directory's button opens the composer with those people in it | R16.4, R2.14 | Closed |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
 | HRT-141 | The send queue, the progress on screen, and a send that waits for its hour | R16.6 | Resolved |
-| HRT-142 | Bounces and retries | R16.7 | **Removed, deferred** |
+| HRT-142 | A copy gets another go, and a dead address stops being written to | R16.7 | Resolved |
 | HRT-143 | Consent and unsubscribe | R16.8 | Resolved. Built with HRT-139, because a first send cannot be given a way out afterwards |
 | HRT-144 | The church's own Twilio, and opt-in before any SMS | R16.2, R16.8 | Deferred |
 | HRT-145 | Inbound replies into a shared inbox | R16.9 | Deferred |
@@ -1883,6 +1883,29 @@ itself rather than leaving a message to three people waiting for the next minute
 
 `/api/email/drain` is the worker, on a one-minute cron, and it needs `CRON_SECRET`. Without it, a
 queued send waits for whoever presses next.
+
+### HRT-142, how to test it
+
+As Owner or Admin with email connected, send to a handful of people including one address that
+cannot exist, such as a misspelling of a real domain. Watch the Sent row: it closes with the others
+delivered.
+
+A minute or two later the provider reports back and the row changes. Open the send and the bad
+address reads **Bounced** rather than sent, and the tally beside the subject drops by one. Open that
+person's record and the address itself carries a red **Bounced** mark, with a line under the hover
+saying what happened.
+
+Send the same message again and confirm that person is not counted and is not written to. The
+address stays on their record, visible, so the office can ask them for a new one; it is their record
+rather than ours to correct.
+
+A copy the provider merely refused is different. It is attempted again after thirty seconds, then
+two minutes, then ten, and only then marked as not gone. A rate limit, a timeout or a provider
+having a bad five minutes all heal by themselves. To see it, disconnect the account mid-send: the
+copies go back to waiting rather than failing outright.
+
+Somebody pressing "this is spam" in their mail program is a withdrawal, so confirm that person
+appears under Unsubscribed afterwards and comes off every later send.
 
 ### HRT-291, how to test it
 
