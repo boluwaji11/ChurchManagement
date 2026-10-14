@@ -35,7 +35,7 @@ export function WayBack({
   return (
     <Button
       variant="ghost"
-      className="self-start px-0"
+      className="self-start px-0 text-primary underline underline-offset-4"
       disabled={busy}
       onClick={() => {
         setBusy(true);
