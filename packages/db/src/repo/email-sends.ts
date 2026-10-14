@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { owner, type Tx } from "../client";
 import { emailSends, emailRecipients, contactConsent } from "../schema/messaging";
 import { tenants } from "../schema/tenancy";
+import { members } from "../schema/members";
 import { groupMemberships } from "../schema/groups";
 import { PermissionError } from "../roles";
 import { canManageChurch } from "./church";
@@ -217,9 +218,16 @@ export async function wayOutFor(
  * and asking somebody to sign in before they can get out of a mailing list is
  * how a church gets reported as spam instead.
  */
-export async function withdrawByToken(
-  token: string,
-): Promise<{ tenantId: string; churchName: string } | null> {
+export interface WayOut {
+  tenantId: string;
+  churchName: string;
+  /** R17.1. The church's own mark, so the screen is plainly theirs. */
+  logoKey: string | null;
+  /** Who was taken off, said back to them, because a link carries no name. */
+  address: string | null;
+}
+
+export async function withdrawByToken(token: string): Promise<WayOut | null> {
   if (!token || token.length < 16) return null;
 
   /*
@@ -230,12 +238,7 @@ export async function withdrawByToken(
    */
   const db = drizzle(owner());
 
-  const [row] = await db
-    .select({ id: contactConsent.id, tenantId: contactConsent.tenantId })
-    .from(contactConsent)
-    .where(eq(contactConsent.token, token))
-    .limit(1);
-
+  const row = await holder(db, token);
   if (!row) return null;
 
   await db
@@ -248,13 +251,86 @@ export async function withdrawByToken(
     })
     .where(eq(contactConsent.id, row.id));
 
+  return said(db, row);
+}
+
+/**
+ * R16.8. Back on the list, for somebody who pressed it by mistake.
+ *
+ * The same token, because somebody who has just unsubscribed by accident has
+ * the screen in front of them and nothing else to prove who they are. It puts
+ * them back where they were before the press rather than recording a consent
+ * the church never collected.
+ */
+export async function restoreByToken(token: string): Promise<WayOut | null> {
+  if (!token || token.length < 16) return null;
+
+  const db = drizzle(owner());
+  const row = await holder(db, token);
+  if (!row) return null;
+
+  await db
+    .update(contactConsent)
+    .set({ state: "unknown", withdrawnAt: null, updatedAt: new Date() })
+    .where(eq(contactConsent.id, row.id));
+
+  return said(db, row);
+}
+
+interface Holder {
+  id: string;
+  tenantId: string;
+  address: string | null;
+  memberId: string | null;
+}
+
+async function holder(db: ReturnType<typeof drizzle>, token: string): Promise<Holder | null> {
+  const [row] = await db
+    .select({
+      id: contactConsent.id,
+      tenantId: contactConsent.tenantId,
+      address: contactConsent.address,
+      memberId: contactConsent.memberId,
+    })
+    .from(contactConsent)
+    .where(eq(contactConsent.token, token))
+    .limit(1);
+
+  return row ?? null;
+}
+
+/** The church this token belongs to, as the person reading it would know it. */
+async function said(db: ReturnType<typeof drizzle>, row: Holder): Promise<WayOut> {
   const [church] = await db
-    .select({ name: tenants.name })
+    .select({ name: tenants.name, logoKey: tenants.logoKey })
     .from(tenants)
     .where(eq(tenants.id, row.tenantId))
     .limit(1);
 
-  return { tenantId: row.tenantId, churchName: church?.name ?? "" };
+  /* A member's address lives on their record rather than on the consent row,
+     which holds one only for somebody the church is not keeping. */
+  let address = row.address;
+  if (!address && row.memberId) {
+    const [person] = await db
+      .select({
+        email: sql<string | null>`(
+          select cm.value from contact_methods cm
+          where cm.member_id = ${members.id} and cm.kind = 'email' and cm.is_primary
+          limit 1
+        )`,
+      })
+      .from(members)
+      .where(eq(members.id, row.memberId))
+      .limit(1);
+    address = person?.email ?? null;
+  }
+
+  return {
+    tenantId: row.tenantId,
+    churchName: church?.name ?? "",
+    logoKey: church?.logoKey ?? null,
+    address,
+  };
 }
 
 /** R16.6. The send itself, written down before a single message goes. */
@@ -390,4 +466,50 @@ export async function countWithdrawn(db: Tx): Promise<number> {
       ),
     );
   return row?.n ?? 0;
+}
+
+export interface SentEmailDetail extends SentEmail {
+  body: string;
+  /** Every address it was attempted to, and what came back from the ones that refused. */
+  recipients: { address: string; state: string; said: string | null }[];
+}
+
+/**
+ * R16.6. One message as it went, read back.
+ *
+ * A church asked who got the carol service invitation six weeks ago, and the
+ * answer is the message itself and the addresses it was attempted to. Nothing
+ * here can be edited: a send is what happened.
+ */
+export async function readSend(db: Tx, id: string): Promise<SentEmailDetail | null> {
+  const [row] = await db
+    .select({
+      id: emailSends.id,
+      subject: emailSends.subject,
+      body: emailSends.body,
+      audienceName: emailSends.audienceName,
+      audience: emailSends.audience,
+      state: emailSends.state,
+      total: emailSends.total,
+      delivered: emailSends.delivered,
+      failed: emailSends.failed,
+      sentAt: emailSends.sentAt,
+    })
+    .from(emailSends)
+    .where(eq(emailSends.id, id))
+    .limit(1);
+
+  if (!row) return null;
+
+  const who = await db
+    .select({
+      address: emailRecipients.address,
+      state: emailRecipients.state,
+      said: emailRecipients.said,
+    })
+    .from(emailRecipients)
+    .where(eq(emailRecipients.sendId, id))
+    .orderBy(emailRecipients.address);
+
+  return { ...row, recipients: who };
 }

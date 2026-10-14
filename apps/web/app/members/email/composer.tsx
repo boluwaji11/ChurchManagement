@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { Send, X } from "lucide-react";
 import {
   Banner, Button, Card, Combobox, Field, IconButton, Input, Working,
-  Dialog, DialogContent, DialogFooter,
+  Dialog, DialogContent, DialogFooter, Sheet, SheetContent,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { RichText } from "@/components/rich-text";
 import { when } from "@/lib/when";
-import { countAudience, findRecipients, sendEmail, type SendResult } from "./actions";
+import { countAudience, findRecipients, openSend, sendEmail, type SendResult } from "./actions";
 
 export interface Named {
   id: string;
@@ -88,6 +88,8 @@ export function Composer({
   const [asking, setAsking] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [done, setDone] = React.useState<string | null>(null);
+  /* R16.6. The one being read back, which is a send rather than a draft. */
+  const [reading, setReading] = React.useState<Awaited<ReturnType<typeof openSend>>>(null);
 
   const chosen = React.useMemo(() => {
     if (who === EVERYONE) return { audience: "everyone" as const, id: null, name: null };
@@ -377,22 +379,88 @@ export function Composer({
         ) : (
           <ul className="m-0 flex list-none flex-col divide-y divide-line rounded-[12px] border border-line p-0">
             {sent.map((one) => (
-              <li key={one.id} className="flex flex-wrap items-baseline gap-x-3 px-4 py-2.5">
-                <span className="min-w-0 flex-1 truncate font-medium text-fg">{one.subject}</span>
-                <span className="text-fg-muted">
-                  {one.failed
-                    ? t("send.sentSome", { delivered: one.delivered, failed: one.failed })
-                    : plural("send.sent", one.delivered)}
-                </span>
-                {one.sentAt ? (
-                  <span className="text-caption text-fg-subtle">{when(one.sentAt)}</span>
-                ) : null}
+              <li key={one.id}>
+                <button
+                  type="button"
+                  onClick={() => void openSend(one.id).then(setReading)}
+                  aria-label={t("send.read.open", { subject: one.subject })}
+                  className="flex w-full flex-wrap items-baseline gap-x-3 px-4 py-2.5 text-left cursor-pointer hover:bg-sunken"
+                >
+                  <span className="min-w-0 flex-1 truncate font-medium text-fg">{one.subject}</span>
+                  <span className="text-fg-muted">
+                    {one.failed
+                      ? t("send.sentSome", { delivered: one.delivered, failed: one.failed })
+                      : plural("send.sent", one.delivered)}
+                  </span>
+                  {one.sentAt ? (
+                    <span className="text-caption text-fg-subtle">{when(one.sentAt)}</span>
+                  ) : null}
+                </button>
               </li>
             ))}
           </ul>
         )}
       </section>
       )}
+
+      {/* R16.6. What went out, read back. Nothing here can be changed: a send
+          is a thing that happened, so it is read rather than opened. */}
+      <Sheet open={reading !== null} onOpenChange={(next) => !next && setReading(null)}>
+        {reading ? (
+          <SheetContent
+            title={reading.subject}
+            closeLabel={t("common.close")}
+            width="560px"
+          >
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-wrap items-baseline gap-x-3 text-fg-muted">
+                <span>
+                  {reading.failed
+                    ? t("send.sentSome", { delivered: reading.delivered, failed: reading.failed })
+                    : plural("send.sent", reading.delivered)}
+                </span>
+                {reading.sentAt ? (
+                  <span className="text-caption text-fg-subtle">
+                    {t("send.read.when", { when: when(reading.sentAt) })}
+                  </span>
+                ) : null}
+              </div>
+
+              <div
+                className={
+                  "rounded-[12px] border border-line bg-surface px-4 py-3 text-fg " +
+                  "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 " +
+                  "[&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_strong]:font-semibold"
+                }
+                dangerouslySetInnerHTML={{ __html: reading.html }}
+              />
+
+              {reading.recipients.length ? (
+                <section className="flex flex-col gap-2">
+                  <h3 className="m-0 text-caption font-semibold tracking-wide text-fg-subtle uppercase">
+                    {t("send.read.recipients")}
+                  </h3>
+                  <ul className="m-0 flex list-none flex-col gap-1 p-0">
+                    {reading.recipients.map((one) => (
+                      <li
+                        key={one.address}
+                        className="flex flex-wrap items-baseline gap-x-2 text-fg-muted"
+                      >
+                        <span className="min-w-0 flex-1 truncate">{one.address}</span>
+                        {one.state === "failed" ? (
+                          <span className="text-caption text-danger">
+                            {one.said ?? t("send.read.failed")}
+                          </span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+            </div>
+          </SheetContent>
+        ) : null}
+      </Sheet>
 
       {/* R16.6. A send cannot be taken back, so it is confirmed, and the thing
           worth confirming is how many people it reaches. */}
