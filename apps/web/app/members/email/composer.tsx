@@ -42,10 +42,14 @@ const EVERYONE = "everyone";
 const PEOPLE = "people";
 
 interface Chosen {
-  id: string;
+  /** Null for an address typed in that belongs to nobody on the list. */
+  id: string | null;
   name: string;
   address: string;
 }
+
+/** Enough to tell an address from a half-typed name. */
+const SHAPE = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;
 
 /**
  * HRT-139, R16.4. Writing one message and sending it.
@@ -106,7 +110,12 @@ export function Composer({
   React.useEffect(() => {
     let current = true;
     setReach(null);
-    void countAudience(chosen.audience, chosen.id, picked.map((one) => one.id)).then((n) => {
+    void countAudience(
+      chosen.audience,
+      chosen.id,
+      picked.map((one) => one.id).filter((one): one is string => one !== null),
+      picked.filter((one) => one.id === null).map((one) => one.address),
+    ).then((n) => {
       if (current) setReach(n);
     });
     return () => {
@@ -147,7 +156,11 @@ export function Composer({
     if (chosen.id) data.set("audienceId", chosen.id);
     if (chosen.name) data.set("audienceName", chosen.name);
     if (chosen.audience === "people") {
-      data.set("memberIds", picked.map((one) => one.id).join(","));
+      data.set("memberIds", picked.map((one) => one.id).filter(Boolean).join(","));
+      data.set(
+        "addresses",
+        picked.filter((one) => one.id === null).map((one) => one.address).join(","),
+      );
     }
 
     const answer: SendResult = await sendEmail(data);
@@ -232,14 +245,16 @@ export function Composer({
               <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
                 {picked.map((one) => (
                   <li
-                    key={one.id}
+                    key={one.id ?? one.address}
                     className="inline-flex items-center gap-1 rounded-full border border-line bg-sunken py-0.5 pl-3 pr-0.5 text-[13px] text-fg"
                   >
                     {one.name}
                     <IconButton
                       label={t("send.remove", { name: one.name })}
                       variant="ghost"
-                      onClick={() => setPicked((was) => was.filter((x) => x.id !== one.id))}
+                      onClick={() =>
+                        setPicked((was) => was.filter((x) => x.address !== one.address))
+                      }
                     >
                       <X />
                     </IconButton>
@@ -258,7 +273,31 @@ export function Composer({
 
             {typed.trim() ? (
               <ul className="m-0 flex max-h-56 list-none flex-col overflow-auto rounded-[12px] border border-line p-0">
-                {hits.filter((one) => !picked.some((x) => x.id === one.id)).length === 0 ? (
+                {/* R16.8. An address nobody on the list has. A church writes
+                    to a roofer, a county office, a visiting speaker, and
+                    having to add them as a member first is absurd. */}
+                {SHAPE.test(typed.trim()) &&
+                !picked.some((x) => x.address === typed.trim().toLowerCase()) &&
+                !hits.some((one) => one.address === typed.trim().toLowerCase()) ? (
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const address = typed.trim().toLowerCase();
+                        setPicked((was) => [...was, { id: null, name: address, address }]);
+                        setTyped("");
+                      }}
+                      className="flex w-full cursor-pointer items-baseline gap-2 px-3 py-2 text-left hover:bg-sunken"
+                    >
+                      <span className="font-medium text-fg">
+                        {t("send.find.loose", { address: typed.trim() })}
+                      </span>
+                    </button>
+                  </li>
+                ) : null}
+
+                {hits.filter((one) => !picked.some((x) => x.id === one.id)).length === 0 &&
+                !SHAPE.test(typed.trim()) ? (
                   <li className="px-3 py-2 text-fg-muted">{t("send.find.none")}</li>
                 ) : (
                   hits

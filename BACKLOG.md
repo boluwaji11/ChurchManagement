@@ -1847,8 +1847,10 @@ from the menu. Choose who it goes to: everyone, one of the church's saved lists,
 line under it says how many people that reaches, and it changes when the audience does. Somebody
 with no email address is not counted, and nor is anybody archived.
 
-Choose people instead, type part of a name, and confirm only people with an email address are
-offered. Pick two or three and confirm each becomes a chip that can be taken off again, and that the
+Choose recipients instead, type part of a name, and confirm only people with an email address are
+offered. Type a whole address nobody on the list holds and confirm it is offered too, and that
+sending to it works: a church writes to a roofer and a county office as well as to its members.
+Follow the way out from one of those and confirm that address is refused on the next send. Pick two or three and confirm each becomes a chip that can be taken off again, and that the
 count follows.
 
 Write a subject and a message. Use `{first}` and `{name}` in either of them and confirm each person

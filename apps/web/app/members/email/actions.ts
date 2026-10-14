@@ -74,10 +74,11 @@ export async function countAudience(
   audience: Audience,
   audienceId: string | null,
   memberIds: string[] = [],
+  addresses: string[] = [],
 ): Promise<Reach> {
   const { ctx } = await context();
   const people = await withTenant(ctx, (tx) =>
-    emailRecipientsFor(tx, { audience, audienceId, memberIds }),
+    emailRecipientsFor(tx, { audience, audienceId, memberIds, addresses }),
   );
   return { count: people.length, sample: people.slice(0, 3).map((one) => one.address) };
 }
@@ -104,16 +105,19 @@ export async function sendEmail(data: FormData): Promise<SendResult> {
   const audienceId = field(data, "audienceId") || null;
   const audienceName = field(data, "audienceName") || null;
   const memberIds = field(data, "memberIds").split(",").filter(Boolean);
+  const addresses = field(data, "addresses").split(",").filter(Boolean);
 
   try {
     const held = await withTenant(ctx, (tx) => emailCredentialForSend(tx, actor));
     if (!held?.fromAddress) return { error: t("email.test.notConnected") };
 
     const people = await withTenant(ctx, async (tx) => {
-      const found = await emailRecipientsFor(tx, { audience, audienceId, memberIds });
+      const found = await emailRecipientsFor(tx, { audience, audienceId, memberIds, addresses });
       /* R16.8. Each person's own way out, minted once and kept, so a link in
          a message sent last year still works. */
-      for (const one of found) one.token = await wayOutFor(tx, actor, one.memberId);
+      for (const one of found) {
+        one.token = await wayOutFor(tx, actor, { memberId: one.memberId, address: one.address });
+      }
       return found.slice(0, CAP);
     });
 
