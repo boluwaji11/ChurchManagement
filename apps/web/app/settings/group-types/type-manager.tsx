@@ -167,7 +167,7 @@ function TypeDialog({
   const formId = React.useId();
 
   // R9.1. Writing one opens on the kinds churches already run.
-  const library = React.useMemo(() => groupTypeLibrary(taken), [taken.join("|")]);
+  const library = groupTypeLibrary(taken);
   const [picking, setPicking] = React.useState(!type && library.length > 0);
   const [error, setError] = useFormError(open && !picking);
   const [name, setName] = React.useState(type?.name ?? "");

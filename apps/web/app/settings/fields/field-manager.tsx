@@ -220,6 +220,10 @@ function FieldSheet({
     setAll(false);
     setError(undefined);
     setConfirming(false);
+    // The panel resets to what is stored as it opens. Depending on the record
+    // itself re-runs this on every render of the screen behind it, which throws
+    // away whatever has been typed into the open panel.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, field?.type, field?.label]);
 
   /** A ready-made field fills the form somebody would have typed. */

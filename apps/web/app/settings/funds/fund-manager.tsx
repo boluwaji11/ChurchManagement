@@ -211,6 +211,10 @@ function FundPanel({
     setOwnCode(Boolean(fund?.code));
     setRestricted(fund?.restricted ?? false);
     setDescription(fund?.description ?? "");
+    // The panel resets to what is stored as it opens. Depending on the record
+    // itself re-runs this on every render of the screen behind it, which throws
+    // away whatever has been typed into the open panel.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, fund?.name, fund?.code, fund?.restricted, fund?.description]);
 
   const close = (next: boolean) => {

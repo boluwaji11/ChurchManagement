@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import { Check } from "lucide-react";
 import { cn } from "@connectapp/ui";
 
@@ -114,7 +115,21 @@ export function PhoneFrame({ children }: { children?: React.ReactNode }) {
  * The files under public/marketing are captures of the real thing, taken at
  * twice the size so they stay sharp, and they are retaken whenever the screen
  * they show changes.
+ *
+ * `sizes` is the width the frame actually gives it, so a phone on a weak signal
+ * is sent a file that fits the slot rather than the 2x capture. The member shot
+ * renders 300px wide, where the capture is 780.
  */
-export function Shot({ src }: { src: string }) {
-  return <img src={src} alt="" className="size-full object-cover object-top" />;
+export function Shot({ src, sizes }: { src: string; sizes: string }) {
+  return (
+    <Image
+      src={src}
+      alt=""
+      fill
+      sizes={sizes}
+      className="object-cover object-top"
+      /* The first shot sits under the hero and is what the page is measured on. */
+      priority={src.endsWith("office.png")}
+    />
+  );
 }

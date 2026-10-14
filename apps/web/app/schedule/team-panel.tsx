@@ -100,7 +100,7 @@ export function TeamPanel({
   const [people, setPeople] = React.useState<MemberDraft[]>(roster ?? []);
   const [left, setLeft] = React.useState<string[]>([]);
   // R10.1. Writing a team opens on the teams churches already run.
-  const library = React.useMemo(() => teamLibrary(taken), [taken.join("|")]);
+  const library = teamLibrary(taken);
   const [name, setName] = React.useState(team?.name ?? "");
   const [about, setAbout] = React.useState(team?.description ?? "");
   /** Which of the panel's steps is showing. */

@@ -94,7 +94,7 @@ export function NewTag({
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
-  const library = React.useMemo(() => tagLibrary(taken), [taken.join("|")]);
+  const library = tagLibrary(taken);
   const [picking, setPicking] = React.useState(library.length > 0);
   const [error, setError] = useFormError(open && !picking);
   const [pending, startSaving] = React.useTransition();

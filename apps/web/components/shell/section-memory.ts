@@ -90,7 +90,7 @@ export function useSectionMemory(entries: NavTarget[]) {
     },
     // Rebuilt on every render of the server component above, and only its
     // hrefs are read, which do not change between renders.
-    [entries], // eslint-disable-line react-hooks/exhaustive-deps
+    [entries],
   );
 }
 
