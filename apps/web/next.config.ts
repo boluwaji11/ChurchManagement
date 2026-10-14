@@ -34,6 +34,29 @@ const config: NextConfig = {
     ];
   },
   experimental: {
+    /*
+     * R24.11. A screen somebody just looked at is still in hand when they come
+     * back to it.
+     *
+     * Next 15 changed the dynamic client cache from 30 seconds to 0, so every
+     * page segment is thrown away the moment it is navigated away from. Every
+     * screen in this product is per-church and therefore dynamic, so moving
+     * between two tabs and back paid a full server render each way: measured
+     * here, clicking to the directory cost 943ms the first time and 895ms the
+     * second, which is the shape of a cache that is not there.
+     *
+     * Thirty seconds is what Next 14 did and what the docs name as the way
+     * back to it. It holds the rendered segment in the browser, not the data in
+     * a shared cache, so one reader's screens never reach another's.
+     *
+     * What it does mean: a change somebody else makes can be up to thirty
+     * seconds behind on a screen this reader has already opened. A write of
+     * their own does not have that problem, because the action's revalidate
+     * clears it. A role or permission change is the case to watch, and the
+     * answer there is that the server decides every read regardless: a stale
+     * screen cannot show a row the next request would refuse.
+     */
+    staleTimes: { dynamic: 30, static: 180 },
     // Shared element transitions where a card becomes a detail page. (R24.12)
     viewTransition: true,
     /*
