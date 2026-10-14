@@ -4,7 +4,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import {
-  membershipsForUser, verifyMembership, resolveTenantBySlug, resolveTenantByHost,
+  membershipsForUser, resolveTenantByHost,
   demoMembership,
   type Membership, type TenantRole, type Permission,
 } from "@connectapp/db";
@@ -118,14 +118,23 @@ const myMemberships = cache(async (userId: string): Promise<Membership[]> =>
 );
 
 /**
- * The same two lookups the authorization chain below has always made, held for
- * the duration of one request. Every verification still runs, against the same
- * table, for the same user and the same church. A settings page asks twice.
+ * R1.4. This reader's membership of the church that slug names.
+ *
+ * Answered out of the list above rather than by two more reads of its own.
+ * `membershipsForUser` is `verifyMembership`'s own query without the tenant
+ * filter: the same table, the same joins, the same role and permission
+ * resolution, the same refusal of an archived church. So the row for one
+ * church is already in hand, and asking the database to find the church by
+ * slug and then asking it again whether this user is in it was two round trips
+ * for an answer the first read contained.
+ *
+ * The rows come from `tenant_members` for this user, so matching here decides
+ * nothing the database did not already decide. A slug nobody holds and a slug
+ * that names no church both answer null, which is what keeps a URL from being
+ * used to discover which churches are on the platform.
  */
-const tenantBySlug = cache(async (slug: string) => resolveTenantBySlug(slug));
-const myMembership = cache(async (userId: string, tenantId: string) =>
-  verifyMembership(userId, tenantId),
-);
+const mineBySlug = async (userId: string, slug: string): Promise<Membership | null> =>
+  (await myMemberships(userId)).find((one) => one.tenantSlug === slug) ?? null;
 
 /**
  * R1.4, R13.6. Whether this reader belongs to this church.
@@ -135,11 +144,9 @@ const myMembership = cache(async (userId: string, tenantId: string) =>
  * and a link to this church's would refuse them at the door. So the page
  * asks before it treats them as one of the congregation.
  */
-export const belongsTo = cache(async (userId: string, slug: string): Promise<boolean> => {
-  const tenant = await tenantBySlug(slug);
-  if (!tenant) return false;
-  return (await myMembership(userId, tenant.id)) !== null;
-});
+export const belongsTo = cache(async (userId: string, slug: string): Promise<boolean> =>
+  (await mineBySlug(userId, slug)) !== null,
+);
 
 /**
  * R1.4. The same answer, with the role and the permissions on it.
@@ -147,11 +154,9 @@ export const belongsTo = cache(async (userId: string, slug: string): Promise<boo
  * For a screen that has to decide where somebody goes rather than only
  * whether they may be here.
  */
-export const verifiedMembership = cache(async (userId: string, slug: string) => {
-  const tenant = await tenantBySlug(slug);
-  if (!tenant) return null;
-  return myMembership(userId, tenant.id);
-});
+export const verifiedMembership = cache(async (userId: string, slug: string) =>
+  mineBySlug(userId, slug),
+);
 
 /**
  * The address this request is on, as a path.
@@ -188,9 +193,14 @@ export const requireSession = cache(async (asked?: string): Promise<Session> => 
    * Either way the membership is verified against tenant_members before a row
    * is read, so what names the church decides nothing about who may open it.
    */
-  const slug = (await churchFromHost()) ?? asked ?? (await readChurchChoice());
+  /*
+   * The host is a query against `tenants` and the user is an HTTPS call to
+   * Supabase Auth. They have nothing to say to each other, and awaiting one
+   * and then the other spent the shorter of the two for nothing.
+   */
+  const [fromHost, user] = await Promise.all([churchFromHost(), currentUser()]);
+  const slug = fromHost ?? asked ?? (await readChurchChoice());
 
-  const user = await currentUser();
   if (!user) {
     const demo = await demoVisitorSession();
     if (demo) return demo;
@@ -212,9 +222,9 @@ export const requireSession = cache(async (asked?: string): Promise<Session> => 
   let chosen: Membership | undefined;
 
   if (slug) {
-    const tenant = await tenantBySlug(slug);
-    // Same outcome whether the church does not exist or the user is not in it.
-    chosen = tenant ? ((await myMembership(user.id, tenant.id)) ?? undefined) : undefined;
+    /* Same outcome whether the church does not exist or the user is not in it,
+       and the list already read above holds the answer. */
+    chosen = memberships.find((one) => one.tenantSlug === slug);
     // R1.4. Which church was asked for, so the chooser can say so by name.
     if (!chosen) redirect(`/choose-church?reason=denied&asked=${encodeURIComponent(slug)}`);
   } else if (memberships.length === 1) {
