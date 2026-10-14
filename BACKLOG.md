@@ -1080,7 +1080,7 @@ old state until each is picked up.
 | HRT-286 | Connecting the church's own Twilio, and registering its carrier brand for it | R16.4, R16.13 | Wiring built. Blocked on the Twilio subaccount spike, see docs/messaging-architecture.md |
 | HRT-287 | Connecting the church's own email, by its own mail server or by Resend | R16.1, R21.15 | Resolved |
 | HRT-288 | Resend connects by a press and a yes, and the domain reading moves in with it | R16.1, R21.15, R22.2 | Resolved |
-| HRT-289 | Getting the three settings in: the right page, the right words, and one press where it is offered | R16.1, R22.2 | In progress |
+| HRT-289 | Getting the three settings in: the right page, the right words, and one press where it is offered | R16.1, R22.2 | Resolved. The template is merged and the daily check watches for a company to load it |
 | HRT-290 | A church sends one message to itself, through whatever it connected | R16.1, R21.15 | Resolved |
 | HRT-139 | The composer: write one message and send it to everyone, a list or a group | R16.4, R16.6 | Resolved |
 | HRT-291 | Email templates a church writes once, kept in settings beside the service templates | R16.4 | New |
