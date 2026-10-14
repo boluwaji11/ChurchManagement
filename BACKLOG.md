@@ -98,7 +98,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-342 | The warning count comes down, and the landing page's shots are sized for the device they land on | R24.11, R22.1 | Resolved |
 | HRT-343 | A send mints every way out in one go, rather than one round trip a recipient | R24.11, R16.8 | Resolved |
 | HRT-344 | A claimed copy that never left goes back in the queue | R24.11, R16.6 | Resolved |
-| HRT-345 | Giving statements are read in set-based queries, not one giver at a time | R24.11, R18.9 | New |
+| HRT-345 | Giving statements are read in set-based queries, not one giver at a time | R24.11, R18.9 | Resolved |
 | HRT-346 | A bulk action over a selection is one write, not one a row | R24.11, R1.13 | New |
 | HRT-347 | The frame and the page read at the same time | R24.11 | New |
 | HRT-348 | Fifteen screens read their independent rows together | R24.11 | New |
@@ -1946,6 +1946,27 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-345, how to test it
+
+Open `/giving/statements`, pick a year the church gave in, and print the whole set. The sheets are
+the same: the same names, the same addresses, the same lines in date order, cash totalled, a gift in
+kind listed and not valued, and the acknowledgment line on any sheet carrying a single gift of $250
+or more. Print one person's statement from their own record too, which goes through a different
+path, and confirm it still matches their sheet in the full set.
+
+Each statement used to be read on its own: three queries a giver, five where the church statements
+by household. Measured against Riverside's sixty givers, in one transaction, 8,424ms became 288ms.
+At four hundred givers the old shape was about a minute, so the sheet never reached the printer. It
+is five queries now, whatever the number of givers.
+
+Set the church to statement by household and print again. Ann and Bob's gifts belong on one sheet
+under the household's name, and Carl, who is in no household, is untouched by it.
+
+The risk in this change is that the gifts are grouped in memory, which is where one giver's lines
+could land on another's sheet. `packages/db/tests/statements.test.ts` reads each giver's own total
+back out of the gifts table and compares, rather than writing a figure down, because the campaign
+tests give to the same church and a fixed number would only have tested the order the file runs in.
 
 ### HRT-344, how to test it
 
