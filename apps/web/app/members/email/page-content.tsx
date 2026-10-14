@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   withTenant, emailProvider, sendingDomain, listSavedLists, listGroups,
   listSends, countSends, countWithdrawn, listWithdrawn, countAllWithdrawn,
-  canManageChurch,
+  emailRecipientsFor, canManageChurch,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -30,7 +30,12 @@ export async function generateMetadata() {
  * that has nothing to send through, because a composer with no way out of it
  * is a form that wastes somebody's afternoon.
  */
-export async function EmailPanelPage() {
+export async function EmailPanelPage({
+  searchParams,
+}: {
+  /** HRT-341. The people ticked in the directory, when that is how this opened. */
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await requireSession();
   if (!canManageChurch(session)) {
     return (
@@ -47,6 +52,13 @@ export async function EmailPanelPage() {
     permissions: session.permissions,
   };
 
+  /* HRT-341, R16.4. The ids the selection bar carried over, resolved here so
+     the chips show the names whoever ticked them was reading. */
+  const asked = (await searchParams)?.["ids"];
+  const ids = (typeof asked === "string" ? asked.split(",") : [])
+    .map((one) => one.trim())
+    .filter(Boolean);
+
   const read = await withTenant(ctx, async (tx) => ({
     provider: await emailProvider(tx),
     domain: await sendingDomain(tx),
@@ -55,6 +67,9 @@ export async function EmailPanelPage() {
     sent: await listSends(tx, { limit: PAGE }),
     sends: await countSends(tx),
     withdrawn: await countWithdrawn(tx),
+    chosen: ids.length
+      ? await emailRecipientsFor(tx, { audience: "people", memberIds: ids })
+      : [],
     out: await listWithdrawn(tx, { limit: PAGE }),
     outs: await countAllWithdrawn(tx),
   }));
@@ -80,6 +95,11 @@ export async function EmailPanelPage() {
         <Composer
           lists={read.lists.map((one) => ({ id: one.id, name: one.name }))}
           groups={read.groups.map((one) => ({ id: one.id, name: one.name }))}
+          preset={read.chosen.map((one) => ({
+            id: one.memberId,
+            name: one.name,
+            address: one.address,
+          }))}
           sent={read.sent.map((one) => ({
             id: one.id,
             subject: one.subject,
