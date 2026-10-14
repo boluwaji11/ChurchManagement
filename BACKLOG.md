@@ -113,6 +113,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | New |
 | HRT-358 | A screen somebody just looked at is still in hand when they come back | R24.11, R24.12 | Resolved |
 | HRT-359 | Every area's links are always in the navigation, so the browser can fetch them before they are pressed | R24.11, R24.12 | New |
+| HRT-360 | The shell becomes a layout, so a navigation fetches the screen rather than the whole frame | R24.11, R24.12 | New |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
 | HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Closed |
 | HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Closed |
@@ -1950,6 +1951,35 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-360, how to test it
+
+This is the one that decides whether the product feels fast, and settings already proves it. Sign in,
+open Settings, and click between its own screens: Profile, Teams, Rooms, Funds. Then go to the
+directory and click between Members, Groups, Follow-ups and Messages. Both sets are first visits with
+nothing cached. Measured:
+
+| | first visit |
+|---|---|
+| inside settings, where the shell is a layout | 64ms, 65ms, 66ms, 101ms |
+| between top-level screens, where each page renders the shell | 733ms, 760ms, 802ms |
+
+Eleven times, and nothing about the queries differs. Settings renders `AppShell` once in
+`settings/layout.tsx`, so Next keeps the frame across navigations and fetches only the segment that
+changed. Every other screen returns `<AppShell>` from the page itself, so the sidebar, the top bar,
+the bell, the church, the reader's face and both signed storage links are rebuilt on every single
+navigation. The `staleTimes` documentation states the mechanism plainly: shared layouts are not
+refetched on navigation, only the page segment that changes.
+
+So the work is to render the frame from a layout everywhere, as settings does. `AppShell` currently
+takes each screen's own title, lede, actions, back link, width and density, which is why it sits in
+the page; those belong to a page header the screen keeps, while the frame around it moves up. That
+split is HRT-307's "one page header" from the October design pass, so the two stories want doing
+together.
+
+It also unblocks two others. A `loading.tsx` can then sit inside the frame rather than replacing it,
+which is what HRT-353 needs for every screen rather than only the dashboard, and a loading boundary
+is what a dynamic route needs before Next will prefetch it at all, which is HRT-359.
 
 ### HRT-358, how to test it
 
