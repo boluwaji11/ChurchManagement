@@ -42,6 +42,7 @@ export function EmailSetup({
   registrar,
   console_,
   steps,
+  onepress,
 }: {
   provider: EmailProvider | null;
   domain: DomainState | null;
@@ -51,6 +52,7 @@ export function EmailSetup({
   registrar: string | null;
   console_: string | null;
   steps: string;
+  onepress: string | null;
 }) {
   const router = useRouter();
   /*
@@ -102,6 +104,7 @@ export function EmailSetup({
           registrar={registrar}
           console_={console_}
           steps={steps}
+          onepress={onepress}
           busy={busy !== null}
           onCheck={() => void quietly(checkRecords)}
           onDisconnect={() => void act(disconnectEmail, t("email.saving"))}
@@ -196,6 +199,7 @@ function Connected({
   registrar,
   console_,
   steps,
+  onepress,
   busy,
   onCheck,
   onDisconnect,
@@ -205,6 +209,7 @@ function Connected({
   registrar: string | null;
   console_: string | null;
   steps: string;
+  onepress: string | null;
   busy: boolean;
   onCheck: () => void;
   onDisconnect: () => void;
@@ -235,6 +240,7 @@ function Connected({
           registrar={registrar}
           console_={console_}
           steps={steps}
+          onepress={onepress}
           onCheck={onCheck}
         />
       ) : (
@@ -330,6 +336,7 @@ function Records({
   registrar,
   console_,
   steps,
+  onepress,
   onCheck,
 }: {
   domain: DomainState;
@@ -339,6 +346,9 @@ function Records({
   console_: string | null;
   /** The catalogue key for what to press once they are there. */
   steps: string;
+  /** R22.2. Where the DNS company can write them itself, the address to send
+      the church to. Null everywhere else, and the press is not drawn. */
+  onepress: string | null;
   onCheck: () => void;
 }) {
   /*
@@ -382,7 +392,7 @@ function Records({
               calls it something else. */}
           <p className="m-0 text-fg-muted">{t(steps as never)}</p>
         </div>
-        {registrar && console_ ? (
+        {onepress ? null : registrar && console_ ? (
           <a
             href={console_}
             target="_blank"
@@ -394,6 +404,18 @@ function Records({
           </a>
         ) : null}
       </div>
+
+      {/* R22.2. Where the company can do it, the three rows are still there,
+          because a church that would rather look first should be able to.
+          They sit under the press rather than in front of it. */}
+      {onepress ? (
+        <div className="flex flex-col items-start gap-2 rounded-[12px] border border-line bg-sunken/40 p-4">
+          <Button asChild>
+            <a href={onepress}>{t("email.records.onepress")}</a>
+          </Button>
+          <span className="text-fg-muted">{t("email.records.onepressWhat")}</span>
+        </div>
+      ) : null}
 
       {/* One row a setting: the kind, the name, the value. A registrar's form
          asks for those three and nothing else, and three bordered blocks for
