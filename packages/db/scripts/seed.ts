@@ -76,8 +76,20 @@ async function main() {
 
   for (const church of CHURCHES) {
     const [tenant] = await sql<{ id: string }[]>`
-      insert into tenants (slug, name, legal_name, timezone)
-      values (${church.slug}, ${church.name}, ${church.legalName}, ${church.timezone})
+      insert into tenants (slug, name, legal_name, timezone, approved_at, approved_by)
+      values (
+        ${church.slug}, ${church.name}, ${church.legalName}, ${church.timezone},
+        /*
+         * R1.1. Seeded churches are churches somebody has looked at.
+         *
+         * A church waiting to be checked holds twenty-five members, and these
+         * hold more than that between the seed and whatever a test adds. Left
+         * provisional, the twenty-sixth person written anywhere fails with a
+         * message about approval, which is nobody's bug and everybody's
+         * afternoon.
+         */
+        now(), 'seed'
+      )
       returning id`;
     if (!tenant) throw new Error("tenant insert failed");
     const tid = tenant.id;
