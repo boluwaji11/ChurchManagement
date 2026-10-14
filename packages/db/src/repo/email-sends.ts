@@ -1,0 +1,328 @@
+import { randomBytes } from "node:crypto";
+import { and, desc, eq, isNotNull, isNull, ne, sql } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { owner, type Tx } from "../client";
+import { emailSends, emailRecipients, contactConsent } from "../schema/messaging";
+import { tenants } from "../schema/tenancy";
+import { groupMemberships } from "../schema/groups";
+import { PermissionError } from "../roles";
+import { canManageChurch } from "./church";
+import { resolveList } from "./lists";
+import { listPeople, type WriteActor } from "./members";
+
+/**
+ * HRT-139, HRT-143, R16.4, R16.6, R16.8. A message a church sends to its people.
+ *
+ * Who it goes to is worked out here rather than on the screen, because the one
+ * rule that must never be forgotten lives here: anybody who has asked to be
+ * left alone comes off every list, whichever way the list was chosen.
+ */
+
+/** Who a send is for. */
+export type Audience = "everyone" | "list" | "group";
+
+export interface EmailRecipient {
+  memberId: string;
+  address: string;
+  first: string;
+  name: string;
+  /** R16.8. The way out, which this person's own messages carry. */
+  token: string;
+}
+
+/**
+ * R16.8. The people this send would actually reach.
+ *
+ * Three filters, in this order: they are in the audience, they have an
+ * address, and they have not asked to be left alone. The last one is applied
+ * here and nowhere else, so a new way of choosing an audience cannot
+ * accidentally skip it.
+ */
+export async function emailRecipientsFor(
+  db: Tx,
+  input: { audience: Audience; audienceId?: string | null },
+): Promise<EmailRecipient[]> {
+  /* Everybody this church keeps, read once. The audience narrows it rather
+     than fetching a second time, so one rule decides who is reachable. */
+  const people = await listPeople(db, { sort: "name" });
+
+  const wanted = await (async () => {
+    if (input.audience === "group" && input.audienceId) {
+      const rows = await db
+        .select({ memberId: groupMemberships.memberId })
+        .from(groupMemberships)
+        .where(
+          and(
+            eq(groupMemberships.groupId, input.audienceId),
+            isNull(groupMemberships.leftOn),
+          ),
+        );
+      return new Set(rows.map((one) => one.memberId));
+    }
+
+    if (input.audience === "list" && input.audienceId) {
+      const held = await resolveList(db, input.audienceId);
+      if (!held) return new Set<string>();
+      if (held.kind === "static") return new Set(held.ids ?? []);
+      const narrowed = await listPeople(db, { ...(held.rule ?? {}) } as never);
+      return new Set(narrowed.map((one) => one.id));
+    }
+
+    return null;
+  })();
+
+  if (wanted !== null && wanted.size === 0) return [];
+
+  /* R16.8. Who has asked to be left alone, read once rather than a query a
+     person. Anything other than withdrawn may be written to: a church mailing
+     its own congregation is not cold outreach, and silence is not a refusal. */
+  const refused = new Set(
+    (
+      await db
+        .select({ memberId: contactConsent.memberId })
+        .from(contactConsent)
+        .where(and(eq(contactConsent.channel, "email"), eq(contactConsent.state, "withdrawn")))
+    ).map((one) => one.memberId),
+  );
+
+  const out: EmailRecipient[] = [];
+  for (const row of people) {
+    if (wanted !== null && !wanted.has(row.id)) continue;
+    if (row.archivedAt !== null) continue;
+
+    const address = row.primaryEmail?.trim();
+    if (!address) continue;
+    if (refused.has(row.id)) continue;
+
+    out.push({
+      memberId: row.id,
+      address,
+      first: row.preferredName?.trim() || row.firstName,
+      name: row.displayName,
+      token: "",
+    });
+  }
+  return out;
+}
+
+/**
+ * R16.8. The address that takes somebody off every later send.
+ *
+ * Minted once a person and kept, so the link in a message sent last year still
+ * works. A consent row is written at the same time, because the row is what
+ * every send reads and a token with no row behind it would unsubscribe nobody.
+ */
+export async function wayOutFor(
+  db: Tx,
+  actor: WriteActor,
+  memberId: string,
+): Promise<string> {
+  const [held] = await db
+    .select({ id: contactConsent.id, token: contactConsent.token })
+    .from(contactConsent)
+    .where(and(eq(contactConsent.memberId, memberId), eq(contactConsent.channel, "email")))
+    .limit(1);
+
+  if (held?.token) return held.token;
+
+  const token = randomBytes(24).toString("base64url");
+
+  if (held) {
+    await db
+      .update(contactConsent)
+      .set({ token, updatedAt: new Date() })
+      .where(eq(contactConsent.id, held.id));
+    return token;
+  }
+
+  await db.insert(contactConsent).values({
+    tenantId: actor.tenantId,
+    memberId,
+    channel: "email",
+    state: "unknown",
+    token,
+  });
+  return token;
+}
+
+/**
+ * R16.8. Somebody asking to be left alone, from the link in a message.
+ *
+ * No session: whoever holds the token is the person the token was minted for,
+ * and asking somebody to sign in before they can get out of a mailing list is
+ * how a church gets reported as spam instead.
+ */
+export async function withdrawByToken(
+  token: string,
+): Promise<{ tenantId: string; churchName: string } | null> {
+  if (!token || token.length < 16) return null;
+
+  /*
+   * R16.8. Read and written as the owner, because whoever followed this link
+   * is signed in to nothing and the token is the only thing that says which
+   * church it belongs to. It touches one row, found by that token, and
+   * nothing else is reachable from here.
+   */
+  const db = drizzle(owner());
+
+  const [row] = await db
+    .select({ id: contactConsent.id, tenantId: contactConsent.tenantId })
+    .from(contactConsent)
+    .where(eq(contactConsent.token, token))
+    .limit(1);
+
+  if (!row) return null;
+
+  await db
+    .update(contactConsent)
+    .set({
+      state: "withdrawn",
+      source: "portal",
+      withdrawnAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(contactConsent.id, row.id));
+
+  const [church] = await db
+    .select({ name: tenants.name })
+    .from(tenants)
+    .where(eq(tenants.id, row.tenantId))
+    .limit(1);
+
+  return { tenantId: row.tenantId, churchName: church?.name ?? "" };
+}
+
+/** R16.6. The send itself, written down before a single message goes. */
+export async function startSend(
+  db: Tx,
+  actor: WriteActor,
+  input: {
+    subject: string;
+    body: string;
+    audience: Audience;
+    audienceId: string | null;
+    audienceName: string | null;
+    total: number;
+  },
+): Promise<string> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  const [row] = await db
+    .insert(emailSends)
+    .values({
+      tenantId: actor.tenantId,
+      subject: input.subject,
+      body: input.body,
+      audience: input.audience,
+      audienceId: input.audienceId,
+      audienceName: input.audienceName,
+      state: "sending",
+      total: input.total,
+      sentBy: actor.userId ?? null,
+      sentAt: new Date(),
+    })
+    .returning({ id: emailSends.id });
+
+  return row!.id;
+}
+
+/** R16.6, R16.7. What happened to one person's copy. */
+export async function recordDelivery(
+  db: Tx,
+  actor: WriteActor,
+  input: {
+    sendId: string;
+    memberId: string;
+    address: string;
+    ok: boolean;
+    said: string | null;
+  },
+): Promise<void> {
+  await db.insert(emailRecipients).values({
+    tenantId: actor.tenantId,
+    sendId: input.sendId,
+    memberId: input.memberId,
+    address: input.address,
+    state: input.ok ? "sent" : "failed",
+    said: input.said,
+  });
+}
+
+/** R16.6. The tally, once every copy has been attempted. */
+export async function finishSend(
+  db: Tx,
+  actor: WriteActor,
+  sendId: string,
+): Promise<{ delivered: number; failed: number }> {
+  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
+
+  const [tally] = await db
+    .select({
+      delivered: sql<number>`count(*) filter (where ${emailRecipients.state} = 'sent')::int`,
+      failed: sql<number>`count(*) filter (where ${emailRecipients.state} = 'failed')::int`,
+    })
+    .from(emailRecipients)
+    .where(eq(emailRecipients.sendId, sendId));
+
+  const delivered = tally?.delivered ?? 0;
+  const failed = tally?.failed ?? 0;
+
+  await db
+    .update(emailSends)
+    .set({
+      state: delivered > 0 ? "sent" : "failed",
+      delivered,
+      failed,
+      updatedAt: new Date(),
+    })
+    .where(eq(emailSends.id, sendId));
+
+  return { delivered, failed };
+}
+
+export interface SentEmail {
+  id: string;
+  subject: string;
+  audienceName: string | null;
+  audience: string;
+  state: string;
+  total: number;
+  delivered: number;
+  failed: number;
+  sentAt: Date | null;
+}
+
+/** R16.6. What this church has sent, newest first. */
+export async function listSends(db: Tx, limit = 20): Promise<SentEmail[]> {
+  return db
+    .select({
+      id: emailSends.id,
+      subject: emailSends.subject,
+      audienceName: emailSends.audienceName,
+      audience: emailSends.audience,
+      state: emailSends.state,
+      total: emailSends.total,
+      delivered: emailSends.delivered,
+      failed: emailSends.failed,
+      sentAt: emailSends.sentAt,
+    })
+    .from(emailSends)
+    .where(ne(emailSends.state, "draft"))
+    .orderBy(desc(emailSends.sentAt))
+    .limit(limit);
+}
+
+/** R16.8. How many of this church's people have asked to be left alone. */
+export async function countWithdrawn(db: Tx): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(contactConsent)
+    .where(
+      and(
+        eq(contactConsent.channel, "email"),
+        eq(contactConsent.state, "withdrawn"),
+        isNotNull(contactConsent.memberId),
+      ),
+    );
+  return row?.n ?? 0;
+}

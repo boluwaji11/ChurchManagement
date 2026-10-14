@@ -2,6 +2,7 @@ import { PersonPanelPage } from "../[id]/page-content";
 import { EditPersonPanelPage } from "../[id]/edit/page-content";
 import { NewPersonPanelPage } from "../new/page-content";
 import { MailerPanelPage } from "../mailer/page-content";
+import { EmailPanelPage } from "../email/page-content";
 import { CelebrationsPanelPage } from "../celebrations/page-content";
 import { DuplicatesPanelPage } from "../duplicates/page-content";
 import { ImportPanelPage } from "../import/page-content";
@@ -27,6 +28,7 @@ export function panelFor(
 
   if (name === "new") return <NewPersonPanelPage searchParams={searchParams} />;
   if (name === "mailer") return <MailerPanelPage searchParams={searchParams} />;
+  if (name === "email") return <EmailPanelPage />;
   if (name === "celebrations") return <CelebrationsPanelPage searchParams={searchParams} />;
   if (name === "duplicates") return <DuplicatesPanelPage searchParams={searchParams as never} />;
   if (name === "import") return <ImportPanelPage searchParams={searchParams} />;

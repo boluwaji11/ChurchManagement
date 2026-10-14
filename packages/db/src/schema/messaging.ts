@@ -1,4 +1,6 @@
-import { pgTable, uuid, text, timestamp, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  pgTable, uuid, text, integer, timestamp, jsonb, index, uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { tenants } from "./tenancy";
 import { members } from "./members";
 
@@ -173,6 +175,14 @@ export const contactConsent = pgTable(
     capturedAt: timestamp("captured_at", { withTimezone: true }),
     capturedBy: uuid("captured_by"),
     withdrawnAt: timestamp("withdrawn_at", { withTimezone: true }),
+    /**
+     * R16.8. The way out, which every message carries.
+     *
+     * A token rather than a member id in the address, because an unsubscribe
+     * link is forwarded, pasted into chat groups and crawled, and a guessable
+     * one lets anybody take anybody off the church's list.
+     */
+    token: text("token"),
     createdAt: created(),
     updatedAt: updated(),
   },
@@ -180,5 +190,63 @@ export const contactConsent = pgTable(
     uniqueIndex("contact_consent_unique").on(t.tenantId, t.memberId, t.channel),
     index("contact_consent_tenant_idx").on(t.tenantId),
     index("contact_consent_member_idx").on(t.tenantId, t.memberId),
+  ],
+);
+
+/**
+ * HRT-139, R16.4, R16.6. A message a church sent to its people.
+ *
+ * The words are kept as they were sent rather than as a reference to a draft
+ * that can be edited afterwards: "what did we actually send on Tuesday" has
+ * one answer and it is this row.
+ */
+export const emailSends = pgTable(
+  "email_sends",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    /** "everyone", "list" or "group". */
+    audience: text("audience").notNull(),
+    audienceId: uuid("audience_id"),
+    /** What that list or group was called when it went, which can be renamed. */
+    audienceName: text("audience_name"),
+    /** "draft", "sending", "sent" or "failed". */
+    state: text("state").notNull().default("draft"),
+    total: integer("total").notNull().default(0),
+    delivered: integer("delivered").notNull().default(0),
+    failed: integer("failed").notNull().default(0),
+    sentBy: uuid("sent_by"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    createdAt: created(),
+    updatedAt: updated(),
+  },
+  (t) => [index("email_send_tenant_idx").on(t.tenantId, t.createdAt)],
+);
+
+/**
+ * R16.6, R16.7. One row a person, so a bounce belongs to the address that bounced.
+ *
+ * "We emailed everybody on Tuesday" is not an answer when somebody says they
+ * never got it.
+ */
+export const emailRecipients = pgTable(
+  "email_recipients",
+  {
+    id: pk(),
+    tenantId: tenantId(),
+    sendId: uuid("send_id").notNull().references(() => emailSends.id, { onDelete: "cascade" }),
+    memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
+    address: text("address").notNull(),
+    /** "sent" or "failed". */
+    state: text("state").notNull(),
+    /** What the provider said when it refused, in its own words. */
+    said: text("said"),
+    at: timestamp("at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("email_recipient_send_idx").on(t.tenantId, t.sendId),
+    index("email_recipient_member_idx").on(t.tenantId, t.memberId),
   ],
 );

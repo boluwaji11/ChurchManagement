@@ -1082,11 +1082,12 @@ old state until each is picked up.
 | HRT-288 | Resend connects by a press and a yes, and the domain reading moves in with it | R16.1, R21.15, R22.2 | Resolved |
 | HRT-289 | Getting the three settings in: the right page, the right words, and one press where it is offered | R16.1, R22.2 | In progress |
 | HRT-290 | A church sends one message to itself, through whatever it connected | R16.1, R21.15 | Resolved |
-| HRT-139 | The composer, merge fields and the template library | R16.4 | **Removed, deferred** |
+| HRT-139 | The composer: write one message and send it to everyone, a list or a group | R16.4, R16.6 | Resolved |
+| HRT-291 | Email templates a church writes once, kept in settings beside the service templates | R16.4 | New |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
 | HRT-141 | The send queue | R16.6 | **Removed, deferred** |
 | HRT-142 | Bounces and retries | R16.7 | **Removed, deferred** |
-| HRT-143 | Consent and unsubscribe | R16.8 | Deferred |
+| HRT-143 | Consent and unsubscribe | R16.8 | Resolved. Built with HRT-139, because a first send cannot be given a way out afterwards |
 | HRT-144 | The church's own Twilio, and opt-in before any SMS | R16.2, R16.8 | Deferred |
 | HRT-145 | Inbound replies into a shared inbox | R16.9 | Deferred |
 | HRT-146 | Avery labels and envelopes | R16.12 | Closed. Mail-merge letters are HRT-267 |
@@ -1838,6 +1839,29 @@ On Resend, press it twice. The second one must work: Resend rotates its refresh 
 and refuses one used twice, so a second press failing means the new token was not written down.
 
 Work item: HRT-290
+
+### HRT-139, how to test it
+
+As Owner or Admin with email connected and ready to send, open the directory, then Email your church
+from the menu. Choose who it goes to: everyone, one of the church's saved lists, or a group. The
+line under it says how many people that reaches, and it changes when the audience does. Somebody
+with no email address is not counted, and nor is anybody archived.
+
+Write a subject and a message. Use `{first}` and `{name}` in either of them and confirm each person
+gets their own. Press Send it, and confirm it asks how many it is about to reach before it goes.
+
+Open the message that arrives and follow the link at the bottom. It takes you off the list with no
+sign-in and no second question. Send the same thing again and confirm that person is no longer
+counted and no longer receives it.
+
+What you have sent lists each one with how many it reached and how many did not.
+
+### HRT-291, how to test it
+
+Not built. A church writes a message it sends every year, such as the carol service invitation or
+the giving statement cover, once rather than every time. They belong in settings beside the service
+templates, which is where a church already looks for a thing it set up once, and the composer picks
+one up as a starting point rather than as a link it cannot edit.
 
 ### HRT-285, how to test it
 
