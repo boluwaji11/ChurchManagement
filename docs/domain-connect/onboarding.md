@@ -40,15 +40,31 @@ fewer churches than the nine-company list suggests. It costs us nothing either w
 each church's domain before it offers anything, so a church at a company that has not loaded us sees
 the three settings and the right page to type them into.
 
-## Domain Chief is different
+## What came back, 14 October 2026
 
-It asks nobody for anything: its importer reads the public repository every day and loads what it
-can. Ours is still a 404 there, which by their own documentation means the importer skipped it, for
-a record or a template option they do not support. `txtConflictMatchingMode` on the DKIM record is
-the likeliest.
+**NameSilo** and **Domain Chief** both answered the same way, within hours: they synchronise with the
+public repository automatically and a merged template is usually live **within about 24 hours**.
+Neither will load one by hand.
 
-Their page says to write to `domainconnect@chief.app` when a published template is not recognised.
-https://docs.chief.tools/developers/domainchief/guides/domain-connect
+> NameSilo: "We automatically synchronize our system with the official Domain Connect repository.
+> Once your templates are reviewed and merged there, they will typically become available on NameSilo
+> within approximately 24 hours." Their verify endpoint is `https://www.namesilo.com/domainconnect/v2`,
+> and they suggest registering a test domain there to prove it end to end.
+
+> Domain Chief: "Templates are discovered automatically (every 24 hours) if supported. You do not need
+> to ask Domain Chief to enable it." Test against `domainchief.app`.
+
+Our template merged on 14 October, so neither window has closed yet. Both answer 200 for the
+standard's own example and 404 for ours, which is exactly what a company that has not yet run its
+import looks like. Ask again a day later:
+
+```
+curl -s -o /dev/null -w "%{http_code}\n" https://www.namesilo.com/domainconnect/v2/domainTemplates/providers/connectapp.church/services/email
+curl -s -o /dev/null -w "%{http_code}\n" https://domain.chief.app/api/domainconnect/v2/domainTemplates/providers/connectapp.church/services/email
+```
+
+If either is still 404 after a day, the importer skipped it over something it does not support, and
+both named an address for that case: `domainconnect@chief.app`, and NameSilo's own support.
 
 ## The emails to send
 
@@ -60,12 +76,12 @@ whatever they need next.
 | IONOS | domain_connect_admin@domain.ionos.com |
 | GoDaddy | domainconnect@godaddy.com |
 | Cloudflare | domain-connect@cloudflare.com |
-| NameSilo | domainconnect@namesilo.com |
+| NameSilo | domainconnect@namesilo.com (replied: automatic, about 24 hours) |
 | Plesk | domainconnect@plesk.com |
 | Vercel | domainconnect@vercel.com |
 | WordPress.com | registrar@automattic.com |
 | Glauca Digital | hello@glauca.digital |
-| Domain Chief | domainconnect@chief.app |
+| Domain Chief | domainconnect@chief.app (replied: automatic, every 24 hours) |
 
 The wording to send is in [outreach.md](outreach.md).
 
