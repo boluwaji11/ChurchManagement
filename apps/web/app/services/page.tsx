@@ -1,9 +1,9 @@
 import {
-  withTenant, listOccurrences, topUpCalendar, planSummaries, getChurch, canManageServices,
+  withTenant, listOccurrences, topUpCalendar, planSummaries, canManageServices,
 } from "@connectapp/db";
 import { Empty } from "@/components/empty";
 import { t } from "@connectapp/i18n";
-import { requireScreen } from "@/lib/shell-data";
+import { requireScreen, shellData } from "@/lib/shell-data";
 import { AppShell } from "@/components/app-shell";
 import { churchNow } from "@/lib/church-now";
 import { AddService } from "./add-service";
@@ -80,27 +80,35 @@ export default async function ServicesPage({
   const session = await requireScreen();
   const canEdit = canManageServices(session);
 
+  /* The frame has already read the church, and this screen's clock comes out
+     of it. Reading it again was a trip for a timezone. */
+  const profile = (await shellData(session)).church;
+  const clock = churchNow(profile?.timezone ?? "America/Chicago");
+
   const { rows, past, plans, now } = await withTenant(
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       // Keeps a repeating service some weeks ahead without anybody maintaining
       // a calendar. Idempotent, and it does nothing for a church with none.
+      // It writes the occurrences the reads below are about, so it stays in
+      // front of them.
       if (canEdit) {
         await topUpCalendar(tx, { tenantId: session.tenantId, role: session.role });
       }
 
-      const profile = await getChurch(tx, session.tenantId);
-      const clock = churchNow(profile?.timezone ?? "America/Chicago");
-      const list = await listOccurrences(tx, {
-        from: clock.date,
+      /*
+       * One read over the whole span rather than one looking forward and
+       * another looking back. The two ranges meet at today, so a second trip
+       * was buying nothing. R11.1 wants what was last held, so a plan can be
+       * copied from the week before without hunting for it.
+       */
+      const span = await listOccurrences(tx, {
+        from: shift(clock.date, -PAST_DAYS),
         to: shift(clock.date, AHEAD_DAYS),
       });
 
-      // R11.1. What was last held, so a plan can be copied from the week
-      // before without hunting for it.
-      const before = (
-        await listOccurrences(tx, { from: shift(clock.date, -PAST_DAYS), to: clock.date })
-      ).filter((one) => one.occursOn < clock.date).slice(0, 2);
+      const list = span.filter((one) => one.occursOn >= clock.date);
+      const before = span.filter((one) => one.occursOn < clock.date).slice(0, 2);
 
       return {
         now: clock,

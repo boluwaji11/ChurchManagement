@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { canAnswerMessages } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { PortalShell, PortalTitle } from "@/components/portal-shell";
-import { requireSession } from "@/lib/session";
+import { requireScreen } from "@/lib/shell-data";
 import { tabMetadata } from "@/lib/page-metadata";
 import { InboxScreen } from "@/components/inbox/screen";
 import { readInbox } from "@/lib/inbox-read";
@@ -32,7 +32,7 @@ export default async function MemberThreadPage({
   const { key: parts } = await params;
   const key = parts.join("/");
   const {} = await searchParams;
-  const session = await requireSession();
+  const session = await requireScreen();
 
   if (canAnswerMessages(session)) {
     redirect(`/messages/${key}`);

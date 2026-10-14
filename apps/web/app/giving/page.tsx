@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  withTenant, getChurch, listFunds, fundTotals, listBatches, countBatches,
+  withTenant, listFunds, fundTotals, listBatches, countBatches,
   listGifts, countGifts, givingTotals, onTheWay, listCampaigns,
   getStripeAccount, listRecurring, countRecurring, recurringMonthly,
   canManageGiving, canReadGivingAmounts,
@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { t, plural } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireScreen } from "@/lib/shell-data";
+import { requireScreen, shellData } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { MyGiving } from "./mine";
 import { Empty } from "@/components/empty";
@@ -105,51 +105,68 @@ export default async function GivingPage({
   const narrowing = narrowingFrom(asked);
   const repeatsPage = pageFrom(asked.repeats);
 
+  /*
+   * The frame around this screen has already read the church, and the clock
+   * this page runs on comes out of it. Reading it again was a second trip for
+   * a timezone, and every read below waited behind it.
+   */
+  const profile = (await shellData(session)).church;
+  const today = churchNow(profile?.timezone ?? "America/Chicago").date;
+  const year = today.slice(0, 4);
+  const month = today.slice(0, 7);
+
+  /* R13.21. What the filter is asking for, as dates and as a clause. */
+  const span = periodRange(narrowing.period, today);
+  const narrowed = {
+    ...span,
+    fundIds: narrowing.fundIds,
+    methods: narrowing.methods,
+    statuses: narrowing.statuses,
+  };
+
   const read = await withTenant(ctx, async (tx) => {
-    const profile = await getChurch(tx, session.tenantId);
-    const today = churchNow(profile?.timezone ?? "America/Chicago").date;
-    const year = today.slice(0, 4);
-    const month = today.slice(0, 7);
-
-    /* R13.21. What the filter is asking for, as dates and as a clause. */
-    const span = periodRange(narrowing.period, today);
-    const narrowed = {
-      ...span,
-      fundIds: narrowing.fundIds,
-      methods: narrowing.methods,
-      statuses: narrowing.statuses,
-    };
-
-    return {
-      today,
-      funds: await listFunds(tx),
+    /*
+     * Fourteen reads that have nothing to say to each other used to wait on
+     * each other, one round trip at a time, on the screen a treasurer opens
+     * most. They go down the one connection together.
+     */
+    const [
+      funds, everyFund, byFund, thisYear, thisMonth, counts, allCounts,
+      recent, allGifts, coming, recurring, allRecurring, expected, campaigns, stripe,
+    ] = await Promise.all([
+      listFunds(tx),
       /* R13.9. Archiving a fund takes it off the pickers, and the money
          given to it is still the church's. Read here so the board's two
          totals stay true and the fund it came from can still be named. */
-      everyFund: await listFunds(tx, { includeArchived: true }),
-      byFund: await fundTotals(tx, { from: `${year}-01-01`, to: `${year}-12-31` }),
-      thisYear: await givingTotals(tx, { from: `${year}-01-01`, to: `${year}-12-31` }),
-      thisMonth: await givingTotals(tx, { from: `${month}-01`, to: today }),
-      counts: await listBatches(tx, COUNTS_PER_PAGE, (countsPage - 1) * COUNTS_PER_PAGE),
-      allCounts: await countBatches(tx),
-      recent: await listGifts(tx, ctx, {
+      listFunds(tx, { includeArchived: true }),
+      fundTotals(tx, { from: `${year}-01-01`, to: `${year}-12-31` }),
+      givingTotals(tx, { from: `${year}-01-01`, to: `${year}-12-31` }),
+      givingTotals(tx, { from: `${month}-01`, to: today }),
+      listBatches(tx, COUNTS_PER_PAGE, (countsPage - 1) * COUNTS_PER_PAGE),
+      countBatches(tx),
+      listGifts(tx, ctx, {
         ...narrowed,
         limit: GIFTS_PER_PAGE,
         offset: (giftsPage - 1) * GIFTS_PER_PAGE,
       }),
-      allGifts: await countGifts(tx, narrowed),
+      countGifts(tx, narrowed),
       /* R13.2. Bank transfers authorised and not yet arrived. */
-      coming: await onTheWay(tx),
+      onTheWay(tx),
       // R13.3. What the church is expecting without anybody doing anything.
-      recurring: await listRecurring(tx, ctx, {
+      listRecurring(tx, ctx, {
         activeOnly: true,
         limit: ASIDE_ROWS,
         offset: (repeatsPage - 1) * ASIDE_ROWS,
       }),
-      allRecurring: await countRecurring(tx, { activeOnly: true }),
-      expected: await recurringMonthly(tx),
-      campaigns: await listCampaigns(tx),
-      stripe: await getStripeAccount(tx),
+      countRecurring(tx, { activeOnly: true }),
+      recurringMonthly(tx),
+      listCampaigns(tx),
+      getStripeAccount(tx),
+    ]);
+
+    return {
+      today, funds, everyFund, byFund, thisYear, thisMonth, counts, allCounts,
+      recent, allGifts, coming, recurring, allRecurring, expected, campaigns, stripe,
     };
   });
 

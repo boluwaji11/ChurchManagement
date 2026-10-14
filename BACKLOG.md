@@ -101,7 +101,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-345 | Giving statements are read in set-based queries, not one giver at a time | R24.11, R18.9 | Resolved |
 | HRT-346 | A bulk action over a selection is one write, not one a row | R24.11, R1.13 | Resolved |
 | HRT-347 | The frame and the page read at the same time | R24.11 | Resolved |
-| HRT-348 | Fifteen screens read their independent rows together | R24.11 | New |
+| HRT-348 | Fifteen screens read their independent rows together | R24.11 | Six of them done, nine to go |
 | HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | Resolved |
 | HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | New |
 | HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | New |
@@ -1948,6 +1948,35 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-348, how to test it
+
+Open giving, the schedule, services, a group's record, your own profile under Settings, and the
+member portal's home. Each holds exactly what it held before. These six awaited their independent
+reads one at a time, a round trip each, and now send them down the one connection together.
+
+Giving was the worst at fifteen: it read the church for a timezone and then queued fourteen reads
+behind it, on the screen a treasurer opens most. The church now comes out of the frame, which has
+already read it.
+
+Two of the six also stopped asking the same question twice. Services asked for the services ahead
+and then for the services behind, where one read over the whole span answers both. The portal home
+asked for today's services and then for today onwards, and the second answer contained the first.
+
+Nine screens still read in sequence: the email composer, a service's plan, a form's record, an
+event's record and its edit panel, the giving report, the groups list, and two settings screens.
+They are five reads each rather than fifteen, so they are worth doing and worth doing after this is
+confirmed.
+
+Two things found while measuring, neither a defect:
+
+Riverside's portal name is `riversides`, so signing in locally redirects to `riversides.localhost`,
+where the auth cookie set on `localhost` does not reach and the screen looks signed out. That is the
+local cookie scope, not a bug, and the dev hostname stays as it is.
+
+`/settings` is the only route in the product with a `loading.tsx`, so it is the only one that
+streams: its body can arrive after its document. That is why it feels quicker than screens with a
+similar time to first byte, and it is the evidence for HRT-353.
 
 ### HRT-349, how to test it
 
