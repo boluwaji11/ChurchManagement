@@ -76,6 +76,7 @@ const SHAPE = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;
 export function Composer({
   lists,
   groups,
+  preset,
   sent,
   sends,
   out,
@@ -84,6 +85,8 @@ export function Composer({
 }: {
   lists: Named[];
   groups: Named[];
+  /** HRT-341. People ticked in the directory, which this screen opens with. */
+  preset: Chosen[];
   sent: Sent[];
   /** R16.6. How many sends there are in all, which the pager needs. */
   sends: number;
@@ -98,9 +101,9 @@ export function Composer({
   /* R24.6. Writing one and reading what went are two jobs, so they are two
      tabs rather than one screen a church scrolls through. */
   const [doing, setDoing] = React.useState<"write" | "sent" | "out">("write");
-  const [who, setWho] = React.useState(EVERYONE);
+  const [who, setWho] = React.useState(preset.length > 0 ? PEOPLE : EVERYONE);
   /* R16.4. The people picked one by one, when that is how they were picked. */
-  const [picked, setPicked] = React.useState<Chosen[]>([]);
+  const [picked, setPicked] = React.useState<Chosen[]>(preset);
   const [typed, setTyped] = React.useState("");
   /* The editor hands back a way to write at the cursor, which the marks use. */
   const write = React.useRef<((text: string) => void) | null>(null);

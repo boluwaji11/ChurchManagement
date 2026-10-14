@@ -9,12 +9,11 @@ import { ResizableTable } from "@/components/resizable-columns";
 import { Download as FileDownload } from "@/components/download";
 import { X, Archive, ArchiveRestore, Upload, Download, Plus, CircleDot, Mail, Merge, ListFilter, Pencil, Copy, Cake, Printer, Tag, CheckCircle2, ListMinus, ChevronDown, ArrowUp, ArrowDown, ChevronsUpDown, Send, FileText } from "lucide-react";
 import {
-  Avatar, Button, Field, Input, Textarea, Checkbox, Banner, HueDot, Tooltip,
+  Avatar, Button, Field, Input, Checkbox, Banner, HueDot, Tooltip,
   Spinner,
   IconButton,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Switch,
-  Dialog, DialogTrigger, DialogContent, DialogFooter, DialogClose,
-  Tabs, TabsList, TabsTrigger,
+  Dialog, DialogContent, DialogFooter,
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator,
   cn, type Hue,
@@ -1276,9 +1275,18 @@ function SelectionBar({
 
       <span aria-hidden className="mx-1 h-5 w-px bg-line" />
 
-      {/* R16.x. The composer is deferred, so this opens the same shell the
-          person screen does and sends nothing. */}
-      <BulkMessage count={count} />
+      {/* HRT-341, R16.4. Straight into the composer with these people already
+          chosen. The writing happens in one place, so a message sent from a
+          selection carries the same fine print and the same way out. */}
+      <Button
+        asChild
+        variant="ghost"
+        className="min-h-9 rounded-full px-2.5 text-[13px]"
+      >
+        <Link href={`/members/email?ids=${ids.join(",")}`}>
+          <Mail /> {t("directory.bulkMessage")}
+        </Link>
+      </Button>
 
       {tags.length > 0 ? (
         <Picker
@@ -1342,64 +1350,6 @@ function SelectionBar({
         <X />
       </IconButton>
     </div>
-  );
-}
-
-/**
- * R16.x. The shell of the message the design draws on this bar.
- *
- * Messaging is deferred, so this opens, takes what somebody would send, and
- * sends nothing. It is here because the bar in the design has it and because
- * the person screen already carries the same shell.
- */
-function BulkMessage({ count }: { count: number }) {
-  const [open, setOpen] = React.useState(false);
-  const [channel, setChannel] = React.useState("email");
-
-  /* The channel is chosen for this selection, so a different one starts fresh. */
-  const close = (next: boolean) => {
-    setOpen(next);
-    if (!next) setChannel("email");
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={close}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" className="min-h-9 rounded-full px-2.5 text-[13px]">
-          <Mail /> {t("directory.bulkMessage")}
-        </Button>
-      </DialogTrigger>
-      <DialogContent title={plural("directory.messageTitle", count)} closeLabel={t("common.close")}>
-        <div className="flex flex-col gap-4">
-          <Tabs value={channel} onValueChange={setChannel}>
-            <TabsList>
-              <TabsTrigger value="email">{t("message.email")}</TabsTrigger>
-              <TabsTrigger value="sms">{t("message.textMessage")}</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {/* A subject belongs to an email. A text has none. */}
-          {channel === "email" ? (
-            <Field label={t("message.subject")}>
-              <Input name="subject" autoComplete="off" />
-            </Field>
-          ) : null}
-
-          <Field label={t("message.text")}>
-            <Textarea name="body" rows={6} placeholder={t("message.hint")} />
-          </Field>
-        </div>
-
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="ghost" data-dismiss>{t("action.cancel")}</Button>
-          </DialogClose>
-          <Button disabled>
-            {channel === "email" ? t("message.sendEmail") : t("message.sendText")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }
 

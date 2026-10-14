@@ -28,7 +28,7 @@ export function panelFor(
 
   if (name === "new") return <NewPersonPanelPage searchParams={searchParams} />;
   if (name === "mailer") return <MailerPanelPage searchParams={searchParams} />;
-  if (name === "email") return <EmailPanelPage />;
+  if (name === "email") return <EmailPanelPage searchParams={searchParams} />;
   if (name === "celebrations") return <CelebrationsPanelPage searchParams={searchParams} />;
   if (name === "duplicates") return <DuplicatesPanelPage searchParams={searchParams as never} />;
   if (name === "import") return <ImportPanelPage searchParams={searchParams} />;
