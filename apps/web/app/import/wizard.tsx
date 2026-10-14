@@ -642,11 +642,10 @@ function PreviewStep({
             so a button carrying both says so in one condition. */}
         <Button onClick={onConfirm} loading={busy} disabled={busy || willWrite === 0}>
           {totals.skip + totals.fail > 0
-            ? t("import.commitSkipping", {
-                count: willWrite,
+            ? plural("import.commitSkipping", willWrite, {
                 skipped: totals.skip + totals.fail,
               })
-            : t("import.commit", { count: willWrite })}
+            : plural("import.commit", willWrite)}
         </Button>
       </div>
 

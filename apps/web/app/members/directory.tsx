@@ -1369,7 +1369,7 @@ function BulkMessage({ count }: { count: number }) {
           <Mail /> {t("directory.bulkMessage")}
         </Button>
       </DialogTrigger>
-      <DialogContent title={t("directory.messageTitle", { count })} closeLabel={t("common.close")}>
+      <DialogContent title={plural("directory.messageTitle", count)} closeLabel={t("common.close")}>
         <div className="flex flex-col gap-4">
           <Tabs value={channel} onValueChange={setChannel}>
             <TabsList>
