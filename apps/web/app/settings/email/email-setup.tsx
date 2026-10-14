@@ -80,10 +80,12 @@ export function EmailSetup({
 
   /* R16.1. What arrived, rather than what was accepted. */
   const [sent, setSent] = React.useState<string | null>(null);
-  const test = async () => {
+  const test = async (to: string) => {
     setSent(null);
-    const ok = await act(sendTest, t("email.test.sending"));
-    if (ok) setSent(t("email.test.sent", { address: signedInAs }));
+    const data = new FormData();
+    data.set("to", to);
+    const ok = await act(() => sendTest(data), t("email.test.sending"));
+    if (ok) setSent(t("email.test.sent", { address: to }));
   };
 
   const act = async (run: () => Promise<EmailResult>, label: string) => {
@@ -117,9 +119,10 @@ export function EmailSetup({
           console_={console_}
           steps={steps}
           onepress={onepress}
+          signedInAs={signedInAs}
           busy={busy !== null}
           onCheck={() => void quietly(checkRecords)}
-          onTest={() => void test()}
+          onTest={(to) => void test(to)}
           onDisconnect={() => void act(disconnectEmail, t("email.saving"))}
         />
       ) : way === "resend" ? (
@@ -213,12 +216,14 @@ function Connected({
   console_,
   steps,
   onepress,
+  signedInAs,
   busy,
   onCheck,
   onTest,
   onDisconnect,
 }: {
   provider: EmailProvider;
+  signedInAs: string;
   domain: DomainState | null;
   registrar: string | null;
   console_: string | null;
@@ -226,7 +231,7 @@ function Connected({
   onepress: string | null;
   busy: boolean;
   onCheck: () => void;
-  onTest: () => void;
+  onTest: (to: string) => void;
   onDisconnect: () => void;
 }) {
   /* A church connected to Resend with nothing published yet is not sending,
@@ -286,13 +291,66 @@ function Connected({
           there is something that could actually carry a message. */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
         {waiting ? <span /> : (
-          <Button variant="secondary" onClick={onTest} disabled={busy}>
-            <Send aria-hidden /> {t("email.test")}
-          </Button>
+          <TestDialog signedInAs={signedInAs} busy={busy} onSend={onTest} />
         )}
         <DisconnectDialog vendor={provider.vendor} busy={busy} onConfirm={onDisconnect} />
       </div>
     </Card>
+  );
+}
+
+/**
+ * HRT-290, R24.6. Where the test goes.
+ *
+ * A dialog rather than a panel, because nothing is being written down: it is a
+ * press with one question attached, and the answer is usually the address
+ * already in the box.
+ */
+function TestDialog({
+  signedInAs,
+  busy,
+  onSend,
+}: {
+  signedInAs: string;
+  busy: boolean;
+  onSend: (to: string) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [to, setTo] = React.useState(signedInAs);
+
+  return (
+    <Dialog open={open} onOpenChange={(next) => { setOpen(next); if (next) setTo(signedInAs); }}>
+      <DialogTrigger asChild>
+        <Button variant="secondary" disabled={busy}>
+          <Send aria-hidden /> {t("email.test")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent title={t("email.test")} closeLabel={t("common.close")}>
+        <Field label={t("email.test.to")} required>
+          <Input
+            value={to}
+            onChange={(e) => setTo(e.currentTarget.value)}
+            inputMode="email"
+            autoComplete="off"
+          />
+        </Field>
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            {t("action.cancel")}
+          </Button>
+          <Button
+            type="button"
+            disabled={!to.trim()}
+            onClick={() => {
+              setOpen(false);
+              onSend(to.trim());
+            }}
+          >
+            {t("email.test")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
