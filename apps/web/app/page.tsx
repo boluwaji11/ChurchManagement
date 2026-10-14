@@ -264,6 +264,29 @@ export default async function Site() {
           </div>
         </section>
 
+        {/* Three screens, side by side: the week ahead, what came in, and what
+            it all added up to. One block rather than three sections, because
+            the claim is that they are one product. */}
+        <section className="border-t border-line">
+          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-6 py-16">
+            <div className="flex max-w-[640px] flex-col gap-3">
+              <SectionTitle>{t("site.week.title")}</SectionTitle>
+              <p className="m-0 text-[18px] text-fg-muted">{t("site.week.sub")}</p>
+            </div>
+            <div className="grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))]">
+              <BrowserFrame>
+                <Shot src="/marketing/services.png" />
+              </BrowserFrame>
+              <BrowserFrame>
+                <Shot src="/marketing/giving.png" />
+              </BrowserFrame>
+              <BrowserFrame>
+                <Shot src="/marketing/reports.png" />
+              </BrowserFrame>
+            </div>
+          </div>
+        </section>
+
         {/* People, on the left, with the office screen beside it. */}
         <section id="members" className="border-t border-line">
           <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-12 px-6 py-16">
@@ -357,7 +380,14 @@ export default async function Site() {
           <Art pieces={PRICE_ART} />
           <div className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-10 px-6 py-16">
             <SectionTitle className="text-center">{t("site.price.title")}</SectionTitle>
-            <div className="flex w-[min(480px,100%)] flex-col gap-7 rounded-[20px] bg-canvas p-10">
+            {/* R24.4. The one card on the page that carries the whole argument, so it
+                sits off the ground rather than melting into the section behind it. */}
+            <div
+              className={
+                "flex w-[min(480px,100%)] flex-col gap-7 rounded-[20px] border border-line " +
+                "bg-surface p-10 shadow-lg"
+              }
+            >
               <div className="flex flex-wrap items-baseline gap-3">
                 <span className="font-display text-[88px] font-normal leading-none text-fg">
                   {t("site.price.amount")}
