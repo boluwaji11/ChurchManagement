@@ -552,11 +552,22 @@ function Withdrawn({ out, total }: { out: Out[]; total: number }) {
   const [busy, setBusy] = React.useState<string | null>(null);
   const [page, setPage] = React.useState(1);
   const [rows, setRows] = React.useState<Out[]>(out);
+  const [count, setCount] = React.useState(total);
 
+  /*
+   * R16.8. Read again whenever this tab is opened.
+   *
+   * Somebody unsubscribes from their own inbox, in their own browser, and the
+   * church's screen knows nothing about it. Reading on open is what makes the
+   * list true, rather than true as of whenever the screen was loaded.
+   */
   React.useEffect(() => {
-    setRows(out);
-    setPage(1);
-  }, [out]);
+    void withdrawnPage(1).then((fresh) => {
+      setRows(fresh.rows);
+      setCount(fresh.total);
+      setPage(1);
+    });
+  }, []);
 
   if (rows.length === 0) {
     return <p className="m-0 text-fg-muted">{t("send.out.none")}</p>;
@@ -605,13 +616,16 @@ function Withdrawn({ out, total }: { out: Out[]; total: number }) {
       })}
     </ul>
 
-    {total > PER ? (
+    {count > PER ? (
       <Pages
         page={page}
-        last={Math.ceil(total / PER)}
+        last={Math.ceil(count / PER)}
         onPage={(next) => {
           setPage(next);
-          void withdrawnPage(next).then(setRows);
+          void withdrawnPage(next).then((fresh) => {
+            setRows(fresh.rows);
+            setCount(fresh.total);
+          });
         }}
       />
     ) : null}

@@ -6,7 +6,7 @@ import {
   withTenant,
   emailRecipientsFor, findEmailRecipients, wayOutFor, startSend, recordDelivery, finishSend,
   emailCredentialForSend, rotateEmailCredential, getChurch, readSend, restoreConsent,
-  listSends, listWithdrawn,
+  listSends, listWithdrawn, countAllWithdrawn,
   type Audience,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -142,15 +142,19 @@ export async function sentPage(page: number) {
 /** R16.8. A page of who has asked this church to stop. */
 export async function withdrawnPage(page: number) {
   const { ctx } = await context();
-  const rows = await withTenant(ctx, (tx) =>
-    listWithdrawn(tx, { limit: 10, offset: Math.max(0, page - 1) * 10 }),
-  );
-  return rows.map((one) => ({
-    id: one.id,
-    address: one.address,
-    name: one.name,
-    withdrawnAt: one.withdrawnAt?.toISOString() ?? null,
+  const read = await withTenant(ctx, async (tx) => ({
+    rows: await listWithdrawn(tx, { limit: 10, offset: Math.max(0, page - 1) * 10 }),
+    total: await countAllWithdrawn(tx),
   }));
+  return {
+    total: read.total,
+    rows: read.rows.map((one) => ({
+      id: one.id,
+      address: one.address,
+      name: one.name,
+      withdrawnAt: one.withdrawnAt?.toISOString() ?? null,
+    })),
+  };
 }
 
 /** R16.4. People matching what the writer typed, for choosing them one by one. */
