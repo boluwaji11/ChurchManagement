@@ -87,8 +87,7 @@ own secrets as `DOMAIN_CONNECT_PRIVATE_KEY`, and the record's name goes in
    offers the press, and a church at a company that has not loaded us sees the three settings
    instead. Nobody meets a button that fails.
 
-   The daily check at `/api/domain-connect/check` asks all seven and emails the answer, so this is a
-   notification rather than a question. By hand, for one company:
+   Asking by hand, for one company:
 
    ```
    curl -s https://api.domainconnect.ionos.com/v2/domainTemplates/providers/connectapp.church/services/email

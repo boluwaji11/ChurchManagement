@@ -1,4 +1,6 @@
-# The email, ready to send
+# The email, as it was sent
+
+**Sent to all nine on 14 October 2026.**
 
 HRT-289. One a company, from `hello@connectapp.church`. The addresses are in
 [onboarding.md](onboarding.md).
