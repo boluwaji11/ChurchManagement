@@ -1886,8 +1886,10 @@ nothing here can reach it.
 Send to one person and confirm it still lands within a second or two: the press does the first pass
 itself rather than leaving a message to three people waiting for the next minute.
 
-`/api/email/drain` is the worker, on a one-minute cron, and it needs `CRON_SECRET`. Without it, a
-queued send waits for whoever presses next.
+`/api/email/drain` is the worker. It runs from `.github/workflows/drain.yml` every five minutes and
+needs `CRON_SECRET` as a repository secret, because Vercel's Hobby plan runs a cron once a day and a
+send queue drained once a day is not a send queue. Without the secret, a queued send waits for
+whoever presses next.
 
 ### HRT-142, how to test it
 
