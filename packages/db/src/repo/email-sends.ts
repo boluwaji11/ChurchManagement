@@ -19,7 +19,7 @@ import { listPeople, type WriteActor } from "./members";
  */
 
 /** Who a send is for. */
-export type Audience = "everyone" | "list" | "group";
+export type Audience = "everyone" | "list" | "group" | "people";
 
 export interface EmailRecipient {
   memberId: string;
@@ -40,13 +40,15 @@ export interface EmailRecipient {
  */
 export async function emailRecipientsFor(
   db: Tx,
-  input: { audience: Audience; audienceId?: string | null },
+  input: { audience: Audience; audienceId?: string | null; memberIds?: readonly string[] },
 ): Promise<EmailRecipient[]> {
   /* Everybody this church keeps, read once. The audience narrows it rather
      than fetching a second time, so one rule decides who is reachable. */
   const people = await listPeople(db, { sort: "name" });
 
   const wanted = await (async () => {
+    if (input.audience === "people") return new Set(input.memberIds ?? []);
+
     if (input.audience === "group" && input.audienceId) {
       const rows = await db
         .select({ memberId: groupMemberships.memberId })
@@ -101,6 +103,41 @@ export async function emailRecipientsFor(
       name: row.displayName,
       token: "",
     });
+  }
+  return out;
+}
+
+/**
+ * R16.4. People to send to, by the name whoever is writing knows them by.
+ *
+ * Only those with an address, because offering somebody who cannot be emailed
+ * is offering a choice that quietly does nothing.
+ */
+export interface Candidate {
+  id: string;
+  name: string;
+  address: string;
+}
+
+export async function findEmailRecipients(
+  db: Tx,
+  query: string,
+  limit = 8,
+): Promise<Candidate[]> {
+  const text = query.trim().toLowerCase();
+  const people = await listPeople(db, { sort: "name" });
+
+  const out: Candidate[] = [];
+  for (const row of people) {
+    if (row.archivedAt !== null) continue;
+    const address = row.primaryEmail?.trim();
+    if (!address) continue;
+
+    const haystack = `${row.displayName} ${row.firstName} ${row.lastName} ${address}`.toLowerCase();
+    if (text && !haystack.includes(text)) continue;
+
+    out.push({ id: row.id, name: row.displayName, address });
+    if (out.length >= limit) break;
   }
   return out;
 }

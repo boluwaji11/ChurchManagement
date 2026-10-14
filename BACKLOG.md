@@ -1847,8 +1847,15 @@ from the menu. Choose who it goes to: everyone, one of the church's saved lists,
 line under it says how many people that reaches, and it changes when the audience does. Somebody
 with no email address is not counted, and nor is anybody archived.
 
+Choose people instead, type part of a name, and confirm only people with an email address are
+offered. Pick two or three and confirm each becomes a chip that can be taken off again, and that the
+count follows.
+
 Write a subject and a message. Use `{first}` and `{name}` in either of them and confirm each person
-gets their own. Press Send it, and confirm it asks how many it is about to reach before it goes.
+gets their own. Press Send it, and confirm it names three of the addresses as well as the count
+before it goes: the mistake worth catching is the right message going to the wrong list.
+
+Afterwards the screen moves to Sent, where every send is listed with how many it reached.
 
 Open the message that arrives and follow the link at the bottom. It takes you off the list with no
 sign-in and no second question. Send the same thing again and confirm that person is no longer
