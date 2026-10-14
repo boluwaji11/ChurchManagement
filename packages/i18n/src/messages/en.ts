@@ -125,6 +125,8 @@ export const en = {
   "site.why.ours": "We are a team of believers who love building technological products. Every feature is free, and designed so a volunteer who gives less than four hours a week can run all of it without help.",
   "site.why.quote": "Each of you should use whatever gift you have received to serve others, as faithful stewards of God's grace in its various forms.",
   "site.why.cite": "1 Peter 4:10",
+  "site.week.title": "Plan the week, receive what comes in, read what happened.",
+  "site.week.sub": "One platform, one set of records.",
   "site.features.title": "Everything in one place.",
   "site.features.sub": "One platform, one set of records.",
   "site.features.people": "Congregants",
