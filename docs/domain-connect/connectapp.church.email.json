@@ -4,7 +4,7 @@
   "serviceId": "email",
   "serviceName": "Church email",
   "version": 1,
-  "logoUrl": "https://connectapp.church/icon-512.png",
+  "logoUrl": "https://connectapp.church/icon.svg",
   "description": "Lets your church send email from its own address, signed so it is not treated as forgery.",
   "variableDescription": "dkim is the public key your sending account generated for this domain. sendhost and rsendhost are the two names that carry the sending path and the bounces.",
   "syncPubKeyDomain": "connectapp.church",
