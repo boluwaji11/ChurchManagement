@@ -6,10 +6,12 @@ import { RotateCcw, Send, X } from "lucide-react";
 import {
   Banner, Button, Card, Combobox, Field, IconButton, Input, Working,
   Dialog, DialogContent, DialogFooter, Sheet, SheetContent,
+  DatePicker, TimePicker, Switch,
 } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { RichText } from "@/components/rich-text";
 import { when } from "@/lib/when";
+import { DATE_LABELS } from "@/lib/date-labels";
 import {
   countAudience, findRecipients, openSend, putBack, sendEmail, sentPage, withdrawnPage,
   type SendResult,
@@ -24,9 +26,13 @@ export interface Named {
 export interface Sent {
   id: string;
   subject: string;
+  state: string;
+  total: number;
+  done: number;
   delivered: number;
   failed: number;
   sentAt: string | null;
+  sendAt: string | null;
 }
 
 /** R16.8. Somebody who has asked this church to stop. */
@@ -52,6 +58,24 @@ const FIELDS = [
 
 /** R16.6. How many sends a page of the Sent list holds. */
 const PER = 10;
+
+/**
+ * R16.6. What a row says about itself.
+ *
+ * Three different states read as three different sentences: one waiting for
+ * its hour, one on its way with how far it has got, and one that is done.
+ */
+function tally(one: Sent): string {
+  if (one.state === "queued" && one.sendAt && new Date(one.sendAt) > new Date()) {
+    return t("send.scheduled", { when: when(one.sendAt) });
+  }
+  if (one.state === "queued" || one.state === "sending") {
+    return plural("send.inflight", one.done, { total: one.total });
+  }
+  return one.failed
+    ? t("send.sentSome", { delivered: one.delivered, failed: one.failed })
+    : plural("send.sent", one.delivered);
+}
 
 const EVERYONE = "everyone";
 const PEOPLE = "people";
@@ -117,6 +141,10 @@ export function Composer({
   const [done, setDone] = React.useState<string | null>(null);
   /* R16.6. The one being read back, which is a send rather than a draft. */
   const [reading, setReading] = React.useState<Awaited<ReturnType<typeof openSend>>>(null);
+  /* R16.6. A send that waits for its hour. Off until somebody asks for it. */
+  const [later, setLater] = React.useState(false);
+  const [day, setDay] = React.useState("");
+  const [hour, setHour] = React.useState("09:00");
   /* R16.6. The page of the Sent list on screen, read a page at a time rather
      than all of it, because a church that has been here three years has sent
      a great many. */
@@ -128,6 +156,22 @@ export function Composer({
     setRows(sent);
     setPage(1);
   }, [sent]);
+
+  /*
+   * R16.6. While anything is on its way, the page asks again.
+   *
+   * A church watching four hundred go out wants the number to move. It stops
+   * the moment nothing is in flight, so a screen left open overnight is not
+   * asking the server a question every two seconds until morning.
+   */
+  const moving = rows.some((one) => one.state === "sending" || one.state === "queued");
+  React.useEffect(() => {
+    if (!moving || doing !== "sent") return;
+    const tick = setInterval(() => {
+      void sentPage(page).then(setRows);
+    }, 2500);
+    return () => clearInterval(tick);
+  }, [moving, doing, page]);
 
   const chosen = React.useMemo(() => {
     if (who === EVERYONE) return { audience: "everyone" as const, id: null, name: null };
@@ -203,6 +247,8 @@ export function Composer({
       );
     }
 
+    if (later && day) data.set("sendAt", new Date(`${day}T${hour || "09:00"}`).toISOString());
+
     const answer: SendResult = await sendEmail(data);
     setBusy(false);
 
@@ -211,14 +257,12 @@ export function Composer({
       return;
     }
 
-    setDone(
-      answer.failed
-        ? t("send.sentSome", { delivered: answer.delivered ?? 0, failed: answer.failed })
-        : plural("send.sent", answer.delivered ?? 0),
-    );
+    setDone(plural("send.queued", answer.queued ?? 0));
     setSubject("");
     setBody("");
     setPicked([]);
+    setLater(false);
+    setDay("");
     setDoing("sent");
     router.refresh();
   };
@@ -405,8 +449,36 @@ export function Composer({
           ))}
         </div>
 
+        {/* R16.6. A church writes on Tuesday evening for Friday morning. */}
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex min-h-9 cursor-pointer items-center gap-2.5 text-[13px] text-fg">
+            <Switch checked={later} onCheckedChange={setLater} />
+            {t("send.later")}
+          </label>
+
+          {later ? (
+            <>
+              <Field label={t("send.later.date")} className="min-w-[180px]">
+                <DatePicker
+                  value={day}
+                  onChange={(next) => setDay(next ?? "")}
+                  min={new Date().toISOString().slice(0, 10)}
+                  labels={DATE_LABELS()}
+                />
+              </Field>
+              <Field label={t("send.later.time")} className="min-w-[140px]">
+                <TimePicker
+                  value={hour}
+                  onChange={setHour}
+                  labels={{ open: t("date.open"), clear: t("date.clear") }}
+                />
+              </Field>
+            </>
+          ) : null}
+        </div>
+
         <div className="flex items-center justify-end">
-          <Button disabled={!full || busy} onClick={() => setAsking(true)}>
+          <Button disabled={!full || busy || (later && !day)} onClick={() => setAsking(true)}>
             <Send aria-hidden /> {t("send.send")}
           </Button>
         </div>
@@ -426,11 +498,7 @@ export function Composer({
                   className="flex w-full flex-wrap items-baseline gap-x-3 px-4 py-2.5 text-left cursor-pointer hover:bg-sunken"
                 >
                   <span className="min-w-0 flex-1 truncate font-medium text-fg">{one.subject}</span>
-                  <span className="text-fg-muted">
-                    {one.failed
-                      ? t("send.sentSome", { delivered: one.delivered, failed: one.failed })
-                      : plural("send.sent", one.delivered)}
-                  </span>
+                  <span className="text-fg-muted">{tally(one)}</span>
                   {one.sentAt ? (
                     <span className="text-caption text-fg-subtle">{when(one.sentAt)}</span>
                   ) : null}

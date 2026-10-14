@@ -1,22 +1,21 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { headers } from "next/headers";
 import {
   withTenant,
-  emailRecipientsFor, findEmailRecipients, wayOutFor, startSend, recordDelivery, finishSend,
-  emailCredentialForSend, rotateEmailCredential, getChurch, readSend, restoreConsent,
+  emailRecipientsFor, findEmailRecipients, wayOutFor, startSend,
+  emailProvider, readSend, restoreConsent,
   listSends, listWithdrawn, countAllWithdrawn,
   type Audience,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { merge } from "@connectapp/ui";
 import { markdownToHtml } from "@/lib/rich-text";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
 import { churchOrigin } from "@/lib/church-address";
-import { sendBySmtp, sendByResend, sender } from "@/lib/email-provider";
-import { resendClientId, refreshTokens } from "@/lib/resend-oauth";
+import { drain } from "@/lib/send-worker";
 
 /**
  * HRT-139, HRT-143, R16.4, R16.6, R16.8. Sending one message to a church's people.
@@ -31,13 +30,11 @@ import { resendClientId, refreshTokens } from "@/lib/resend-oauth";
  * hundred this product is for.
  */
 
-/** R16.6. As many as one request can carry while the church watches. */
-const CAP = 500;
-
 export interface SendResult {
   error?: string;
-  delivered?: number;
-  failed?: number;
+  /** R16.6. How many copies were written down, which is what the press did. */
+  queued?: number;
+  sendId?: string;
 }
 
 async function context() {
@@ -58,10 +55,6 @@ async function context() {
 }
 
 const field = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
-
-/** Nothing a church typed reaches the markup as markup. */
-const safe = (raw: string): string =>
-  raw.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 /**
  * R16.4. How many this would reach, and a few of them by name.
@@ -133,9 +126,13 @@ export async function sentPage(page: number) {
   return rows.map((one) => ({
     id: one.id,
     subject: one.subject,
+    state: one.state,
+    total: one.total,
+    done: one.done ?? 0,
     delivered: one.delivered,
     failed: one.failed,
     sentAt: one.sentAt?.toISOString() ?? null,
+    sendAt: one.sendAt?.toISOString() ?? null,
   }));
 }
 
@@ -167,30 +164,6 @@ export async function findRecipients(query: string) {
   }
 }
 
-/**
- * R16.8. The fine print under every message.
- *
- * Centred and quiet, the way every church already recognises it: who it was
- * sent to, the way out, and the church's own name and postal address. The
- * address is what the law asks of anybody sending in bulk, and it is also what
- * a reader looks for when deciding whether this is really their church.
- */
-function footer(input: { address: string; wayOut: string; church: string; postal: string }): string {
-  const lines = [
-    `${t("send.foot.sentTo", { address: safe(input.address) })}`,
-    `<a href="${input.wayOut}" style="color:#6b7280">${t("send.wayOut.word")}</a>`,
-    [safe(input.church), input.postal ? safe(input.postal) : null].filter(Boolean).join(" · "),
-  ];
-
-  return (
-    `<div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;` +
-    `text-align:center;font-family:system-ui,sans-serif;font-size:12px;` +
-    `line-height:1.7;color:#6b7280">` +
-    lines.map((one) => `<div>${one}</div>`).join("") +
-    `</div>`
-  );
-}
-
 export async function sendEmail(data: FormData): Promise<SendResult> {
   const { session, actor, ctx } = await context();
 
@@ -205,62 +178,31 @@ export async function sendEmail(data: FormData): Promise<SendResult> {
   const memberIds = field(data, "memberIds").split(",").filter(Boolean);
   const addresses = field(data, "addresses").split(",").filter(Boolean);
 
+  /* R16.6. When it should go. A church writing on Tuesday for Friday morning
+     is asking for a field, rather than for a reminder to come back. */
+  const when = field(data, "sendAt");
+  const sendAt = when ? new Date(when) : null;
+  if (sendAt && Number.isNaN(sendAt.getTime())) return { error: t("send.error.when") };
+
   try {
-    const held = await withTenant(ctx, (tx) => emailCredentialForSend(tx, actor));
+    const held = await withTenant(ctx, (tx) => emailProvider(tx));
     if (!held?.fromAddress) return { error: t("email.test.notConnected") };
 
     const people = await withTenant(ctx, async (tx) => {
       const found = await emailRecipientsFor(tx, { audience, audienceId, memberIds, addresses });
       /* R16.8. Each person's own way out, minted once and kept, so a link in
-         a message sent last year still works. */
+         a message sent last year still works. Minted here rather than in the
+         worker, because this is the last point at which the church's own
+         session is what authorises writing to its records. */
       for (const one of found) {
         one.token = await wayOutFor(tx, actor, { memberId: one.memberId, address: one.address });
       }
-      return found.slice(0, CAP);
+      return found;
     });
 
     if (people.length === 0) return { error: t("send.error.nobody") };
 
     const origin = (await churchOrigin(session.tenantSlug)) ?? "";
-
-    /*
-     * R16.8. The church's own name and postal address, under every message.
-     *
-     * It is what the law asks of anybody sending in bulk, and it is what a
-     * reader looks for when they are deciding whether this is really their
-     * church writing to them.
-     */
-    const profile = await withTenant(ctx, (tx) => getChurch(tx, session.tenantId));
-    const postal = [
-      profile?.addressLine1,
-      profile?.city,
-      [profile?.region, profile?.postalCode].filter(Boolean).join(" "),
-    ]
-      .map((one) => one?.trim())
-      .filter(Boolean)
-      .join(" · ");
-    const from = sender(held.fromName, held.fromAddress);
-
-    /* R16.1. One access token for the whole send, and the refresh token it
-       came with written down first: Resend refuses one used twice. */
-    const access = await (async () => {
-      if (held.vendor !== "resend") return null;
-      const clientId = resendClientId();
-      if (!clientId) return { error: t("email.said.unconfigured") };
-
-      const fresh = await refreshTokens(clientId, held.credential);
-      if (!fresh.ok) return { error: fresh.said };
-
-      await withTenant(ctx, (tx) =>
-        rotateEmailCredential(tx, actor, {
-          providerId: held.providerId,
-          credential: fresh.tokens.refreshToken,
-        }),
-      );
-      return { token: fresh.tokens.accessToken };
-    })();
-
-    if (access && "error" in access) return { error: access.error };
 
     const sendId = await withTenant(ctx, (tx) =>
       startSend(tx, actor, {
@@ -269,64 +211,23 @@ export async function sendEmail(data: FormData): Promise<SendResult> {
         audience,
         audienceId,
         audienceName,
-        total: people.length,
+        sendAt,
+        origin,
+        recipients: people.map((one) => ({ memberId: one.memberId, address: one.address })),
       }),
     );
 
-    for (const person of people) {
-      const words = merge(body, {
-        first: person.first,
-        name: person.name,
-        church: session.tenantName,
-      });
-
-      /* R16.8. The way out is a word rather than a line of random
-         characters, which is what a church would write and what a reader
-         will actually press. The plain copy keeps the whole address, because
-         there is nothing to hang a word on. */
-      const wayOut = `${origin}/u/${person.token}`;
-
-      const message = {
-        from,
-        to: person.address,
-        subject: merge(subject, {
-          first: person.first,
-          name: person.name,
-          church: session.tenantName,
-        }),
-        text:
-          `${words}\n\n---\n` +
-          `${t("send.foot.sentTo", { address: person.address })}\n` +
-          `${t("send.wayOut")} ${wayOut}\n` +
-          [session.tenantName, postal].filter(Boolean).join(" · "),
-        html:
-          markdownToHtml(words) +
-          footer({
-            address: person.address,
-            wayOut,
-            church: session.tenantName,
-            postal,
-          }),
-      };
-
-      const sent = access
-        ? await sendByResend(access.token, message)
-        : await sendBySmtp({ ...held.settings!, password: held.credential }, message);
-
-      await withTenant(ctx, (tx) =>
-        recordDelivery(tx, actor, {
-          sendId,
-          memberId: person.memberId,
-          address: person.address,
-          ok: sent.ok,
-          said: sent.ok ? null : sent.said,
-        }),
-      );
-    }
-
-    const tally = await withTenant(ctx, (tx) => finishSend(tx, actor, sendId));
     revalidatePath("/members/email");
-    return tally;
+
+    /*
+     * R16.6. The press itself does the first of the work, so a message to
+     * three people arrives while the church is still looking at the screen.
+     * What it does not finish is a row still waiting, which the worker takes
+     * on its next pass.
+     */
+    if (!sendAt) after(() => drain(2));
+
+    return { queued: people.length, sendId };
   } catch (error) {
     return { error: explain(error) };
   }

@@ -220,8 +220,20 @@ export const emailSends = pgTable(
     audienceId: uuid("audience_id"),
     /** What that list or group was called when it went, which can be renamed. */
     audienceName: text("audience_name"),
-    /** "draft", "sending", "sent" or "failed". */
+    /** "draft", "queued", "sending", "sent" or "failed". */
     state: text("state").notNull().default("draft"),
+    /**
+     * R16.6. When this should go. Null is now.
+     *
+     * A church writes the carol service invitation on Tuesday evening and
+     * wants it to land on Friday morning, which is a field rather than a
+     * reminder to come back and press send.
+     */
+    sendAt: timestamp("send_at", { withTimezone: true }),
+    /** R16.6. When a worker last took a batch of this, so two never take one. */
+    claimedAt: timestamp("claimed_at", { withTimezone: true }),
+    /** R16.8. The church's own address, so the worker's links are absolute. */
+    origin: text("origin"),
     total: integer("total").notNull().default(0),
     delivered: integer("delivered").notNull().default(0),
     failed: integer("failed").notNull().default(0),
@@ -247,8 +259,8 @@ export const emailRecipients = pgTable(
     sendId: uuid("send_id").notNull().references(() => emailSends.id, { onDelete: "cascade" }),
     memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
     address: text("address").notNull(),
-    /** "sent" or "failed". */
-    state: text("state").notNull(),
+    /** "queued", "sent" or "failed". */
+    state: text("state").notNull().default("queued"),
     /** What the provider said when it refused, in its own words. */
     said: text("said"),
     at: timestamp("at", { withTimezone: true }).defaultNow().notNull(),

@@ -1072,6 +1072,20 @@
       "when": 1791423000030,
       "tag": "0153_consent_by_address",
       "breakpoints": true
+    },
+    {
+      "idx": 154,
+      "version": "7",
+      "when": 1791423000040,
+      "tag": "0154_send_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 155,
+      "version": "7",
+      "when": 1791423000050,
+      "tag": "0155_send_origin",
+      "breakpoints": true
     }
   ]
 }

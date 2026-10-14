@@ -103,10 +103,14 @@ own secrets as `DOMAIN_CONNECT_PRIVATE_KEY`, and the record's name goes in
    python3 -c "import base64,gzip,urllib.parse,sys;gzip.decompress(base64.b64decode(urllib.parse.unquote(sys.argv[1])));print('ok')" '<token>'
    ```
 
-What to send me when it is through: nothing. The screen reads each church's domain and offers the
-press wherever that company holds the template.
+### 3. The emails, one a DNS company
 
-### 3. Then it lights up on its own
+**This is the step that was missed.** The merge publishes the template and installs it nowhere. Every
+company has to load ours, and the published route is an email to each of them.
+[onboarding.md](onboarding.md) has what the daily check says about each one and what GoDaddy told
+another service provider in October 2026; [outreach.md](outreach.md) has the wording to send.
+
+### 4. Then it lights up on its own
 
 A church whose domain is at a company that holds our template sees one press. Everywhere else the
 three settings stay as they are, with the right page and the right words, which is what every church
