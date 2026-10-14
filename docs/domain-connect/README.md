@@ -61,8 +61,12 @@ own secrets as `DOMAIN_CONNECT_PRIVATE_KEY`, and the record's name goes in
 
 ### 2. The submission
 
-1. Open the Domain Connect online editor, load the template, and test it against an apex domain and
-   a host. Copy the test-results link it gives you.
+1. Open the [online editor](https://domainconnect.paulonet.eu/dc/free/templateedit), load the
+   template, and test it against an apex domain and a host. Copy the test-results link it gives you.
+   **Done, 13 October 2026.** Both tests pass, with `dkim`, `rsendhost` and `sendhost` filled in, and
+   the link the editor gave back is in [test-results.md](test-results.md). A pull request without it
+   is refused, and a link that does not match the template submitted is refused too, so it is
+   regenerated whenever the template changes.
 2. Lint it: `dc-template-linter -tolerate warn connectapp.church.email.json`, which must exit 0.
    `-merge-or-fail` exiting 0 means it qualifies for the fast track.
 3. Open a pull request against `Domain-Connect/Templates` using their own pull request template

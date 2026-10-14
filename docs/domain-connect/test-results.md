@@ -1,0 +1,10 @@
+# The editor's test results
+
+What the Domain Connect templates repository asks for in the pull request body. Regenerate it
+whenever the template changes: a link that does not match what is submitted is refused.
+
+Both runs below are against `connectapp.church/email`, with `dkim`, `rsendhost` and `sendhost`
+filled in. The apex run writes `resend._domainkey.example.com`, `rsend.example.com` and
+`send.example.com`. The host run writes the same three under `mail.example.com`.
+
+[Test connectapp.church/email example.com/mail](https://domainconnect.paulonet.eu/dc/free/templateedit?token=H4sIAHfezmoC%2F%2B1UwW7bOBD9FYJATrUVWZETx0APit0E2dbBpnGBAkFg0OTYZiuRKjmyowb59x3KtR1vnT3sLUBvImfmvZnHp3niCEWZCwTef%2BKls0utwF0r3ufSGgMSRVlGclE5ueCtbcKNKKiAD9YpWVlSzINbaglNLRRC57u7TXoDwzbBJTivreH9Tovndm6%2FuJySFoil7x8f%2F0Z%2FrOmq3e0kUWnmVK7AS6dLbCD4J0DPals5ts5mHoxaU7GZswXTFLcrw4RSDrxvMa%2FnBhTzlkJMe2YsMnRAUigmPJtZNwdXR6FR4bSY5jDcY1TfdRHqcAGsrKa5luw71OseArk2cyaktJVBNgcDrkEmWKqgMmWpNxM1qQvrkQnq1%2B1ODhpkXFlmSL7AI5BJ4VzdBDYUpcBFUxsup8QmwYemfW3k39X0I9TDhumVFw1pn0FpR4H%2FTKQE65Tn%2FfsnjnUZ3nP8dUyB0C4dSFTqKJqs5yIlwhMJFBQq3x8FsY7oBpHe%2BOQ0junzEck%2FM9INRwLlgoYZWRVwszznz60tzeAmG314QRR4ghetNujHlq6OtrrtcbyOcQDiMMLDc4v%2FtAYmu%2FEfaK6NUPAo6O%2BBSNpiB%2F7L3nNnq3KiNzWlcKLw4S%2FbVN%2FvlT9s6u%2FXAIGGRAvn0fXVbJTFV4O7H1d319OT4e2Hi%2Bz2S5alVzfZcHChbz9ezG%2BHf11e%2Fijw%2BlF6VXXFedpLA8hWmoDUHKLG2pErUEQGMCS9zDmYQjLQ72IdTMJvI7BypCq6Clq8qHLUE7ESuyslJ%2BSdvCbVPEUJ9d%2BmMeuN8Jtpol%2FibZ3z%2F2ffM9tEySC9Dstp2umq2flZ2oZk2munyXnc7p2qhI7Q7YpEnSnovdh1ry7DQwtv3wK0Z8CgFnlj6pWoPX8%2BYMqNGI0W%2BwIcfLA3N9mBwd7SXA8t%2BoH%2FOPiPg9%2Bug8OOF0tQExFSkzg5bXfidicdx51%2BmvaTkyg563TT%2BF0c9%2BM4zAEe14M%2B0e5%2FufV5z9y5wvVmvSWOvh6X4tNg1dVaV2Ruvfg8%2FJZcZivxbozf8uw9f%2F4HPrSPYWIKAAA%3D)
