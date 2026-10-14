@@ -102,7 +102,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-346 | A bulk action over a selection is one write, not one a row | R24.11, R1.13 | Resolved |
 | HRT-347 | The frame and the page read at the same time | R24.11 | Resolved |
 | HRT-348 | Fifteen screens read their independent rows together | R24.11 | New |
-| HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | New |
+| HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | Resolved |
 | HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | New |
 | HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | New |
 | HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | New |
@@ -1948,6 +1948,27 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-349, how to test it
+
+This is the authorization path, so it is tested by trying to get past it rather than by a stopwatch.
+
+Sign in as a member of one church. Their own screens open and hold their own rows. Then set the
+`church` cookie by hand to a church you do not belong to, and to a church that does not exist, and
+confirm both open the chooser saying `reason=denied` rather than opening anything. Those two must
+stay indistinguishable: that is what stops a URL being used to find out which churches are on the
+platform.
+
+Every screen used to pay five round trips before it read a single row. Two of them asked the
+database to find a church by its slug and then asked again whether this reader belonged to it, and
+`membershipsForUser` is `verifyMembership`'s own query without the tenant filter: the same table, the
+same joins, the same role and permission resolution, the same refusal of an archived church. So the
+row was already in hand and both trips were spent on an answer the first read contained. The host
+lookup and the Supabase Auth call are independent, a query against one database and an HTTPS call to
+another, and they went one after the other.
+
+`belongsTo` and `verifiedMembership`, which the public church pages use, answer out of the same
+cached list now rather than making two reads each of their own.
 
 ### HRT-347, how to test it
 
