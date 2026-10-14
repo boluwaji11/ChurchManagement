@@ -55,7 +55,9 @@ openssl rsa -in domain-connect.key -pubout -out domain-connect.pub
 ```
 
 Publish the public key as a TXT record at `_dck1.connectapp.church`, as one line with the header,
-footer and newlines removed. Keep the private key out of the repository: it goes in the deployment's
+footer and newlines removed. **Done, 13 October 2026.** It resolves, and the private half in
+`.env.local` signs a query that verifies against it. The same key goes in the production secrets at
+deploy. Keep the private key out of the repository: it goes in the deployment's
 own secrets as `DOMAIN_CONNECT_PRIVATE_KEY`, and the record's name goes in
 `DOMAIN_CONNECT_KEY_ID` (`_dck1`).
 
@@ -70,7 +72,18 @@ own secrets as `DOMAIN_CONNECT_PRIVATE_KEY`, and the record's name goes in
 2. Lint it: `dc-template-linter -tolerate warn connectapp.church.email.json`, which must exit 0.
    `-merge-or-fail` exiting 0 means it qualifies for the fast track.
 3. Open a pull request against `Domain-Connect/Templates` using their own pull request template
-   unaltered, with the test-results link in the field they ask for.
+   unaltered, with the test-results links in the field they ask for. **Done, 13 October 2026:**
+   [Domain-Connect/Templates#2318](https://github.com/Domain-Connect/Templates/pull/2318), every
+   check green and labelled `automerge-possible`.
+
+   Two things cost a round each, worth knowing if the template is ever resubmitted. The repository
+   wants **two** links, one with a host and one without, and it refuses a token it cannot decode
+   with plain gzip: one of ours was truncated in copying and the only sign was a one-line warning in
+   the workflow log. Decode a token before pasting it:
+
+   ```
+   python3 -c "import base64,gzip,urllib.parse,sys;gzip.decompress(base64.b64decode(urllib.parse.unquote(sys.argv[1])));print('ok')" '<token>'
+   ```
 
 What to send me when it is through: nothing. The screen reads each church's domain and offers the
 press wherever that company holds the template.
