@@ -111,9 +111,6 @@ select:-webkit-autofill {
   /* R24.4. The word that changes carries the brand colour, so the thing the
      sentence turns on is the thing the eye lands on. */
   color: var(--primary);
-  text-decoration: underline;
-  text-decoration-thickness: 0.07em;
-  text-underline-offset: 0.12em;
 }
 
 .site-hero-typewriter__cursor {
