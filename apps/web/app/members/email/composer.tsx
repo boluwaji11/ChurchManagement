@@ -134,7 +134,9 @@ export function Composer({
   /* R24.6. Writing one and reading what went are two jobs, so they are two
      tabs rather than one screen a church scrolls through. */
   const [doing, setDoing] = React.useState<"write" | "sent" | "out">("write");
-  const [who, setWho] = React.useState(preset.length > 0 ? PEOPLE : EVERYONE);
+  /* R16.4. Choosing people is where a composer opens. Everyone is a press
+     away and cannot be taken back, so it is never where somebody starts. */
+  const [who, setWho] = React.useState(PEOPLE);
   /* R16.4. The people picked one by one, when that is how they were picked. */
   const [picked, setPicked] = React.useState<Chosen[]>(preset);
   const [typed, setTyped] = React.useState("");

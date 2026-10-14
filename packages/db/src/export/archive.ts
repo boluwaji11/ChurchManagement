@@ -121,6 +121,11 @@ const TABLES = [
   "church_sending_domains",
   "church_registrations",
   "contact_consent",
+  /* R16.4, R16.6. What the church wrote, what it sent, and who each copy
+     went to. A church that leaves takes its own correspondence with it. */
+  "email_templates",
+  "email_sends",
+  "email_recipients",
   "platform_events",
   "audit_entries",
 ] as const;
