@@ -14,6 +14,7 @@ import { t, plural } from "@connectapp/i18n";
 import { RichText } from "@/components/rich-text";
 import { DynamicFields } from "@/components/dynamic-fields";
 import { when } from "@/lib/when";
+import { dateAndTime } from "@/lib/dates";
 import { DATE_LABELS } from "@/lib/date-labels";
 import { readingLocale } from "@/lib/reading-locale";
 import {
@@ -66,7 +67,7 @@ const PER = 10;
  */
 function tally(one: Sent): string {
   if (one.state === "queued" && one.sendAt && new Date(one.sendAt) > new Date()) {
-    return t("send.scheduled", { when: when(one.sendAt) });
+    return t("send.scheduled", { when: dateAndTime(one.sendAt) });
   }
   if (one.state === "queued" || one.state === "sending") {
     return plural("send.inflight", one.done, { total: one.total });
@@ -582,16 +583,28 @@ export function Composer({
           >
             <div className="flex flex-col gap-5">
               <div className="flex flex-wrap items-baseline gap-x-3 text-fg-muted">
-                <span>
-                  {reading.failed
-                    ? t("send.sentSome", { delivered: reading.delivered, failed: reading.failed })
-                    : plural("send.sent", reading.delivered)}
-                </span>
-                {reading.sentAt ? (
-                  <span className="text-caption text-fg-subtle">
-                    {t("send.read.when", { when: when(reading.sentAt) })}
-                  </span>
-                ) : null}
+                {/* R16.6. One still waiting for its hour says when, not how
+                    many it reached: it has reached nobody yet. */}
+                {reading.state === "queued" && reading.sendAt
+                 && new Date(reading.sendAt) > new Date() ? (
+                  <span>{t("send.scheduled", { when: dateAndTime(reading.sendAt) })}</span>
+                ) : (
+                  <>
+                    <span>
+                      {reading.failed
+                        ? t("send.sentSome", {
+                            delivered: reading.delivered,
+                            failed: reading.failed,
+                          })
+                        : plural("send.sent", reading.delivered)}
+                    </span>
+                    {reading.sentAt ? (
+                      <span className="text-caption text-fg-subtle">
+                        {t("send.read.when", { when: when(reading.sentAt) })}
+                      </span>
+                    ) : null}
+                  </>
+                )}
               </div>
 
               <div

@@ -96,6 +96,7 @@ export async function openSend(id: string) {
   return {
     ...held,
     sentAt: held.sentAt ? held.sentAt.toISOString() : null,
+    sendAt: held.sendAt ? held.sendAt.toISOString() : null,
     html: markdownToHtml(held.body),
   };
 }

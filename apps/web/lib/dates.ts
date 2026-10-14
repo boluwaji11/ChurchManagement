@@ -55,3 +55,23 @@ export const readableTime = (hhmm: string): string => {
     .toLocaleTimeString(readingLocale(), { hour: "numeric", minute: "2-digit", hour12: true })
     .toLowerCase();
 };
+
+/**
+ * "8 Nov 2026 at 7:30pm", from an instant.
+ *
+ * R16.6. For something set to happen rather than something that happened. A
+ * relative time answers "when was that" and says nothing at all about a thing
+ * still to come: "Scheduled for just now" is a sentence about nothing.
+ */
+export const dateAndTime = (iso: string): string => {
+  const at = new Date(iso);
+  const day = at.toLocaleDateString(readingLocale(), {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const hour = at
+    .toLocaleTimeString(readingLocale(), { hour: "numeric", minute: "2-digit", hour12: true })
+    .toLowerCase();
+  return `${day}, ${hour}`;
+};
