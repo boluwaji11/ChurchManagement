@@ -35,6 +35,14 @@ export interface Sent {
   sendAt: string | null;
 }
 
+/** HRT-291. A message this church wrote once and sends again. */
+export interface Template {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+}
+
 /** R16.8. Somebody who has asked this church to stop. */
 export interface Out {
   id: string;
@@ -101,6 +109,7 @@ export function Composer({
   lists,
   groups,
   preset,
+  templates,
   sent,
   sends,
   out,
@@ -111,6 +120,8 @@ export function Composer({
   groups: Named[];
   /** HRT-341. People ticked in the directory, which this screen opens with. */
   preset: Chosen[];
+  /** HRT-291. What this church has written once and sends again. */
+  templates: Template[];
   sent: Sent[];
   /** R16.6. How many sends there are in all, which the pager needs. */
   sends: number;
@@ -142,6 +153,9 @@ export function Composer({
   /* R16.6. The one being read back, which is a send rather than a draft. */
   const [reading, setReading] = React.useState<Awaited<ReturnType<typeof openSend>>>(null);
   /* R16.6. A send that waits for its hour. Off until somebody asks for it. */
+  /* HRT-291. Which written-once message this is starting from, and the ask
+     before it replaces anything already typed. */
+  const [starting, setStarting] = React.useState<Template | null>(null);
   const [later, setLater] = React.useState(false);
   const [day, setDay] = React.useState("");
   const [hour, setHour] = React.useState("09:00");
@@ -413,6 +427,29 @@ export function Composer({
           {withdrawn > 0 ? ` · ${plural("send.withdrawn", withdrawn)}` : ""}
         </p>
 
+        {templates.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-caption text-fg-subtle">{t("mailTemplate.start")}</span>
+            {templates.map((one) => (
+              <button
+                key={one.id}
+                type="button"
+                onClick={() => {
+                  if (subject.trim() || body.trim()) {
+                    setStarting(one);
+                    return;
+                  }
+                  setSubject(one.subject);
+                  setBody(one.body);
+                }}
+                className="flex min-h-8 cursor-pointer items-center rounded-full border border-line-strong bg-surface px-3 text-[13px] text-fg hover:bg-sunken"
+              >
+                {one.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         <Field label={t("send.subject")} required>
           <Input
             value={subject}
@@ -585,6 +622,31 @@ export function Composer({
           </SheetContent>
         ) : null}
       </Sheet>
+
+      {/* HRT-291. Starting from a template over something already written is
+          the one press here that loses work, so it asks. */}
+      <Dialog open={starting !== null} onOpenChange={(next) => !next && setStarting(null)}>
+        <DialogContent alert title={t("mailTemplate.replace")}>
+          <p className="m-0 text-fg-muted">{t("mailTemplate.replaceBody")}</p>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setStarting(null)}>
+              {t("action.cancel")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                if (starting) {
+                  setSubject(starting.subject);
+                  setBody(starting.body);
+                }
+                setStarting(null);
+              }}
+            >
+              {t("mailTemplate.start")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* R16.6. A send cannot be taken back, so it is confirmed, and the thing
           worth confirming is how many people it reaches. */}

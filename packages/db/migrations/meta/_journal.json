@@ -1100,6 +1100,13 @@
       "when": 1791423000070,
       "tag": "0157_access_token",
       "breakpoints": true
+    },
+    {
+      "idx": 158,
+      "version": "7",
+      "when": 1791423000080,
+      "tag": "0158_email_templates",
+      "breakpoints": true
     }
   ]
 }

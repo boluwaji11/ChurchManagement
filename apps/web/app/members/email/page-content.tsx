@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   withTenant, emailProvider, sendingDomain, listSavedLists, listGroups,
   listSends, countSends, countWithdrawn, listWithdrawn, countAllWithdrawn,
-  emailRecipientsFor, canManageChurch,
+  emailRecipientsFor, listEmailTemplates, canManageChurch,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
@@ -70,6 +70,7 @@ export async function EmailPanelPage({
     chosen: ids.length
       ? await emailRecipientsFor(tx, { audience: "people", memberIds: ids })
       : [],
+    templates: await listEmailTemplates(tx),
     out: await listWithdrawn(tx, { limit: PAGE }),
     outs: await countAllWithdrawn(tx),
   }));
@@ -118,6 +119,12 @@ export async function EmailPanelPage({
             withdrawnAt: one.withdrawnAt?.toISOString() ?? null,
           }))}
           sends={read.sends}
+          templates={read.templates.map((one) => ({
+            id: one.id,
+            name: one.name,
+            subject: one.subject,
+            body: one.body,
+          }))}
           outs={read.outs}
           withdrawn={read.withdrawn}
         />

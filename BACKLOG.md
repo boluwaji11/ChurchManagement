@@ -1083,7 +1083,7 @@ old state until each is picked up.
 | HRT-289 | Getting the three settings in: the right page, the right words, and one press where it is offered | R16.1, R22.2 | Resolved. The template is merged and the daily check watches for a company to load it |
 | HRT-290 | A church sends one message to itself, through whatever it connected | R16.1, R21.15 | Resolved |
 | HRT-139 | The composer: write one message and send it to everyone, a list or a group | R16.4, R16.6 | Resolved |
-| HRT-291 | Email templates a church writes once, kept in settings beside the service templates | R16.4 | New |
+| HRT-291 | Email templates a church writes once, kept in settings beside the service templates | R16.4 | Resolved |
 | HRT-341 | Send email from the selection: the directory's button opens the composer with those people in it | R16.4, R2.14 | Closed |
 | HRT-140 | Targeting a send | R16.5 | **Removed, deferred** |
 | HRT-141 | The send queue, the progress on screen, and a send that waits for its hour | R16.6 | Resolved |
@@ -1909,10 +1909,22 @@ appears under Unsubscribed afterwards and comes off every later send.
 
 ### HRT-291, how to test it
 
-Not built. A church writes a message it sends every year, such as the carol service invitation or
-the giving statement cover, once rather than every time. They belong in settings beside the service
-templates, which is where a church already looks for a thing it set up once, and the composer picks
-one up as a starting point rather than as a link it cannot edit.
+As Owner or Admin, open Settings, Church, Email templates. Add one: give it a name, a subject and a
+message, using the same editor the composer has, marks and all. Save is dark until all three are
+filled and something has been typed, and the panel comes in from the right like every other record.
+
+Open it again and confirm the same three fields are there with what you wrote. Change the wording
+and save.
+
+Open the directory, More, Email members. The templates are offered as a row above the subject.
+Press one on an empty form and the subject and message fill in. Press one over something already
+written and it asks first, because that press is the only one on the screen that loses work.
+
+Edit the message after starting from a template and confirm the template itself is unchanged: the
+composer takes a copy, so this year's wording is not next year's.
+
+Archive a template and confirm it comes off the row in the composer and sits behind the one link
+under the list, which is also the way to bring it back.
 
 ### HRT-341, how to test it
 

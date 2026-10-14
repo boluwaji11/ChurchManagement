@@ -114,6 +114,7 @@ export * from "./repo/funds";
 export * from "./repo/giving";
 export * from "./repo/email-sends";
 export * from "./repo/email-queue";
+export * from "./repo/email-templates";
 export * from "./repo/providers";
 export * from "./repo/stripe-accounts";
 export * from "./repo/public-giving";
