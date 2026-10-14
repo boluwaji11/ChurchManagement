@@ -111,6 +111,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | New |
 | HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | New |
 | HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | New |
+| HRT-358 | A screen somebody just looked at is still in hand when they come back | R24.11, R24.12 | Resolved |
+| HRT-359 | Every area's links are always in the navigation, so the browser can fetch them before they are pressed | R24.11, R24.12 | New |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
 | HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Closed |
 | HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Closed |
@@ -1948,6 +1950,47 @@ composer takes a copy, so this year's wording is not next year's.
 
 Archive a template and confirm it comes off the row in the composer and sits behind the one link
 under the list, which is also the way to bring it back.
+
+### HRT-358, how to test it
+
+Sign in, then click between two tabs in the same part of the navigation, say Members and Groups, and
+back again. The second time you land on a screen it should appear at once rather than being fetched
+again.
+
+Measured as a real member, clicking the navigation, the same harness before and after:
+
+| | first visit | coming back |
+|---|---|---|
+| before | 1,148ms | 837ms, 870ms, 936ms, 1,345ms |
+| after | 2,064ms | 54ms, 66ms, 84ms, 86ms |
+
+Next 15 changed the dynamic client cache from 30 seconds to 0, so every page segment was thrown away
+the moment it was navigated away from. Every screen here is per-church and therefore dynamic, so
+moving between two tabs and back paid a full server render each way. The old numbers show it exactly:
+coming back to a screen cost the same as arriving at it the first time, which is the shape of a cache
+that is not there.
+
+What to watch rather than what to test: a change somebody else makes can now be up to thirty seconds
+behind on a screen this reader has already opened. A write of their own is not affected, because the
+action's revalidate clears it. The case to think about is a role or a permission changing, and the
+answer is that the server still decides every read: a stale screen cannot show a row the next request
+would refuse, it can only be out of date.
+
+### HRT-359, how to test it
+
+Open any screen and look at the sidebar. Only the group you are in is expanded, so only its handful of
+links exist in the page at all. Next prefetches what is in the viewport as a link, so the areas a
+church is not currently in cannot be fetched before they are pressed, however cheap they would be.
+
+Two things have to be true for a dynamic route to be prefetched at all, and neither is today. Its
+link has to be on the screen, which the accordion prevents, and the route has to have something
+prefetchable: the Next documentation for `Link` says that for a dynamic route the prefetch covers
+"the partial route down to the nearest segment with a `loading.js` boundary", and this product has one
+`loading.tsx` in it. So nothing is prefetched anywhere, and every first visit starts from nothing.
+
+This is the other half of HRT-358 and it is what the sidecar in docs/redesign already proposes: the
+four areas become a rail whose links are always present. HRT-353's boundary work is what gives each
+route something to prefetch.
 
 ### HRT-353, how to test it
 
