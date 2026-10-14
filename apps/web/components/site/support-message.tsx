@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { MessageSquare, X } from "lucide-react";
+import { CheckCircle2, MessageSquare, X } from "lucide-react";
 import { Button, Field, IconButton, Input, Textarea, Working } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { email as validateEmail } from "@/lib/validate";
@@ -13,6 +13,9 @@ import { email as validateEmail } from "@/lib/validate";
  */
 const TIGHT = "gap-1 [&>div:first-child]:min-h-0";
 
+/** R22.1. How long before another message may be written, in seconds. */
+const QUIET = 60;
+
 export function SupportMessage() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -21,6 +24,16 @@ export function SupportMessage() {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState<{ kind: "success" | "error"; text: string }>();
+  /*
+   * R22.1. What the panel holds once a message has gone.
+   *
+   * The form comes off and the confirmation takes its place, because a form
+   * sitting there with the words still in it reads as a message that did not
+   * send. `wait` is the seconds left before another may be written, which is
+   * what keeps a bored script from sending a hundred.
+   */
+  const [sent, setSent] = useState(false);
+  const [wait, setWait] = useState(0);
   const launcher = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLElement>(null);
   const emailInput = useRef<HTMLInputElement>(null);
@@ -33,8 +46,15 @@ export function SupportMessage() {
   const canSend = Boolean(email.trim() && !emailError && message.trim() && message.length <= 5000);
 
   useEffect(() => {
-    if (open) emailInput.current?.focus();
-  }, [open]);
+    if (open && !sent) emailInput.current?.focus();
+  }, [open, sent]);
+
+  /* The clock only runs while there is something to count down. */
+  useEffect(() => {
+    if (wait <= 0) return;
+    const tick = setTimeout(() => setWait((left) => left - 1), 1000);
+    return () => clearTimeout(tick);
+  }, [wait]);
 
   useEffect(() => {
     if (!open) return;
@@ -77,7 +97,9 @@ export function SupportMessage() {
         }),
       });
       if (response.ok) {
-        setFeedback({ kind: "success", text: t("site.support.sent") });
+        setFeedback(undefined);
+        setSent(true);
+        setWait(QUIET);
         setName("");
         setChurchName("");
         setEmail("");
@@ -118,6 +140,30 @@ export function SupportMessage() {
           </header>
           {/* R24.6. Tight, because the whole form has to stand in a panel over the
               page without the send button falling off the bottom of it. */}
+          {sent ? (
+            <div className="flex flex-col gap-4 py-2">
+              <div className="flex flex-col gap-1.5">
+                <p className="m-0 flex items-center gap-2 font-medium text-fg">
+                  <CheckCircle2 className="size-5 text-success-text" aria-hidden />
+                  {t("site.support.sent")}
+                </p>
+                <p className="m-0 text-fg-muted">{t("site.support.sent.body")}</p>
+              </div>
+
+              <Button
+                type="button"
+                full
+                variant="secondary"
+                disabled={wait > 0}
+                onClick={() => {
+                  setSent(false);
+                  setFeedback(undefined);
+                }}
+              >
+                {wait > 0 ? t("site.support.again.wait", { seconds: wait }) : t("site.support.again")}
+              </Button>
+            </div>
+          ) : (
           <form noValidate onSubmit={sendMessage} className="flex flex-col gap-2">
             <Field label={t("site.support.name")} className={TIGHT}>
               <Input
@@ -183,6 +229,7 @@ export function SupportMessage() {
               <MessageSquare /> {t("site.support.send")}
             </Button>
           </form>
+          )}
         </section>
       ) : null}
       <IconButton

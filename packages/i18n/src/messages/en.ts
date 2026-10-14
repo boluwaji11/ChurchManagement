@@ -211,6 +211,9 @@ export const en = {
   "site.support.send": "Send message",
   "site.support.sending": "Sending message...",
   "site.support.sent": "Your message has been sent.",
+  "site.support.sent.body": "We answer from support@connectapp.church, usually within a day.",
+  "site.support.again": "Send another message",
+  "site.support.again.wait": "Send another message in {seconds}s",
   "site.support.failure": "Your message could not be sent. Try again or use the support email in the footer.",
   "site.support.rateLimit": "Please wait before sending another message.",
 
