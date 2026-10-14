@@ -118,7 +118,7 @@ export const en = {
   "site.purpose.title": "Less admin. More discipleship.",
   "site.purpose.body": "ConnectApp takes care of the running of your church, so you can focus on Kingdom work: making disciples.",
   "site.why.eyebrow": "Why we built this",
-  "site.why.title": "Stewards should be stewarding.",
+  "site.why.title": "The Church deserves better tools.",
   "site.why.hours": "Church administration takes roughly one full working day each week, from managing membership records and attendance to coordinating groups, scheduling volunteers, and organizing children's check-in.",
   "site.why.money": "The software to manage these tasks typically costs {cost} a year, while free alternatives often require significant technical support to set up and maintain.",
   "site.why.cost": "$600 to $1,800",
