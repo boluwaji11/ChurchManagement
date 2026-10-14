@@ -111,6 +111,22 @@ export async function personForUser(db: Tx, userId: string): Promise<string | nu
   return row?.id ?? null;
 }
 
+/**
+ * R2.9, R24.11. Just this person's photo key, for the frame around a screen.
+ *
+ * The frame wanted one field and was reading the whole person to get it, which
+ * is a row with their custom fields and their tags gathered along with it, on
+ * every navigation. One column is what it needs.
+ */
+export async function photoKeyFor(db: Tx, memberId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ photoKey: members.photoKey })
+    .from(members)
+    .where(eq(members.id, memberId))
+    .limit(1);
+  return row?.photoKey ?? null;
+}
+
 /** R9.3. Ties an account to the person record it belongs to. */
 export async function linkPersonToUser(
   db: Tx,

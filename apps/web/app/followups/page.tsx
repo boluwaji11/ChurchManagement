@@ -1,9 +1,9 @@
 import {
-  withTenant, getChurch, listPipelines, boardEntries, CONNECTED_DAYS, canFollowUp,
+  withTenant, listPipelines, boardEntries, CONNECTED_DAYS, canFollowUp,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { AppShell } from "@/components/app-shell";
-import { requireScreen } from "@/lib/shell-data";
+import { requireScreen, shellData } from "@/lib/shell-data";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
 import { Board, DragHint, type BoardCard, type BoardStage } from "./board";
@@ -49,6 +49,10 @@ export default async function FollowUpsPage({
     );
   }
 
+  /* The frame has already read the church, and this board's clock comes out of
+     it. Reading it again was a trip for a timezone, after the board's rows. */
+  const profile = (await shellData(session)).church;
+
   const { pipelines, entries, today } = await withTenant(
     { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
     async (tx) => {
@@ -57,6 +61,7 @@ export default async function FollowUpsPage({
       // saved before the board read a name goes on working.
       const chosen = all.find((p) => p.key === params.pipeline || p.id === params.pipeline)
         ?? all[0];
+
       return {
         pipelines: all,
         entries: chosen
@@ -66,7 +71,7 @@ export default async function FollowUpsPage({
               new Date(Date.now() - CONNECTED_DAYS * 24 * 60 * 60 * 1000),
             )
           : [],
-        today: churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date,
+        today: churchNow(profile?.timezone ?? "America/Chicago").date,
       };
     },
   );

@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import {
   withTenant, countUnread, listNotifications, getChurch, setupProgress,
-  churchStanding, personForUser, getPerson, canManageChurch, canEditPeople,
+  churchStanding, personForUser, photoKeyFor, canManageChurch, canEditPeople,
   demoChurchInfo, unreadFor,
   type Notification, type ChurchProfile, type SetupProgress, type ChurchStanding,
 } from "@connectapp/db";
@@ -35,7 +35,50 @@ export interface ShellData {
  * Cached for the request, because the page inside the frame asks for some of the
  * same answers. The key is the session object, of which a request has one.
  */
+/**
+ * R24.11. How long the frame's answers stand before they are read again.
+ *
+ * Measured at about 500ms to build, and it was built again on every single
+ * navigation, which made it the largest cost in the product: a navigation that
+ * stays inside one layout costs 65ms, and one that rebuilds the frame costs
+ * about 690ms. Until the frame is a layout everywhere (HRT-360) this is what
+ * stops a church paying for it on every press.
+ *
+ * Twenty seconds, because what it holds is a bell count, a notification list,
+ * the church's mark, the setup path and whether the church is approved yet.
+ * None of those is wrong at nineteen seconds old, and the bell already polls.
+ */
+const HOLD_FOR = 20 * 1000;
+const HELD = new Map<string, { data: ShellData; until: number }>();
+
+/**
+ * What makes two requests the same reader for this purpose.
+ *
+ * The role and the permissions are in the key, not just the ids. A church that
+ * changes somebody's role changes this string, so the next read misses and the
+ * frame is rebuilt: a permission can never be served out of a hold. The setup
+ * path and the bell both depend on what the reader may do, so they have to be
+ * keyed on it anyway.
+ */
+const holdKey = (session: Session): string =>
+  [
+    session.userId,
+    session.tenantId,
+    session.role,
+    [...(session.permissions ?? [])].sort().join(","),
+  ].join("|");
+
+/** Rebuilds the frame on the next read, for a reader whose own change needs it. */
+export function forgetShell(session: Session): void {
+  HELD.delete(holdKey(session));
+}
+
 export const shellData = cache(async (session: Session): Promise<ShellData> => {
+  const key = holdKey(session);
+  const now = Date.now();
+  const held = HELD.get(key);
+  if (held && held.until > now) return held.data;
+
   const ctx = {
     tenantId: session.tenantId,
     role: session.role,
@@ -64,28 +107,44 @@ export const shellData = cache(async (session: Session): Promise<ShellData> => {
         personForUser(tx, session.userId),
       ]);
 
-      const me = self
-        ? await getPerson(tx, self, { role: session.role, userId: session.userId })
-        : null;
-
-      /* R16.9. Counted here so the mark in the corner is right the moment the
-         page appears rather than a second afterwards. */
-      const waiting = await unreadFor(tx, {
-        tenantId: session.tenantId,
-        userId: session.userId,
-        memberId: self,
-        office: canEditPeople(session),
-      });
+      /*
+       * Two more reads, which want the person's id and nothing from each
+       * other, so they go together rather than one behind the other.
+       *
+       * R16.9 counts the waiting conversations here so the mark in the corner
+       * is right the moment the page appears rather than a second afterwards.
+       * The face used to be read through getPerson, which gathers a person's
+       * custom fields and tags along with them, for the one column the frame
+       * puts in the corner.
+       */
+      const [photoKey, waiting] = await Promise.all([
+        self ? photoKeyFor(tx, self) : null,
+        unreadFor(tx, {
+          tenantId: session.tenantId,
+          userId: session.userId,
+          memberId: self,
+          office: canEditPeople(session),
+        }),
+      ]);
 
       return {
-        unread, waiting, notifications, church, setup, standing,
-        photoKey: me?.photoKey ?? null,
+        unread, waiting, notifications, church, setup, standing, photoKey,
       };
     }),
     demoChurchInfo(session.tenantId),
   ]);
 
-  return { ...inTenant, demo };
+  const data = { ...inTenant, demo };
+  HELD.set(key, { data, until: Date.now() + HOLD_FOR });
+
+  /* The map is per server instance and a church has one frame in it, so it
+     cannot grow without bound in normal use. This is the guard against a very
+     large instance holding every reader of every church at once. */
+  if (HELD.size > 500) {
+    for (const [k, v] of HELD) if (v.until <= now) HELD.delete(k);
+  }
+
+  return data;
 });
 
 /**
