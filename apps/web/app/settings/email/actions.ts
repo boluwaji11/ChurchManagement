@@ -173,12 +173,16 @@ export async function disconnectEmail(): Promise<EmailResult> {
  * down before the message is sent. A send that fails costs a message; a token
  * lost after a crash costs the church its connection.
  */
-export async function sendTest(): Promise<EmailResult> {
+export async function sendTest(data: FormData): Promise<EmailResult> {
   const { actor, ctx } = await context();
   const session = await requireSession();
 
-  const to = session.email;
+  /* Typed rather than assumed. The address on the account is often a
+     volunteer's work address, and the one they want to see this arrive at is
+     the church's own. */
+  const to = field(data, "to").toLowerCase();
   if (!to) return { error: t("email.test.noAddress") };
+  if (!SHAPE.test(to)) return { error: t("email.error.fromShape") };
 
   try {
     const held = await withTenant(ctx, (tx) => emailCredentialForSend(tx, actor));
