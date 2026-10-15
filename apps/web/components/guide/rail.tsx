@@ -132,7 +132,13 @@ export function Rail({
     <GuideBody
       steps={steps}
       phase={showing}
-      pinned={opened !== null}
+      /*
+       * Held open, rather than given up the moment it is settled: a phase
+       * somebody chose, and the phase holding the screen they are standing
+       * on. Walking onto a finished step should show that step, not jump the
+       * column to the next phase.
+       */
+      pinned={opened !== null || onScreen !== null}
       here={here}
       busy={pending}
       onSkip={onSkip}
