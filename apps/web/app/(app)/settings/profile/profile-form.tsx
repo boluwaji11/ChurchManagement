@@ -278,6 +278,7 @@ export function ProfileForm({
           <IconButton
             label={t("settings.profile.edit")}
             variant="ghost"
+            data-guide="your-details"
             onClick={() => setEditing(true)}
           >
             <Pencil />

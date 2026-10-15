@@ -14,8 +14,8 @@ import { when } from "@/lib/when";
 import { shortDate } from "@/lib/dates";
 import { navFor } from "./shell/nav";
 import { SIDEBAR_COOKIE } from "./shell/sidebar-cookie";
-import { SetupDock } from "./setup-dock";
-import { SETUP_LINKS } from "@/lib/setup-links";
+import { Rail } from "./guide/rail";
+import { GUIDE_COOKIE } from "./guide/guide-cookie";
 import { ChurchMarkProvider } from "./church-mark";
 import { readsAs } from "@/lib/spelling";
 import { SpellingProvider } from "./spelling-provider";
@@ -70,7 +70,8 @@ export async function AppShell({
   session: Session;
   children: React.ReactNode;
 }) {
-  const collapsed = (await cookies()).get(SIDEBAR_COOKIE)?.value === "1";
+  const jar = await cookies();
+  const collapsed = jar.get(SIDEBAR_COOKIE)?.value === "1";
 
   // R24.6. The bell, the church's mark, the setup path and the reader's face.
   const counts = await shellData(session);
@@ -92,6 +93,15 @@ export async function AppShell({
    */
   const logoKey = counts.church?.logoKey ?? null;
   const signed = await photoUrls([logoKey, counts.photoKey]);
+
+  /*
+   * R22.1. The guide, where this reader runs the church and the church has not
+   * put it away. Read in the frame rather than on a screen so it can follow
+   * somebody onto any of them, and its own width comes from a cookie so the
+   * server draws it the way it was left.
+   */
+  const guide = counts.setup && !counts.setup.dismissed ? counts.setup : null;
+  const railShut = jar.get(GUIDE_COOKIE)?.value === "1";
   const logoUrl = logoKey ? (signed[logoKey] ?? null) : null;
   const photoUrl = counts.photoKey ? (signed[counts.photoKey] ?? null) : null;
 
@@ -178,6 +188,23 @@ export async function AppShell({
         </main>
       </div>
 
+      {/* R22.1, R22.3. The setup guide, for as long as there is one to walk.
+          Its own column rather than a box over the corner: the corner is where
+          a panel's footer lands, and a church pressing Filter met the guide
+          sitting on top of it. Gone for good once the church puts it away, and
+          Settings brings it back. */}
+      {guide ? (
+        <Rail
+          church={session.tenantName}
+          steps={guide.steps}
+          settled={guide.settled}
+          left={guide.left}
+          phase={guide.phase}
+          complete={guide.complete}
+          shut={railShut}
+        />
+      ) : null}
+
       {/* R16.9. Messages in the corner, the same place a member finds them,
           so the product has one answer to where writing to somebody lives. */}
       <InboxMark
@@ -187,28 +214,11 @@ export async function AppShell({
         full={"/messages"}
         unread={counts.waiting}
         place="float"
-        clear={
-          counts.setup && !counts.setup.complete && !counts.setup.dismissed
-            ? "dock"
-            : "tabs"
-        }
+        clear={guide ? (railShut ? "rail-shut" : "rail") : "tabs"}
       />
 
       <MobileTabs entries={entries} />
 
-      {/* R22.1. The setup path, following whoever is walking it. */}
-      {counts.setup && !counts.setup.complete && !counts.setup.dismissed ? (
-        <SetupDock
-          church={session.tenantSlug}
-          done={counts.setup.settled}
-          steps={counts.setup.steps.map((step) => ({
-            step: step.step,
-            done: step.done,
-            skipped: step.skipped,
-            href: SETUP_LINKS[step.step],
-          }))}
-        />
-      ) : null}
     </div>
   );
 }

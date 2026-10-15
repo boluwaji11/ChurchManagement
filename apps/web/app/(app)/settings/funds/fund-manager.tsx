@@ -238,7 +238,7 @@ function FundPanel({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        {trigger ?? <Button><Plus /> {t("fund.add")}</Button>}
+        {trigger ?? <Button data-guide="add-fund"><Plus /> {t("fund.add")}</Button>}
       </SheetTrigger>
 
       <SheetContent

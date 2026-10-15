@@ -106,7 +106,7 @@ export function StationManager({
           <StationDialog
             pending={pending}
             title={t("stations.add")}
-            trigger={<Button><Plus /> {t("stations.add")}</Button>}
+            trigger={<Button data-guide="add-station"><Plus /> {t("stations.add")}</Button>}
             onSave={(fields) => act(createStation, fields)}
           />
         </div>

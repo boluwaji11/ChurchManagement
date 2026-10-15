@@ -160,3 +160,46 @@ select:-webkit-autofill {
 .scroll-quiet::-webkit-scrollbar {
   display: none;
 }
+
+/*
+ * R22.1. The control the setup guide is pointing at.
+ *
+ * A volunteer who has never seen the product does not know that Pair a station
+ * is the thing in the corner, so the guide draws a ring round the control it
+ * means and an arrow at it. Nothing is dimmed and nothing is blocked: the ring
+ * is a hairline that breathes, and the control under it works throughout.
+ */
+[data-guide-ring] {
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 0 5px color-mix(in oklch, var(--primary) 18%, transparent);
+  animation: connectapp-guide-ring 2.4s var(--ease-in-out) infinite;
+}
+
+[data-guide-arrow] {
+  color: var(--primary);
+  rotate: var(--turn, 0deg);
+  animation: connectapp-guide-arrow 2.4s var(--ease-in-out) infinite;
+  filter: drop-shadow(0 1px 2px oklch(0.3 0.04 75 / 0.35));
+}
+
+@keyframes connectapp-guide-ring {
+  0%, 100% { box-shadow: 0 0 0 5px color-mix(in oklch, var(--primary) 18%, transparent); }
+  50% { box-shadow: 0 0 0 9px color-mix(in oklch, var(--primary) 6%, transparent); }
+}
+
+/*
+ * The arrow travels toward what it is naming, which is up the way it is drawn,
+ * and the whole mark is turned to whichever side it sits on.
+ */
+@keyframes connectapp-guide-arrow {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 5px; }
+}
+
+/* R24.x. Reduced motion means none of it, and the mark still reads. */
+@media (prefers-reduced-motion: reduce) {
+  [data-guide-ring],
+  [data-guide-arrow] {
+    animation: none;
+  }
+}
