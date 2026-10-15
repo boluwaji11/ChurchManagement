@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { CircleHelp, ListChecks, PanelRightClose, PanelRightOpen, X } from "lucide-react";
+import { CircleHelp, ListChecks, PanelRightClose, PanelRightOpen } from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogClose, DialogFooter,
   IconButton, Sheet, SheetContent, SheetTrigger, cn,
@@ -118,32 +118,27 @@ export function Rail({
   const pointAt =
     onScreen && step && !step.done && !step.skipped ? (onScreen.target ?? null) : null;
 
-  /* The confirm, and the two kinds of closing it offers. For this visit is the
-     common one; for good is the same decision as skipping the whole of setting
-     up, so it is said in those words rather than hidden behind an x. */
+  /* The one way the guide goes for good, offered only once there is nothing
+     left in it to lose. */
   const confirm = (
     <Dialog open={asking} onOpenChange={setAsking}>
-      <DialogContent title={t("setup.hide.title")}>
+      <DialogContent alert title={t("setup.putAway.title")}>
+        <p className="mb-5 text-[length:var(--d-text-body)] text-fg">
+          {t("setup.putAway.body")}
+        </p>
         <DialogFooter>
           <DialogClose asChild>
-            <Button
-              variant="ghost"
-              data-dismiss
-              onClick={() => {
-                setAsking(false);
-                run(() => showGuide(false));
-              }}
-            >
-              {t("setup.hide.ever")}
+            <Button variant="ghost" data-dismiss>
+              {t("setup.putAway.keep")}
             </Button>
           </DialogClose>
           <Button
             onClick={() => {
               setAsking(false);
-              close(true);
+              run(() => showGuide(false));
             }}
           >
-            {t("setup.hide.now")}
+            {t("setup.putAway")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -231,22 +226,27 @@ export function Rail({
                 {left === 0 ? t("setup.left.none") : plural("setup.left", left)}
               </span>
             </span>
+            {/* R22.1. One control, and it collapses. A guide that can be shut
+                for good while a church still has nine things to do is a guide
+                a church loses on its first morning, and there is no screen
+                left to ask for it back from. Putting it away for good belongs
+                to the panel that says there is nothing left. */}
             <span className="-mr-1.5 flex shrink-0 items-center">
               <IconButton label={t("setup.shut")} variant="ghost" onClick={() => close(true)}>
                 <PanelRightClose />
-              </IconButton>
-              <IconButton label={t("setup.hide")} variant="ghost" onClick={() => setAsking(true)}>
-                <X />
               </IconButton>
             </span>
           </div>
 
           {complete ? (
-            <div className="flex flex-col gap-1 rounded-[12px] bg-primary-soft p-4">
+            <div className="flex flex-col items-start gap-2 rounded-[12px] bg-primary-soft p-4">
               <span className="text-[14px] font-semibold text-fg">
                 {t("setup.done.title", { name: church })}
               </span>
               <span className="text-[13px] leading-5 text-fg-muted">{t("setup.done.body")}</span>
+              <Button variant="secondary" onClick={() => setAsking(true)}>
+                {t("setup.putAway")}
+              </Button>
             </div>
           ) : null}
 

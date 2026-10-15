@@ -31,8 +31,8 @@ const ARTICLES = [
   { key: "incidents", match: ["/incidents"] },
   { key: "groups", match: ["/groups"] },
   { key: "followups", match: ["/followups"] },
-  { key: "setup", match: ["/settings/guide"] },
   { key: "settings", match: ["/settings"] },
+  { key: "setup", match: [] },
 ] as const;
 
 const title = (key: string) => t(`help.${key}.title` as never);
