@@ -7,6 +7,13 @@ import { spanningSubdomains } from "@/lib/cookie-domain";
  * cannot write cookies and an expired token would otherwise log members out
  * mid-task. It authenticates only. Authorization, meaning which church a user
  * may reach and with what role, is decided in the data layer from the database.
+ *
+ * R24.11. `getClaims` rather than `getUser`. This project signs its tokens with
+ * ES256 and publishes the key, so the signature and the expiry are checked here
+ * with WebCrypto against a key set held for ten minutes, and nothing leaves the
+ * building. `getUser` asked the authentication server on every navigation, and
+ * the screen behind it asked a second time. The session is still refreshed when
+ * the token is near its end, which is the reason this runs at all.
  */
 export async function middleware(request: NextRequest) {
   /*
@@ -38,7 +45,7 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  await supabase.auth.getClaims();
   return response;
 }
 
@@ -50,6 +57,14 @@ export const config = {
    * carries its own proof in a sealed state and needs no session.
    */
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|design|api/providers/resend/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)",
+    /*
+     * R24.11. The machine routes are left out. The queue worker's tick and
+     * Stripe's webhook carry their own proof, a bearer secret and a signature,
+     * and hold no session to refresh: every one of them was paying for a round
+     * trip to the authentication server to be told there was nobody there.
+     */
+    /* One string, because Next reads this statically and cannot follow a
+       sum of them. */
+    "/((?!_next/static|_next/image|favicon.ico|design|api/providers/resend/callback|api/email/drain|api/stripe/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)",
   ],
 };

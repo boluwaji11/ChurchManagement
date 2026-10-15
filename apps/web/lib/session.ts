@@ -36,19 +36,51 @@ export interface Session {
 /**
  * The authenticated user, or null. Cached per request, so several components can
  * ask without several round trips.
+ *
+ * R24.11. Read from the token and checked here rather than asked of the
+ * authentication server. This project signs with ES256 and publishes the key,
+ * so `getClaims` verifies the signature and the expiry with WebCrypto against a
+ * key set the process holds for ten minutes. `getUser` was a round trip to
+ * Supabase on every navigation, and the middleware had already made the same
+ * one a moment earlier.
+ *
+ * What that costs: somebody signed out everywhere keeps a verified token until
+ * it expires, which is an hour. It buys them nothing here. Every screen decides
+ * what a reader may see from `tenant_members` on the request itself, so a
+ * person taken out of a church, or moved to another role, meets that decision
+ * on their next press whatever their token says.
  */
 export const currentUser = cache(async () => {
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return null;
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims) return null;
+
+  const claims = data.claims;
+  const meta = (claims.user_metadata ?? {}) as Record<string, unknown>;
+  const text = (key: string) =>
+    typeof meta[key] === "string" ? (meta[key] as string) : null;
+
   return {
-    id: data.user.id,
-    email: data.user.email ?? "",
-    fullName: (data.user.user_metadata?.["full_name"] as string | undefined) ?? null,
-    firstName: (data.user.user_metadata?.["first_name"] as string | undefined) ?? null,
-    lastName: (data.user.user_metadata?.["last_name"] as string | undefined) ?? null,
-    emailVerified: Boolean(data.user.email_confirmed_at),
+    id: claims.sub,
+    email: claims.email ?? "",
+    fullName: text("full_name"),
+    firstName: text("first_name"),
+    lastName: text("last_name"),
   };
+});
+
+/**
+ * R1.5. Whether this person has answered the email they signed up with.
+ *
+ * The one thing about a user that the token does not carry, so it is asked of
+ * the authentication server, and only on the three screens that need it: the
+ * ones that write a person into a church. A navigation never asks.
+ */
+export const emailIsVerified = cache(async (): Promise<boolean> => {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) return false;
+  return Boolean(data.user.email_confirmed_at);
 });
 
 /**

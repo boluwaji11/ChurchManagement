@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createChurch } from "@connectapp/db";
 import { explain } from "@/lib/explain";
-import { currentUser } from "@/lib/session";
+import { currentUser, emailIsVerified } from "@/lib/session";
 import { rememberChurch } from "@/lib/church-choice";
 
 export interface CreateResult {
@@ -43,7 +43,7 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
         fullName: user.fullName,
         firstName: user.firstName,
         lastName: user.lastName,
-        emailVerified: user.emailVerified,
+        emailVerified: await emailIsVerified(),
       },
     });
     slug = church.slug;

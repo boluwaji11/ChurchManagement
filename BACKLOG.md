@@ -104,7 +104,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-348 | Fifteen screens read their independent rows together | R24.11 | Resolved |
 | HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | Resolved |
 | HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | Resolved |
-| HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | New |
+| HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | Resolved |
 | HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | New |
 | HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | Resolved |
 | HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | New |
@@ -2108,6 +2108,43 @@ What made it possible everywhere: the frame is a layout now (HRT-360), so a `loa
 the screen rather than the product. Before that it would have taken the sidebar with it, which reads
 as blinking. The same boundary is what Next needs before it will prefetch a dynamic route, which is
 the other half of HRT-359.
+
+### HRT-351, how to test it
+
+Sign in, move around the product, sign out, and sign in again. Nothing looks different. Open a church
+somebody has been taken out of, or change your own role in another tab, and confirm the next press
+still refuses: who may read what is decided from `tenant_members` on the request, not from the token.
+
+Every navigation made two calls to Supabase's authentication server: the middleware asked who this
+was so it could refresh the session, and the screen behind it asked the same question again. Both
+were round trips out of the building, on a product whose own database answers in single figures.
+
+This project signs its tokens with ES256 and publishes the key, so the signature and the expiry are
+now checked here, with WebCrypto, against a key set the process holds for ten minutes. The session is
+still refreshed when a token is near its end, which is the only reason the middleware runs.
+
+Measured against a build, four runs a screen, signed in:
+
+| | before | after |
+|---|---|---|
+| time to first byte | 132ms, 141ms, 152ms, 157ms, 176ms, 199ms, 203ms | 57ms, 58ms, 60ms, 62ms, 66ms, 67ms, 70ms |
+| the directory, whole | 382ms, 392ms, 522ms | 292ms, 293ms, 300ms, 333ms |
+| the dashboard, whole | 795ms, 869ms | 664ms, 669ms, 676ms |
+
+**What it costs.** Somebody signed out everywhere keeps a token that verifies until it expires, which
+is an hour. It buys them nothing: every screen decides what a reader may see from the database on the
+request itself, so a person taken out of a church meets that on their next press. The one thing the
+token does not carry is whether an email has been answered, so the three screens that write a person
+into a church still ask the authentication server, and a navigation never does.
+
+The queue worker's tick and Stripe's webhook have come out of the middleware. They carry their own
+proof, a bearer secret and a signature, and each was paying for a round trip to be told there was
+nobody signed in.
+
+**Not a defect, found while measuring.** Signing in locally lands on `riverside.localhost` and then
+`riversides.localhost`, where the cookie set on `localhost` does not reach, so the form appears to do
+nothing. That is the local cookie scope again, it behaves the same way before this change, and the
+dev hostname stays as it is.
 
 ### HRT-350, how to test it
 

@@ -4,7 +4,7 @@ import { churchForSelfSignup } from "@connectapp/db";
 import { Banner, Button } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { SignOutButton } from "@/components/sign-out-button";
-import { currentUser, belongsTo, verifiedMembership } from "@/lib/session";
+import { currentUser, emailIsVerified, belongsTo, verifiedMembership } from "@/lib/session";
 import { navFor } from "@/components/shell/nav";
 import { AuthShell } from "../auth-shell";
 import { photoUrls } from "@/lib/photos";
@@ -54,7 +54,9 @@ export async function JoinScreen({
     );
   }
 
-  if (user?.emailVerified === false) redirect(`/sign-up?sent=${encodeURIComponent(user.email)}`);
+  if (user && !(await emailIsVerified())) {
+    redirect(`/sign-up?sent=${encodeURIComponent(user.email)}`);
+  }
 
   /*
    * R1.4, R17.1. Somebody who already belongs here is not at a door.

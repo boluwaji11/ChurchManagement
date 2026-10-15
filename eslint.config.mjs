@@ -20,6 +20,9 @@ export default tseslint.config(
   {
     ignores: [
       "**/.next/**",
+      /* A verification build writes here, so `next build` does not disturb a
+         dev server. It is the same generated code under another name. */
+      "**/.next-*/**",
       "**/dist/**",
       "**/out/**",
       "**/node_modules/**",
