@@ -1,4 +1,5 @@
 import "server-only";
+import { FETCH_BUDGET_MS } from "./budget";
 
 /**
  * R18.10. The church's logo, carried into a deck as bytes.
@@ -10,7 +11,7 @@ import "server-only";
 export async function logoData(url: string | null): Promise<string | null> {
   if (!url) return null;
   try {
-    const answer = await fetch(url);
+    const answer = await fetch(url, { signal: AbortSignal.timeout(FETCH_BUDGET_MS) });
     if (!answer.ok) return null;
     const type = answer.headers.get("content-type") ?? "image/png";
     const bytes = Buffer.from(await answer.arrayBuffer());

@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { spanningSubdomains } from "@/lib/cookie-domain";
+import { AUTH_BUDGET_MS, budgetedFetch } from "@/lib/budget";
 
 /**
  * Refreshes the Supabase session on every request, because a Server Component
@@ -32,6 +33,8 @@ export async function middleware(request: NextRequest) {
     process.env["NEXT_PUBLIC_SUPABASE_URL"]!,
     process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]!,
     {
+      /* R21.5. A refresh that cannot answer in ten seconds is not going to. */
+      global: { fetch: budgetedFetch(AUTH_BUDGET_MS) },
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (list) => {
