@@ -2894,9 +2894,9 @@ export const en = {
   "setup.at.members": "Drop a file here, or press Choose file. We show you what would change and wait for your go-ahead. To add somebody by hand instead, close this and press Add a member.",
 
   "setup.step.services": "Your first service",
-  "setup.what.services": "The gathering you meet for, on the day and at the time you meet.",
-  "setup.why.services": "Attendance, check-in and the rota all hang off a service. A volunteer is rostered to one, and a child is checked into one.",
-  "setup.at.services": "Press Create a service. Give it a name, the date and the time, and say whether it repeats.",
+  "setup.what.services": "Add your church services and set the day and time each one takes place.",
+  "setup.why.services": "Use these services to track attendance, check in children, and schedule volunteers.",
+  "setup.at.services": "Click Create a service, then enter its name, date, and time. Choose whether it repeats.",
 
   "setup.step.team": "Who else gets in",
   "setup.what.team": "Accounts for the other people who run the church, each with a role deciding what they can see.",
