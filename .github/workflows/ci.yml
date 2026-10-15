@@ -36,6 +36,14 @@ jobs:
           pnpm --filter @connectapp/ui run tokens
           git diff --exit-code packages/ui/src/tokens.css
 
+      # The browser gets the words its own screens name (R20.1). The file is
+      # generated and committed, so a screen whose words changed without it
+      # being rebuilt would ship a key where a sentence should be.
+      - name: The browser's catalogue is up to date
+        run: |
+          pnpm catalogue
+          git diff --exit-code packages/i18n/src/messages/client.ts
+
       - name: Typecheck
         run: pnpm typecheck
 

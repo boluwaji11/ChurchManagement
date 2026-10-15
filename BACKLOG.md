@@ -105,7 +105,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | Resolved |
 | HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | Resolved |
 | HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | Resolved |
-| HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | Not done, and here is why |
+| HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | Resolved |
 | HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | Resolved |
 | HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | Resolved |
 | HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | Resolved |
@@ -2167,147 +2167,37 @@ copy either sent or back in the queue, rather than being cut off mid-message for
 Confirm, with two churches sending: neither message is held by the other, both arrive, and a church
 whose provider refuses still gets its copies marked and retried rather than taking the tick down.
 
-### HRT-352, measured and left alone
+### HRT-352, how to test it
 
-**Not built, deliberately.** The measurement says the split this story asks for cannot be made safely
-and would buy 13%.
+Open any screen and read it. Every word is where it was, which is the whole of what a church should
+notice. What changed is that the browser is no longer handed the words it never shows.
 
-What is there: the catalogue is one chunk of 236KB, 67KB over the wire, holding 4,727 keys, and 132
-of the 202 routes pull it in. It is one file, so a browser fetches it once and keeps it, and it is
-not on the shared path every route pays for.
+The catalogue has two readers now. The server's holds all 4,729 keys, because most of what this
+product writes is never on a screen: the emails, the giving statements, the printed sheets, the
+importer's refusals, the words a job queue puts in a notification. The browser's holds the 3,234 its
+own screens name. Which one a file gets is decided by the `react-server` condition in the package's
+exports, so no screen imports anything different.
 
-What a split would save. The keys a client component names as a literal are 1,844 of 4,727, which
-would be a real cut. But 77 places build a key rather than writing one, `t(\`giving.method.${one}\`)`
-and its kind, and one builds it entirely from a variable. A key assembled at runtime can only be
-guaranteed by shipping the group it comes from, so the honest unit is the first segment of a key, and
-client components touch 125 of the 173 groups. That is 4,096 of 4,727 keys shipped, which is 87%, to
-save 13% of 67KB.
-
-What it would cost to do anyway: a generated list of keys, a test to hold the generation honest, and
-a failure mode where a missed key puts `members.title` on a screen a church is looking at. The
-product's own reason for a typed catalogue is that a missing string should be a compile error.
-
-What would actually work, when it is worth doing: a build step that rewrites `t("literal")` into the
-string at compile time, leaving the catalogue for the keys that are built at runtime. That is a
-different story, it needs the spelling pass to survive it, and it is not this one.
-
-### HRT-358, how to test it
-
-Sign in, then click between two tabs in the same part of the navigation, say Members and Groups, and
-back again. The second time you land on a screen it should appear at once rather than being fetched
-again.
-
-Measured as a real member, clicking the navigation, the same harness before and after:
-
-| | first visit | coming back |
-|---|---|---|
-| before | 1,148ms | 837ms, 870ms, 936ms, 1,345ms |
-| after | 2,064ms | 54ms, 66ms, 84ms, 86ms |
-
-Next 15 changed the dynamic client cache from 30 seconds to 0, so every page segment was thrown away
-the moment it was navigated away from. Every screen here is per-church and therefore dynamic, so
-moving between two tabs and back paid a full server render each way. The old numbers show it exactly:
-coming back to a screen cost the same as arriving at it the first time, which is the shape of a cache
-that is not there.
-
-What to watch rather than what to test: a change somebody else makes can now be up to thirty seconds
-behind on a screen this reader has already opened. A write of their own is not affected, because the
-action's revalidate clears it. The case to think about is a role or a permission changing, and the
-answer is that the server still decides every read: a stale screen cannot show a row the next request
-would refuse, it can only be out of date.
-
-### HRT-359, how to test it
-
-**Test this against a build, not the dev server.** Next skips prefetching on hover in development, so
-on `next dev` none of this happens at all. Run `pnpm --filter @connectapp/web build` then
-`pnpm --filter @connectapp/web start`, and open http://localhost:4488.
-
-Sign in, open the dashboard, and rest the pointer on People in the rail for half a second without
-pressing. Then press it. The screen should be there on the press rather than fetched after it. The
-same on each of the four areas, on the rows inside an area's column, and on Settings at the foot of
-the rail. In the network panel each hover is one request for the screen's own segment, and the press
-that follows asks for nothing.
-
-The rail's four marks were buttons that pushed a route in a handler, so nothing in the navigation
-was a link the browser could see, and three quarters of the product had no link on the screen at
-all. They are links now, which also means the middle button and a right press open an area in a tab
-of its own.
-
-What this does not do is fetch every link on sight, which is Next's own default for a link in the
-viewport. Fourteen screens rendered on a server that answers every church, for the one screen
-somebody pressed, is not a trade this product can make. The fetch is on the intent to go: the
-pointer arriving, the row taking focus, a finger landing. That is `experimental.dynamicOnHover` in
-`next.config.ts` and `NavLink` in `components/nav-link.tsx`, which carries the prop Next has not yet
-put in the types `next/link` exports.
-
-The sidecar had already answered the other half of this story: HRT-319 replaced the accordion, so
-the area somebody is in is a fact about where they are rather than a section they left open.
-
-### HRT-353, how to test it
-
-Open any screen cold, with the browser's cache off and the network throttled: the sidebar, the
-church's name and the top bar are there at once, with the screen's own shape drawn underneath in
-blocks, and the rows replace it when the database answers. People, Giving and Messages each draw
-their own shape, because a directory, a set of totals and a two-column inbox do not wait alike.
-Everything else gets the one beside the layout.
-
-Measured against a build, as a signed-in administrator, three runs a screen. Time to the first byte,
-which is the moment anything at all can be drawn:
-
-| | before | after | the whole screen |
+| | keys | raw | over the wire |
 |---|---|---|---|
-| People | 439ms, 453ms, 555ms | 133ms, 134ms, 158ms | 427ms to 511ms |
-| Giving | 659ms, 669ms, 722ms | 138ms, 199ms, 207ms | 671ms to 775ms |
-| Messages | 495ms, 503ms, 511ms | 144ms, 152ms, 202ms | 490ms to 590ms |
-| Services | 334ms, 343ms, 465ms | 145ms, 146ms, 151ms | 341ms to 366ms |
-| Dashboard | 141ms to 158ms | unchanged | it already streamed |
+| before | 4,720 | 230KB | 65KB |
+| after | 3,234 | 159KB | 47KB |
 
-Nothing about the queries changed. The whole screen takes what it always took; what changed is that
-the browser is no longer holding a blank page until it arrives. The dashboard had this since
-HRT-325, through a `Suspense` inside its own page, and it is why that screen felt quicker than
-screens with the same time to first byte.
+**The first attempt was wrong and the measurement is why.** A scan of the files marked "use client"
+gave 2,878 keys and a screen that drew `lifecycle.visitor` where a status should be: a client form
+reads those words through `lib/person-input.ts`, which carries no directive of its own. The generator
+follows the imports now, which is what actually reaches a browser. Then the team picker drew
+`teamLib.worship`, because `schedule/library.ts` holds its keys as data and resolves them later, so
+any key-shaped string a reachable file writes down is taken too.
 
-What made it possible everywhere: the frame is a layout now (HRT-360), so a `loading.tsx` replaces
-the screen rather than the product. Before that it would have taken the sidebar with it, which reads
-as blinking. The same boundary is what Next needs before it will prefetch a dynamic route, which is
-the other half of HRT-359.
+Three things keep it honest: `pnpm catalogue` regenerates it, CI fails if the committed file is
+stale, and a key a screen reads that the catalogue does not hold fails the generator outright. It was
+checked by driving a browser over nineteen screens and five panels and failing on any catalogue key
+rendered as itself.
 
-### HRT-351, how to test it
-
-Sign in, move around the product, sign out, and sign in again. Nothing looks different. Open a church
-somebody has been taken out of, or change your own role in another tab, and confirm the next press
-still refuses: who may read what is decided from `tenant_members` on the request, not from the token.
-
-Every navigation made two calls to Supabase's authentication server: the middleware asked who this
-was so it could refresh the session, and the screen behind it asked the same question again. Both
-were round trips out of the building, on a product whose own database answers in single figures.
-
-This project signs its tokens with ES256 and publishes the key, so the signature and the expiry are
-now checked here, with WebCrypto, against a key set the process holds for ten minutes. The session is
-still refreshed when a token is near its end, which is the only reason the middleware runs.
-
-Measured against a build, four runs a screen, signed in:
-
-| | before | after |
-|---|---|---|
-| time to first byte | 132ms, 141ms, 152ms, 157ms, 176ms, 199ms, 203ms | 57ms, 58ms, 60ms, 62ms, 66ms, 67ms, 70ms |
-| the directory, whole | 382ms, 392ms, 522ms | 292ms, 293ms, 300ms, 333ms |
-| the dashboard, whole | 795ms, 869ms | 664ms, 669ms, 676ms |
-
-**What it costs.** Somebody signed out everywhere keeps a token that verifies until it expires, which
-is an hour. It buys them nothing: every screen decides what a reader may see from the database on the
-request itself, so a person taken out of a church meets that on their next press. The one thing the
-token does not carry is whether an email has been answered, so the three screens that write a person
-into a church still ask the authentication server, and a navigation never does.
-
-The queue worker's tick and Stripe's webhook have come out of the middleware. They carry their own
-proof, a bearer secret and a signature, and each was paying for a round trip to be told there was
-nobody signed in.
-
-**Not a defect, found while measuring.** Signing in locally lands on `riverside.localhost` and then
-`riversides.localhost`, where the cookie set on `localhost` does not reach, so the form appears to do
-nothing. That is the local cookie scope again, it behaves the same way before this change, and the
-dev hostname stays as it is.
+`FieldHint` changed to take its words rather than the key they live under, because a component that
+builds a key out of a prop makes it impossible to say what a screen needs, and the generator refuses
+that shape rather than quietly shipping everything.
 
 ### HRT-350, how to test it
 

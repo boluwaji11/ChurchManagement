@@ -164,7 +164,8 @@ export function ChurchForm({
                    box, so the form stays a form. */
                 mark={
                   <FieldHint
-                    about={country === "US" ? "help.taxId" : "help.taxIdOther"}
+                    title={country === "US" ? t("help.taxId.title") : t("help.taxIdOther.title")}
+                    body={country === "US" ? t("help.taxId.body") : t("help.taxIdOther.body")}
                     label={t("church.taxIdHint")}
                   />
                 }

@@ -42,7 +42,13 @@ function ValidationDemo() {
         hint="Try submitting it empty."
         required
         /* R22.2. The mark that opens the words in the panel from the right. */
-        mark={<FieldHint about="help.taxId" label="What is this" />}
+        mark={
+          <FieldHint
+            title="Your EIN"
+            body={"The gallery is ours rather than a church's, so these words are written here.\n\nA second paragraph, to show how the panel sets them."}
+            label="What is this"
+          />
+        }
       >
         <Input name="demo-email" type="email" placeholder="you@church.org" />
       </Field>
