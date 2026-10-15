@@ -3014,7 +3014,7 @@ export const en = {
   "portal.state.off": "Turned off",
   "portal.state.checking": "Checking this address",
   "portal.state.free": "This address is available",
-  "portal.state.current": "This is the address you are on already",
+  "portal.state.current": "This is your current address",
   "portal.copy": "Copy this address",
   "portal.copied": "Copied",
   "portal.error.shape": "Use letters, numbers and hyphens, three characters or more, and no spaces.",
