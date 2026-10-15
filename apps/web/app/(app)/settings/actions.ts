@@ -3,12 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { HUES } from "@connectapp/ui";
 import { headers } from "next/headers";
-import {
-  withTenant, updateChurch, addServiceTime, removeServiceTime, setChurchLogo,
-} from "@connectapp/db";
+import { withTenant, updateChurch, setChurchLogo } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase/server";
-import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 
 export interface SettingsResult {
@@ -69,45 +66,6 @@ export async function saveChurch(data: FormData): Promise<SettingsResult> {
 
   revalidatePath("/settings");
   revalidatePath("/members");
-  return { saved: true };
-}
-
-export async function addService(data: FormData): Promise<SettingsResult> {
-  const slug = text(data, "church") || undefined;
-  const { session, ctx } = await writeContext(slug);
-
-  const day = Number(text(data, "dayOfWeek"));
-  if (!Number.isInteger(day)) return { error: t("church.error.serviceDay") };
-
-  try {
-    await withTenant(ctx, (tx) =>
-      addServiceTime(tx, { tenantId: session.tenantId, role: session.role }, {
-        name: text(data, "name"),
-        dayOfWeek: day,
-        startsAt: text(data, "startsAt"),
-      }),
-    );
-  } catch (error) {
-    return { error: explain(error) };
-  }
-
-  revalidatePath("/settings");
-  return { saved: true };
-}
-
-export async function removeService(data: FormData): Promise<SettingsResult> {
-  const slug = text(data, "church") || undefined;
-  const { session, ctx } = await writeContext(slug);
-
-  try {
-    await withTenant(ctx, (tx) =>
-      removeServiceTime(tx, { tenantId: session.tenantId, role: session.role }, text(data, "id")),
-    );
-  } catch (error) {
-    return { error: explain(error) };
-  }
-
-  revalidatePath("/settings");
   return { saved: true };
 }
 

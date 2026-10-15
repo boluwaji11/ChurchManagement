@@ -992,7 +992,7 @@ of money and after everything else.
 | HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | Closed |
 | HRT-291 | The church's own domain: members.church.org and give.church.org, with the screen to set one up | R1.1, R22.2 | New |
 | HRT-367 | The setup guide walks beside the church, on every screen, and says what to press | R22.1, R22.2, R22.3 | Active |
-| HRT-368 | A church writes down the times it meets | R22.1, R3.1 | New |
+| HRT-368 | A church writes down the times it meets | R22.1, R3.1 | Resolved. The premise was wrong: it already can |
 | HRT-369 | A check-in dry run before the first service day | R8.x, R22.1 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps, and both are now built, so both are
@@ -4049,13 +4049,30 @@ The guide is a rail down the right of every screen, for an owner or an administr
 What came out: `/setup`, the corner dock, and the checklist across the dashboard. Three drawings of
 one list of five, none of which said what to press on arrival.
 
-### HRT-368, what it is for
+### HRT-368, and the hole that was not there
 
-`service_times` is the weekly pattern a church meets on, as opposed to the dated services on the
-calendar. The website reads it, a check-in station binds to it, and **nothing writes it**:
-`addServiceTime` is wrapped by `addService` in the settings actions and no screen imports that. The
-only writer is the demo loader, so for every real church the table is empty. HRT-367 counts dated
-services instead and leaves this hole to be filled on its own.
+Written on the belief that **nothing writes `service_times`**, the weekly pattern the website reads
+and a check-in station binds to. That was wrong, and it was wrong because a grep stopped at the
+first answer it found.
+
+`addServiceTime` in `repo/church.ts` really is only reached by the demo loader and the tests. But
+it is not the writer. `addService` in `repo/services.ts` is: give Create a service a repeat and it
+inserts the pattern and generates the calendar from it. Checked on 15 October by opening the panel
+on a real church, choosing Every week, and reading the table afterwards: one `service_times` row,
+27 occurrences, every one of them linked to it.
+
+So a church can already write down the times it meets, in the one place it would look. What was
+actually dead is `addService` and `removeService` in `settings/actions.ts`, two server actions
+superseded when services became one idea instead of three and left behind with nothing importing
+them. Those are gone.
+
+HRT-367's services step stays on dated services rather than the pattern, which is right for a
+different reason than the one given: a church whose first service is a one-off has still had its
+first service, and the step should settle.
+
+**What to take from it.** A function with no callers is not the same as a capability with no
+screen. The check that would have caught it is the one that was eventually run: open the screen and
+do the thing.
 
 ### HRT-369, what it is for
 
