@@ -1,0 +1,79 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Moving a church's records is the part that decides whether a church can leave its current
+        product at all, so it is treated as a feature here rather than as support. The more exact
+        you are about what you hold, the better the answer.
+
+  - type: dropdown
+    id: from
+    attributes:
+      label: What you are moving from
+      options:
+        - Breeze
+        - Planning Center
+        - Tithe.ly
+        - Church Community Builder
+        - Elvanto
+        - Rock RMS
+        - ChurchCRM
+        - Servant Keeper
+        - A spreadsheet
+        - Paper
+        - Something else
+    validations:
+      required: true
+
+  - type: input
+    id: records
+    attributes:
+      label: How many people are in it
+      placeholder: e.g. 410 people in 180 households
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: bringing
+    attributes:
+      label: What has to come across
+      options:
+        - label: People and households
+        - label: Contact details and addresses
+        - label: Custom fields your church added
+        - label: Tags or labels
+        - label: Giving history
+        - label: Pledges or campaigns
+        - label: Attendance history
+        - label: Groups and their members
+        - label: Volunteer teams and schedules
+        - label: Children's check-in records
+        - label: Notes on a person
+        - label: Photographs
+    validations:
+      required: true
+
+  - type: input
+    id: export
+    attributes:
+      label: What your current product will give you
+      description: CSV, Excel, a PDF, an API, or nothing.
+      placeholder: e.g. CSV for people, PDF only for giving
+    validations:
+      required: true
+
+  - type: input
+    id: when
+    attributes:
+      label: When you need to be off it
+      description: A renewal date, a budget year, or no particular date.
+      placeholder: e.g. our Breeze renewal is 1 March
+    validations:
+      required: false
+
+  - type: textarea
+    id: worry
+    attributes:
+      label: What you are most worried about losing
+    validations:
+      required: false

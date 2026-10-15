@@ -1,0 +1,59 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tell us about the situation rather than the feature. What a church is trying to get done,
+        and how it does that today, is what decides whether this gets built and what it looks like.
+
+  - type: textarea
+    id: need
+    attributes:
+      label: What your church is trying to do
+      description: The job, in your own words.
+      placeholder: e.g. We take a count of the children in each room twice during a service and we have nowhere to put it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: today
+    attributes:
+      label: How you handle it now
+      description: A spreadsheet, a notebook, another product, or nothing at all. Say what goes wrong with it.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: size
+    attributes:
+      label: Weekly attendance
+      options:
+        - Under 50
+        - 50 to 150
+        - 150 to 300
+        - 300 to 500
+        - Over 500
+    validations:
+      required: true
+
+  - type: dropdown
+    id: who
+    attributes:
+      label: Who would use it
+      options:
+        - A volunteer administrator
+        - A part-time secretary
+        - Paid staff
+        - A pastor
+        - A ministry leader
+        - Members of the congregation
+      multiple: true
+    validations:
+      required: true
+
+  - type: textarea
+    id: anything
+    attributes:
+      label: Anything else
+      description: Screenshots of how another product does it, how often this comes up, what it costs you now.
+    validations:
+      required: false
