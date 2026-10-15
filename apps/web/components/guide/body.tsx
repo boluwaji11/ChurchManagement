@@ -71,18 +71,23 @@ export function GuideBody({
   const now = (answered(here) ? null : here) ?? next?.step ?? null;
 
   /*
-   * Which step is telling its whole story. The one whose screen is open, or
-   * the one that is next, unless somebody has opened another by hand: twelve
-   * steps each explaining themselves is a column nobody reads, and one is
-   * what somebody is doing now.
+   * Which step is telling its whole story. Sixteen steps each explaining
+   * themselves is a column nobody reads, so one does, and it is the one
+   * somebody is working on.
+   *
+   * A press always wins. Null means nobody has pressed anything and the guide
+   * chooses; the empty string means a press closed the one that was open. The
+   * guide's own choice skips an answered step, because finishing the step you
+   * are standing on should hand the story to the next one rather than leave a
+   * struck-through step open. A step somebody opens by hand opens whatever
+   * state it is in, which is the only way to reach Undo skip.
    */
-  const [opened, setOpened] = React.useState<SetupStep | null>(null);
+  const [opened, setOpened] = React.useState<SetupStep | "" | null>(null);
 
   const telling =
-    (answered(opened) ? null : opened)
-    ?? (answered(here) ? null : here)
-    ?? next?.step
-    ?? null;
+    opened === null
+      ? ((answered(here) ? null : here) ?? next?.step ?? null)
+      : (opened || null);
 
   return (
     <div className="flex flex-col gap-1">
@@ -155,9 +160,7 @@ export function GuideBody({
                     now={now === step.step}
                     telling={telling === step.step}
                     busy={busy}
-                    onTell={() =>
-                      setOpened(telling === step.step ? ("" as SetupStep) : step.step)
-                    }
+                    onTell={() => setOpened(telling === step.step ? "" : step.step)}
                     onSkip={(on) => onSkip(step.step, on)}
                     onShow={onShow}
                     onGo={onGo}
