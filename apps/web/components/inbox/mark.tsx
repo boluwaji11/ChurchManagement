@@ -207,7 +207,7 @@ export function InboxMark({
            rather than up the side, and only where the column is drawn. */
         ? `fixed ${raised ? "z-[60]" : "z-40"} ${
             clear === "rail"
-              ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[21.75rem]"
+              ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[24.75rem]"
               : clear === "rail-shut"
                 ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[3.75rem]"
                 : "right-[max(1rem,env(safe-area-inset-right))]"

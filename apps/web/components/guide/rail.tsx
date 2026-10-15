@@ -9,7 +9,7 @@ import {
 } from "@connectapp/ui";
 import { plural, t } from "@connectapp/i18n";
 import type { SetupPhase, SetupStep } from "@connectapp/db";
-import { stepOnScreen } from "@/lib/setup-guide";
+import { GUIDE_BY_STEP, stepOnScreen } from "@/lib/setup-guide";
 import { Help } from "@/components/help";
 import { useFormError } from "@/lib/form-error";
 import { setGuideShut, showGuide, skip } from "./guide-actions";
@@ -69,8 +69,15 @@ export function Rail({
    */
   const [opened, setOpened] = React.useState<SetupPhase | null>(null);
 
-  // A step opened by hand belongs to the screen it was opened on.
-  React.useEffect(() => setOpened(null), [pathname]);
+  // A step opened by hand, and a card that was closed, belong to the screen
+  // they happened on.
+  React.useEffect(() => {
+    setOpened(null);
+    setClosed(null);
+    /* An invitation reaches the screen it was made for and goes no further,
+       so pressing Show me and then wandering off leaves nothing behind. */
+    setInvited((was) => (was && stepOnScreen(pathname)?.step === was ? was : null));
+  }, [pathname]);
 
   const close = (next: boolean) => {
     setShut(next);
@@ -91,6 +98,30 @@ export function Rail({
   const here = onScreen?.step ?? null;
 
   /*
+   * Which step the guide was asked to show, and whether its card is still up.
+   *
+   * The card only ever appears because somebody pressed Show me. Opening the
+   * importer from the More menu is a church doing its own work, and a coach
+   * mark arriving uninvited over it is the product talking over somebody who
+   * did not ask. Guidance that is asked for is also the guidance that gets
+   * read: the rail is always there to ask with.
+   */
+  const [invited, setInvited] = React.useState<SetupStep | null>(null);
+  const [closed, setClosed] = React.useState<SetupStep | null>(null);
+
+  const show = (which: SetupStep) => {
+    setInvited(which);
+    setClosed(null);
+    const where = GUIDE_BY_STEP.get(which);
+    if (!where?.target) return;
+    requestAnimationFrame(() => {
+      document
+        .querySelector(`[data-guide="${CSS.escape(where.target!)}"]`)
+        ?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+  };
+
+  /*
    * Which phase is open. The one holding the screen somebody is looking at,
    * so a church that opens Rooms is not left reading the first hour, then
    * whatever they opened by hand, and only then the church's own progress.
@@ -105,6 +136,7 @@ export function Rail({
       busy={pending}
       onSkip={onSkip}
       onOpenPhase={setOpened}
+      onShow={show}
       onGo={() => setOnPhone(false)}
     />
   );
@@ -116,7 +148,25 @@ export function Rail({
    */
   const step = onScreen ? steps.find((one) => one.step === onScreen.step) : null;
   const pointAt =
-    onScreen && step && !step.done && !step.skipped ? (onScreen.target ?? null) : null;
+    onScreen
+    && step
+    && !step.done
+    && !step.skipped
+    && invited === onScreen.step
+    && closed !== onScreen.step
+      ? (onScreen.target ?? null)
+      : null;
+
+  /* The card carries the step's name and the one sentence naming what to
+     press. Both are read here because the card is drawn from the frame. */
+  const card = here ? (
+    <Point
+      target={pointAt}
+      title={t(`setup.step.${here}` as never)}
+      body={t(`setup.at.${here}` as never)}
+      onClose={() => setClosed(here)}
+    />
+  ) : null;
 
   /* The one way the guide goes for good, offered only once there is nothing
      left in it to lose. */
@@ -189,15 +239,18 @@ export function Rail({
           <PanelRightOpen className="size-[18px] shrink-0 text-fg-muted" aria-hidden />
           <span
             aria-hidden
-            className="text-[12px] font-semibold tabular-nums text-fg-muted [writing-mode:vertical-rl]"
+            className="flex items-center gap-2 text-[12px] font-semibold text-fg-muted [writing-mode:vertical-rl]"
           >
-            {settled} / {steps.length}
+            {t("setup.tab")}
+            <span className="tabular-nums text-primary">
+              {settled}/{steps.length}
+            </span>
           </span>
         </button>
         {pill}
         {/* Collapsed still points: the rail is out of the way, and the step
             it had open is still the step. */}
-        <Point target={pointAt} />
+        {card}
       </>
     );
   }
@@ -212,14 +265,14 @@ export function Rail({
          * sticky rather than fixed, so it keeps its place while a long list
          * scrolls past while still sitting in the frame's own flow.
          */
-        className="sticky top-0 hidden h-dvh w-[332px] shrink-0 self-start overflow-y-auto border-l border-line bg-surface lg:block"
+        className="sticky top-0 hidden h-dvh w-[380px] shrink-0 self-start overflow-y-auto border-l border-line bg-surface lg:block"
       >
         <div className="flex flex-col gap-4 p-5">
           {error ? <Banner tone="danger">{t(error as never)}</Banner> : null}
 
           <div className="flex items-start justify-between gap-2">
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-[15px] leading-[19px] font-semibold text-balance text-fg">
+              <span className="font-display text-[20px] leading-[25px] text-balance text-fg">
                 {t("setup.title", { name: church })}
               </span>
               <span className="text-[length:var(--d-text-caption)] text-fg-muted">
@@ -236,6 +289,27 @@ export function Rail({
                 <PanelRightClose />
               </IconButton>
             </span>
+          </div>
+
+          {/* R22.1. A bar that moves. Twelve steps is a long way, and the thing
+              that keeps somebody going is seeing the last press count for
+              something rather than reading a number that changed. */}
+          <div
+            role="progressbar"
+            aria-valuenow={settled}
+            aria-valuemin={0}
+            aria-valuemax={steps.length}
+            aria-label={t("setup.soFar", {
+              done: String(settled),
+              all: String(steps.length),
+            })}
+            className="h-1.5 overflow-hidden rounded-full bg-sunken"
+          >
+            <span
+              data-guide-bar
+              className="block h-full rounded-full bg-primary"
+              style={{ width: `${Math.round((settled / steps.length) * 100)}%` }}
+            />
           </div>
 
           {complete ? (
@@ -273,7 +347,7 @@ export function Rail({
 
       {pill}
       {confirm}
-      <Point target={pointAt} />
+      {card}
     </>
   );
 }

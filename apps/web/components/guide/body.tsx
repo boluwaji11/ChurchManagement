@@ -18,13 +18,6 @@ export interface RailStep {
 
 export const PHASES: readonly SetupPhase[] = ["hour", "before", "ready"];
 
-/** Brings the control a step names back into view, for Show me. */
-function showMe(target: string | undefined) {
-  if (!target) return;
-  const found = document.querySelector(`[data-guide="${CSS.escape(target)}"]`);
-  found?.scrollIntoView({ block: "center", behavior: "smooth" });
-}
-
 /**
  * R22.1. The guide's contents: the three phases, and the steps of whichever
  * phase is open, drawn as a path.
@@ -45,6 +38,7 @@ export function GuideBody({
   busy,
   onSkip,
   onOpenPhase,
+  onShow,
   onGo,
 }: {
   steps: RailStep[];
@@ -55,10 +49,19 @@ export function GuideBody({
   busy: boolean;
   onSkip: (step: SetupStep, on: boolean) => void;
   onOpenPhase: (phase: SetupPhase) => void;
+  /** Opens this step's card on the work, and scrolls its control into view. */
+  onShow: (step: SetupStep) => void;
   /** Closes the panel the body is in, where it is in one. */
   onGo?: () => void;
 }) {
   const next = steps.find((one) => !one.done && !one.skipped);
+
+  /*
+   * The one step that is now: the one whose screen is open, or the one that
+   * is next. Its marker breathes, which is the whole of how somebody finds
+   * their place again after looking away.
+   */
+  const now = here ?? next?.step ?? null;
 
   /*
    * Which step is telling its whole story. The one whose screen is open, or
@@ -106,13 +109,13 @@ export function GuideBody({
               <span className="flex min-w-0 flex-1 flex-col">
                 <span
                   className={cn(
-                    "text-[13px] leading-[17px] font-semibold",
+                    "text-[14px] leading-[18px] font-semibold",
                     open ? "text-fg" : "text-fg-muted",
                   )}
                 >
                   {t(`setup.phase.${one}` as never)}
                 </span>
-                <span className="truncate text-[11px] leading-[15px] text-fg-subtle">
+                <span className="truncate text-[12px] leading-[16px] text-fg-subtle">
                   {open
                     ? t(`setup.phase.${one}.why` as never)
                     : t("setup.count", { done: String(doneHere), all: String(mine.length) })}
@@ -129,7 +132,7 @@ export function GuideBody({
             </button>
 
             {open ? (
-              <ol className="m-0 flex list-none flex-col p-0 pt-1">
+              <ol data-guide-steps className="m-0 flex list-none flex-col p-0 pt-1">
                 {mine.map((step, i) => (
                   <Row
                     key={step.step}
@@ -137,12 +140,14 @@ export function GuideBody({
                     last={i === mine.length - 1}
                     here={here === step.step}
                     nextUp={next?.step === step.step}
+                    now={now === step.step}
                     telling={telling === step.step}
                     busy={busy}
                     onTell={() =>
                       setOpened(telling === step.step ? ("" as SetupStep) : step.step)
                     }
                     onSkip={(on) => onSkip(step.step, on)}
+                    onShow={onShow}
                     onGo={onGo}
                   />
                 ))}
@@ -164,20 +169,25 @@ function Row({
   last,
   here,
   nextUp,
+  now,
   telling,
   busy,
   onTell,
   onSkip,
+  onShow,
   onGo,
 }: {
   step: RailStep;
   last: boolean;
   here: boolean;
   nextUp: boolean;
+  /** The step somebody is on, whose marker breathes. */
+  now: boolean;
   telling: boolean;
   busy: boolean;
   onTell: () => void;
   onSkip: (on: boolean) => void;
+  onShow: (step: SetupStep) => void;
   onGo?: () => void;
 }) {
   const where = GUIDE_BY_STEP.get(step.step);
@@ -190,6 +200,7 @@ function Row({
           got, so the column reads as a journey rather than as a tally. */}
       <span className="flex w-6 shrink-0 flex-col items-center" aria-hidden>
         <span
+          data-guide-now={now && !step.done && !step.skipped ? "" : undefined}
           className={cn(
             "grid size-6 shrink-0 place-items-center rounded-full transition-colors duration-fast",
             step.done
@@ -206,7 +217,7 @@ function Row({
           ) : step.skipped ? (
             <Minus className="size-3" strokeWidth={3} />
           ) : here || nextUp ? (
-            <span className="size-2 rounded-full bg-primary" />
+            <span data-guide-pip className="size-2 rounded-full bg-primary" />
           ) : null}
         </span>
 
@@ -246,7 +257,7 @@ function Row({
         >
           <span
             className={cn(
-              "min-w-0 flex-1 text-[13px] leading-[19px]",
+              "min-w-0 flex-1 text-[14px] leading-[20px]",
               step.done
                 ? "text-fg-subtle line-through"
                 : step.skipped
@@ -272,42 +283,42 @@ function Row({
         </button>
 
         {telling ? (
-          <div className="mt-0.5 flex flex-col gap-2">
+          <div data-guide-telling className="mt-0.5 flex flex-col gap-2">
             {/* What it is, then why a church should care. The second one is
                 the question a volunteer actually has, and no screen in the
                 product is the place to answer it. */}
-            <p className="m-0 text-[12px] leading-[17px] text-fg-muted">
+            <p className="m-0 text-[13px] leading-[19px] text-fg-muted">
               {t(`setup.what.${step.step}` as never)}
             </p>
-            <p className="m-0 flex gap-1.5 text-[12px] leading-[17px] text-fg">
+            <p className="m-0 flex gap-1.5 text-[13px] leading-[19px] text-fg">
               <MoveRight aria-hidden className="mt-[3px] size-3 shrink-0 text-primary" />
               <span>{t(`setup.why.${step.step}` as never)}</span>
             </p>
 
-            {here && !step.done ? (
-              <p className="m-0 rounded-[9px] bg-primary-soft px-2.5 py-2 text-[12px] leading-[17px] font-medium text-fg">
-                {t(`setup.at.${step.step}` as never)}
-              </p>
-            ) : null}
-
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              {step.done ? null : here ? (
-                where?.target ? (
-                  <button
-                    type="button"
-                    onClick={() => showMe(where.target)}
-                    className="cursor-pointer rounded text-[12px] font-semibold text-primary"
-                  >
-                    {t("setup.showMe")}
-                  </button>
-                ) : null
-              ) : step.skipped ? null : (
+              {/* Show me is the whole of it: on this screen it points at the
+                  control again, and anywhere else it opens the screen and
+                  points when it gets there. The instruction itself is on the
+                  work, not in this column. */}
+              {step.done || step.skipped ? null : here ? (
+                <button
+                  type="button"
+                  onClick={() => onShow(step.step)}
+                  className="inline-flex cursor-pointer items-center gap-0.5 rounded text-[12px] font-semibold text-primary"
+                >
+                  {t("setup.showMe")}
+                  <ChevronRight className="size-3.5" aria-hidden />
+                </button>
+              ) : (
                 <NavLink
                   href={where?.href ?? "/dashboard"}
-                  onClick={onGo}
+                  onClick={() => {
+                    onShow(step.step);
+                    onGo?.();
+                  }}
                   className="inline-flex items-center gap-0.5 rounded text-[12px] font-semibold text-primary no-underline"
                 >
-                  {t("setup.do")}
+                  {t("setup.showMe")}
                   <ChevronRight className="size-3.5" aria-hidden />
                   <Opening />
                 </NavLink>

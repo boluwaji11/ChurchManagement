@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3272 of 4758 keys.
+ * 3275 of 4761 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1848,24 +1848,26 @@ export const browserWords: Catalogue = {
   "reports.showing": "Showing {range}",
   "reports.lostHere": "{count} did not get this far",
   "setup.failed": "That did not save. Try again.",
-  "setup.title": "Setting up {name}",
+  "setup.title": "Welcome! Let's set up {name}",
+  "setup.tab": "Setup guide",
   "setup.count": "{done} of {all}",
   "setup.left.one": "1 step left",
   "setup.left.other": "{count} steps left",
   "setup.left.none": "All done",
+  "setup.soFar": "{done} of {all} done",
   "setup.phase.hour": "The first hour",
   "setup.phase.hour.why": "A directory, and a service to attach it to.",
   "setup.phase.before": "Before your first service",
   "setup.phase.before.why": "What a service day needs from you.",
   "setup.phase.ready": "When you are ready",
   "setup.phase.ready.why": "None of this is needed to run a service.",
-  "setup.step.members": "Bring your people in",
-  "setup.what.members": "Upload a CSV or Excel file containing your congregation's information, such as names, phone numbers, and email addresses. We'll automatically match the columns in your file to the right fields in our system.",
+  "setup.step.members": "Bring your members in",
+  "setup.what.members": "Upload a CSV or Excel file containing your congregation's information, such as names, phone numbers, and email addresses. We'll automatically match the columns in your file to the right fields in our system. You can also add your members one at a time.",
   "setup.why.members": "Add a member once, and their information will be available across groups, check-in, volunteers, giving, and reports.",
-  "setup.at.members": "Drop your file on the panel, or press Choose file. Nothing is written until you have seen what it would do.",
+  "setup.at.members": "Drop a file here, or press Choose file. We show you what would change and wait for your go-ahead. To add somebody by hand instead, close this and press Add a member.",
   "setup.step.services": "Your first service",
   "setup.what.services": "The gathering you meet for, on the day and at the time you meet.",
-  "setup.why.services": "Attendance, check-in and the rota all hang off a service. Without one there is nothing for a volunteer to be rostered to or a child to be checked into.",
+  "setup.why.services": "Attendance, check-in and the rota all hang off a service. A volunteer is rostered to one, and a child is checked into one.",
   "setup.at.services": "Press Create a service. Give it a name, the date and the time, and say whether it repeats.",
   "setup.step.team": "Who else gets in",
   "setup.what.team": "Accounts for the other people who run the church, each with a role deciding what they can see.",
@@ -1889,11 +1891,11 @@ export const browserWords: Catalogue = {
   "setup.at.portal": "Type the word your church is known by and press Claim.",
   "setup.step.profile": "Your own details",
   "setup.what.profile": "Your record in the church directory: a photo, and a number somebody can reach you on.",
-  "setup.why.profile": "Your team is about to meet a directory where you are a name and nothing else. Filling yours in is also the quickest way to see what you are asking everybody else for.",
+  "setup.why.profile": "Your team is about to meet a directory where you are only a name. Filling yours in is the quickest way to see what you are asking everybody else for.",
   "setup.at.profile": "Press Edit, add a photo and a phone number, and save.",
   "setup.step.email": "Send email to your church",
   "setup.what.email": "Connect the account your church sends from, either Resend or your own mail server.",
-  "setup.why.email": "Mail sent from your own account arrives, because it is your church's name and reputation behind it rather than ours. We never charge for it and we never read it.",
+  "setup.why.email": "Mail from your own account arrives, because it carries your church's name and reputation. The account stays yours, billed to you by your provider.",
   "setup.at.email": "Press Connect and follow it through. We send you a test before anything is written down.",
   "setup.step.giving": "Take a gift online",
   "setup.what.giving": "Connect Stripe, so your congregation can give by card or bank from the portal.",
@@ -1911,6 +1913,7 @@ export const browserWords: Catalogue = {
   "setup.shut": "Collapse",
   "setup.do": "Open",
   "setup.showMe": "Show me",
+  "setup.gotIt": "Close",
   "setup.skip": "Not for us",
   "setup.unskip": "Actually, yes",
   "setup.skipped": "Not for us",
