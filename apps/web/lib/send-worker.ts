@@ -89,6 +89,25 @@ function copyFor(send: DueSend, person: Waiting, from: string): Message {
  */
 const PACE = 100;
 
+/**
+ * R16.6, R24.11. How many churches a tick works through at once.
+ *
+ * Each has its own account and its own provider, so four of them running
+ * alongside each other trips nothing: the limit Resend counts is per team, and
+ * a team is a church. Four rather than forty because the tick also holds a
+ * database connection a church.
+ */
+const CHURCHES_AT_ONCE = 4;
+
+/**
+ * R16.6. How long a tick works before it leaves the rest for the next one.
+ *
+ * The route gives itself 300 seconds. Stopping at 240 means a tick ends on its
+ * own terms, with every copy either sent or back in the queue, rather than
+ * being cut off mid-message and leaving rows claimed for the reclaim to find.
+ */
+const TICK_BUDGET_MS = 240_000;
+
 const pause = (ms: number) => new Promise((go) => setTimeout(go, ms));
 
 async function readyAccount(send: DueSend) {
@@ -149,7 +168,7 @@ async function readyAccount(send: DueSend) {
  * takes it.
  */
 export async function drain(passes = 8): Promise<{ attempted: number }> {
-  let attempted = 0;
+  const until = Date.now() + TICK_BUDGET_MS;
 
   /*
    * R16.6. Anything a previous pass claimed and never finished, put right
@@ -164,38 +183,76 @@ export async function drain(passes = 8): Promise<{ attempted: number }> {
     );
   }
 
-  for (const send of await dueSends()) {
-    const account = await readyAccount(send);
+  /*
+   * R16.6, R24.11. The churches with something waiting, taken a few at a time.
+   *
+   * One tick used to work through them in turn, and a church sending to four
+   * hundred people held the whole queue while it did: at a tenth of a second a
+   * copy, forty seconds in which a church of sixty waiting behind it sent
+   * nothing. With a thousand churches on one deployment that is a Saturday
+   * where the last church's message goes out on Sunday.
+   *
+   * The pace stays where it is, because it belongs to one church's own account
+   * and its provider's limit. What runs alongside is another church, through
+   * another account, which no limit anywhere is counting together.
+   */
+  const waiting = await dueSends();
+  let attempted = 0;
 
-    for (let pass = 0; pass < passes; pass += 1) {
-      const batch = await claimBatch(send.id);
-      if (batch.length === 0) break;
-
-      for (const person of batch) {
-        if (!account) {
-          await settle(person.id, { ok: false, said: t("send.notConnected") });
-          continue;
-        }
-
-        const proof = await account.post(copyFor(send, person, account.from));
-        if (proof.ok) await noteRef(person.id, proof.ref ?? null);
-
-        await settle(person.id, {
-          ok: proof.ok,
-          said: proof.ok ? null : proof.said,
-          again: proof.ok ? false : proof.again,
-        });
-        attempted += 1;
-        await pause(PACE);
-      }
-
-      /* Checked after each pass rather than only at the end, so a send that
-         finished says so even if this invocation is cut short on the next. */
-      if (await closeIfDone(send.id)) break;
+  const next = async (): Promise<void> => {
+    for (;;) {
+      const send = waiting.shift();
+      if (!send || Date.now() >= until) return;
+      attempted += await drainOne(send, passes, until);
     }
-  }
+  };
+
+  await Promise.all(
+    Array.from({ length: Math.min(CHURCHES_AT_ONCE, waiting.length) }, next),
+  );
 
   return { attempted };
+}
+
+/** One church's send, to the end of it or to the end of this tick. */
+async function drainOne(send: DueSend, passes: number, until: number): Promise<number> {
+  const account = await readyAccount(send);
+  let attempted = 0;
+
+  for (let pass = 0; pass < passes; pass += 1) {
+    const batch = await claimBatch(send.id);
+    if (batch.length === 0) break;
+
+    for (const person of batch) {
+      if (!account) {
+        await settle(person.id, { ok: false, said: t("send.notConnected") });
+        continue;
+      }
+
+      const proof = await account.post(copyFor(send, person, account.from));
+      if (proof.ok) await noteRef(person.id, proof.ref ?? null);
+
+      await settle(person.id, {
+        ok: proof.ok,
+        said: proof.ok ? null : proof.said,
+        again: proof.ok ? false : proof.again,
+      });
+      attempted += 1;
+
+      /* Out of time. What is left is a row still waiting its turn, and the
+         next tick takes it: the copies this pass claimed and did not reach go
+         back through reclaimStuck. */
+      if (Date.now() >= until) return attempted;
+
+      await pause(PACE);
+    }
+
+    /* Checked after each pass rather than only at the end, so a send that
+       finished says so even if this invocation is cut short on the next. */
+    if (await closeIfDone(send.id)) break;
+  }
+
+  return attempted;
 }
 
 /**
