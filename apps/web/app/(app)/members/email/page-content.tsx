@@ -59,21 +59,35 @@ export async function EmailPanelPage({
     .map((one) => one.trim())
     .filter(Boolean);
 
-  const read = await withTenant(ctx, async (tx) => ({
-    provider: await emailProvider(tx),
-    domain: await sendingDomain(tx),
-    lists: await listSavedLists(tx),
-    groups: await listGroups(tx, {}),
-    sent: await listSends(tx, { limit: PAGE }),
-    sends: await countSends(tx),
-    withdrawn: await countWithdrawn(tx),
-    chosen: ids.length
-      ? await emailRecipientsFor(tx, { audience: "people", memberIds: ids })
-      : [],
-    templates: await listEmailTemplates(tx),
-    out: await listWithdrawn(tx, { limit: PAGE }),
-    outs: await countAllWithdrawn(tx),
-  }));
+  /*
+   * R24.11. Eleven reads that have nothing to say to each other go down the
+   * one connection together. Awaiting them one at a time inside the object
+   * spent eleven round trips to a database on another continent, and the round
+   * trip is the expensive part.
+   */
+  const read = await withTenant(ctx, async (tx) => {
+    const [
+      provider, domain, lists, groups, sent, sends, withdrawn, chosen,
+      templates, out, outs,
+    ] = await Promise.all([
+      emailProvider(tx),
+      sendingDomain(tx),
+      listSavedLists(tx),
+      listGroups(tx, {}),
+      listSends(tx, { limit: PAGE }),
+      countSends(tx),
+      countWithdrawn(tx),
+      ids.length ? emailRecipientsFor(tx, { audience: "people", memberIds: ids }) : [],
+      listEmailTemplates(tx),
+      listWithdrawn(tx, { limit: PAGE }),
+      countAllWithdrawn(tx),
+    ]);
+
+    return {
+      provider, domain, lists, groups, sent, sends, withdrawn, chosen,
+      templates, out, outs,
+    };
+  });
 
   /* R16.1. Resend is only sending once its domain is verified, so a church
      halfway through setting up is told that rather than left to find out from

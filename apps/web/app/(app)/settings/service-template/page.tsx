@@ -47,16 +47,26 @@ export default async function PlanTemplatesPage({
   const read = manage
     ? await withTenant(
         { tenantId: session.tenantId, role: session.role },
-        async (tx) => ({
-          templates: await listTemplateShapes(tx, putAway ? { archivedOnly: true } : {}),
-          archivedCount: await countArchivedTemplates(tx),
-          // R11.8. The library leaves out what this church already keeps, and
-          // an archived shape still holds its name against a new one.
-          taken: (await listTemplateShapes(tx, { archivedOnly: true })).map((one) => one.name),
-          // R11.2. Archived kinds come too, so a line already filed under one
-          // still reads by name rather than by its slug.
-          kinds: kindOptions(await itemKindsForPlans(tx, { includeArchived: true })),
-        }),
+        /* R24.11. Four reads that want nothing from each other, together. */
+        async (tx) => {
+          const [templates, archivedCount, putAwayShapes, kinds] = await Promise.all([
+            listTemplateShapes(tx, putAway ? { archivedOnly: true } : {}),
+            countArchivedTemplates(tx),
+            // R11.8. The library leaves out what this church already keeps, and
+            // an archived shape still holds its name against a new one.
+            listTemplateShapes(tx, { archivedOnly: true }),
+            // R11.2. Archived kinds come too, so a line already filed under one
+            // still reads by name rather than by its slug.
+            itemKindsForPlans(tx, { includeArchived: true }),
+          ]);
+
+          return {
+            templates,
+            archivedCount,
+            taken: putAwayShapes.map((one) => one.name),
+            kinds: kindOptions(kinds),
+          };
+        },
       )
     : { templates: [], archivedCount: 0, taken: [], kinds: [] };
 

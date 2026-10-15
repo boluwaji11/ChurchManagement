@@ -1,10 +1,11 @@
 import {
   withTenant, emailProvider, sendingDomain, canManageChurch,
-  getChurch, readDomain, dnsResolver, consoleFor, stepsFor,
+  readDomain, dnsResolver, consoleFor, stepsFor,
 } from "@connectapp/db";
 import { Banner } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
+import { shellData } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { SettingsHeading } from "../heading";
 import { EmailSetup } from "./email-setup";
@@ -55,6 +56,8 @@ export default async function EmailPage({
     return <Denied role={session.role} action="editChurch" church={session.tenantSlug} />;
   }
 
+  const profile = (await shellData(session)).church;
+
   const read = await withTenant(
     {
       tenantId: session.tenantId,
@@ -62,11 +65,12 @@ export default async function EmailPage({
       userId: session.userId,
       permissions: session.permissions,
     },
-    async (tx) => ({
-      provider: await emailProvider(tx),
-      domain: await sendingDomain(tx),
-      profile: await getChurch(tx, session.tenantId),
-    }),
+    /* R24.11. Two reads that want nothing from each other, together. The
+       church itself comes from the frame, which has already read it. */
+    async (tx) => {
+      const [provider, domain] = await Promise.all([emailProvider(tx), sendingDomain(tx)]);
+      return { provider, domain, profile };
+    },
   );
 
   /* R22.2. Read live rather than remembered. A church changes its email

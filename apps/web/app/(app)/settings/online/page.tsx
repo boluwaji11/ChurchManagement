@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
-import { withTenant, getChurch, getStripeAccount, canManageGiving } from "@connectapp/db";
+import { withTenant, getStripeAccount, canManageGiving } from "@connectapp/db";
 import { requireSession } from "@/lib/session";
+import { shellData } from "@/lib/shell-data";
 import { publicLink } from "@/lib/church-address";
 import { SettingsHeading } from "../heading";
 import { Denied } from "@/components/denied";
@@ -49,23 +50,29 @@ export default async function OnlineGivingPage({
    * right from there.
    */
   const stale = manage && stripeConfigured();
-  if (stale) {
-    const held = await withTenant(
+
+  /* R24.11. The church comes from the frame, which has already read it. */
+  const profile = (await shellData(session)).church;
+
+  let account = manage
+    ? await withTenant(
+        { tenantId: session.tenantId, role: session.role },
+        (tx) => getStripeAccount(tx),
+      )
+    : null;
+
+  /* The account was read once and then read again to answer the same
+     question. It is read again here only when Stripe has been asked for
+     something newer. */
+  if (stale && account && !account.chargesEnabled) {
+    await syncStripe();
+    account = await withTenant(
       { tenantId: session.tenantId, role: session.role },
       (tx) => getStripeAccount(tx),
     );
-    if (held && !held.chargesEnabled) await syncStripe();
   }
 
-  const read = manage
-    ? await withTenant(
-        { tenantId: session.tenantId, role: session.role },
-        async (tx) => ({
-          account: await getStripeAccount(tx),
-          profile: await getChurch(tx, session.tenantId),
-        }),
-      )
-    : { account: null, profile: null };
+  const read = { account, profile };
 
   /*
    * R13.1. What this church has not told us, which Stripe will therefore ask
@@ -81,18 +88,19 @@ export default async function OnlineGivingPage({
         read.profile?.addressLine1 ? null : "address",
       ].filter((one): one is string => one !== null);
 
-  /* R13.7, R17.1. What the church prints on a card. Its own address where it
-     has one, so the name is not said twice. */
-  const address = await publicLink(session.tenantSlug, "give");
+  /* R13.7, R17.1. What the church prints on a card, and what Stripe holds
+     about the account. R24.11. Neither waits on the other: one is a lookup
+     here and the other is a call to Stripe. */
+  const [address, face] = await Promise.all([
+    publicLink(session.tenantSlug, "give"),
+    read.account ? accountFace() : { name: null, bank: null, payouts: null },
+  ]);
 
   /*
    * R13.7. The code itself, drawn here so the screen can show it and hand it
    * over as a file. There is nothing secret in it: it is the church's own
    * public giving address.
    */
-  // R13.1. What the church recognises: its own name and its own bank.
-  const face = read.account ? await accountFace() : { name: null, bank: null, payouts: null };
-
   const qr = read.account?.chargesEnabled
     ? await QRCode.toDataURL(address, { errorCorrectionLevel: "M", margin: 1, width: 512 })
     : null;

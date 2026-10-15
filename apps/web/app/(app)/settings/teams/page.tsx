@@ -49,13 +49,24 @@ export default async function TeamsSettingsPage({
     { tenantId: session.tenantId, role: session.role },
     async (tx) => {
       const found = await listTeams(tx, putAway ? { archivedOnly: true } : {});
-      // R10.1. Each team's roster, because the panel writes a team and its
-      // people in one press and cannot go back for them once it is open.
-      const held = await Promise.all(found.map((one) => getTeam(tx, one.id)));
+
+      /*
+       * R24.11. Three reads that want nothing from each other once the teams
+       * are known, sent together rather than a round trip each.
+       *
+       * R10.1. Each team's roster, because the panel writes a team and its
+       * people in one press and cannot go back for them once it is open.
+       */
+      const [held, archivedCount, positions] = await Promise.all([
+        Promise.all(found.map((one) => getTeam(tx, one.id))),
+        countArchivedTeams(tx),
+        positionsForTeams(tx, found.map((one) => one.id)),
+      ]);
+
       return {
         teams: found,
-        archivedCount: await countArchivedTeams(tx),
-        positions: await positionsForTeams(tx, found.map((one) => one.id)),
+        archivedCount,
+        positions,
         rosters: Object.fromEntries(
           held.filter((one) => one !== null).map((one) => [one.id, one.members]),
         ),
