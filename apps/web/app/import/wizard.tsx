@@ -15,6 +15,7 @@ import {
   type Inspection, type Preview, type ImportResult,
 } from "./actions";
 import { ResizableTable } from "@/components/resizable-columns";
+import { usePanelClose } from "@/components/screen-panel";
 
 /** R19.4. Thirty days from today, as a date a church reads. */
 function undoBy(): string {
@@ -665,6 +666,7 @@ function Done({
   /** R19.4. The last day this import can be taken back. */
   undoBy: string;
 }) {
+  const done = usePanelClose();
   const [undone, setUndone] = React.useState(false);
   const [pending, setPending] = React.useState(false);
   const [failed, setFailed] = React.useState<string>();
@@ -712,11 +714,21 @@ function Done({
             {t("import.undo")}
           </Button>
         )}
-        <Button asChild>
-          <Link href={groups ? "/groups" : "/members"}>
+        {/* R19.4, R24.6. Inside the window this closes the window, because a
+            link to the address underneath leaves it standing: the window is a
+            parallel slot and Next keeps a slot's content across a soft
+            navigation. On the screen of its own it is the link it looks like. */}
+        {done ? (
+          <Button onClick={done}>
             {groups ? t("import.goToGroups") : t("import.goToPeople")}
-          </Link>
-        </Button>
+          </Button>
+        ) : (
+          <Button asChild>
+            <Link href={groups ? "/groups" : "/members"}>
+              {groups ? t("import.goToGroups") : t("import.goToPeople")}
+            </Link>
+          </Button>
+        )}
       </div>
     </section>
   );

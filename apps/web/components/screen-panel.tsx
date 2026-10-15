@@ -11,6 +11,20 @@ import { t } from "@connectapp/i18n";
  * MemberPanel carries a section rail and a dirty-form guard because a record
  * is written in it. These screens read, so the panel is the window alone.
  */
+/**
+ * R24.6. How a screen inside the window closes the window.
+ *
+ * A window over a screen is a parallel slot, and Next keeps a slot's content
+ * alive across a soft navigation, so a link to the address underneath leaves
+ * the window standing over it. Closing takes both halves, which only the
+ * window itself has. Anything drawn inside it that finishes the job asks for
+ * this rather than linking home.
+ */
+const PanelClose = React.createContext<(() => void) | null>(null);
+
+/** The way out, where this is drawn inside a window. Null anywhere else. */
+export const usePanelClose = (): (() => void) | null => React.useContext(PanelClose);
+
 export function ScreenPanel({
   title,
   actions,
@@ -62,11 +76,11 @@ export function ScreenPanel({
   }, [path]);
 
 
-  const leave = () => {
+  const leave = React.useCallback(() => {
     leaving.current = true;
     setOpen(false);
     router.replace(closeTo);
-  };
+  }, [router, closeTo]);
 
   return (
     <Sheet
@@ -84,7 +98,7 @@ export function ScreenPanel({
         layout="centered"
         width={width ?? "880px"}
       >
-        {children}
+        <PanelClose.Provider value={leave}>{children}</PanelClose.Provider>
       </SheetContent>
     </Sheet>
   );
