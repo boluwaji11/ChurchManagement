@@ -40,7 +40,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { step: "email", phase: "ready", href: "/settings/email", target: "connect-email" },
   { step: "giving", phase: "ready", href: "/settings/online", target: "connect-stripe" },
   { step: "funds", phase: "ready", href: "/settings/funds", target: "add-fund" },
-  { step: "followups", phase: "ready", href: "/settings/followups", target: "add-pipeline" },
+  { step: "followups", phase: "ready", href: "/settings/followups", target: "set-owner" },
 ] as const;
 
 export const GUIDE_BY_STEP = new Map(GUIDE_STEPS.map((one) => [one.step, one]));

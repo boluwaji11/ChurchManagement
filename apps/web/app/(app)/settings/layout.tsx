@@ -48,9 +48,6 @@ export default async function SettingsLayout({ children }: { children: React.Rea
             { href: "/settings/announcements", label: t("announce.title") },
             { href: "/settings/roles", label: t("settings.tab.roles") },
             { href: "/settings/manage-accesses", label: t("settings.tab.access") },
-            /* R22.1. Where the setup guide is brought back after it has been
-               put away, which is a promise the guide makes as it goes. */
-            { href: "/settings/guide", label: t("settings.tab.setup") },
           ]
         : [],
     },

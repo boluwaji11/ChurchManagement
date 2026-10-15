@@ -149,7 +149,15 @@ export async function setupProgress(
        * fund of its own.
        */
       funds: sql<string>`(select count(*) from funds)`,
-      pipelines: sql<string>`(select count(*) from pipelines)`,
+      /*
+       * A pipeline with nobody against it does nothing: the steps fall due and
+       * land on no desk. Every church is seeded the six, so the count that
+       * means anything is how many have an owner.
+       */
+      pipelines: sql<string>`(
+        select count(*) from pipelines
+         where owner_user_id is not null and archived_at is null
+      )`,
       email: sql<string>`(
         select count(*) from church_providers
          where tenant_id = ${tenantId} and channel = 'email' and state = 'connected'

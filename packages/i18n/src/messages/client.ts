@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3276 of 4764 keys.
+ * 3272 of 4758 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1833,7 +1833,7 @@ export const browserWords: Catalogue = {
   "help.settings.title": "Settings",
   "help.settings.body": "The church's own details, who can get in and what they may do, your kids classes and stations, and the tags and fields you keep on members. Changing a role takes effect the next time that member loads a page.",
   "help.setup.title": "Setting up",
-  "help.setup.body": "Five things a church does once. Each one opens the screen that does it, so you learn where it lives rather than where the wizard put it. A step you do not need is marked not for us, and the whole thing can be hidden.",
+  "help.setup.body": "Twelve things a church does once, in three sets. The guide beside each screen names the next one, opens the screen that does it, and points at the control, so you learn where things live. A step you do not need is marked not for us. Collapse it to the edge whenever it is in the way.",
   "dashboard.reorder": "Drag tiles to reorder",
   "dashboard.moveTile": "Move {label}",
   "dashboard.followUp": "Follow up",
@@ -1903,12 +1903,11 @@ export const browserWords: Catalogue = {
   "setup.what.funds": "A fund for each thing your church asks for money towards, beyond the general offering.",
   "setup.why.funds": "A gift to the building fund has to be spent on the building. Naming funds up front is what lets a giver choose, and what keeps a restricted gift from being counted as general income.",
   "setup.at.funds": "Press Add a new fund, name it the way your church says it, and say whether it is restricted.",
-  "setup.step.followups": "Follow up on people",
-  "setup.what.followups": "A pipeline is the few steps somebody goes through after a first visit, with a person's name against each one.",
-  "setup.why.followups": "A visitor who hears nothing for a fortnight is a visitor who does not come back. This is the part of the product that turns a name in a list into somebody being telephoned.",
-  "setup.at.followups": "Turn one on and put a name against its first step.",
+  "setup.step.followups": "Who follows people up",
+  "setup.what.followups": "Your church is given six follow-up stages already. What they do not have is somebody's name against them.",
+  "setup.why.followups": "A stage owned by nobody falls due on nobody's desk. Naming an owner is what turns a visitor in a list into a visitor somebody telephones.",
+  "setup.at.followups": "Open a stage and set its owner. First visit is the one worth doing today.",
   "setup.open": "Open setup guide",
-  "setup.hide": "Hide this",
   "setup.shut": "Collapse",
   "setup.do": "Open",
   "setup.showMe": "Show me",
@@ -1917,15 +1916,12 @@ export const browserWords: Catalogue = {
   "setup.skipped": "Not for us",
   "setup.here": "Here",
   "setup.helpHere": "Help on this screen",
-  "setup.all": "Every step",
-  "setup.hide.title": "Hide the setup guide?",
-  "setup.hide.now": "Hide for now",
-  "setup.hide.ever": "Do not show it again",
-  "setup.bringBack": "Show the setup guide",
-  "setup.bringBack.on": "Beside every screen until you put it away.",
-  "setup.bringBack.off": "Put away. Everything in it stays in Settings.",
+  "setup.putAway": "Put the guide away",
+  "setup.putAway.title": "Put the setup guide away?",
+  "setup.putAway.body": "It goes from every screen and does not come back.",
+  "setup.putAway.keep": "Keep it",
   "setup.done.title": "{name} is set up",
-  "setup.done.body": "Every step is answered. Put it away whenever you like, and Settings brings it back.",
+  "setup.done.body": "Every step is answered, one way or the other.",
   "team.send": "Send invite",
   "team.waiting": "Invitations open once this church is approved",
   "team.waitingBody": "Usually within the hour. Your own account works as it does now.",
