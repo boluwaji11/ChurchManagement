@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3304 of 4799 keys.
+ * 3304 of 4803 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1882,7 +1882,7 @@ export const browserWords: Catalogue = {
   "setup.step.church": "Church information",
   "setup.what.church": "Add your church's name, address, country, time zone, and other details.",
   "setup.why.church": "These details appear on giving receipts, help with check-in, and ensure services are scheduled at the correct times.",
-  "setup.at.church": "Press Edit, fill in the address, and save.",
+  "setup.at.church": "Click Edit, add or update your church's information, then save your changes.",
   "setup.step.rooms": "Rooms for check-in",
   "setup.what.rooms": "One room per class, with the ages it takes and a colour of its own.",
   "setup.why.rooms": "Check-in asks which room a child goes to. The colour prints on the label, so a volunteer can point a parent down the corridor without reading anything.",
