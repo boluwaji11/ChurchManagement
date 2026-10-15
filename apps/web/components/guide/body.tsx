@@ -132,7 +132,15 @@ export function GuideBody({
         const allDone = doneHere === mine.length;
 
         return (
-          <section key={one} className="flex flex-col">
+          <section
+            key={one}
+            /* The same hairline the foot of the rail carries, so the four
+               phases read as four blocks rather than one long column. */
+            className={cn(
+              "flex flex-col",
+              phaseIndex > 0 && "mt-2 border-t border-line pt-2",
+            )}
+          >
             <button
               type="button"
               onClick={() => onOpenPhase(one)}
