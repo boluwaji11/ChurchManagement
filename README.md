@@ -7,11 +7,15 @@
 ConnectApp is a complete church management platform for small churches, given to them at no cost. Every
 feature, every church, every time. No modules, no tiers, no upsell.
 
-Phase 2 adds **Hearth Stage**, a worship presenter that replaces ProPresenter and already knows
-what is happening on Sunday, because it reads the same service plan and the same song library.
+Phase 2 adds **Hearth Stage**, a worship presenter that replaces ProPresenter and already knows what
+is happening at the service, because it reads the same service plan and the same song library.
 
-> **Status: pre-alpha.** The specification is complete, the code is not started. Read
-> [PRD.md](PRD.md) for the full picture.
+> **Status: in build, before the first church.** People, check-in, groups, serving, service
+> planning, follow-ups, forms, events, the member portal, reporting and giving are built and in
+> use internally. No church is running on it yet, so the schema still moves and screens still
+> change. What is built, what is left and what is deliberately deferred are all on the board in
+> [BACKLOG.md](BACKLOG.md); [PRD.md](PRD.md) is the full specification and [ROADMAP.md](ROADMAP.md)
+> is the release order.
 
 ## Why this exists
 
@@ -102,8 +106,8 @@ to the teal room without reading a word. Everywhere that colour would not mean a
 isn't any.
 
 One design system, three densities. **Office** is dense and keyboard-first for the admin at a desk.
-**Station** is a Sunday kiosk with 56px targets, 20px text, and 7:1 contrast, because 09:58 on a
-Sunday with forty families queuing is the hardest screen in church software. **Portal** is app-like on
+**Station** is a check-in kiosk with 56px targets, 20px text, and 7:1 contrast, because two minutes
+before a service with forty families queuing is the hardest screen in church software. **Portal** is app-like on
 a phone for members.
 
 And it is accessible because volunteers span every age and ability, not because a standard says so.

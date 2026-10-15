@@ -1,0 +1,54 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If something is broken with steps to reproduce it, open an issue instead. If you are not
+        sure which it is, ask here and we will move it.
+
+  - type: textarea
+    id: asking
+    attributes:
+      label: What you are trying to do
+      placeholder: e.g. Give our two check-in volunteers access to check-in without showing them giving.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you have tried, and what happened
+    validations:
+      required: true
+
+  - type: input
+    id: where
+    attributes:
+      label: Which screen
+      description: The address in the bar, or the name at the top of the screen.
+      placeholder: e.g. Settings, Manage access
+    validations:
+      required: false
+
+  - type: dropdown
+    id: role
+    attributes:
+      label: Your role in the church
+      options:
+        - Owner
+        - Administrator
+        - Pastoral
+        - Staff
+        - Group leader
+        - Volunteer
+        - Member
+        - Looking at it for a church, not using it yet
+    validations:
+      required: true
+
+  - type: input
+    id: on
+    attributes:
+      label: What you are reading it on
+      placeholder: e.g. Chrome on Windows, Safari on an iPhone, the check-in iPad
+    validations:
+      required: false

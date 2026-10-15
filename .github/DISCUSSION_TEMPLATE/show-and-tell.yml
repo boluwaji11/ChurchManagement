@@ -1,0 +1,51 @@
+body:
+  - type: markdown
+    attributes:
+      value: |
+        How your church actually runs the week is worth more here than a feature request. Say what
+        you set up, what it replaced, and what you would warn the next church about.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What you set up
+      placeholder: e.g. Check-in on two iPads with a label printer at the door, run by a rota of six volunteers.
+    validations:
+      required: true
+
+  - type: textarea
+    id: replaced
+    attributes:
+      label: What it replaced, and what that cost
+    validations:
+      required: false
+
+  - type: textarea
+    id: snag
+    attributes:
+      label: What you would warn the next church about
+      description: The step that took longest, the thing you set up twice, the part your volunteers needed shown.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: size
+    attributes:
+      label: Weekly attendance
+      options:
+        - Under 50
+        - 50 to 150
+        - 150 to 300
+        - 300 to 500
+        - Over 500
+    validations:
+      required: true
+
+  - type: input
+    id: days
+    attributes:
+      label: Your service days
+      description: A church does not only meet on a Sunday, and the product should not assume it does.
+      placeholder: e.g. Friday evening and two services on Sunday
+    validations:
+      required: false
