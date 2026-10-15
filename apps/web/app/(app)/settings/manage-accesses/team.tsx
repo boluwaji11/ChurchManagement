@@ -88,16 +88,15 @@ function Unsent({
 }) {
   return (
     <Dialog open onOpenChange={(on) => (on ? undefined : onClose())}>
-      <DialogContent
-        alert
-        title={said ? t("invite.unsent.refused", { email }) : t("invite.unsent.title")}
-      >
+      <DialogContent alert title={t("invite.unsent.title")}>
         <p className="text-[length:var(--d-text-body)] text-fg-muted">
-          {said ? `${said} ${t("invite.unsent.recorded")}` : t("invite.unsent.body", { email })}
+          {said
+            ? `${said} ${t("invite.unsent.recorded", { email })}`
+            : t("invite.unsent.body", { email })}
         </p>
         <DialogFooter>
           <Button variant="ghost" data-dismiss onClick={onClose}>
-            {t("common.close")}
+            {t("invite.unsent.later")}
           </Button>
           <Button asChild>
             <Link href="/settings/email">{t("invite.unsent.connect")}</Link>
