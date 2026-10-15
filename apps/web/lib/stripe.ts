@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { PROVIDER_BUDGET_MS } from "./budget";
 
 /**
  * R13.1, R13.2. The platform's Stripe client, and the one rule it works under.
@@ -31,7 +32,9 @@ export function stripe(): Stripe {
    * older one is what made `accounts.create` answer that v1 is no longer
    * recommended for a new integration.
    */
-  client ??= new Stripe(key);
+  /* R21.5. Fifteen seconds, rather than the eighty the client ships with. A
+     church pressing Give is not waiting eighty seconds to be told anything. */
+  client ??= new Stripe(key, { timeout: PROVIDER_BUDGET_MS });
   return client;
 }
 

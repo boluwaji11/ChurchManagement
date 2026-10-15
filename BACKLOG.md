@@ -110,7 +110,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | New |
 | HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | New |
 | HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | Resolved |
-| HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | New |
+| HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | Resolved |
 | HRT-358 | A screen somebody just looked at is still in hand when they come back | R24.11, R24.12 | Resolved |
 | HRT-359 | Every area's links are always in the navigation, so the browser can fetch them before they are pressed | R24.11, R24.12 | Resolved |
 | HRT-360 | The shell becomes a layout, so a navigation fetches the screen rather than the whole frame | R24.11, R24.12 | Resolved |
@@ -2042,6 +2042,26 @@ A church changing its own address is the case that matters, and the three writer
 clear the hold. The test that already covered turning the address off and on again is what holds that
 in place: it sets a name, reads the host, turns the address off, and expects the host to name nobody,
 which it only does if the hold was cleared.
+
+### HRT-357, how to test it
+
+Nothing on screen changes, which is the point: this is what happens when something else goes wrong.
+
+Every statement on the application's connection now has fifteen seconds. A query that has run that
+long is not going to answer a screen anybody is still looking at, and until it gives up it holds one
+of ten connections: one of those is a slow screen, ten of them is a church that can do nothing at
+all. The owner's connection is deliberately left without one, because it runs the migrations and an
+index over a large table legitimately takes minutes.
+
+Every call that leaves the building has a number on it, in `lib/budget.ts` rather than inherited from
+whichever library it belongs to. Stripe's own client waits eighty seconds by default, which is not a
+number anybody chose: a church pressing Give is not waiting eighty seconds to be told anything. It is
+fifteen now, authentication is ten, and reading something a church pointed us at is eight. The DNS
+lookups and the SMTP connection already had theirs.
+
+To see the statement timeout work, open a psql against the app role and run
+`select pg_sleep(20)`: Postgres ends it. The screens are unaffected, because nothing a church does
+takes fifteen seconds.
 
 ### HRT-358, how to test it
 

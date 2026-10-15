@@ -2,6 +2,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies, headers } from "next/headers";
 import { spanningSubdomains } from "@/lib/cookie-domain";
+import { AUTH_BUDGET_MS, budgetedFetch } from "@/lib/budget";
 
 const url = () => process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
 const key = () => process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]!;
@@ -24,7 +25,12 @@ export async function supabaseServer() {
   const agent = (await headers()).get("user-agent");
 
   return createServerClient(url(), key(), {
-    ...(agent ? { global: { headers: { "User-Agent": agent } } } : {}),
+    /* R21.5. Authentication sits in front of every screen, so it is given ten
+       seconds rather than however long the socket would hold on for. */
+    global: {
+      fetch: budgetedFetch(AUTH_BUDGET_MS),
+      ...(agent ? { headers: { "User-Agent": agent } } : {}),
+    },
     cookies: {
       getAll: () => store.getAll(),
       setAll: (list) => {

@@ -73,7 +73,10 @@ function warnIfDirectHost(url: string): void {
  */
 const POOL = { app: 10, owner: 4 } as const;
 
-const connect = (url: string, max: number) => {
+/** R21.5, R24.11. How long one statement may run before Postgres ends it. */
+const STATEMENT_BUDGET_MS = 15_000;
+
+const connect = (url: string, max: number, budgetMs?: number) => {
   warnIfDirectHost(url);
   return postgres(url, {
     max,
@@ -89,6 +92,24 @@ const connect = (url: string, max: number) => {
     idle_timeout: 300,
     connect_timeout: 30,
     prepare: false,
+    /*
+     * R21.5, R24.11. Nothing waits forever.
+     *
+     * A query that has run for fifteen seconds is not going to answer a screen
+     * anybody is still looking at, and until it gives up it holds a connection
+     * out of a pool of ten. One of those is a slow screen; ten of them is a
+     * church that cannot do anything at all. Postgres ends it and the request
+     * fails with an error the screen can say something about.
+     *
+     * Fifteen seconds rather than five, because the longest honest read in the
+     * product is a giving statement run over a year, and a church on a bad
+     * afternoon should still get it.
+     *
+     * Only the application's connection carries it. The owner's runs the
+     * migrations and the seed, where an index over a large table legitimately
+     * takes minutes and being cut off halfway is the worse outcome.
+     */
+    ...(budgetMs ? { connection: { statement_timeout: budgetMs } } : {}),
     ssl: isLoopback(url) ? false : "require",
   });
 };
@@ -125,7 +146,7 @@ export function owner(): postgres.Sql {
  */
 export function appDb(): Db {
   loadEnv();
-  appSql ??= connect(required("APP_DATABASE_URL"), POOL.app);
+  appSql ??= connect(required("APP_DATABASE_URL"), POOL.app, STATEMENT_BUDGET_MS);
   appDrizzle ??= drizzle(appSql, { schema });
   return appDrizzle;
 }
@@ -153,7 +174,49 @@ export interface TenantContext {
  * leak one church's context into the next request. That third argument is the
  * whole safety property, and removing it would be a silent cross-tenant bug.
  */
+/**
+ * R24.11, N3. What a transaction cost, for whoever is watching.
+ *
+ * The host registers one of these; this package keeps no logger of its own and
+ * knows nothing about requests. It is handed the church, how long the
+ * transaction took and whether it ended in an error, which with the address the
+ * host already has is enough to answer "what is slow, for whom".
+ */
+export type TenantObserver = (what: {
+  tenantId: string;
+  role: TenantRole;
+  ms: number;
+  failed: boolean;
+}) => void;
+
+let observer: TenantObserver | null = null;
+
+export function setTenantObserver(next: TenantObserver | null): void {
+  observer = next;
+}
+
 export async function withTenant<T>(ctx: TenantContext, work: (tx: Tx) => Promise<T>): Promise<T> {
+  const began = observer ? Date.now() : 0;
+  let failed = false;
+  try {
+    return await inTenant(ctx, work);
+  } catch (error) {
+    failed = true;
+    throw error;
+  } finally {
+    /* Reporting is the host's business and must never be the reason a church's
+       write fails, so anything it throws is dropped here. */
+    if (observer) {
+      try {
+        observer({ tenantId: ctx.tenantId, role: ctx.role, ms: Date.now() - began, failed });
+      } catch {
+        // Nothing to do about a watcher that cannot watch.
+      }
+    }
+  }
+}
+
+async function inTenant<T>(ctx: TenantContext, work: (tx: Tx) => Promise<T>): Promise<T> {
   return appDb().transaction(async (tx) => {
     /*
      * One statement for all four settings. The database is a continent away, so
