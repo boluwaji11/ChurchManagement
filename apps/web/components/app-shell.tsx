@@ -193,7 +193,12 @@ export async function AppShell({
           a panel's footer lands, and a church pressing Filter met the guide
           sitting on top of it. Gone for good once the church puts it away, and
           Settings brings it back. */}
+      {/* R22.8. Inside the spelling, like the screen is. The provider sets a
+          module variable as it renders, so anything drawn outside it reads the
+          default rather than this church's, and the server and the browser
+          then disagree about the word colour. */}
       {guide ? (
+        <SpellingProvider spelling={spelling} locale={locale}>
         <Rail
           church={session.tenantName}
           steps={guide.steps}
@@ -203,6 +208,7 @@ export async function AppShell({
           complete={guide.complete}
           shut={railShut}
         />
+        </SpellingProvider>
       ) : null}
 
       {/* R16.9. Messages in the corner, the same place a member finds them,

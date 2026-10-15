@@ -170,9 +170,8 @@ select:-webkit-autofill {
  * is a hairline that breathes, and the control under it works throughout.
  */
 [data-guide-ring] {
-  border: 2px solid var(--primary);
-  box-shadow: 0 0 0 5px color-mix(in oklch, var(--primary) 18%, transparent);
-  animation: connectapp-guide-ring 2.4s var(--ease-in-out) infinite;
+  border: 3px solid var(--primary);
+  animation: connectapp-guide-ring 1.8s var(--ease-out) infinite;
 }
 
 [data-guide-arrow] {
@@ -182,9 +181,13 @@ select:-webkit-autofill {
   filter: drop-shadow(0 1px 2px oklch(0.3 0.04 75 / 0.35));
 }
 
+/* A halo that leaves the control and fades, rather than a glow that breathes
+   in place: the first is seen from the other side of the screen, the second
+   was being missed on a busy one. */
 @keyframes connectapp-guide-ring {
-  0%, 100% { box-shadow: 0 0 0 5px color-mix(in oklch, var(--primary) 18%, transparent); }
-  50% { box-shadow: 0 0 0 9px color-mix(in oklch, var(--primary) 6%, transparent); }
+  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 55%, transparent); }
+  70% { box-shadow: 0 0 0 14px color-mix(in oklch, var(--primary) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 0%, transparent); }
 }
 
 /*
@@ -202,4 +205,105 @@ select:-webkit-autofill {
   [data-guide-arrow] {
     animation: none;
   }
+}
+
+/*
+ * R22.1, R24.x. The step somebody is on.
+ *
+ * Twelve steps down a column, and a reader who looked away has to find their
+ * place again. The marker of the one step that is now breathes: a ring going
+ * out from it, and the pip inside it brightening on the same count. It is the
+ * only thing in the rail that moves on its own, so it is unambiguous about
+ * what it is saying.
+ */
+[data-guide-now] {
+  animation: connectapp-guide-now 2.6s var(--ease-in-out) infinite;
+}
+
+[data-guide-now] [data-guide-pip] {
+  animation: connectapp-guide-pip 2.6s var(--ease-in-out) infinite;
+}
+
+@keyframes connectapp-guide-now {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 40%, transparent); }
+  55% { box-shadow: 0 0 0 7px color-mix(in oklch, var(--primary) 0%, transparent); }
+}
+
+@keyframes connectapp-guide-pip {
+  0%, 100% { scale: 1; opacity: 1; }
+  55% { scale: 0.72; opacity: 0.65; }
+}
+
+/* The bar carries its change rather than jumping to it. */
+[data-guide-bar] {
+  transition: width var(--duration-spring) var(--ease-out);
+}
+
+/*
+ * A step opening to tell its story, and a phase opening its steps. Both are a
+ * reader asking for more, so the answer arrives rather than appearing.
+ */
+[data-guide-telling],
+[data-guide-steps] {
+  animation: connectapp-guide-open var(--duration-base) var(--ease-out);
+}
+
+@keyframes connectapp-guide-open {
+  from { opacity: 0; translate: 0 -4px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-guide-now],
+  [data-guide-now] [data-guide-pip],
+  [data-guide-telling],
+  [data-guide-steps] {
+    animation: none;
+  }
+  [data-guide-bar] { transition: none; }
+}
+
+/*
+ * R22.1. The card the guide puts on the work.
+ *
+ * It sits over the panel it is pointing into, because the panel is where the
+ * work happens: an instruction that stands down the moment somebody opens the
+ * thing it named is an instruction nobody reads. The beak is a square of the
+ * card's own surface, turned, with the two edges that face outward drawn.
+ */
+[data-guide-card] {
+  /* It arrives with a bounce, then keeps a slow one going, so the eye finds
+     it again after it has been looked away from. Two pixels: enough to catch,
+     too little to nag. */
+  animation:
+    connectapp-guide-card var(--duration-spring) var(--ease-out),
+    connectapp-guide-bob 2.4s var(--ease-in-out) 0.4s 3;
+}
+
+[data-guide-beak] {
+  background: var(--surface);
+  border: 0 solid var(--primary);
+}
+
+[data-guide-beak][data-side="left"]  { border-top-width: 1px; border-right-width: 1px; }
+[data-guide-beak][data-side="right"] { border-bottom-width: 1px; border-left-width: 1px; }
+[data-guide-beak][data-side="above"] { border-bottom-width: 1px; border-right-width: 1px; }
+[data-guide-beak][data-side="below"] { border-top-width: 1px; border-left-width: 1px; }
+
+@keyframes connectapp-guide-card {
+  0% { opacity: 0; scale: 0.9; }
+  55% { opacity: 1; scale: 1.03; }
+  78% { scale: 0.99; }
+  100% { opacity: 1; scale: 1; }
+}
+
+/* It bounces three times and settles. A card that never stops moving is a
+   card somebody has to chase with the pointer. */
+@keyframes connectapp-guide-bob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -3px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-guide-card] { animation: none; }
 }

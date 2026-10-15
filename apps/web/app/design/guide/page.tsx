@@ -63,6 +63,7 @@ function Rail({
           busy={false}
           onSkip={() => {}}
           onOpenPhase={setOpen}
+          onShow={() => {}}
         />
       </div>
     </div>
@@ -133,7 +134,12 @@ export default function GuideGallery() {
             <Button data-guide="design-gallery-target">Pair a station</Button>
           </div>
 
-          <Point target={pointing ? "design-gallery-target" : null} />
+          <Point
+            target={pointing ? "design-gallery-target" : null}
+            title="A check-in station"
+            body="Press Pair a station, name the desk, and tick the rooms it checks into."
+            onClose={() => setPointing(false)}
+          />
         </div>
       </Section>
     </div>

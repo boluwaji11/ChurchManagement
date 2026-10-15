@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
-import { useOverlay } from "@/components/shell/use-overlay";
+import { X } from "lucide-react";
+import { cn } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
 
-/** Where the pointer sits relative to the control it is naming. */
+/** Which side of the control the card sits on. */
 type Side = "left" | "right" | "above" | "below";
 
 interface Spot {
@@ -13,38 +15,69 @@ interface Spot {
   width: number;
   height: number;
   side: Side;
+  /** Where the beak sits along the card's edge, in px from its start. */
+  beak: number;
 }
 
-/** How far the arrow stands off the control. */
-const GAP = 12;
-/** Up to three seconds of looking for a control that is still streaming in. */
-const PATIENCE = 3000;
+/** How far the card stands off the control. */
+const GAP = 14;
+/** The card's own width, and the breathing room it keeps from the window. */
+const CARD = 300;
+const MARGIN = 12;
 /** How much of a control has to be on screen before it is worth pointing at. */
 const EDGE = 8;
+/** Up to three seconds of looking for a control that is still streaming in. */
+const PATIENCE = 3000;
 
 /**
- * R22.1, R22.3. The guide reaches onto the screen and points at the control.
+ * R22.1, R22.3. The guide's instruction, on the work rather than beside it.
  *
  * Telling somebody the answer is on this screen and leaving them to find it is
  * most of the way to telling them nothing: a volunteer who has never seen the
  * product does not know that Pair a station is the thing in the corner. So the
  * step names a control, the control carries `data-guide` with that name, and
- * this draws a ring round it and an arrow at it, from outside the screen's own
- * markup so no screen has to know the guide exists.
+ * this draws a ring round it and a card at it saying what to do.
  *
- * It points and stops there. Nothing is dimmed, nothing is blocked, and the
- * control underneath works the whole time: a church that would rather do
- * something else first is not being held by the wrist. It gets out of the way
- * while a panel is open, it follows the control through a scroll or a resize,
- * and it goes the moment the step is answered.
+ * The card sits over everything, panels included, because the panel is where
+ * the work happens. An instruction that stands down the moment a church opens
+ * the thing it was pointing at is an instruction nobody ever reads, which is
+ * exactly what the rail's own copy was doing.
+ *
+ * It points and stops there. Nothing is dimmed, nothing is blocked, the
+ * control underneath works the whole time, and the card closes. A church that
+ * would rather do something else first is not being held by the wrist.
  */
-export function Point({ target }: { target: string | null }) {
+export function Point({
+  target,
+  title,
+  body,
+  onClose,
+}: {
+  target: string | null;
+  /** The step's name, so the card says which of the twelve this is. */
+  title: string;
+  /** The one sentence naming what to press on this screen. */
+  body: string;
+  onClose: () => void;
+}) {
   const pathname = usePathname();
-  const covered = useOverlay();
   const [spot, setSpot] = React.useState<Spot | null>(null);
+  const box = React.useRef<HTMLDivElement | null>(null);
+  const [height, setHeight] = React.useState(124);
+
+  // Its real height, once it has one, so above and below land where they say.
+  React.useEffect(() => {
+    if (!box.current) return;
+    const watch = new ResizeObserver(([entry]) => {
+      const next = Math.round(entry!.contentRect.height);
+      if (next > 0) setHeight(next + 28);
+    });
+    watch.observe(box.current);
+    return () => watch.disconnect();
+  }, [spot?.side]);
 
   React.useEffect(() => {
-    if (!target || covered) {
+    if (!target) {
       setSpot(null);
       return;
     }
@@ -57,10 +90,6 @@ export function Point({ target }: { target: string | null }) {
       const box = found.getBoundingClientRect();
       if (box.width === 0 && box.height === 0) return setSpot(null);
 
-      /*
-       * Off the screen's edge is not a place to draw an arrow, so the mark
-       * stands down until a scroll brings the control back.
-       */
       const inView =
         box.bottom > EDGE
         && box.top < window.innerHeight - EDGE
@@ -69,25 +98,52 @@ export function Point({ target }: { target: string | null }) {
       if (!inView) return setSpot(null);
 
       /*
-       * The side with room for it, preferring the left, because the guide is
-       * down the right and an arrow between the two reads as coming from it.
+       * Where the card goes is decided by the control, not by a preference.
+       *
+       * A wide control, a drop zone across a panel, has no near side: a card
+       * beside it lands a long way from anything, so it goes under it. A
+       * narrow one, a button in a corner, is best named from beside it. Then
+       * whichever of those has the room.
        */
-      const side: Side =
-        box.left > 96 ? "left"
-        : window.innerWidth - box.right > 96 ? "right"
-        : box.top > 72 ? "above"
-        : "below";
+      const roomLeft = box.left;
+      const roomRight = window.innerWidth - box.right;
+      const roomAbove = box.top;
+      const roomBelow = window.innerHeight - box.bottom;
+      const beside = CARD + GAP + MARGIN;
+      const tall = height + GAP + MARGIN;
 
-      setSpot({ top: box.top, left: box.left, width: box.width, height: box.height, side });
+      const side: Side = box.width > 420
+        ? roomBelow > tall ? "below"
+          : roomAbove > tall ? "above"
+          : roomRight > beside ? "right" : "left"
+        : roomLeft > beside ? "left"
+          : roomRight > beside ? "right"
+          : roomBelow > tall ? "below" : "above";
+
+      /*
+       * The beak points at the middle of the control, and the card is kept
+       * inside the window, so the two are worked out together rather than the
+       * beak being stuck to the card's middle and missing.
+       */
+      const middle =
+        side === "left" || side === "right"
+          ? box.top + box.height / 2
+          : box.left + box.width / 2;
+
+      setSpot({
+        top: box.top,
+        left: box.left,
+        width: box.width,
+        height: box.height,
+        side,
+        beak: middle,
+      });
     };
 
     const look = () => {
       if (stop) return;
       const found = document.querySelector(`[data-guide="${CSS.escape(target)}"]`);
-      if (found) {
-        place(found);
-        return;
-      }
+      if (found) return place(found);
       setSpot(null);
       // The screen may still be streaming. Keep looking, briefly.
       if (Date.now() - since < PATIENCE) frame = requestAnimationFrame(look);
@@ -96,9 +152,9 @@ export function Point({ target }: { target: string | null }) {
     look();
 
     /*
-     * Once it is found, its box is watched rather than polled: a row opening
-     * above it, a window resized, a panel closing underneath all move it, and
-     * none of them is a scroll event.
+     * Its box is watched rather than polled: a panel opening over it, a row
+     * above it unfolding, a window resized, all move it, and none of them is
+     * a scroll event.
      */
     const watch = () => {
       const found = document.querySelector(`[data-guide="${CSS.escape(target)}"]`);
@@ -121,7 +177,17 @@ export function Point({ target }: { target: string | null }) {
       window.removeEventListener("scroll", watch, true);
       window.removeEventListener("resize", watch);
     };
-  }, [target, covered, pathname]);
+  }, [target, pathname, height]);
+
+  // Escape closes it, the way it closes everything else in the product.
+  React.useEffect(() => {
+    if (!spot) return;
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [spot, onClose]);
 
   if (!spot) return null;
 
@@ -132,39 +198,87 @@ export function Point({ target }: { target: string | null }) {
     height: `${spot.height + 10}px`,
   };
 
-  // Where the arrow sits, and which way it faces.
-  const arrow =
-    spot.side === "left"
-      ? { top: `${spot.top + spot.height / 2 - 11}px`, left: `${spot.left - GAP - 22}px`, turn: "-90deg" }
-      : spot.side === "right"
-        ? { top: `${spot.top + spot.height / 2 - 11}px`, left: `${spot.left + spot.width + GAP}px`, turn: "90deg" }
-        : spot.side === "above"
-          ? { top: `${spot.top - GAP - 22}px`, left: `${spot.left + spot.width / 2 - 11}px`, turn: "180deg" }
-          : { top: `${spot.top + spot.height + GAP}px`, left: `${spot.left + spot.width / 2 - 11}px`, turn: "0deg" };
+  const inside = (value: number, most: number) =>
+    Math.max(MARGIN, Math.min(value, most - MARGIN));
+
+  /* Where the card goes, and where along it the beak lands. */
+  let card: React.CSSProperties;
+  let beak: React.CSSProperties;
+
+  if (spot.side === "left" || spot.side === "right") {
+    const top = inside(spot.beak - height / 2, window.innerHeight - height);
+    card = {
+      top: `${top}px`,
+      left:
+        spot.side === "left"
+          ? `${spot.left - GAP - CARD}px`
+          : `${spot.left + spot.width + GAP}px`,
+      width: `${CARD}px`,
+    };
+    beak = {
+      top: `${Math.max(14, Math.min(spot.beak - top - 5, height - 24))}px`,
+      [spot.side === "left" ? "right" : "left"]: "-5px",
+    };
+  } else {
+    const left = inside(spot.beak - CARD / 2, window.innerWidth - CARD);
+    card = {
+      left: `${left}px`,
+      top:
+        spot.side === "above"
+          ? `${spot.top - GAP - height}px`
+          : `${spot.top + spot.height + GAP}px`,
+      width: `${CARD}px`,
+    };
+    beak = {
+      left: `${Math.max(14, Math.min(spot.beak - left - 5, CARD - 24))}px`,
+      [spot.side === "above" ? "bottom" : "top"]: "-5px",
+    };
+  }
 
   return (
     /*
-     * Nothing here takes a press. The control underneath is the thing being
-     * pointed at and it has to stay pressable, so the whole layer is inert and
-     * the words belong to the guide rather than to this.
+     * Over the panels, because the panel is where the work is. The layer takes
+     * no presses so the control underneath stays the thing being pressed; only
+     * the card itself does.
      */
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-30">
-      <span data-guide-ring className="absolute rounded-[12px]" style={ring} />
-      <span
-        data-guide-arrow
-        className="absolute grid size-[22px] place-items-center"
-        style={{ ...arrow, ["--turn" as string]: arrow.turn }}
+    <div className="pointer-events-none fixed inset-0 z-[60]">
+      <span aria-hidden data-guide-ring className="absolute rounded-[12px]" style={ring} />
+
+      <div
+        ref={box}
+        data-guide-card
+        role="note"
+        aria-live="polite"
+        className={cn(
+          "pointer-events-auto absolute flex flex-col gap-1.5 rounded-[14px] p-3.5",
+          "border border-primary bg-surface shadow-[0_10px_30px_oklch(0.3_0.04_75/0.22)]",
+        )}
+        style={card}
       >
-        <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" aria-hidden>
-          <path
-            d="M12 4v13M6.5 11.5 12 17l5.5-5.5"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
+        <span
+          aria-hidden
+          data-guide-beak
+          data-side={spot.side}
+          className="absolute size-2.5 rotate-45"
+          style={beak}
+        />
+
+        <div className="flex items-start gap-2">
+          <span className="min-w-0 flex-1 text-[12px] leading-4 font-semibold tracking-[0.04em] text-primary uppercase">
+            {title}
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("setup.gotIt")}
+            className="-m-1 -mt-1.5 grid size-6 shrink-0 cursor-pointer place-items-center rounded-md text-fg-subtle transition-colors duration-instant hover:bg-sunken hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+
+        <p className="m-0 text-[13px] leading-[19px] text-fg">{body}</p>
+      </div>
     </div>
   );
 }
