@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3309 of 4808 keys.
+ * 3310 of 4809 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1965,6 +1965,7 @@ export const browserWords: Catalogue = {
   "portal.state.off": "Turned off",
   "portal.state.checking": "Checking this address",
   "portal.state.free": "This address is available",
+  "portal.state.current": "This is the address you are on already",
   "portal.copy": "Copy this address",
   "portal.copied": "Copied",
   "domain.title": "Members sign in at your own address",
