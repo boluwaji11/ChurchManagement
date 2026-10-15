@@ -100,7 +100,11 @@ export function Pipelines({
         action={
           putAway
             ? undefined
-            : <NewPipeline church={church} team={team} taken={rows.map((one) => one.name)} />
+            : (
+                <span data-guide="set-owner">
+                  <NewPipeline church={church} team={team} taken={rows.map((one) => one.name)} />
+                </span>
+              )
         }
       />
     );
