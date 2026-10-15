@@ -58,9 +58,10 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
   await rememberChurch(slug);
 
   /*
-   * R22.1. Step three. The rail on the two screens before this one promised a
-   * setup step, and it used to drop somebody into the directory instead, where
-   * the only row is themselves.
+   * R22.1. Straight into the product, where the guide is already beside the
+   * screen on its first step. Setting up used to be a page of its own, which
+   * meant a church met a list of links before it had seen the product the
+   * links go to.
    */
-  redirect("/setup");
+  redirect("/dashboard");
 }

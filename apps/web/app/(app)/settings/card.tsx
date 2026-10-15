@@ -10,6 +10,7 @@ import { ChevronDown } from "lucide-react";
  * card.
  */
 export function SettingCard({
+  id,
   icon,
   title,
   lede,
@@ -19,6 +20,11 @@ export function SettingCard({
   children,
   className,
 }: {
+  /**
+   * R22.1. Its own address on the screen, for a card the setup guide links
+   * straight to. The guide rings whatever its fragment names on arrival.
+   */
+  id?: string;
   /** The mark at the head of the card, in the product's own colour. */
   icon?: React.ReactNode;
   title: string;
@@ -66,6 +72,7 @@ export function SettingCard({
 
   return (
     <section
+      id={id}
       className={`flex flex-col gap-4 rounded-[14px] border border-line bg-surface p-5 shadow-sm ${className ?? ""}`}
     >
       {onPress ? (

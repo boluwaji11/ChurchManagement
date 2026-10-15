@@ -137,7 +137,7 @@ export function EmailSetup({
               a church has to work out the point of. */}
           <h3 className="m-0 font-display text-[18px] leading-6 text-fg">{t("email.choose")}</h3>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2" data-guide="connect-email">
             {/* A church picking between its own mail server and a sending
                 service cannot pick without being told the difference, so each
                 card says what that option does. */}

@@ -44,7 +44,7 @@ export function AuthShell({
   /** What sits below the card: the other way in, or the station. */
   footer?: React.ReactNode;
   /** Which of the three steps of starting a church this screen is. */
-  step?: 1 | 2 | 3;
+  step?: 1 | 2;
   /** Drawings for the margins, as the website places them. */
   art?: readonly Piece[];
   /** Who is signed in, on the right of the bar where a product puts it. */
@@ -109,17 +109,16 @@ export function AuthShell({
 }
 
 /**
- * R22.1. The three steps of starting a church, and which one this is.
+ * R22.1. The two steps of starting a church, and which one this is.
  *
  * Somebody filling in a sign-up form wants to know how many more there are. The
- * steps behind this one are filled, the one ahead is a hairline.
+ * steps behind this one are filled, the one ahead is a hairline. There were
+ * three while setting up was a screen of its own; the second one now ends in
+ * the product, with the guide beside it.
  */
-export function AuthSteps({ at }: { at: 1 | 2 | 3 }) {
+export function AuthSteps({ at }: { at: 1 | 2 }) {
   return (
-    <Stages
-      labels={[t("auth.step.account"), t("auth.step.church"), t("auth.step.setup")]}
-      at={at}
-    />
+    <Stages labels={[t("auth.step.account"), t("auth.step.church")]} at={at} />
   );
 }
 

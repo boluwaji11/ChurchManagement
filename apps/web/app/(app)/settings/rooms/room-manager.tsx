@@ -432,7 +432,7 @@ export function AddRoom({}: {  }) {
       pending={pending}
       title={t("rooms.add")}
       trigger={
-        <Button>
+        <Button data-guide="add-room">
           <Plus /> {t("rooms.add")}
         </Button>
       }

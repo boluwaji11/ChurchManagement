@@ -54,10 +54,10 @@ export function InboxMark({
   /**
    * What else is already in that corner.
    *
-   * The tab bar a phone carries on the staff screens, and the setup path that
-   * follows a new church around until it is finished.
+   * The tab bar a phone carries on the staff screens, and the setup guide,
+   * which is a column down the right while a church is still walking it.
    */
-  clear?: "none" | "tabs" | "dock";
+  clear?: "none" | "tabs" | "rail" | "rail-shut";
 }) {
   const [open, setOpen] = React.useState(false);
   /*
@@ -202,13 +202,19 @@ export function InboxMark({
     <div
       className={`${covered && !raised ? "pointer-events-none opacity-0" : ""} transition-opacity duration-fast ${floating
         /* Clear of the home indicator on a phone, of the tab bar above it,
-           and of the setup path while a church is still walking it. */
-        ? `fixed right-[max(1rem,env(safe-area-inset-right))] ${raised ? "z-[60]" : "z-40"} ${
-            clear === "dock"
-              ? "bottom-[calc(10rem+env(safe-area-inset-bottom))] sm:bottom-[13.5rem]"
-              : clear === "tabs"
-                ? "bottom-[calc(5.5rem+env(safe-area-inset-bottom))] sm:bottom-[calc(1rem+env(safe-area-inset-bottom))]"
-                : "bottom-[calc(1rem+env(safe-area-inset-bottom))]"
+           and of the setup guide's column beside it. The guide is a column
+           rather than something floating, so the mark moves along the bottom
+           rather than up the side, and only where the column is drawn. */
+        ? `fixed ${raised ? "z-[60]" : "z-40"} ${
+            clear === "rail"
+              ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[21.75rem]"
+              : clear === "rail-shut"
+                ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[3.75rem]"
+                : "right-[max(1rem,env(safe-area-inset-right))]"
+          } ${
+            clear === "none"
+              ? "bottom-[calc(1rem+env(safe-area-inset-bottom))]"
+              : "bottom-[calc(5.5rem+env(safe-area-inset-bottom))] sm:bottom-[calc(1rem+env(safe-area-inset-bottom))]"
           }`
         : "relative"}`}
     >

@@ -284,6 +284,7 @@ function ChooseFile({ busy, onFile }: { busy: boolean; onFile: (f: File) => void
       <button
         type="button"
         disabled={busy}
+        data-guide="import-file"
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => {
           e.preventDefault();

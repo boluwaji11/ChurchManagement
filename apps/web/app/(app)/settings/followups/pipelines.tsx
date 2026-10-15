@@ -398,7 +398,7 @@ export function NewPipeline({
   return (
     <Sheet open={open} onOpenChange={reset}>
       <SheetTrigger asChild>
-        <Button><Plus /> {t("pipelines.add")}</Button>
+        <Button data-guide="add-pipeline"><Plus /> {t("pipelines.add")}</Button>
       </SheetTrigger>
       <SheetContent
         title={picking ? t("pipelines.start") : t("pipelines.addTitle")}
