@@ -209,7 +209,7 @@ export function InboxMark({
             clear === "rail"
               ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[24.75rem]"
               : clear === "rail-shut"
-                ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[3.75rem]"
+                ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[4rem]"
                 : "right-[max(1rem,env(safe-area-inset-right))]"
           } ${
             clear === "none"

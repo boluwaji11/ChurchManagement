@@ -202,9 +202,14 @@ export function Rail({
       <SheetTrigger asChild>
         <button
           type="button"
+          /* R24.6. Under the bell, which is where the frame already keeps the
+             things that are about the whole screen rather than about the
+             screen's own work. The bottom corners belong to the tab bar and
+             to messages. */
           className={cn(
-            "fixed left-4 z-40 flex cursor-pointer items-center gap-2 rounded-full lg:hidden",
-            "bottom-[calc(5rem+env(safe-area-inset-bottom))]",
+            "fixed z-40 flex cursor-pointer items-center gap-2 rounded-full lg:hidden",
+            "right-[max(1rem,env(safe-area-inset-right))]",
+            "top-[calc(4.25rem+env(safe-area-inset-top))]",
             "border border-line-strong bg-surface px-3.5 py-2 shadow-md",
             "text-[13px] font-semibold text-fg",
           )}
@@ -232,17 +237,17 @@ export function Rail({
           title={undefined}
           className={cn(
             "sticky top-0 hidden h-dvh shrink-0 cursor-pointer border-l border-line lg:flex",
-            "w-11 flex-col items-center justify-start gap-3 bg-surface pt-5",
+            "w-12 flex-col items-center justify-start gap-3.5 bg-surface pt-5",
             "transition-colors duration-instant hover:bg-sunken",
           )}
         >
           <PanelRightOpen className="size-[18px] shrink-0 text-fg-muted" aria-hidden />
           <span
             aria-hidden
-            className="flex items-center gap-2 text-[12px] font-semibold text-fg-muted [writing-mode:vertical-rl]"
+            className="flex items-center gap-2.5 text-[14px] font-bold tracking-[0.12em] text-fg-muted uppercase [writing-mode:vertical-rl]"
           >
             {t("setup.tab")}
-            <span className="tabular-nums text-primary">
+            <span className="tracking-normal tabular-nums text-primary">
               {settled}/{steps.length}
             </span>
           </span>

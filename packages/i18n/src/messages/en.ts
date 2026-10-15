@@ -2889,7 +2889,7 @@ export const en = {
   "setup.phase.ready.why": "None of this is needed to run a service.",
 
   "setup.step.members": "Bring your members in",
-  "setup.what.members": "Upload a CSV or Excel file containing your congregation's information, such as names, phone numbers, and email addresses. We'll automatically match the columns in your file to the right fields in our system. You can also add your members one at a time.",
+  "setup.what.members": "Upload a CSV or Excel file containing your congregation's information, such as names, phone numbers, and email addresses. We'll automatically match the columns in your file to the right fields in ConnectApp. You can also add your members one at a time.",
   "setup.why.members": "Add a member once, and their information will be available across groups, check-in, volunteers, giving, and reports.",
   "setup.at.members": "Drop a file here, or press Choose file. We show you what would change and wait for your go-ahead. To add somebody by hand instead, close this and press Add a member.",
 

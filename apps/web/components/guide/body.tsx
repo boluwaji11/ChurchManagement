@@ -295,7 +295,7 @@ function Row({
               <span>{t(`setup.why.${step.step}` as never)}</span>
             </p>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 pl-[18px]">
               {/* Show me is the whole of it: on this screen it points at the
                   control again, and anywhere else it opens the screen and
                   points when it gets there. The instruction itself is on the
