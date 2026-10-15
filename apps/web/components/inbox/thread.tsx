@@ -12,8 +12,8 @@ import { t } from "@connectapp/i18n";
 import { Markdown } from "@/components/markdown";
 import { EmojiButton, LIKE, Marks } from "./marks";
 import { LineActions } from "./line-actions";
-import { editLine, markMessage } from "@/app/messages/actions";
-import { keepDraft, send, messageFileLink } from "@/app/messages/actions";
+import { editLine, markMessage } from "@/app/(app)/messages/actions";
+import { keepDraft, send, messageFileLink } from "@/app/(app)/messages/actions";
 import { UPLOAD_RULES } from "@connectapp/db/rules";
 import type { Said, SentFile } from "./data";
 

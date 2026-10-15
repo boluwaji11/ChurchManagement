@@ -14,7 +14,6 @@ import { PublicFooter } from "./public-footer";
 import { readsAs } from "@/lib/spelling";
 import { shellData } from "@/lib/shell-data";
 import { photoUrls } from "@/lib/photos";
-import { TabTitle } from "./tab-title";
 import type { Session } from "@/lib/session";
 import { Tooltip } from "@connectapp/ui";
 
@@ -35,23 +34,9 @@ export { PortalTitle, PortalSection, Panel };
  */
 export async function PortalShell({
   session,
-  tab,
-  tabs,
-  action,
   children,
 }: {
   session: Session;
-  /** R17.1. The screen's own name, which the browser tab carries. */
-  tab?: string;
-  tabs?: PortalTab[];
-  /**
-   * R24.6. The screen's one action, drawn where the staff shell draws it.
-   *
-   * A group's leader may read their group here and still be the person who
-   * puts somebody in it, so the slot exists on both shells and a screen that
-   * serves both passes the same thing to either.
-   */
-  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const shell = await shellData(session);
@@ -72,7 +57,7 @@ export async function PortalShell({
   const photoUrl = shell.photoKey ? (signed[shell.photoKey] ?? null) : null;
 
   const slug = session.tenantSlug;
-  const theTabs: PortalTab[] = tabs ?? [
+  const theTabs: PortalTab[] = [
     { label: t("nav.home"), href: "/home" },
     { label: t("nav.events"), href: "/events" },
     { label: t("nav.groups"), href: "/groups" },
@@ -97,7 +82,6 @@ export async function PortalShell({
       {/* R17.11. What a phone reads when somebody adds this church to their
           home screen, and the worker that keeps it answering with no signal.
           React hoists both into the head. */}
-      <TabTitle page={tab} church={session.tenantName} />
       <link rel="manifest" href={"/manifest.webmanifest"} />
       <meta name="theme-color" content="#faf8f5" />
       <Installed />
@@ -153,7 +137,6 @@ export async function PortalShell({
       >
         <ChurchMarkProvider logoUrl={logoUrl}>
           <SpellingProvider spelling={spelling} locale={locale}>
-            {action ? <div className="flex justify-end">{action}</div> : null}
             {children}
           </SpellingProvider>
         </ChurchMarkProvider>

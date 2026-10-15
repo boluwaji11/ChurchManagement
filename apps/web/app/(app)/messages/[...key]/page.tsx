@@ -1,0 +1,66 @@
+import { canAnswerMessages } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
+import { Screen } from "@/components/screen";
+import { Denied } from "@/components/denied";
+import { requireScreen } from "@/lib/shell-data";
+import { tabMetadata } from "@/lib/page-metadata";
+import { InboxScreen } from "@/components/inbox/screen";
+import { readInbox } from "@/lib/inbox-read";
+
+export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ }>;
+}) {
+  const {} = await searchParams;
+  return tabMetadata(t("inbox.title"));
+}
+
+/**
+ * R16.9. One conversation, open.
+ *
+ * The address is who it is with. A row id never appears in a link in this
+ * product, and "the conversation with Jane Smith" survives whatever the row
+ * holding it is called.
+ */
+export default async function MessageThreadPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ key: string[] }>;
+  searchParams: Promise<{ }>;
+}) {
+  /* R16.9. The address is who it is with: a person's own, or a group's,
+     which carries a kind in front of it. */
+  const { key: parts } = await params;
+  const key = parts.join("/");
+  const {} = await searchParams;
+  const session = await requireScreen();
+
+  if (!canAnswerMessages(session)) {
+    return (
+      <Screen title={t("inbox.title")}>
+        <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
+      </Screen>
+    );
+  }
+
+  /* R16.9. Read here, so the screen arrives filled. */
+  const first = await readInbox(session, { key, reading: true });
+
+  return (
+    <Screen title={t("inbox.title")} wide>
+      <InboxScreen
+        church={session.tenantSlug}
+        churchName={session.tenantName}
+        office
+        where="/messages"
+        open={key}
+        initial={first}
+      />
+    </Screen>
+  );
+}

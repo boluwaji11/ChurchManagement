@@ -1,5 +1,5 @@
 import { ThemeDock } from "./theme-dock";
-import type { Theme } from "@/app/settings/theme-actions";
+import type { Theme } from "@/app/(app)/settings/theme-actions";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@connectapp/ui";

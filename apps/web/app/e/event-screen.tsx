@@ -62,7 +62,7 @@ export async function EventScreen({
   if (!inPortal) return page;
 
   return (
-    <PortalShell session={inPortal} tab={t("nav.events")}>
+    <PortalShell session={inPortal}>
       <BackLink href={"/events"} label={t("nav.events")} />
       {page}
     </PortalShell>

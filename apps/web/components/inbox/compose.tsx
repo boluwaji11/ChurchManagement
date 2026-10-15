@@ -6,7 +6,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { kindsICanWriteTo, whoToWriteTo, type WriteKind, type WriteTo } from "@/app/messages/actions";
+import { kindsICanWriteTo, whoToWriteTo, type WriteKind, type WriteTo } from "@/app/(app)/messages/actions";
 import { Writer } from "./thread";
 
 /**

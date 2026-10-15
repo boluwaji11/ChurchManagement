@@ -2028,16 +2028,6 @@ was handed a word their country does not write.
 Change the church's country to the United Kingdom in Settings, Church, download again, and confirm
 the same rows read Cheque. The spelling is resolved from the church's record, as everywhere else.
 
-### HRT-361, how to test it
-
-Open Giving as a church in the United States and download the gifts. The Method column now reads
-Check, Cash, Card, Bank, In kind and Other, which is what the same gift says on the screen. It wrote
-the stored value, `cheque`, for every church, so a treasurer reconciling the file against the screen
-was handed a word their country does not write.
-
-Change the church's country to the United Kingdom in Settings, Church, download again, and confirm
-the same rows read Cheque. The spelling is resolved from the church's record, as everywhere else.
-
 ### HRT-358, how to test it
 
 Sign in, then click between two tabs in the same part of the navigation, say Members and Groups, and

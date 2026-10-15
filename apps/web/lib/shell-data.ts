@@ -41,8 +41,9 @@ export interface ShellData {
  * Measured at about 500ms to build, and it was built again on every single
  * navigation, which made it the largest cost in the product: a navigation that
  * stays inside one layout costs 65ms, and one that rebuilds the frame costs
- * about 690ms. Until the frame is a layout everywhere (HRT-360) this is what
- * stops a church paying for it on every press.
+ * about 690ms. The frame is a layout now (HRT-360), so a navigation inside the
+ * product does not rebuild it at all; this hold is what covers the first screen
+ * of a visit, a reload, and a refresh after a write.
  *
  * Twenty seconds, because what it holds is a bell count, a notification list,
  * the church's mark, the setup path and whether the church is approved yet.

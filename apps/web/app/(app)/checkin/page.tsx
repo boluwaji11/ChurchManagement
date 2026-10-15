@@ -1,0 +1,277 @@
+import Link from "next/link";
+import { FileWarning, Tag, Printer, Move, Plus } from "lucide-react";
+import {
+  withTenant, listRooms, listOccurrences, listStations, listIncidents, listPeople,
+  visitsFor,
+  roomBoard, roomRoster, arriving, canSupervise, canReadIncidents,
+  type RoomRosterEntry,
+} from "@connectapp/db";
+import { serviceNow } from "@connectapp/db/rules";
+import { Button } from "@connectapp/ui";
+import { t } from "@connectapp/i18n";
+import { Empty } from "@/components/empty";
+import { Screen } from "@/components/screen";
+import { requireScreen } from "@/lib/shell-data";
+import { shellData } from "@/lib/shell-data";
+import { churchNow } from "@/lib/church-now";
+import { ageLine } from "@/lib/room-ages";
+import { Floor, type FloorStart } from "./floor";
+import { CheckInSheet } from "./check-in-sheet";
+import { Denied } from "@/components/denied";
+import { tabMetadata } from "@/lib/page-metadata";
+
+export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ }>;
+}) {
+  const {} = await searchParams;
+  return tabMetadata(t("checkin.title"));
+}
+
+/** "09:00" as a church says it. */
+const readableTime = (hhmm: string) => {
+  const [h, m] = hhmm.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h ?? 0, m ?? 0, 0, 0);
+  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", hour12: true });
+};
+
+/**
+ * R8.14 to R8.19. Children's ministry during a service.
+ *
+ * The screen the person walking the corridor reads: who has arrived and is not
+ * in a class yet, and every class with its numbers. The desk is somewhere else,
+ * because the desk is a queue and belongs to whoever is standing at it.
+ */
+export default async function CheckinPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ service?: string }>;
+}) {
+  const params = await searchParams;
+  const session = await requireScreen();
+
+  // R1.5. Asked before anything is read, so a role that cannot run check-in
+  // does not set the board's dozen queries going on its way to being refused.
+  if (!canSupervise(session)) {
+    return (
+      <Denied role={session.role} action="checkIn" church={session.tenantSlug} />
+      
+    );
+  }
+
+  // The frame around this screen has already read the church, and the clock the
+  // board runs on comes out of it.
+  const profile = (await shellData(session)).church;
+  const clock = churchNow(profile?.timezone ?? "America/Chicago");
+
+  const data = await withTenant(
+    { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
+    async (tx) => {
+      /*
+       * Everything that does not depend on which service is chosen, in one pass
+       * down the connection.
+       */
+      const [today, rooms, directory, stationList, incidents] = await Promise.all([
+        listOccurrences(tx, { from: clock.date, to: clock.date }),
+        listRooms(tx),
+        // R8.14. Anybody the church holds who is not already checked in to
+        // this service, so a child who walked past the desk can still be
+        // checked in from here.
+        listPeople(tx, { sort: "name" }),
+        listStations(tx),
+        // R8.13. The number on the Incidents button is the reports where the
+        // guardian has still to be told, which is the one thing left open on a
+        // report that has been written.
+        canReadIncidents(session) ? listIncidents(tx, { role: session.role }) : [],
+      ]);
+
+      const services = today
+        .filter((o) => o.status === "scheduled")
+        .map((o) => ({
+          id: o.id,
+          slug: o.slug,
+          name: o.name,
+          startsAt: o.startsAt,
+          readableTime: readableTime(o.startsAt),
+        }));
+
+      // The one running or about to, and outside those hours the first of the
+      // day, because somebody opening this at nine at night is looking back at
+      // what happened rather than at nothing.
+      // R24.6. Found by its readable address or by its id, so the board reads
+      // from the record's own id rather than from whatever was in the URL.
+      const chosen =
+        services.find((s) => s.slug === params.service || s.id === params.service)?.id ||
+        serviceNow(services, clock.time) ||
+        services[0]?.id ||
+        "";
+
+      // The three reads that needed to know which service, together.
+      const [board, waiting, here] = await Promise.all([
+        chosen ? roomBoard(tx, chosen) : null,
+        chosen ? arriving(tx, chosen, clock.date) : [],
+        chosen ? visitsFor(tx, chosen) : [],
+      ]);
+
+      // One roster per room. A church with eight rooms spent eight round trips
+      // here, in turn, while a volunteer waited at the desk.
+      const lists = await Promise.all(
+        (board?.rooms ?? []).map(async (room) =>
+          [room.roomId, await roomRoster(tx, chosen, room.roomId)] as const,
+        ),
+      );
+      const rosters: Record<string, RoomRosterEntry[]> = Object.fromEntries(lists);
+
+      return {
+        clock,
+        services,
+        chosen,
+        rooms,
+        board,
+        rosters,
+        waiting,
+        directory,
+        here,
+        stations: stationList.length,
+        openIncidents: incidents.filter((i) => i.notifiedAt === null).length,
+      };
+    },
+  );
+
+  const service = data.services.find((s) => s.id === data.chosen);
+  const present = new Set(data.here.map((visit) => visit.memberId));
+
+  const action = (
+    <CheckInSheet
+      occurrenceId={data.chosen}
+      candidates={[
+        ...data.waiting.map((child) => ({
+          value: `v:${child.visitId}`,
+          label: child.name,
+          keywords: child.household ?? undefined,
+        })),
+        ...data.directory
+          .filter((person) => !present.has(person.id))
+          .map((person) => ({
+            value: `p:${person.id}`,
+            label: person.displayName,
+            keywords: person.householdName ?? undefined,
+          })),
+      ]}
+      rooms={data.rooms.map((room) => ({ id: room.id, name: room.name }))}
+      trigger={
+        <Button>
+          <Plus /> {t("checkin.check")}
+        </Button>
+      }
+    />
+  );
+
+  return (
+    /* R24.6. The screen's one action is on its name's row. The row under it
+       keeps the other things this screen can do, which are tools rather than
+       the errand somebody opened it for. */
+    <Screen title={t("checkin.title")}>
+      <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-3.5">
+          {canReadIncidents(session) ? (
+            <ToolLink href={"/incidents"}>
+              <FileWarning /> {t("incident.title")}
+              {data.openIncidents > 0 ? (
+                <span
+                  data-numeric
+                  className="rounded-full px-1.5 text-[11px] font-semibold"
+                  style={{ background: "var(--hue-amber-500)", color: "var(--color-fg)" }}
+                >
+                  {data.openIncidents}
+                </span>
+              ) : null}
+            </ToolLink>
+          ) : null}
+
+          <ToolLink href={"/checkin/labels"}>
+            <Tag /> {t("checkin.labels")}
+          </ToolLink>
+
+          <ToolLink
+            href={`/checkin/rooms/print?service=${service?.slug ?? ""}`}
+            target="_blank"
+          >
+            <Printer /> {t("checkin.rosters")}
+          </ToolLink>
+
+          {/* The errand itself, at the end of the row the tools are on. */}
+          {action}
+        </div>
+
+        {/* How the board is worked, under the row rather than inside it. */}
+        <span className="flex items-center gap-1.5 text-[12px] text-fg-subtle">
+          <Move className="size-3.5" aria-hidden /> {t("board.dragChild")}
+        </span>
+      </div>
+
+      {/* A church with several services today picks which one it is looking at. */}
+      {data.services.length > 1 ? (
+        <div className="flex flex-wrap gap-2">
+          {data.services.map((one) => (
+            <Link
+              key={one.id}
+              href={`/checkin?service=${one.slug}`}
+              aria-current={one.id === data.chosen ? "page" : undefined}
+              className={`flex h-9 items-center rounded-full px-3.5 text-[13px] font-medium ${
+                one.id === data.chosen
+                  ? "border border-fg bg-fg text-canvas"
+                  : "border border-line-strong bg-surface text-fg hover:bg-sunken"
+              }`}
+            >
+              {t("checkin.serviceAt", { name: one.name, time: one.readableTime })}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+
+      {data.chosen ? (
+        <Floor
+          church={session.tenantSlug}
+          occurrenceId={data.chosen}
+          rooms={data.rooms.map((r) => ({ roomId: r.id, ages: ageLine(r) }))}
+          start={
+            {
+              board: data.board,
+              rosters: data.rosters,
+              waiting: data.waiting,
+            } satisfies FloorStart
+          }
+        />
+      ) : (
+        <Empty icon="calendar" title={t("checkin.noService.title")} body={t("checkin.noService.body")} />
+      )}
+    </Screen>
+  );
+}
+
+/** The design's 34px secondary buttons along the top of this screen. */
+function ToolLink({
+  href,
+  target,
+  children,
+}: {
+  href: string;
+  target?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      target={target}
+      className="flex h-9 items-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg hover:bg-sunken [&_svg]:size-4"
+    >
+      {children}
+    </Link>
+  );
+}
