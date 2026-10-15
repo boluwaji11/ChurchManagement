@@ -103,7 +103,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-347 | The frame and the page read at the same time | R24.11 | Resolved |
 | HRT-348 | Fifteen screens read their independent rows together | R24.11 | Resolved |
 | HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | Resolved |
-| HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | New |
+| HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | Resolved |
 | HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | New |
 | HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | New |
 | HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | Resolved |
@@ -2108,6 +2108,29 @@ What made it possible everywhere: the frame is a layout now (HRT-360), so a `loa
 the screen rather than the product. Before that it would have taken the sidebar with it, which reads
 as blinking. The same boundary is what Next needs before it will prefetch a dynamic route, which is
 the other half of HRT-359.
+
+### HRT-350, how to test it
+
+Open the directory. The chip saying how many possible duplicates there are says the same number it
+said before. Open it, and the queue holds the same groups, in the same order, with the same reasons.
+Merge one and confirm it comes off both.
+
+What changed is underneath. The count and the queue both asked "who is a copy of somebody" by pulling
+every member and every contact method into memory and matching them against each other, and the
+directory ran that on every press for a number in a chip. Two members can only match on a key they
+share, so the database now says which keys more than one member holds, and only those people are
+read: a church with six hundred members and nine copies reads eighteen rows rather than two thousand.
+
+The rules stay where they were. The database narrows; `findMatches` still decides what a match means
+and still rules out two people with the same name and different birthdays. The normalising is the
+same in both places, and a test holds the narrow read against a whole-church read and fails if they
+ever find different pairs. Another names somebody twice, once with an accent and once without, which
+is the case where a normalising written out twice would quietly drift apart.
+
+Measured against a build, four runs: the duplicates screen 764ms to 776ms becomes 661ms to 737ms, and
+the directory is unchanged within the noise. The seeded church is small and the database is on the
+same desk, so this is the shape of the win rather than the size of it: what it stops is a church's
+whole directory crossing the wire for a number.
 
 ### HRT-348, how to test it
 

@@ -68,7 +68,7 @@ export {
 } from "./repo/custom-fields";
 export {
   mergePeople, mergeCluster, undoMerge, listMerges, countMerges,
-  findDuplicatePairs, findDuplicateClusters, MERGE_UNDO_WINDOW_DAYS,
+  findDuplicatePairs, findDuplicateClusters, pairsFrom, MERGE_UNDO_WINDOW_DAYS,
   type MergePlan, type MergeResult, type MergeSummary,
   type DuplicatePair, type DuplicateCluster,
 } from "./repo/merge";
@@ -187,7 +187,7 @@ export {
   type TargetField,
 } from "./import/columns";
 export {
-  buildMatchIndex, indexPeople, findMatches, indexNewPerson,
+  buildMatchIndex, buildDuplicateIndex, indexPeople, findMatches, indexNewPerson,
   normaliseName, normaliseEmail, normalisePhone, type ExistingPerson,
   type Match, type MatchIndex, type Candidate, type Confidence,
 } from "./import/match";

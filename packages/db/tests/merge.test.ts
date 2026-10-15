@@ -10,7 +10,9 @@ import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";
 import {
   mergePeople, undoMerge, listMerges, findDuplicatePairs, findDuplicateClusters, mergeCluster,
+  pairsFrom,
 } from "../src/repo/merge";
+import { buildDuplicateIndex, buildMatchIndex } from "../src/import/match";
 import { createPerson, getPersonForEdit, listPeople, listTagsForPerson } from "../src/repo/members";
 import { createTag, setPersonTag } from "../src/repo/tags";
 import {
@@ -251,6 +253,48 @@ describe("the review queue (R2.8)", () => {
     const mine = pairs.filter((p) => p.a.name.includes(SUR) && p.b.name.includes(SUR));
     expect(mine).toHaveLength(1);
     expect(mine[0]!.confidence).toBe("certain");
+  });
+
+  /*
+   * R2.8, R24.11. The queue reads only the people who share a key with
+   * somebody, and the database works out that key. So the way it normalises a
+   * name has to be the way `normaliseName` does, or a church would stop being
+   * told about the copies whose spelling differs by an accent, which is one of
+   * the spellings a church actually gets.
+   */
+  it("finds a copy of somebody whose name is written with an accent", async () => {
+    await make("Joséphine");
+    await make("Josephine");
+
+    const pairs = await run(riverside, "owner", (tx) => findDuplicatePairs(tx));
+    const mine = pairs.filter(
+      (p) => p.a.name.includes("phine") && p.b.name.includes("phine"),
+    );
+    expect(mine).toHaveLength(1);
+    expect(mine[0]!.confidence).toBe("possible");
+  });
+
+  /*
+   * R2.8, R24.11. The queue reads only the people who share a key with
+   * somebody else, worked out in SQL. This is the guarantee that the narrowing
+   * drops nobody: the same church, read whole, finds the same pairs.
+   */
+  it("finds what reading the whole church finds", async () => {
+    await make("Priya", { email: `priya.${SUR}@example.org` });
+    await make("Priya", { email: `priya.${SUR}@example.org` });
+    await make("Nkechi");
+    await make("Nkechi");
+
+    const [narrow, whole] = await run(riverside, "owner", async (tx) => [
+      pairsFrom(await buildDuplicateIndex(tx)),
+      pairsFrom(await buildMatchIndex(tx)),
+    ]);
+
+    const key = (list: { a: { id: string }; b: { id: string }; confidence: string }[]) =>
+      list.map((p) => [p.a.id, p.b.id].sort().join(":") + "/" + p.confidence).sort();
+
+    expect(key(narrow)).toEqual(key(whole));
+    expect(narrow.length).toBeGreaterThan(0);
   });
 
   it("lists a pair once, not twice", async () => {

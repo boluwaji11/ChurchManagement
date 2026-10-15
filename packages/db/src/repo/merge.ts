@@ -7,7 +7,9 @@ import { canArchivePeople, PermissionError, type TenantRole } from "../roles";
 import { InvalidInputError } from "../errors";
 import { leadWith } from "./contacts";
 import { getPersonForEdit, type PersonInput } from "./members";
-import { buildMatchIndex, findMatches, type Confidence } from "../import/match";
+import {
+  buildDuplicateIndex, findMatches, type Confidence, type MatchIndex,
+} from "../import/match";
 
 /**
  * R2.8. Merging two records that are one person, and undoing it.
@@ -412,7 +414,18 @@ export interface DuplicatePair {
  * disagree about what a duplicate is would be worse than one.
  */
 export async function findDuplicatePairs(db: Tx): Promise<DuplicatePair[]> {
-  const index = await buildMatchIndex(db);
+  return pairsFrom(await buildDuplicateIndex(db));
+}
+
+/**
+ * The pairs an index holds, which is the part that has no database in it.
+ *
+ * Kept separate so the narrowed index can be held against one built from the
+ * whole church and shown to find the same pairs. R24.11 made the queue read
+ * only the people who share a key with somebody; this is what proves the
+ * narrowing drops nobody.
+ */
+export function pairsFrom(index: MatchIndex): DuplicatePair[] {
   const seen = new Set<string>();
   const pairs: DuplicatePair[] = [];
 

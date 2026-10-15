@@ -1,4 +1,4 @@
-import { isNull } from "drizzle-orm";
+import { isNull, sql } from "drizzle-orm";
 import type { MessageKey } from "@connectapp/i18n";
 import type { Tx } from "../client";
 import { members, contactMethods } from "../schema/members";
@@ -118,6 +118,127 @@ export async function buildMatchIndex(db: Tx): Promise<MatchIndex> {
       phones: phones.get(r.id) ?? [],
     })),
   );
+}
+
+/**
+ * R2.8, R24.11. The same index, over the people who could be in it at all.
+ *
+ * The review queue and the directory's count both ask the church "who is a copy
+ * of somebody else", and the answer was found by pulling every member and every
+ * contact method into memory and matching them against each other. On the
+ * directory that ran on every press, for a number in a chip.
+ *
+ * Two members can only match on a key they share: a normalised email, the last
+ * ten digits of a phone, or a name as this file normalises one. So the database
+ * answers which keys more than one member has, and only those people are read.
+ * A church with six hundred members and nine duplicates reads eighteen rows
+ * rather than six hundred.
+ *
+ * The normalising below is the same as the three functions above it, in SQL:
+ * lowercased, NFKD, combining marks dropped, anything that is not a letter or a
+ * digit dropped. The rules that decide what a match means, and the dates of
+ * birth that rule one out, stay in `findMatches`, which is the only place they
+ * are written down.
+ */
+export async function buildDuplicateIndex(db: Tx): Promise<MatchIndex> {
+  const nameKeySql = (column: string) => sql.raw(
+    `regexp_replace(regexp_replace(lower(normalize(coalesce(${column}, ''), NFKD)),`
+    + ` E'[\\u0300-\\u036F]', '', 'g'), '[^a-z0-9]', '', 'g')`,
+  );
+
+  /* One statement: which keys more than one member has, who holds them, and
+     everything about those people. The emails come back in the order the
+     record shows them, because the queue matches on the first one. */
+  const found = await db.execute<DuplicateRow>(sql`
+    with people as (
+      select m.id,
+             ${nameKeySql("m.first_name")} as first_key,
+             ${nameKeySql("m.last_name")} as last_key,
+             ${nameKeySql("m.preferred_name")} as preferred_key,
+             m.preferred_name
+        from members m
+       where m.archived_at is null
+    ),
+    keyed as (
+      select id, 'n:' || first_key || '|' || last_key as key from people
+      union all
+      select id, 'n:' || preferred_key || '|' || last_key from people
+       where preferred_name is not null and preferred_name <> ''
+      union all
+      select c.member_id as id, 'e:' || lower(btrim(c.value))
+        from contact_methods c join people p on p.id = c.member_id
+       where c.kind = 'email'
+      union all
+      select c.member_id as id,
+             'p:' || right(regexp_replace(c.value, '[^0-9]', '', 'g'), 10)
+        from contact_methods c join people p on p.id = c.member_id
+       where c.kind <> 'email'
+         and length(regexp_replace(c.value, '[^0-9]', '', 'g')) >= 7
+    ),
+    shared as (
+      select key from keyed group by key having count(distinct id) > 1
+    ),
+    candidates as (
+      select distinct k.id from keyed k join shared s on s.key = k.key
+    )
+    select m.id,
+           m.first_name,
+           m.last_name,
+           m.preferred_name,
+           m.date_of_birth,
+           coalesce(
+             json_agg(c.value order by c.is_primary desc, c.created_at)
+               filter (where c.kind = 'email'), '[]'
+           ) as emails,
+           coalesce(
+             json_agg(c.value order by c.is_primary desc, c.created_at)
+               filter (where c.kind <> 'email'), '[]'
+           ) as phones
+      from members m
+      join candidates d on d.id = m.id
+      left join contact_methods c on c.member_id = m.id
+     group by m.id, m.first_name, m.last_name, m.preferred_name, m.date_of_birth
+  `);
+
+  const rows = found as unknown as DuplicateRow[];
+
+  return indexPeople(
+    rows.map((row) => ({
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      preferredName: row.preferred_name,
+      dateOfBirth: row.date_of_birth,
+      /* json_agg and not array_agg: an array comes back from the driver as the
+         literal string "{a,b}", and a string is iterable, so the index would
+         fill up with single characters and match nothing. */
+      emails: asList(row.emails),
+      phones: asList(row.phones),
+    })),
+  );
+}
+
+interface DuplicateRow extends Record<string, unknown> {
+  id: string;
+  first_name: string;
+  last_name: string;
+  preferred_name: string | null;
+  date_of_birth: string | null;
+  emails: unknown;
+  phones: unknown;
+}
+
+/** What the driver gave back for a json column, as the list it stands for. */
+function asList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((one): one is string => typeof one === "string");
+  if (typeof value === "string") {
+    try {
+      return asList(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 /**
