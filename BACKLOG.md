@@ -997,6 +997,7 @@ of money and after everything else.
 | HRT-370 | The invitation reaches the person it names | R1.7, R16.4, R22.1 | Resolved |
 | HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | Resolved |
 | HRT-372 | An invitation is ConnectApp's own mail, so it sends on day one | R16.4, R22.1 | Resolved |
+| HRT-373 | The invitation email looks like the product it is inviting somebody into | R16.4, R24.x | Resolved |
 
 R22.1 lists giving and messaging credentials as wizard steps, and both are now built, so both are
 steps of the guide. The five-step wizard of 0.2 is replaced by HRT-367.
@@ -4168,6 +4169,27 @@ thing it sends today is an invitation.
 
 What the unsent dialog means changed with it. It is no longer "connect an account": it is our end
 failing, so it says the invitation is saved, the email did not go, and send it again from the list.
+
+### HRT-373, what the invitation looks like when it arrives
+
+It arrived as four lines of text and two raw query strings, which is what a password reset from a
+badly run forum looks like. The first thing anybody sees of ConnectApp was that.
+
+ConnectApp is the brand on the envelope, because the address it comes from is ours, and the church
+is what the message is about, so the church carries the headline. One button, a worded sign-in link
+for an account that already exists, and the addresses themselves only in the plain text, where a
+reader has nothing to press.
+
+**The mark is drawn rather than linked.** There is no raster logo in the repo, and an image would
+be the wrong answer even if there were: every mail program of consequence blocks remote images
+until somebody asks for them, so the brand would be missing at the one moment it is working. Three
+table cells with a background colour and a radius draw the same three rising embers, and the one
+engine that ignores a radius draws three squares, which is still the mark. The colours are the
+`ink` ramp written out as hex, because oklch reaches no mail client.
+
+Nothing in the acceptance path changed, because nothing needed to: the address in the link grants
+nothing. An invitation is matched on a Supabase-verified address, against a row that is unaccepted,
+unrevoked and unexpired, and `accepted_at` is written as it is taken up, so it cannot be used twice.
 
 ### HRT-368, and the hole that was not there
 
