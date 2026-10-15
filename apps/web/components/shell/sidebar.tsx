@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { NavLink } from "../nav-link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   PanelLeftClose, PanelLeftOpen, LogOut, Menu,
@@ -151,9 +152,12 @@ export function Sidebar({
   const renderEntry = (entry: ShellEntry) => {
     const on = active === entry.href;
     const row = (
-      <Link
+      <NavLink
         href={`${entry.href}`}
-        onClick={(event) => {
+        /* R24.12. Fetched while the pointer is on its way. A navigation inside
+           the product is the whole screen now that the frame is a layout, and
+           a hover is 200ms the server would otherwise spend after the press. */
+                onClick={(event) => {
           if (on) {
             forget(entry.href);
             return;
@@ -178,7 +182,7 @@ export function Sidebar({
         </span>
         {collapsed ? null : <span className="truncate whitespace-nowrap">{entry.label}</span>}
         <Opening className="ml-auto" />
-      </Link>
+      </NavLink>
     );
     return collapsed ? (
       <Tooltip key={entry.href} content={entry.label} side="right">{row}</Tooltip>
@@ -258,11 +262,16 @@ export function Sidebar({
             const Mark = group.icon;
             const here = group.id === activeGroup;
             const looking = group.id === shown && !onSettings;
+            /* R24.12. Where the mark goes, written as a link rather than
+               handled in a press, so the browser can fetch the screen while
+               the pointer is still on its way and so the row can be opened in
+               a tab of its own. */
             return (
               <Tooltip key={group.id} content={t(group.label as never)} side="right">
-                <button
-                  type="button"
-                  onClick={() => {
+                <NavLink
+                  /* The group is only drawn when it has entries. */
+                  href={group.entries[0]!.href}
+                  onClick={(event) => {
                     /*
                      * R24.14. Settings is not an area, so while somebody is in
                      * it no area is the one they are in and every mark on the
@@ -274,25 +283,24 @@ export function Sidebar({
                     /* Pressing the area already open shuts it, so the mark is
                        the way in and the way out of the same thing. */
                     if (same && !collapsed && group.entries.length > 1) {
+                      event.preventDefault();
                       toggle();
+                      return;
+                    }
+                    /* R24.14. Pressing the area they are already in only
+                       reopens the column, because yanking them back to its
+                       first screen is not what the press asked for. */
+                    if (same) {
+                      event.preventDefault();
+                      openColumn();
                       return;
                     }
                     setShown(group.id);
                     openColumn();
-                    /* R24.14. Into the area, at its first screen. Switching the
-                       column and leaving the reader on the screen they were
-                       already on puts the rail, the column and the page in
-                       three different places at once. Pressing the area they
-                       are already in only reopens the column, because yanking
-                       them back to its first screen is not what the press
-                       asked for. */
-                    const first = group.entries[0];
-                    if (!same && first) router.push(first.href);
                   }}
-                  aria-current={here ? "true" : undefined}
-                  aria-pressed={looking}
+                  aria-current={here ? "page" : undefined}
                   className={cn(
-                    "flex w-11 shrink-0 cursor-pointer flex-col items-center gap-2.5 rounded-2xl py-3",
+                    "flex w-11 shrink-0 cursor-pointer flex-col items-center gap-2.5 rounded-2xl py-3 no-underline",
                     "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
                     looking
                       ? "bg-surface text-fg shadow-sm"
@@ -307,7 +315,7 @@ export function Sidebar({
                       {t(group.label as never)}
                     </span>
                   ) : null}
-                </button>
+                </NavLink>
               </Tooltip>
             );
           })}
@@ -318,9 +326,9 @@ export function Sidebar({
             const on = active === entry.href;
             return (
               <Tooltip key={entry.href} content={entry.label} side="right">
-                <Link
+                <NavLink
                   href={entry.href}
-                  aria-current={on ? "page" : undefined}
+                                    aria-current={on ? "page" : undefined}
                   className={cn(
                     "flex w-11 shrink-0 flex-col items-center gap-2.5 rounded-2xl py-3 no-underline",
                     "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
@@ -337,7 +345,7 @@ export function Sidebar({
                       {entry.label}
                     </span>
                   ) : null}
-                </Link>
+                </NavLink>
               </Tooltip>
             );
           })}
@@ -537,9 +545,9 @@ export function MobileTabs({ entries }: { entries: ShellEntry[] }) {
           <ul className="m-0 flex list-none flex-col gap-1 p-0">
             {showing?.entries.map((entry) => (
               <li key={entry.href}>
-                <Link
+                <NavLink
                   href={`${entry.href}`}
-                  onClick={go(entry)}
+                                    onClick={go(entry)}
                   aria-current={active === entry.href ? "page" : undefined}
                   className={cn(
                     "flex min-h-11 items-center gap-3 rounded-sm px-3 text-[15px] no-underline",
@@ -551,7 +559,7 @@ export function MobileTabs({ entries }: { entries: ShellEntry[] }) {
                 >
                   {entry.icon}
                   <span className="truncate">{entry.label}</span>
-                </Link>
+                </NavLink>
               </li>
             ))}
           </ul>

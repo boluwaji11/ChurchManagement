@@ -57,6 +57,21 @@ const config: NextConfig = {
      * screen cannot show a row the next request would refuse.
      */
     staleTimes: { dynamic: 30, static: 180 },
+    /*
+     * R24.12. A link in the navigation is fetched on the intent to press it.
+     *
+     * Every screen here is per-church and therefore dynamic, and Next's own
+     * default fetches a dynamic route only as far as the nearest loading
+     * boundary, which is nothing the reader waits for. This turns a hover, a
+     * focus or a finger landing into a fetch of the whole screen, which buys
+     * the 150ms to 300ms before the press. Fetching every link on sight is the
+     * other extreme and would have the server rendering fourteen screens for
+     * the one somebody opened.
+     *
+     * It does nothing in development, where Next skips prefetching on hover,
+     * so this is measured against a build.
+     */
+    dynamicOnHover: true,
     // Shared element transitions where a card becomes a detail page. (R24.12)
     viewTransition: true,
     /*

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { NavLink } from "../nav-link";
 import { usePathname } from "next/navigation";
 import { Download, LogOut, MessageSquare, Settings } from "lucide-react";
 import {
@@ -64,7 +65,7 @@ export function PortalTabs({ tabs }: { tabs: PortalTab[]}) {
       }
     >
       {tabs.map((tab) => (
-        <Link
+        <NavLink
           key={tab.href}
           href={`${tab.href}`}
           aria-current={on(tab) ? "page" : undefined}
@@ -76,7 +77,7 @@ export function PortalTabs({ tabs }: { tabs: PortalTab[]}) {
         >
           {tab.label}
           <Opening />
-        </Link>
+        </NavLink>
       ))}
     </nav>
   );
