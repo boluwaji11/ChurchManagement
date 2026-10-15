@@ -1427,6 +1427,8 @@ export const en = {
   "pager.showing": "Showing {shown} of {total}",
   "pager.previous": "Previous page",
   "pager.next": "Next page",
+  "pager.page": "Page {page}",
+  "pager.pages": "Pages",
   "giving.recent.none": "No gifts recorded yet",
   "person.giving.year.one": "{count} gift this year · last {last}",
   "person.giving.year.other": "{count} gifts this year · last {last}",

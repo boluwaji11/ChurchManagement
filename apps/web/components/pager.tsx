@@ -1,14 +1,21 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { pageTokens } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /**
- * R24.6. The foot of a list that is longer than the page it is on.
+ * R24.6, R2.14. The foot of a list that is longer than the page it is on.
  *
  * Links rather than buttons, so a page of a list is an address somebody can
  * send to the treasurer, come back to, and open in a second tab. It says how
  * much of the list is on screen as well as how to move, because "Next" on
  * its own leaves somebody counting pages to work out how much is left.
+ *
+ * The numbers are there to be pressed. Two chevrons alone say nothing about
+ * where in three hundred gifts a reader is standing, and a treasurer looking
+ * for the end of September pressed Next eleven times to reach it. The first
+ * page and the last are always drawn, with the current one and its neighbours,
+ * so the row holds its width instead of growing with the list.
  */
 export function Pager({
   page,
@@ -45,15 +52,58 @@ export function Pager({
         {t("pager.showing", { shown, total })}
       </span>
 
-      <span className="flex items-center gap-1">
+      <nav aria-label={t("pager.pages")} className="flex items-center gap-1">
         <Step href={to(page - 1)} enabled={page > 1} label={t("pager.previous")}>
           <ChevronLeft aria-hidden />
         </Step>
+
+        {pageTokens(page, pages).map((one, at) =>
+          one === null ? (
+            /* A gap in the run of numbers. Spoken by nothing: the pages either
+               side of it say where this is. */
+            <span key={`gap-${at}`} aria-hidden className="px-1 text-fg-subtle">
+              ...
+            </span>
+          ) : (
+            <Numbered key={one} href={to(one)} page={one} here={one === page} />
+          ),
+        )}
+
         <Step href={to(page + 1)} enabled={page < pages} label={t("pager.next")}>
           <ChevronRight aria-hidden />
         </Step>
-      </span>
+      </nav>
     </div>
+  );
+}
+
+/** One page's own number, and the one underfoot. */
+function Numbered({ href, page, here }: { href: string; page: number; here: boolean }) {
+  const shape =
+    "inline-flex min-w-9 h-9 items-center justify-center rounded-[var(--d-radius-control)] "
+    + "border px-2 text-[13px] font-medium";
+
+  if (here) {
+    return (
+      <span
+        data-numeric
+        aria-current="page"
+        className={`${shape} border-line-strong bg-surface text-fg shadow-sm`}
+      >
+        {page}
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      data-numeric
+      aria-label={t("pager.page", { page })}
+      className={`${shape} border-line text-fg-muted hover:bg-sunken hover:text-fg`}
+    >
+      {page}
+    </Link>
   );
 }
 

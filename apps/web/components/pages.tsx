@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn, Spinner } from "@connectapp/ui";
+import { cn, Spinner, pageTokens } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
 /**
@@ -49,18 +49,9 @@ export function Pages({
     setGoing(undefined);
   }, [pending]);
 
-  const tokens: Array<number | "gap"> = [];
-  if (last <= 7) {
-    for (let i = 1; i <= last; i += 1) tokens.push(i);
-  } else {
-    tokens.push(1);
-    const from = Math.max(2, page - 1);
-    const to = Math.min(last - 1, page + 1);
-    if (from > 2) tokens.push("gap");
-    for (let i = from; i <= to; i += 1) tokens.push(i);
-    if (to < last - 1) tokens.push("gap");
-    tokens.push(last);
-  }
+  /* R24.6. The same row of numbers the link pager draws, from the same place,
+     because the two of them drew different rows for the same list. */
+  const tokens = pageTokens(page, last);
 
   if (last <= 1) return null;
 
@@ -99,7 +90,7 @@ export function Pages({
       </button>
 
       {tokens.map((token, i) =>
-        token === "gap" ? (
+        token === null ? (
           <span key={`gap${i}`} className="min-w-7 text-center text-fg-subtle">
             &hellip;
           </span>
