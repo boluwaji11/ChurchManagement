@@ -179,14 +179,22 @@ export function Point({
     };
   }, [target, pathname, height]);
 
-  // Escape closes it, the way it closes everything else in the product.
+  /*
+   * Escape closes the card, and stops there.
+   *
+   * Caught on the way down and held, so the panel underneath keeps its own
+   * Escape: the first press puts the card away and the second closes the
+   * panel, which is the order somebody pressing it twice expects.
+   */
   React.useEffect(() => {
     if (!spot) return;
     const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      onClose();
     };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
+    document.addEventListener("keydown", key, true);
+    return () => document.removeEventListener("keydown", key, true);
   }, [spot, onClose]);
 
   if (!spot) return null;
@@ -249,6 +257,24 @@ export function Point({
         data-guide-card
         role="note"
         aria-live="polite"
+        /*
+         * A press on the card stays on the card.
+         *
+         * The card is drawn from the frame rather than from inside whatever
+         * panel it is pointing into, so a panel watching for a press outside
+         * itself counted every press on the card as one and shut, the x
+         * included.
+         *
+         * It takes the immediate form. React and the panel both listen on the
+         * document, so stopping propagation there is too late: the event has
+         * already arrived, and the panel's listener is a neighbour rather than
+         * an ancestor. React has dispatched this card's own handlers by the
+         * time these run, so nothing of ours is lost.
+         */
+        onPointerDown={(e) => e.nativeEvent.stopImmediatePropagation()}
+        onMouseDown={(e) => e.nativeEvent.stopImmediatePropagation()}
+        onTouchStart={(e) => e.nativeEvent.stopImmediatePropagation()}
+        onFocus={(e) => e.nativeEvent.stopImmediatePropagation()}
         className={cn(
           "pointer-events-auto absolute flex flex-col gap-1.5 rounded-[14px] p-3.5",
           "border border-primary bg-surface shadow-[0_10px_30px_oklch(0.3_0.04_75/0.22)]",
