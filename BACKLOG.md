@@ -105,7 +105,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | Resolved |
 | HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | Resolved |
 | HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | Resolved |
-| HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | New |
+| HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | Not done, and here is why |
 | HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | Resolved |
 | HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | Resolved |
 | HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | Resolved |
@@ -2106,6 +2106,30 @@ copy either sent or back in the queue, rather than being cut off mid-message for
 
 Confirm, with two churches sending: neither message is held by the other, both arrive, and a church
 whose provider refuses still gets its copies marked and retried rather than taking the tick down.
+
+### HRT-352, measured and left alone
+
+**Not built, deliberately.** The measurement says the split this story asks for cannot be made safely
+and would buy 13%.
+
+What is there: the catalogue is one chunk of 236KB, 67KB over the wire, holding 4,727 keys, and 132
+of the 202 routes pull it in. It is one file, so a browser fetches it once and keeps it, and it is
+not on the shared path every route pays for.
+
+What a split would save. The keys a client component names as a literal are 1,844 of 4,727, which
+would be a real cut. But 77 places build a key rather than writing one, `t(\`giving.method.${one}\`)`
+and its kind, and one builds it entirely from a variable. A key assembled at runtime can only be
+guaranteed by shipping the group it comes from, so the honest unit is the first segment of a key, and
+client components touch 125 of the 173 groups. That is 4,096 of 4,727 keys shipped, which is 87%, to
+save 13% of 67KB.
+
+What it would cost to do anyway: a generated list of keys, a test to hold the generation honest, and
+a failure mode where a missed key puts `members.title` on a screen a church is looking at. The
+product's own reason for a typed catalogue is that a missing string should be a compile error.
+
+What would actually work, when it is worth doing: a build step that rewrites `t("literal")` into the
+string at compile time, leaving the catalogue for the keys that are built at runtime. That is a
+different story, it needs the spelling pass to survive it, and it is not this one.
 
 ### HRT-358, how to test it
 
