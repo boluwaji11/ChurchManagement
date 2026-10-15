@@ -196,6 +196,17 @@ describe("doing the work moves the step (R22.1)", () => {
       insert into contact_methods (tenant_id, member_id, kind, value)
       values (${tenant}, ${person!.id}, 'phone', '+15550000000')`;
     expect(step(await whose(READER), "profile")?.done).toBe(true);
+
+    /* R2.4. An address counts as well: the step asks for a record somebody
+       can be recognised and reached by, and the form asks for more than a
+       number. */
+    await owner()`delete from contact_methods where member_id = ${person!.id}`;
+    expect(step(await whose(READER), "profile")?.done).toBe(false);
+
+    await owner()`
+      insert into addresses (tenant_id, member_id, line1)
+      values (${tenant}, ${person!.id}, '1 Main Street')`;
+    expect(step(await whose(READER), "profile")?.done).toBe(true);
   });
 
   it("opens the next phase once the first is settled", async () => {

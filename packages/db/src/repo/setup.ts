@@ -199,17 +199,25 @@ export async function setupProgress(
         select count(*) from stripe_accounts
          where tenant_id = ${tenantId} and details_submitted
       )`,
-      // Their own record, filled in past the name the church was created with.
+      /*
+       * Their own record, filled in past the name the church was created
+       * with. A photo, a number, a birthday or an address: the step asks for
+       * a profile somebody can be recognised and reached by, and a church
+       * that typed its address in and watched the step stay open was being
+       * told its work did not count.
+       */
       profile: sql<string>`(
         select count(*) from members m
          where m.app_user_id = ${userId ?? null}::uuid
            and m.archived_at is null
            and (
              m.photo_key is not null
+             or m.date_of_birth is not null
              or exists (
                select 1 from contact_methods c
                 where c.member_id = m.id and c.kind = 'phone'
              )
+             or exists (select 1 from addresses a where a.member_id = m.id)
            )
       )`,
     })
