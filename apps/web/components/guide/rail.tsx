@@ -279,7 +279,7 @@ export function Rail({
             <span className="flex min-w-0 flex-col gap-0.5">
               {/* One line. A church with a long name loses the end of it to
                   an ellipsis rather than pushing the path down the column. */}
-              <span className="truncate font-display text-[18px] leading-[24px] whitespace-nowrap text-fg">
+              <span className="truncate font-display text-[18px] leading-[24px] font-semibold whitespace-nowrap text-fg">
                 {t("setup.title", { name: church })}
               </span>
               <span className="text-[length:var(--d-text-caption)] text-fg-muted">
