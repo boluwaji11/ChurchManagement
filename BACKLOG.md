@@ -115,6 +115,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-359 | Every area's links are always in the navigation, so the browser can fetch them before they are pressed | R24.11, R24.12 | Resolved |
 | HRT-360 | The shell becomes a layout, so a navigation fetches the screen rather than the whole frame | R24.11, R24.12 | Resolved |
 | HRT-361 | The gifts spreadsheet says how the money came in in the church's own English | R13.23, R22.8 | Resolved |
+| HRT-362 | A table narrower than it can be read scrolls rather than running into itself | R24.6, R2.14 | Resolved |
+| HRT-363 | Settings closes the area column, the way Overview already does | R24.14 | Resolved |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
 | HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Closed |
 | HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Closed |
@@ -1984,6 +1986,32 @@ permissions. A role change produces a different key, so a permission can never b
 What this does not fix: the frame is still rendered by every screen, so its markup is rebuilt and
 sent on every navigation even though its data is now free. That is HRT-360, and it is the difference
 between 65ms inside a layout and about 560ms across areas.
+
+### HRT-362, how to test it
+
+Open the directory and narrow the window to about 950px, which is what a laptop with the developer
+tools open gives the page. The table should scroll sideways, with every name, tag and address in its
+own cell. Before this the headings ran into each other, a phone number was drawn across an email and
+a name was cut to two letters.
+
+What it was: the columns are pinned to measured widths so they can be dragged, and when the room ran
+short every column was squeezed towards a floor of 56px. The screen's own `min-w-[720px]`, which is
+the width at which the seven columns still fit, was overridden by the pinning. Under that width
+nothing is pinned now: the table keeps the minimum its own markup asks for, the scroller it already
+sits in does the rest, and widening the window measures it afresh.
+
+Check it in both directions, narrowing and widening, and at a desk confirm dragging a column still
+works and is still remembered.
+
+### HRT-363, how to test it
+
+Press Settings on the rail. The column that holds the area's screens should close, leaving the rail,
+Settings' own sections across the top of the screen, and nothing in between. Overview already behaves
+this way, because an area of one screen draws no column either.
+
+It used to go on showing whichever area the reader came from: the rail said Settings and the column
+beside it offered Giving, Forms, Website and Reports, which belong to a part of the product nobody
+was in. Press an area mark afterwards and it opens that area at its first screen, as before.
 
 ### HRT-360, how to test it
 

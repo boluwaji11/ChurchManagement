@@ -106,6 +106,19 @@ export function ResizableTable({
   const tableOf = () => host.current?.querySelector("table") ?? null;
 
   /*
+   * R24.6. The width the screen itself says this table must not go under.
+   *
+   * A directory of seven columns says `min-w-[720px]` in its own markup, which
+   * is the width at which an email, a phone number and two tag chips still sit
+   * in their own cells. Pinning used to override it and then squeeze every
+   * column towards the floor of 56px, so between a phone and a wide desk the
+   * headings ran into each other and a phone number was drawn over an address.
+   * Under that width nothing is pinned: the table keeps its own minimum and
+   * the scroller it already sits in does the rest.
+   */
+  const floor = React.useRef(0);
+
+  /*
    * What the browser made of the screen's own classes, taken once.
    *
    * Measuring rather than being told means the widths have one source, the
@@ -119,6 +132,11 @@ export function ResizableTable({
     const table = tableOf();
     const heads = table?.querySelectorAll<HTMLTableCellElement>("thead th");
     if (!table || !heads || heads.length === 0) return;
+
+    if (!floor.current) {
+      const says = Number.parseFloat(getComputedStyle(table).minWidth);
+      floor.current = Number.isFinite(says) ? says : 0;
+    }
 
     const measured = [...heads].map((th) => th.getBoundingClientRect().width);
 
@@ -160,6 +178,16 @@ export function ResizableTable({
      * the browser, so the desk finds it again.
      */
     const room = host.current?.clientWidth ?? 0;
+
+    /* Too narrow to arrange: the table is left as its screen wrote it and
+       scrolls sideways, which reads as a table rather than as a collision. */
+    if (room && floor.current && room < floor.current) {
+      setWidths(null);
+      setHeadHeight(0);
+      setNarrow(true);
+      return;
+    }
+
     if (held && tooWide(held, measured, room)) held = null;
 
     /* A set the reader arranged is theirs, wide or not. A set nobody has
@@ -196,6 +224,13 @@ export function ResizableTable({
     const refit = () => {
       const room = host.current?.clientWidth ?? 0;
       if (!room) return;
+      /* Narrowed past what the table can be arranged in: unpin and let it
+         scroll. Widening past it again measures the table afresh. */
+      if (floor.current && room < floor.current) {
+        setWidths(null);
+        setNarrow(true);
+        return;
+      }
       setWidths((was) => {
         if (!was) return was;
         const total = sum(was);
@@ -224,13 +259,22 @@ export function ResizableTable({
   /** Pins them, so the browser stops deciding and the handles mean something. */
   React.useLayoutEffect(() => {
     const table = tableOf();
-    if (!table || !widths) return;
-
-    table.style.tableLayout = "fixed";
-    table.style.minWidth = "0px";
-    table.style.width = `${sum(widths)}px`;
+    if (!table) return;
 
     const heads = table.querySelectorAll<HTMLTableCellElement>("thead th");
+
+    /* Nothing to pin: whatever a previous width pinned comes off, so the
+       table lays itself out the way its own markup asks for. */
+    if (!widths) {
+      table.style.tableLayout = "";
+      table.style.width = "";
+      heads.forEach((th) => { th.style.width = ""; });
+      return;
+    }
+
+    table.style.tableLayout = "fixed";
+    table.style.width = `${sum(widths)}px`;
+
     heads.forEach((th, at) => {
       const width = widths[at];
       if (width !== undefined) th.style.width = `${width}px`;
