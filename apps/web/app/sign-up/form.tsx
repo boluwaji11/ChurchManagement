@@ -13,7 +13,7 @@ import { AUTH_INPUT, AUTH_BUTTON } from "../auth-chrome";
 export const PASSWORD_LENGTH = 10;
 
 /** R22.1. The first screen of the first hour. */
-export function SignUpForm({ next }: { next?: string }) {
+export function SignUpForm({ next, email }: { next?: string; email?: string }) {
   const validate = React.useCallback(
     (data: FormData): Errors => ({
       email: check(String(data.get("email") ?? ""), validEmail),
@@ -51,7 +51,14 @@ export function SignUpForm({ next }: { next?: string }) {
       </div>
 
       <Field label={t("signIn.email")} htmlFor="email" error={errors["email"]} required>
-        <Input id="email" name="email" type="email" autoComplete="email" className={AUTH_INPUT} />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          defaultValue={email}
+          className={AUTH_INPUT}
+        />
       </Field>
 
       <Field label={t("signUp.password")} htmlFor="password" error={errors["password"]} required>

@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, X, HelpCircle } from "lucide-react";
+import { Plus, X, HelpCircle, Send } from "lucide-react";
 import {
   Avatar, Badge, Banner, Button, Combobox, IconButton, Card, CardTitle, Field, Input,
   Separator, Spinner,
@@ -18,7 +19,7 @@ import { Confirm } from "@/components/confirm";
 import { Said } from "@/components/said";
 import { Searching } from "@/components/searching";
 import {
-  invite, invitees, withdraw, changeRole, removeAccess,
+  invite, invitees, withdraw, changeRole, removeAccess, sendAgain,
 } from "./actions";
 import { ResizableTable } from "@/components/resizable-columns";
 
@@ -68,6 +69,46 @@ function idFor(roles: ChurchRoleOption[], key: string): string {
 
 
 /**
+ * HRT-370, R1.7, R16.4. The invitation is written down and nothing was sent.
+ *
+ * Either because the church has not connected an email account yet, or because
+ * the one it has refused the message. Both leave an address invited and nobody
+ * told, which is a thing somebody has to go and do something about rather than
+ * a line that puts itself away, so it is said in the middle of the screen with
+ * the way to the email settings on it.
+ */
+function Unsent({
+  email,
+  said,
+  onClose,
+}: {
+  email: string;
+  said?: string;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open onOpenChange={(on) => (on ? undefined : onClose())}>
+      <DialogContent
+        alert
+        title={said ? t("invite.unsent.refused", { email }) : t("invite.unsent.title")}
+      >
+        <p className="text-[length:var(--d-text-body)] text-fg-muted">
+          {said ? `${said} ${t("invite.unsent.recorded")}` : t("invite.unsent.body", { email })}
+        </p>
+        <DialogFooter>
+          <Button variant="ghost" data-dismiss onClick={onClose}>
+            {t("common.close")}
+          </Button>
+          <Button asChild>
+            <Link href="/settings/email">{t("invite.unsent.connect")}</Link>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
  * R1.4, R1.7. Who can get in, and what they may do.
  *
  * An invitation is matched to a verified address when that person signs in, so
@@ -103,6 +144,8 @@ export function Team({
   const [changing, setChanging] = React.useState<{ member: Member; role: string } | null>(null);
   const [error, setError] = useFormError(changing);
   const [removing, setRemoving] = React.useState<Member | null>(null);
+  /** HRT-370. An invitation sent again that nothing could take. */
+  const [unsent, setUnsent] = React.useState<{ email: string; said?: string } | null>(null);
   const [pending, startTransition] = React.useTransition();
   /** R1.4. Whether the person reading this holds the church's own keys. */
   const iAmOwner = members.some((one) => one.isSelf && one.role === "owner");
@@ -121,12 +164,19 @@ export function Team({
     if (!pending) setDoing(undefined);
   }, [pending]);
 
-  const run = (key: string, work: () => Promise<{ error?: string }>, said?: string) => {
+  const run = (
+    key: string,
+    work: () => Promise<{ error?: string; unsent?: boolean; said?: string }>,
+    said?: string,
+    /** HRT-370. Whose invitation this was, for the notice when it does not go. */
+    email?: string,
+  ) => {
     setDoing(key);
     startTransition(async () => {
       const result = await work();
       setError(result.error);
-      setMessage(result.error ? undefined : said);
+      if (result.unsent && email) setUnsent({ email, said: result.said });
+      setMessage(result.error || result.unsent ? undefined : said);
       if (!result.error) router.refresh();
     });
   };
@@ -135,6 +185,10 @@ export function Team({
     <div className="flex flex-col gap-6" aria-busy={pending}>
       {error ? <Banner tone="danger">{error}</Banner> : null}
       <Said message={message} onClose={() => setMessage(undefined)} />
+
+      {unsent ? (
+        <Unsent email={unsent.email} said={unsent.said} onClose={() => setUnsent(null)} />
+      ) : null}
 
       {/* R1.4. Both of these change what somebody may do, and neither is
           obvious from the row afterwards, so both are asked and both answer. */}
@@ -338,6 +392,27 @@ export function Team({
                     <span className="text-caption text-fg-muted">
                       {t("team.until", { day: invitation.expiresAt })}
                     </span>
+                    {/* HRT-370. The one that never arrived, sent again. */}
+                    <IconButton
+                      label={t("team.sendAgain")}
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() =>
+                        run(
+                          `again:${invitation.id}`,
+                          () => sendAgain(invitation.id),
+                          t("team.sentAgain", { email: invitation.email }),
+                          invitation.email,
+                        )
+                      }
+                    >
+                      {doing === `again:${invitation.id}` ? (
+                        <Spinner label={t("team.sendAgain")} />
+                      ) : (
+                        <Send />
+                      )}
+                    </IconButton>
+
                     {/* R24.x. Withdrawing an invitation takes away the only
                         way that address has in, so it asks first. */}
                     <Confirm
@@ -497,18 +572,39 @@ function RoleGuide({ roles }: { roles: ChurchRoleOption[] }) {
 export function InvitePerson({
   church,
   roles,
+  mine,
   pending,
   onDone,
 }: {
   church: string;
-  /** R1.6. The roles this church has taken up. Nothing else may be given. */
+  /** R1.6. Every role this church has, taken up or still on the shelf. */
   roles: ChurchRoleOption[];
+  /** R1.5, R1.6. What the reader holds, which is the most they can hand out. */
+  mine: string[];
   pending: boolean;
   onDone: () => void;
 }) {
   const [open, setOpen] = React.useState(false);
-  // Everything but Owner, which is given by handing the church over.
-  const giveable = roles.filter((one) => one.key !== "owner" && !one.archived);
+  /** HRT-370. The invitation that was written down and did not go. */
+  const [unsent, setUnsent] = React.useState<{ email: string; said?: string } | null>(null);
+  /*
+   * R1.4, R1.6. What this reader may give.
+   *
+   * Two rules and no third. A role is giveable when every permission it holds
+   * is one the reader holds, so an Admin cannot hand out Finance, and an Owner
+   * can hand out anything, Owner included: a church with two pastors should be
+   * able to say so without handing the church over.
+   *
+   * The built-ins count while they are still on the shelf. Eight of the nine
+   * go in archived, because the roles screen is where a church takes one up,
+   * and reading that as "never offer it" left a church on its first day with
+   * an empty list and nobody it could invite.
+   */
+  const giveable = roles.filter(
+    (one) =>
+      one.permissions.every((permission) => mine.includes(permission))
+      && (!one.archived || one.builtin),
+  );
   const [role, setRole] = React.useState(giveable[0]?.id ?? "");
   const [failed, setFailed] = React.useState<string>();
   const [saving, startTransition] = React.useTransition();
@@ -565,6 +661,11 @@ export function InvitePerson({
   const { onOpenChange, guard } = usePanelGuard({ dirty, setOpen: close });
 
   return (
+    <>
+      {unsent ? (
+        <Unsent email={unsent.email} said={unsent.said} onClose={() => setUnsent(null)} />
+      ) : null}
+
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <Button data-guide="invite-person"><Plus /> {t("team.invite")}</Button>
@@ -597,6 +698,9 @@ export function InvitePerson({
               const result = await invite(data);
               setFailed(result.error);
               if (!result.error) {
+                /* HRT-370. The row is written either way, so the panel closes
+                   and the notice says what did not happen. */
+                if (result.unsent) setUnsent({ email, said: result.said });
                 close(false);
                 onDone();
               }
@@ -646,7 +750,8 @@ export function InvitePerson({
             />
           </Field>
 
-          <Field label={t("team.role")}>
+          {/* R24.6. The form refuses a blank, so the asterisk says so. */}
+          <Field label={t("team.role")} required>
             <Select value={role} onValueChange={setRole}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -660,5 +765,6 @@ export function InvitePerson({
         </form>
       </SheetContent>
     </Sheet>
+    </>
   );
 }

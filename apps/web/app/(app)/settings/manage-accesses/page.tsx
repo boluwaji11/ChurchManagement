@@ -65,7 +65,13 @@ export default async function TeamPage({
         lede="settings.lede.access"
         action={
           standing.approved
-            ? <InviteAction church={session.tenantSlug} roles={roles} />
+            ? (
+                <InviteAction
+                  church={session.tenantSlug}
+                  roles={roles}
+                  mine={PERMISSIONS.filter((permission) => can(session, permission)) as string[]}
+                />
+              )
             : undefined
         }
       />

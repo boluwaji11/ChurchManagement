@@ -3,15 +3,66 @@
 import {
   createInvitation, revokeInvitation, setMemberRole, canManageChurch,
   withTenant, peopleToInvite, listRoles, memberRole, withinReach, ROLE_PERMISSIONS,
+  invitationToSend,
   type TenantRole, PermissionError,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
-import { requireSession } from "@/lib/session";
+import { requireSession, type Session } from "@/lib/session";
+import { churchOrigin } from "@/lib/church-address";
+import { inviteMessage } from "@/lib/invite-mail";
+import { sendAsChurch } from "@/lib/transactional";
 
 export interface TeamResult {
   error?: string;
+  /**
+   * HRT-370, R16.4. The invitation is written down and the message did not go.
+   *
+   * Separate from an error, because the two ask for different things. An error
+   * means nothing happened and the press can be repeated. This means the
+   * address is invited and nobody has been told, which is answered by
+   * connecting an account and sending it again.
+   */
+  unsent?: boolean;
+  /** What the provider said, where there was an account to say anything. */
+  said?: string;
 }
+
+/**
+ * HRT-370, R1.7, R16.4. Taking one invitation to the address it names.
+ *
+ * Out through the church's own account the moment it is written, rather than
+ * into the queue. The queue is for a composed send, with its consent, its
+ * targeting and every recipient's own way out of a mailing list, and an
+ * invitation has none of those: one address, nothing to unsubscribe from, and
+ * somebody standing at the screen waiting to hear whether it went.
+ */
+async function deliver(
+  session: Session,
+  invitation: { email: string; role: string; expiresAt: Date },
+): Promise<TeamResult> {
+  const origin = await churchOrigin(session.tenantSlug);
+  if (!origin) return { unsent: true };
+
+  const sent = await sendAsChurch(
+    session,
+    inviteMessage({
+      church: session.tenantName,
+      invitedBy: session.displayName,
+      role: invitation.role,
+      address: invitation.email,
+      expiresAt: invitation.expiresAt,
+      origin,
+    }),
+  );
+
+  if (sent.ok) return {};
+  return sent.connected ? { unsent: true, said: sent.said } : { unsent: true };
+}
+
+/** R1.6. What this church calls the role somebody is being given. */
+const nameOfRole = (role: { builtin: boolean; key: string; name: string }): string =>
+  role.builtin ? t(`role.${role.key}` as never) : role.name;
 
 const field = (data: FormData, name: string) => String(data.get(name) ?? "").trim();
 const ROLES: TenantRole[] = [
@@ -44,15 +95,35 @@ export async function invite(data: FormData): Promise<TeamResult> {
      */
     const chosen = await withTenant(
       { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions },
-      (tx) => listRoles(tx, session.tenantId),
+      (tx) => listRoles(tx, session.tenantId, { includeArchived: true }),
     );
-    const picked = chosen.find((one) => one.id === field(data, "role") && !one.archived);
+
+    /*
+     * R1.6. A built-in still on the shelf is offerable, because eight of the
+     * nine go in archived and a church on its first day would otherwise have
+     * nothing it could give. One the church archived itself is not.
+     */
+    const picked = chosen.find(
+      (one) => one.id === field(data, "role") && (!one.archived || one.builtin),
+    );
     if (!picked) return { error: t("team.error.role") };
+
+    /*
+     * R1.4, R1.5, R21.2. The most somebody can hand out is what they hold.
+     *
+     * The panel filters this already and that is a convenience: the screen is
+     * never the control. Without it here an Admin could post the id of the
+     * Finance role and read the giving on their next sign-in, which is the
+     * field-level restriction on amounts undone in one request.
+     */
+    if (!withinReach(session, picked.permissions)) {
+      return { error: t("team.error.beyond") };
+    }
 
     const role = (picked.builtin ? picked.key : "member") as TenantRole;
     if (!ROLES.includes(role)) return { error: t("team.error.role") };
 
-    await createInvitation({
+    const made = await createInvitation({
       tenantId: session.tenantId,
       email,
       role,
@@ -63,7 +134,37 @@ export async function invite(data: FormData): Promise<TeamResult> {
       memberId: field(data, "memberId") || null,
     });
 
-    return {};
+    /* R1.7, R16.4. The row is the record of who may come in. The message is
+       the only thing that tells them, so it goes now. */
+    return await deliver(session, {
+      email,
+      role: nameOfRole(picked),
+      expiresAt: made.expiresAt,
+    });
+  } catch (error) {
+    return { error: explain(error) };
+  }
+}
+
+/**
+ * HRT-370, R1.7, R16.4. Sending an invitation that is already open again.
+ *
+ * The one that went while no account was connected, and the one that went to
+ * somebody who never saw it. The row is left exactly as it is, so the address,
+ * the role and the fourteen days it already carries are what the message says.
+ */
+export async function sendAgain(id: string): Promise<TeamResult> {
+  try {
+    const session = await allowed();
+
+    const open = await invitationToSend(session.tenantId, id);
+    if (!open) return { error: t("team.error.invitation") };
+
+    return await deliver(session, {
+      email: open.email,
+      role: open.roleName ?? t(`role.${open.role}` as never),
+      expiresAt: open.expiresAt,
+    });
   } catch (error) {
     return { error: explain(error) };
   }

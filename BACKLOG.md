@@ -994,8 +994,8 @@ of money and after everything else.
 | HRT-367 | The setup guide walks beside the church, on every screen, and says what to press | R22.1, R22.2, R22.3 | Active |
 | HRT-368 | A church writes down the times it meets | R22.1, R3.1 | Resolved. The premise was wrong: it already can |
 | HRT-369 | A check-in dry run before the first service day | R8.x, R22.1 | New |
-| HRT-370 | The invitation reaches the person it names | R1.7, R16.4, R22.1 | New |
-| HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | New |
+| HRT-370 | The invitation reaches the person it names | R1.7, R16.4, R22.1 | Resolved |
+| HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | Resolved |
 
 R22.1 lists giving and messaging credentials as wizard steps, and both are now built, so both are
 steps of the guide. The five-step wizard of 0.2 is replaced by HRT-367.
@@ -4066,6 +4066,23 @@ how a church finds out whether its template is the right shape.
 What came out: `/setup`, the corner dock, and the checklist across the dashboard. Three drawings of
 one list of five, none of which said what to press on arrival.
 
+### HRT-371, how to test it
+
+**Settings**, then **Invite team member**, as an Owner.
+
+1. **The list is not empty.** All nine roles are offered on a church's first day. The eight
+   built-ins that sit archived on the roles screen are still offerable, because that shelf is where
+   a church takes one up rather than a list of roles it threw away. Before this, a new church had an
+   empty box and could invite nobody at all, which stopped the setup guide dead on its third step.
+2. **Owner is one of them.** A church with two pastors says so by inviting the second as an Owner,
+   rather than handing the church over.
+3. **Role carries the red asterisk**, because the form refuses a blank.
+4. **Sign in as an Admin and open the same panel.** Owner, Finance and Pastoral are gone: each
+   holds a permission an Admin does not. Six remain.
+5. **The rule is on the server.** It was in the panel alone, so posting the id of the Finance role
+   would have read the giving on the next sign-in. `invite` now asks `withinReach` the same question
+   the roles screen asks, and answers "That role can do more than you can."
+
 ### HRT-370, what it is for
 
 Send invite writes a row and sends nothing. A church invites its pastor, watches the row appear
@@ -4081,6 +4098,28 @@ the fourteen days the row already carries.
 Bring your own messaging governs it. The church's own account sends it, we resell nothing, and a
 church that has not connected one yet is told so on the invite panel rather than finding out from
 somebody who never heard from them.
+
+### HRT-370, how to test it
+
+Signed in as an owner or an administrator, with Settings then Email connected to a Resend account or
+a mail server.
+
+1. Open `/settings/manage-accesses` and press **Invite team member**.
+2. Type an address you can read, choose a role, and press **Send invite**.
+3. The panel closes, the address appears under **Invited**, and the message arrives from the
+   church's own address. It says who invited them, which church, the role, and the day the
+   invitation runs out.
+4. Press the link in it. The sign-up screen opens on the church's own address with that address
+   already in the box. Set a password, confirm, and you land in the church on the role you were
+   given.
+5. Back on `/settings/manage-accesses`, press the paper plane on a row under **Invited**. The
+   message goes again, to the same address, with the same role and the same expiry.
+6. Now disconnect the account in Settings then Email, and invite somebody else. The invitation is
+   written down, the row appears under **Invited**, and a box says no email account is connected,
+   with **Connect an email account** on it.
+7. `pnpm --filter @connectapp/db exec vitest run tests/invitation-send.test.ts` covers the day it
+   runs out, the role's name, and the three states a row under Invited can no longer be sent from:
+   withdrawn, expired, and belonging to another church.
 
 ### HRT-371, two things wrong on the same screen
 

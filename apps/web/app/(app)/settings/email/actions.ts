@@ -6,15 +6,13 @@ import {
   withTenant, dnsResolver,
   connectEmailProvider, withdrawEmailProvider,
   sendingDomain, markSendingDomain,
-  emailCredentialForSend, rotateEmailCredential, markEmailTrouble,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
-import {
-  proveSmtp, recordsPublished, sendBySmtp, sendByResend, sender,
-} from "@/lib/email-provider";
-import { resendClientId, revokeGrant, refreshTokens } from "@/lib/resend-oauth";
+import { proveSmtp, recordsPublished } from "@/lib/email-provider";
+import { resendClientId, revokeGrant } from "@/lib/resend-oauth";
+import { sendAsChurch } from "@/lib/transactional";
 
 /**
  * HRT-287, R16.1, R21.15. Connecting the account a church's email leaves through.
@@ -163,18 +161,11 @@ export async function disconnectEmail(): Promise<EmailResult> {
  * The proof a church actually wants: not that a key was accepted, but that
  * something arrived in somebody's inbox with the church's name on it.
  *
- * This is the one request path that opens a stored credential, and it is here
- * rather than in a worker because there is no worker yet and because a church
- * pressing Send a test email is asking for exactly this, now. When the send
- * queue is built it moves there and this calls the queue instead.
- *
- * Resend rotates its refresh token on every refresh and refuses one used
- * twice, which can take the whole grant with it, so the new one is written
- * down before the message is sent. A send that fails costs a message; a token
- * lost after a crash costs the church its connection.
+ * It goes out through the same path an invitation does, which is a credential
+ * opened for the length of one send rather than a row in the queue. The queue
+ * is for a composed send to a list, and this is one address.
  */
 export async function sendTest(data: FormData): Promise<EmailResult> {
-  const { actor, ctx } = await context();
   const session = await requireSession();
 
   /* Typed rather than assumed. The address on the account is often a
@@ -185,47 +176,15 @@ export async function sendTest(data: FormData): Promise<EmailResult> {
   if (!SHAPE.test(to)) return { error: t("email.error.fromShape") };
 
   try {
-    const held = await withTenant(ctx, (tx) => emailCredentialForSend(tx, actor));
-    if (!held?.fromAddress) return { error: t("email.test.notConnected") };
-
-    const message = {
-      from: sender(held.fromName, held.fromAddress),
+    const sent = await sendAsChurch(session, {
       to,
       subject: t("email.test.subject", { church: session.tenantName }),
       text: t("email.test.body", { church: session.tenantName }),
-    };
-
-    const sent = await (async () => {
-      if (held.vendor === "smtp") {
-        if (!held.settings) return { ok: false as const, said: t("email.test.notConnected") };
-        return sendBySmtp({ ...held.settings, password: held.credential }, message);
-      }
-
-      const clientId = resendClientId();
-      if (!clientId) return { ok: false as const, said: t("email.said.unconfigured") };
-
-      const fresh = await refreshTokens(clientId, held.credential);
-      if (!fresh.ok) return fresh;
-
-      await withTenant(ctx, (tx) =>
-        rotateEmailCredential(tx, actor, {
-          providerId: held.providerId,
-          credential: fresh.tokens.refreshToken,
-        }),
-      );
-
-      return sendByResend(fresh.tokens.accessToken, message);
-    })();
-
-    await withTenant(ctx, (tx) =>
-      markEmailTrouble(tx, actor, {
-        providerId: held.providerId,
-        said: sent.ok ? null : sent.said,
-      }),
-    );
+    });
 
     revalidatePath("/settings/email");
-    return sent.ok ? {} : { error: sent.said };
+    if (sent.ok) return {};
+    return { error: sent.connected ? sent.said : t("email.test.notConnected") };
   } catch (error) {
     return { error: explain(error) };
   }
