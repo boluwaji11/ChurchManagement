@@ -36,6 +36,28 @@ import {
 
 
 
+
+/**
+ * R24.11, R17.1. Which church a host names, held for a minute.
+ *
+ * Every screen asks, because the host is what decides whose church this is
+ * before anything else can be read, and the answer is a query on the owner
+ * connection before a tenant context exists. It changes when a church sets its
+ * address, which is a few times in a church's life and is written through the
+ * three functions below, so they clear it.
+ *
+ * A host that names nobody is held too. A crawler hitting a hundred unknown
+ * names is otherwise a hundred queries.
+ */
+const HOST_HOLD_MS = 60 * 1000;
+type HostAnswer = { id: string; name: string; slug: string; portalName: string | null } | null;
+const HELD_HOSTS = new Map<string, { answer: HostAnswer; until: number }>();
+
+/** Called by anything that changes which church a host names. */
+export function forgetHosts(): void {
+  HELD_HOSTS.clear();
+}
+
 /**
  * Which church this host belongs to.
  *
@@ -49,6 +71,10 @@ export async function resolveTenantByHost(
 ): Promise<{ id: string; name: string; slug: string; portalName: string | null } | null> {
   const bare = cleanDomain(host);
   if (!bare) return null;
+
+  const now = Date.now();
+  const held = HELD_HOSTS.get(bare);
+  if (held && held.until > now) return held.answer;
 
   /* R1.1. A name under ours names the church by its own slug, which is the
      address every church has without doing anything. */
@@ -66,7 +92,7 @@ export async function resolveTenantByHost(
        order by (portal_name = ${under}) desc
        limit 1`;
     const found = rows[0];
-    return found ? { ...found, portalName: found.portal_name } : null;
+    return hold(bare, found ? { ...found, portalName: found.portal_name } : null);
   }
 
   const rows = await owner()<
@@ -74,7 +100,17 @@ export async function resolveTenantByHost(
   >`
     select id, name, slug, portal_name from tenants where custom_domain = ${bare} limit 1`;
   const found = rows[0];
-  return found ? { ...found, portalName: found.portal_name } : null;
+  return hold(bare, found ? { ...found, portalName: found.portal_name } : null);
+}
+
+/** Keeps an answer, and keeps the map from growing without bound. */
+function hold(host: string, answer: HostAnswer): HostAnswer {
+  const now = Date.now();
+  HELD_HOSTS.set(host, { answer, until: now + HOST_HOLD_MS });
+  if (HELD_HOSTS.size > 1000) {
+    for (const [key, value] of HELD_HOSTS) if (value.until <= now) HELD_HOSTS.delete(key);
+  }
+  return answer;
 }
 
 /**
@@ -106,6 +142,9 @@ export async function setCustomDomain(
     .update(tenants)
     .set({ customDomain: bare })
     .where(eq(tenants.id, actor.tenantId));
+
+  /* R24.11. The held answers name hosts, and one of them has just changed. */
+  forgetHosts();
 
   return bare;
 }
@@ -156,6 +195,8 @@ export async function setPortalName(
     .set({ portalName: bare })
     .where(eq(tenants.id, actor.tenantId));
 
+  forgetHosts();
+
   return bare;
 }
 
@@ -168,6 +209,7 @@ export async function setPortalOpen(
   if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 
   await db.update(tenants).set({ portalOpen: open }).where(eq(tenants.id, actor.tenantId));
+  forgetHosts();
   return open;
 }
 
