@@ -2901,8 +2901,8 @@ export const en = {
   "setup.at.services": "Click Create a service, then enter its name, date, and time. Choose whether it repeats.",
 
   "setup.step.team": "Who else gets in",
-  "setup.what.team": "Accounts for the other people who run the church, each with a role deciding what they can see.",
-  "setup.why.team": "You are one account. A church where one person holds everything is a church that stops when that person is away, and roles are how a volunteer helps without meeting anybody's giving.",
+  "setup.what.team": "Give pastors, staff, and volunteers access to help manage your church.",
+  "setup.why.team": "Choose what each person can see and manage. This keeps responsibilities shared and sensitive information private.",
   "setup.at.team": "Press Send invite and use the address they will sign in with. They choose their own password.",
 
   "setup.step.church": "Your church's details",
