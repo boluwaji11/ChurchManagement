@@ -113,7 +113,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | New |
 | HRT-358 | A screen somebody just looked at is still in hand when they come back | R24.11, R24.12 | Resolved |
 | HRT-359 | Every area's links are always in the navigation, so the browser can fetch them before they are pressed | R24.11, R24.12 | New |
-| HRT-360 | The shell becomes a layout, so a navigation fetches the screen rather than the whole frame | R24.11, R24.12 | New |
+| HRT-360 | The shell becomes a layout, so a navigation fetches the screen rather than the whole frame | R24.11, R24.12 | Resolved |
+| HRT-361 | The gifts spreadsheet says how the money came in in the church's own English | R13.23, R22.8 | Resolved |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
 | HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Closed |
 | HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Closed |
@@ -1986,32 +1987,56 @@ between 65ms inside a layout and about 560ms across areas.
 
 ### HRT-360, how to test it
 
-This is the one that decides whether the product feels fast, and settings already proves it. Sign in,
-open Settings, and click between its own screens: Profile, Teams, Rooms, Funds. Then go to the
-directory and click between Members, Groups, Follow-ups and Messages. Both sets are first visits with
-nothing cached. Measured:
+Sign in and open the dashboard, then click between the top-level screens: People, Groups, Services,
+Check-in, Reports, Giving, Settings. Each one should arrive the way Settings already did, with the
+sidebar, the top bar, the bell and the church's mark standing still rather than being drawn again.
+What was measured before this: 64ms to 101ms inside Settings, where the shell was already a layout,
+against 733ms to 802ms between top-level screens, where every page returned the frame itself.
 
-| | first visit |
-|---|---|
-| inside settings, where the shell is a layout | 64ms, 65ms, 66ms, 101ms |
-| between top-level screens, where each page renders the shell | 733ms, 760ms, 802ms |
+The screen's name has moved. It was an h1 in the top bar, which belongs to the frame and cannot
+change with the screen once the frame is kept; it is now the page header at the top of the screen's
+own column, the one HRT-307 built and nothing had used. So the bar carries the church's mark, the
+bell and nothing else, and every screen opens with its name, its trail where it has one, and its one
+action on that row. Check a record screen (a service, a campaign, a team's plan, the label layout):
+the way back is a single link above the name rather than a second row drawn six different ways.
 
-Eleven times, and nothing about the queries differs. Settings renders `AppShell` once in
-`settings/layout.tsx`, so Next keeps the frame across navigations and fetches only the segment that
-changed. Every other screen returns `<AppShell>` from the page itself, so the sidebar, the top bar,
-the bell, the church, the reader's face and both signed storage links are rebuilt on every single
-navigation. The `staleTimes` documentation states the mechanism plainly: shared layouts are not
-refetched on navigation, only the page segment that changes.
+The eight reports now name themselves. Attendance says Attendance over a trail reading Reports, where
+it used to say Reports in the bar and Attendance in a smaller heading underneath.
 
-So the work is to render the frame from a layout everywhere, as settings does. `AppShell` currently
-takes each screen's own title, lede, actions, back link, width and density, which is why it sits in
-the page; those belong to a page header the screen keeps, while the frame around it moves up. That
-split is HRT-307's "one page header" from the October design pass, so the two stories want doing
-together.
+Addresses are unchanged. The screens moved into `app/(app)/`, which is a route group and draws no
+segment, and the print sheets and the public previews moved to `app/(bare)/` so that nothing wraps
+them in a frame they must not have. Confirm a few of those still print clean: the deposit slip,
+a giving statement, the directory on paper, an event roster.
 
-It also unblocks two others. A `loading.tsx` can then sit inside the frame rather than replacing it,
-which is what HRT-353 needs for every screen rather than only the dashboard, and a loading boundary
-is what a dynamic route needs before Next will prefetch it at all, which is HRT-359.
+Two things changed on purpose. A member reads every one of these addresses in the portal's frame,
+decided once in the layout rather than screen by screen, so confirm a member still gets the tabs and
+the centred column on Home, Groups, Events, Giving and Settings. And somebody on staff who cannot
+manage events or see giving amounts now meets those screens inside the staff sidebar rather than
+being dropped into the member portal mid-errand.
+
+What this unblocks: a `loading.tsx` can now sit inside the frame rather than replacing it, which is
+what HRT-353 needs for every screen, and a loading boundary is what a dynamic route needs before
+Next will prefetch it, which is HRT-359.
+
+### HRT-361, how to test it
+
+Open Giving as a church in the United States and download the gifts. The Method column now reads
+Check, Cash, Card, Bank, In kind and Other, which is what the same gift says on the screen. It wrote
+the stored value, `cheque`, for every church, so a treasurer reconciling the file against the screen
+was handed a word their country does not write.
+
+Change the church's country to the United Kingdom in Settings, Church, download again, and confirm
+the same rows read Cheque. The spelling is resolved from the church's record, as everywhere else.
+
+### HRT-361, how to test it
+
+Open Giving as a church in the United States and download the gifts. The Method column now reads
+Check, Cash, Card, Bank, In kind and Other, which is what the same gift says on the screen. It wrote
+the stored value, `cheque`, for every church, so a treasurer reconciling the file against the screen
+was handed a word their country does not write.
+
+Change the church's country to the United Kingdom in Settings, Church, download again, and confirm
+the same rows read Cheque. The spelling is resolved from the church's record, as everywhere else.
 
 ### HRT-358, how to test it
 
