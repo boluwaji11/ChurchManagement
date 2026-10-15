@@ -26,7 +26,7 @@ const ART: Piece[] = [
 export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string; sent?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; sent?: string; email?: string }>;
 }) {
   const params = await searchParams;
   if (await currentUser()) redirect(params.next ?? "/choose-church");
@@ -68,7 +68,9 @@ export default async function SignUpPage({
       {params.sent ? (
         <SignUpSent email={params.sent} next={params.next} />
       ) : (
-        <SignUpForm next={params.next} />
+        /* R1.7. An invitation is matched on the verified address, so the
+           link in one carries the address it was sent to. */
+        <SignUpForm next={params.next} email={params.email} />
       )}
     </AuthShell>
   );

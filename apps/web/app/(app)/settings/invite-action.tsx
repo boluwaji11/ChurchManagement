@@ -17,15 +17,19 @@ import { InvitePerson, type ChurchRoleOption } from "./manage-accesses/team";
 export function InviteAction({
   church,
   roles,
+  mine,
 }: {
   church: string;
   roles: ChurchRoleOption[];
+  /** R1.5, R1.6. What the reader holds, which bounds what they can give. */
+  mine: string[];
 }) {
   const router = useRouter();
   return (
     <InvitePerson
       church={church}
       roles={roles}
+      mine={mine}
       pending={false}
       onDone={() => router.refresh()}
     />

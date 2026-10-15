@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3294 of 4780 keys.
+ * 3301 of 4796 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -2060,6 +2060,8 @@ export const browserWords: Catalogue = {
   "team.withdrawTitle": "Withdraw the invitation to {email}?",
   "team.withdrawBody": "The link stops working. You can invite them again at any time.",
   "team.until": "until {day}",
+  "team.sendAgain": "Send the invitation again",
+  "team.sentAgain": "Sent again to {email}",
   "team.person": "Member",
   "team.roleColumn": "Role",
   "team.lastSignedIn": "Last signed in",
@@ -3304,4 +3306,9 @@ export const browserWords: Catalogue = {
   "email.error.host": "Give the mail server's address",
   "email.error.port": "The port is a number between 1 and 65535",
   "email.error.noDomain": "That address has no domain to verify",
+  "invite.unsent.title": "No email account is connected",
+  "invite.unsent.body": "The invitation to {email} is recorded. Connect an email account to send it.",
+  "invite.unsent.refused": "The invitation to {email} could not be sent",
+  "invite.unsent.recorded": "The invitation is recorded. Send it again once the account is working.",
+  "invite.unsent.connect": "Connect an email account",
 };

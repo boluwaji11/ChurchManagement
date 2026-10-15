@@ -3131,6 +3131,7 @@ export const en = {
   "team.removeKeep": "Leave as-is",
   "team.removed": "{name} is a member now",
   "team.error.gone": "That account is no longer in this church.",
+  "team.error.invitation": "That invitation is no longer open.",
   "team.error.owner": "An owner cannot be changed by anybody else.",
   "team.error.onlyOwner": "Only an owner can make somebody else an owner.",
   "team.withdraw": "Withdraw",

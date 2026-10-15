@@ -52,6 +52,7 @@ export function inviteMessage(invitation: Invitation): Omit<Message, "from"> {
     : t("invite.mail.subject", { church: invitation.church });
 
   return {
+    to: invitation.address,
     subject,
     text: [
       opening,

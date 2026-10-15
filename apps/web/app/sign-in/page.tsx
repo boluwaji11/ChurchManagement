@@ -22,6 +22,7 @@ export default async function SignIn({
 }: {
   searchParams: Promise<{
     error?: string; sent?: string; next?: string; set?: string; taken?: string;
+    email?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -76,7 +77,7 @@ export default async function SignIn({
 
       <SignInForm
         next={params.next}
-        email={params.taken}
+        email={params.email ?? params.taken}
         church={church ?? undefined}
         churchName={named?.name}
       />
