@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import {
   withTenant, setCustomDomain, setSelfSignup,
   canManageChurch, readDomain, dnsResolver, type DomainFindings,
-  setPortalName, setPortalOpen, setSiteBuilder,
+  setPortalName, setPortalOpen, setSiteBuilder, portalNameFree,
+  cleanPortalName, isReservedName,
   requireApproved,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
@@ -161,4 +162,30 @@ export async function openPortal(
   } catch (reason) {
     return { error: explain(reason) };
   }
+}
+
+
+/**
+ * R1.1, R17.1. Whether a name is one this church could take, asked as it is
+ * typed.
+ *
+ * Taking the name is still the only write, and the query layer still refuses a
+ * name somebody else holds, so this is the screen telling somebody early
+ * rather than the screen deciding. A church that types the name of a church in
+ * the next town should learn it there, with the caret still in the field,
+ * rather than on the press.
+ */
+export async function checkPortalName(
+  name: string,
+): Promise<{ free?: boolean; error?: string }> {
+  const session = await requireSession();
+  if (!canManageChurch(session)) return { error: t("domain.error.notAllowed") };
+
+  const bare = cleanPortalName(name);
+  if (!bare) return { error: t("portal.error.shape") };
+  if (isReservedName(bare)) return { error: t("portal.error.blocked") };
+
+  return (await portalNameFree(bare, session.tenantId))
+    ? { free: true }
+    : { error: t("portal.error.taken") };
 }
