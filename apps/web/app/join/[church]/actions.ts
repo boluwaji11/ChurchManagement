@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { joinChurch } from "@connectapp/db";
 import { explain } from "@/lib/explain";
-import { currentUser } from "@/lib/session";
+import { currentUser, emailIsVerified } from "@/lib/session";
 import { rememberChurch } from "@/lib/church-choice";
 
 /** R1.7. Going through the door, with whatever the church's records say. */
@@ -20,7 +20,7 @@ export async function join(slug: string): Promise<void> {
         fullName: user.fullName,
         firstName: user.firstName,
         lastName: user.lastName,
-        emailVerified: user.emailVerified,
+        emailVerified: await emailIsVerified(),
       },
     });
   } catch (error) {

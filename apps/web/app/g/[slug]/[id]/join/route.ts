@@ -4,7 +4,7 @@ import {
   withTenant, groupForPublicJoin, joinChurch, requestToJoin, resolveTenantBySlug,
   membershipsForUser,
 } from "@connectapp/db";
-import { currentUser } from "@/lib/session";
+import { currentUser, emailIsVerified } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +51,7 @@ export async function POST(
         fullName: user.fullName,
         firstName: user.firstName,
         lastName: user.lastName,
-        emailVerified: user.emailVerified,
+        emailVerified: await emailIsVerified(),
       },
     });
   }
