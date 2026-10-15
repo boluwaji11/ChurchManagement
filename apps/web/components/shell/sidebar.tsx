@@ -146,7 +146,15 @@ export function Sidebar({
    * heading naming the same thing is a list of one.
    */
   const items = area?.entries ?? [];
-  const listed = items.length > 1 || otherEntries.length > 0;
+  /*
+   * R24.14. Settings is not an area, and it draws its own sections across the
+   * top of the screen, so the column stands empty of anything to do with where
+   * the reader is. It used to go on showing the area they came from: the rail
+   * said Settings and the column beside it offered Giving, Forms and Reports.
+   * Overview already behaves this way, because an area of one screen has no
+   * column either.
+   */
+  const listed = !onSettings && (items.length > 1 || otherEntries.length > 0);
   const open = !collapsed && listed;
 
   const renderEntry = (entry: ShellEntry) => {
