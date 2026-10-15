@@ -56,6 +56,18 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
 export const GUIDE_BY_STEP = new Map(GUIDE_STEPS.map((one) => [one.step, one]));
 
 /**
+ * R22.1. A step whose own words beat "Show me".
+ *
+ * "Show me" is right where the guide is about to point at a control somebody
+ * has not met. It is wrong where the step is one errand with a name of its
+ * own, and the catalogue key is listed here so a missing one is a build error
+ * rather than a blank button.
+ */
+export const GUIDE_SHOW: Partial<Record<SetupStep, string>> = {
+  profile: "setup.showMe.profile",
+};
+
+/**
  * The phases, in the order the steps name them.
  *
  * Read off the table rather than written beside it: a fourth phase was added

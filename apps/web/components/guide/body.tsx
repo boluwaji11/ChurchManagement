@@ -5,7 +5,7 @@ import { Check, ChevronRight, Minus, MoveRight } from "lucide-react";
 import { cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { SetupPhase, SetupStep } from "@connectapp/db";
-import { GUIDE_BY_STEP, GUIDE_PHASES } from "@/lib/setup-guide";
+import { GUIDE_BY_STEP, GUIDE_PHASES, GUIDE_SHOW } from "@/lib/setup-guide";
 import { NavLink } from "@/components/nav-link";
 import { Opening } from "@/components/opening";
 import { Cut } from "./cut";
@@ -409,7 +409,7 @@ function Row({
                   onClick={() => onShow(step.step)}
                   className="inline-flex cursor-pointer items-center gap-0.5 rounded text-[13px] font-semibold text-primary"
                 >
-                  {t("setup.showMe")}
+                  {t((GUIDE_SHOW[step.step] ?? "setup.showMe") as never)}
                   <ChevronRight className="size-3.5" aria-hidden />
                 </button>
               ) : (
@@ -421,7 +421,7 @@ function Row({
                   }}
                   className="inline-flex items-center gap-0.5 rounded text-[13px] font-semibold text-primary no-underline"
                 >
-                  {t("setup.showMe")}
+                  {t((GUIDE_SHOW[step.step] ?? "setup.showMe") as never)}
                   <ChevronRight className="size-3.5" aria-hidden />
                   <Opening />
                 </NavLink>
