@@ -5,6 +5,7 @@ import { PermissionError, canManageGiving, type TenantRole } from "../roles";
 import { canManageChurch } from "./church";
 import { canManageRooms } from "./rooms";
 import { canManageStations } from "./stations";
+import { canManageServices } from "./services";
 
 /**
  * R22.1, R22.2, R22.3. Setting a church up.
@@ -26,7 +27,7 @@ import { canManageStations } from "./stations";
  * so four things are in view at a time and each set has a reason to be done
  * by a particular day.
  */
-export const SETUP_PHASES = ["hour", "before", "ready"] as const;
+export const SETUP_PHASES = ["hour", "before", "running", "ready"] as const;
 export type SetupPhase = (typeof SETUP_PHASES)[number];
 
 /*
@@ -46,7 +47,13 @@ export const SETUP_STEPS = [
   "stations",
   "portal",
   "profile",
-  // When they are ready. Nothing here is needed to run a service.
+  // Running the service. The one-time work behind a service day, as opposed
+  // to the planning a church does every week on top of it.
+  "teams",
+  "planTemplate",
+  "plan",
+  "groupTypes",
+  // When they are ready. None of this is needed to run a service.
   "email",
   "giving",
   "funds",
@@ -63,6 +70,10 @@ export const SETUP_PHASE_OF: Record<SetupStep, SetupPhase> = {
   stations: "before",
   portal: "before",
   profile: "before",
+  teams: "running",
+  planTemplate: "running",
+  plan: "running",
+  groupTypes: "running",
   email: "ready",
   giving: "ready",
   funds: "ready",
@@ -81,6 +92,9 @@ export const SETUP_PHASE_OF: Record<SetupStep, SetupPhase> = {
 const STEP_IS_FOR: Partial<Record<SetupStep, (role: { role: TenantRole }) => boolean>> = {
   rooms: canManageRooms,
   stations: canManageStations,
+  teams: canManageServices,
+  planTemplate: canManageServices,
+  plan: canManageServices,
   giving: canManageGiving,
   funds: canManageGiving,
 };
@@ -142,6 +156,12 @@ export async function setupProgress(
          where tenant_id = ${tenantId} and accepted_at is null and revoked_at is null
       )`,
       rooms: sql<string>`(select count(*) from checkin_rooms)`,
+      teams: sql<string>`(select count(*) from teams where archived_at is null)`,
+      planTemplates: sql<string>`(select count(*) from plan_templates)`,
+      // A service with an order written on it, as opposed to one on the
+      // calendar with nothing against it yet.
+      plan: sql<string>`(select count(*) from plan_items)`,
+      groupTypes: sql<string>`(select count(*) from group_types)`,
       stations: sql<string>`(select count(*) from checkin_stations)`,
       /*
        * Every church is written down with General and Offering & Tithe, so
@@ -195,6 +215,10 @@ export async function setupProgress(
     team: n(counts?.team) > 1,
     church: Boolean(church?.addressLine1),
     rooms: n(counts?.rooms) > 0,
+    teams: n(counts?.teams) > 0,
+    planTemplate: n(counts?.planTemplates) > 0,
+    plan: n(counts?.plan) > 0,
+    groupTypes: n(counts?.groupTypes) > 0,
     stations: n(counts?.stations) > 0,
     portal: Boolean(church?.portalName),
     profile: n(counts?.profile) > 0,

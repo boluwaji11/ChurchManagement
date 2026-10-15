@@ -246,7 +246,7 @@ function TemplatePanel({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        {trigger ?? <Button><Plus /> {t("planTpl.add")}</Button>}
+        {trigger ?? <Button data-guide="add-template"><Plus /> {t("planTpl.add")}</Button>}
       </SheetTrigger>
 
       <SheetContent

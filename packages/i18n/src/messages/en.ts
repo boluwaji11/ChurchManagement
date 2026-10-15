@@ -2885,6 +2885,8 @@ export const en = {
   "setup.phase.hour.why": "A directory, and a service to attach it to.",
   "setup.phase.before": "Before your first service",
   "setup.phase.before.why": "What a service day needs from you.",
+  "setup.phase.running": "Running the service",
+  "setup.phase.running.why": "The once-only work behind a service day.",
   "setup.phase.ready": "When you are ready",
   "setup.phase.ready.why": "None of this is needed to run a service.",
 
@@ -2927,6 +2929,26 @@ export const en = {
   "setup.what.profile": "Your record in the church directory: a photo, and a number somebody can reach you on.",
   "setup.why.profile": "Your team is about to meet a directory where you are only a name. Filling yours in is the quickest way to see what you are asking everybody else for.",
   "setup.at.profile": "Press Edit, add a photo and a phone number, and save.",
+
+  "setup.step.teams": "Who serves on the day",
+  "setup.what.teams": "Add the teams your church serves in, such as Welcome, Worship and Kids, and the positions on each one.",
+  "setup.why.teams": "A team is what a rota is built from. Until one exists there is nobody to schedule, and a volunteer has nothing to accept or decline.",
+  "setup.at.teams": "Press Add team, name it the way your church already says it, and list its positions.",
+
+  "setup.step.planTemplate": "Your order of service",
+  "setup.what.planTemplate": "A template holding the shape your services usually follow, with each item and how long it runs.",
+  "setup.why.planTemplate": "Every service starts from it, so the week's planning becomes editing rather than writing. It also gives your musicians and tech team one order to read from.",
+  "setup.at.planTemplate": "Press Add template, then add an item for each part of the service and give it a length.",
+
+  "setup.step.plan": "Plan this week's service",
+  "setup.what.plan": "The running order for the service you have coming up, built from your template.",
+  "setup.why.plan": "This is the thing your team reads on the day. Doing one now is how you find out whether the template is the right shape before a service day depends on it.",
+  "setup.at.plan": "Open the service that says Not planned yet, then start from your template.",
+
+  "setup.step.groupTypes": "The kinds of group you run",
+  "setup.what.groupTypes": "The sorts of group your church gathers in: small groups, classes, ministries, whatever you call them.",
+  "setup.why.groupTypes": "A group is created as one of these, so until there is at least one kind your church cannot write down a single group.",
+  "setup.at.groupTypes": "Press Add group type and name one. You can add the rest as you need them.",
 
   "setup.step.email": "Send email to your church",
   "setup.what.email": "Connect the account your church sends from, either Resend or your own mail server.",

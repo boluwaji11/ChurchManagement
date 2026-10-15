@@ -172,7 +172,11 @@ function PlanLine({ service, quiet }: { service: ServiceCard; quiet?: boolean })
   if (quiet) return <span className="flex-1 text-fg-subtle">{t("services.noPlan")}</span>;
 
   return (
-    <span className="flex-1 font-medium" style={{ color: "var(--hue-amber-key)" }}>
+    <span
+      data-guide="plan-service"
+      className="flex-1 font-medium"
+      style={{ color: "var(--hue-amber-key)" }}
+    >
       {t("services.notPlanned")}
     </span>
   );

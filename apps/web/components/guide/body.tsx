@@ -57,11 +57,20 @@ export function GuideBody({
   const next = steps.find((one) => !one.done && !one.skipped);
 
   /*
+   * A step that has just been answered stops being the current one and the
+   * next takes over. Without this, finishing the step whose screen you are on
+   * left it open and struck through while the step below went active, and two
+   * of them read as current.
+   */
+  const answered = (which: SetupStep | null) =>
+    Boolean(which) && steps.some((one) => one.step === which && (one.done || one.skipped));
+
+  /*
    * The one step that is now: the one whose screen is open, or the one that
    * is next. Its marker breathes, which is the whole of how somebody finds
    * their place again after looking away.
    */
-  const now = here ?? next?.step ?? null;
+  const now = (answered(here) ? null : here) ?? next?.step ?? null;
 
   /*
    * Which step is telling its whole story. The one whose screen is open, or
@@ -70,7 +79,12 @@ export function GuideBody({
    * what somebody is doing now.
    */
   const [opened, setOpened] = React.useState<SetupStep | null>(null);
-  const telling = opened ?? here ?? next?.step ?? null;
+
+  const telling =
+    (answered(opened) ? null : opened)
+    ?? (answered(here) ? null : here)
+    ?? next?.step
+    ?? null;
 
   return (
     <div className="flex flex-col gap-1">
