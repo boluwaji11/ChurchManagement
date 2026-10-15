@@ -282,10 +282,13 @@ function Row({
             {name}
           </span>
 
-          {/* A step that is answered, either way, is not the one you are on. */}
-          {here && !step.done && !step.skipped ? (
+          {/* The step in play carries the badge wherever the reader is, so the
+              column says which one is live rather than only saying so on the
+              screen that does it. It reads Here on that screen and Next
+              anywhere else. A step that is answered, either way, is neither. */}
+          {now && !step.done && !step.skipped ? (
             <span className="mt-0.5 shrink-0 rounded-full bg-primary px-1.5 py-px text-[10px] font-semibold text-primary-fg">
-              {t("setup.here")}
+              {here ? t("setup.here") : t("setup.next")}
             </span>
           ) : null}
           {step.skipped && !step.done ? (
