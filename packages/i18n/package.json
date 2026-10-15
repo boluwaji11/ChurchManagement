@@ -4,11 +4,16 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
+    ".": {
+      "react-server": "./src/index.ts",
+      "default": "./src/client.ts"
+    },
+    "./server": "./src/index.ts",
     "./en": "./src/messages/en.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "catalogue": "node ../../scripts/build-client-catalogue.mjs",
     "test": "vitest run"
   },
   "devDependencies": {

@@ -8,6 +8,7 @@
     "lint": "eslint .",
     "typecheck": "turbo run typecheck",
     "tokens": "pnpm --filter @connectapp/ui run tokens",
+    "catalogue": "node scripts/build-client-catalogue.mjs",
     "db:generate": "pnpm --filter @connectapp/db run generate",
     "db:migrate": "pnpm --filter @connectapp/db run migrate",
     "db:seed": "pnpm --filter @connectapp/db run seed",

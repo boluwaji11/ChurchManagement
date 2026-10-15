@@ -17,14 +17,22 @@ import { t } from "@connectapp/i18n";
  *
  * The screen's own Help is a different thing: it explains the screen. This
  * explains the box.
+ *
+ * R20.1. It takes the words rather than the key they live under. Building a
+ * key from a prop means no tool can tell which words a screen uses, and the
+ * browser then has to carry the whole catalogue in case this one component
+ * asks for any of it.
  */
 export function FieldHint({
-  /** A catalogue stem, whose title and body keys hold the words. */
-  about,
+  /** What the panel is headed. */
+  title,
+  /** The article itself, its paragraphs split by a blank line. */
+  body,
   /** What the mark is called, since the mark itself says nothing. */
   label,
 }: {
-  about: string;
+  title: string;
+  body: string;
   label: string;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -42,7 +50,7 @@ export function FieldHint({
       </SheetTrigger>
 
       <SheetContent
-        title={t(`${about}.title` as never)}
+        title={title}
         closeLabel={t("common.close")}
         footer={
           <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
@@ -52,7 +60,7 @@ export function FieldHint({
       >
         {/* Each paragraph of the article is its own line in the catalogue,
             split on a blank line the way the screen help does it. */}
-        {t(`${about}.body` as never)
+        {body
           .split("\n\n")
           .map((para) => (
             <p key={para} className="text-[length:var(--d-text-body)] leading-6 text-fg-muted">
