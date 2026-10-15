@@ -108,7 +108,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | New |
 | HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | Resolved |
 | HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | Resolved |
-| HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | New |
+| HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | Resolved |
 | HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | Resolved |
 | HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | Resolved |
 | HRT-358 | A screen somebody just looked at is still in hand when they come back | R24.11, R24.12 | Resolved |
@@ -2086,6 +2086,26 @@ cannot become the reason a church's write fails: anything the watcher throws is 
 
 What the line never carries: a name, an email, a note, a gift. A church's id and the address somebody
 was on, which is what answers "what is slow, and for whom".
+
+### HRT-355, how to test it
+
+Queue a send to a handful of people from one church and another from a second church at the same
+time, then let the tick run, or press send on both and watch the queue. Both move. Before this, the
+second church's message waited for the whole of the first: a tick worked through the churches in
+turn, and a church sending to four hundred people held the queue for forty seconds at a tenth of a
+second a copy. With a thousand churches on one deployment that is a Saturday where the last church's
+message goes out on Sunday.
+
+Four churches are worked at once now. The pace inside one church is unchanged, because it belongs to
+that church's own account and its provider's limit: Resend counts ten requests a second against a
+team, and a team is a church. What runs alongside is another church, through another account, which
+no limit anywhere counts together.
+
+A tick also stops at four minutes of the five it is given, so it ends on its own terms with every
+copy either sent or back in the queue, rather than being cut off mid-message for the reclaim to find.
+
+Confirm, with two churches sending: neither message is held by the other, both arrive, and a church
+whose provider refuses still gets its copies marked and retried rather than taking the tick down.
 
 ### HRT-358, how to test it
 
