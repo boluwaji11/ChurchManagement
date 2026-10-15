@@ -9,7 +9,8 @@
  * silent, so it is checked here rather than found by a church.
  *
  * `print` is the exception: it opens in its own tab, which is a fresh load
- * rather than an interception, so it needs no entry.
+ * rather than an interception, and it lives outside the frame's route group
+ * (HRT-360), so it needs no entry.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -17,7 +18,7 @@ import { fileURLToPath } from "node:url";
 
 // fileURLToPath, because a checkout under a path with a space in it arrives
 // percent-encoded otherwise.
-const members = fileURLToPath(new URL("../apps/web/app/members/", import.meta.url));
+const members = fileURLToPath(new URL("../apps/web/app/(app)/members/", import.meta.url));
 const OPENS_IN_ITS_OWN_TAB = ["print"];
 
 const screens = readdirSync(members, { withFileTypes: true })
