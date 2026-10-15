@@ -1,4 +1,4 @@
-repo: boluwaji11/ChurchManagement
+repo: boluwaji11/ConnectApp
 branch: main
 
 ## Last sync
