@@ -2979,6 +2979,7 @@ export const en = {
   "setup.unskip": "Undo skip",
   "setup.skipped": "Skipped",
   "setup.here": "Here",
+  "setup.next": "Next",
   "setup.helpHere": "Help on this screen",
   "setup.putAway": "Put the guide away",
   "setup.putAway.title": "Put the setup guide away?",
