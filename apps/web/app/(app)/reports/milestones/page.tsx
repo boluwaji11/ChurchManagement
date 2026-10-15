@@ -104,12 +104,9 @@ export default async function MilestonesReport({
   }));
 
   return (
-    <Screen
-      title={t("reports.milestones.title")}
-      trail={[{ label: t("reports.title"), href: "/reports" }, { label: t("reports.milestones.title") }]}
-      wide
-    >
+    <Screen wide>
       <ReportFrame
+        title={t("reports.milestones.title")}
         window={window}
         path="milestones"
       >

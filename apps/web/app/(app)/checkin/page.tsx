@@ -176,7 +176,7 @@ export default async function CheckinPage({
     /* R24.6. The screen's one action is on its name's row. The row under it
        keeps the other things this screen can do, which are tools rather than
        the errand somebody opened it for. */
-    <Screen title={t("checkin.title")}>
+    <Screen>
       <div className="flex flex-col items-end gap-2">
         <div className="flex flex-wrap items-center justify-end gap-3.5">
           {canReadIncidents(session) ? (

@@ -90,12 +90,9 @@ export default async function GivingReport({
     : 0;
 
   return (
-    <Screen
-      title={t("reports.giving.title")}
-      trail={[{ label: t("reports.title"), href: "/reports" }, { label: t("reports.giving.title") }]}
-      wide
-    >
+    <Screen wide>
       <ReportFrame
+        title={t("reports.giving.title")}
         window={window}
         path="giving"
       >

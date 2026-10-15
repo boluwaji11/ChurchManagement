@@ -72,12 +72,9 @@ export default async function ConnectedReport({
   const here = `?days=${window}`;
 
   return (
-    <Screen
-      title={t("reports.connected.title")}
-      trail={[{ label: t("reports.title"), href: "/reports" }, { label: t("reports.connected.title") }]}
-      wide
-    >
+    <Screen wide>
       <ReportFrame
+        title={t("reports.connected.title")}
         window={window}
         path="connected"
       >

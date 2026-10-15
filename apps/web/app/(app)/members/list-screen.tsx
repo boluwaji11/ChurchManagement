@@ -71,7 +71,6 @@ export async function MembersListScreen({
 
     return (
       <Screen
-        title={t("members.title")}
         back={{ href: "/members", label: t("lists.archived.back") }}
       >
         <ArchivedLists
@@ -136,7 +135,6 @@ export async function MembersListScreen({
 
   return (
     <Screen
-      title={t("members.title")}
       /* The action rides the end of the directory's own toolbar, at the far
          right, and an empty directory offers it in the middle of the screen
          instead. */

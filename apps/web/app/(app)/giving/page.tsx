@@ -224,7 +224,7 @@ export default async function GivingPage({
   ) : null;
 
   return (
-    <Screen title={t("giving.title")} wide>
+    <Screen wide>
       <div className="flex flex-col gap-6">
         {/* R13.21. What is narrowing the lists, above the whole screen. The
             figures are the month and the year by definition and are not

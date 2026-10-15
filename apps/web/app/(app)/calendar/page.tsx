@@ -201,7 +201,7 @@ export default async function CalendarPage({
   const busy = days.filter((day) => day.entries.length > 0);
 
   return (
-    <Screen title={t("calendar.title")} wide>
+    <Screen wide>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="mr-1.5 font-display text-[22px] leading-7 text-fg">

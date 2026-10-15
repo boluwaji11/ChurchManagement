@@ -5,12 +5,14 @@ import { FlameMark } from "../brand";
  * R24.6, R24.11. The bar across the top of the product.
  *
  * 14px of padding with 24px at the sides, a hairline under it, the canvas
- * behind it, and 12px between its parts.
+ * behind it, and 12px between its parts. The screen's name is IBM Plex Serif at
+ * 28px over a 34px line, which is where a reader looks to know where they are.
  *
- * The screen's name is not here. The bar belongs to the frame, which is a
- * layout and is kept across a navigation, so anything that changes with the
- * screen is drawn by the screen: its name and its one action are the page
- * header at the top of its own column.
+ * The bar belongs to the frame, which is a layout and is kept across a
+ * navigation, so the name cannot be passed up from the screen and cannot be
+ * resolved in the layout either: the layout does not run again when the screen
+ * changes. `ScreenName` reads the address in the browser, the same way the
+ * sidebar lights its row.
  *
  * There is no search box here. Cmd+K opens the palette from anywhere, and a
  * box in the chrome of every screen earns its width on none of them.
@@ -18,11 +20,17 @@ import { FlameMark } from "../brand";
  * The mark appears here only on a phone, where there is no sidebar carrying it.
  */
 export function TopBar({
+  name,
   bell,
   logoUrl,
   churchName,
   children,
 }: {
+  /**
+   * The screen's name, which reads the address itself. A record names itself in
+   * its own content, with the person's or the service's own name.
+   */
+  name?: React.ReactNode;
   /** R24.6. The notification bell, which every screen carries. */
   bell?: React.ReactNode;
   /** R1.1. This church's own logo, where it has uploaded one. */
@@ -41,7 +49,7 @@ export function TopBar({
       <span className="md:hidden">
         <FlameMark size={28} logoUrl={logoUrl} churchName={churchName} />
       </span>
-      <span className="min-w-0 flex-1" />
+      {name ?? <span className="min-w-0 flex-1" />}
       {children}
       {bell}
     </header>

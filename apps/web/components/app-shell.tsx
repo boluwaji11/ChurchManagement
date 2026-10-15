@@ -7,6 +7,7 @@ import { ProvisionalBanner } from "./provisional-banner";
 import { WatchAccess } from "./watch-access";
 import { Sidebar, MobileTabs, type ShellEntry } from "./shell/sidebar";
 import { TopBar } from "./shell/top-bar";
+import { ScreenName } from "./shell/screen-name";
 import { NotificationBell } from "./shell/bell";
 import { InboxMark } from "./inbox/mark";
 import { when } from "@/lib/when";
@@ -27,7 +28,7 @@ import { AskPush } from "./shell/ask-push";
 /**
  * R24.6, R24.11. The frame every staff screen sits in.
  *
- * Navigation down the left, the bell and the church's mark across the top, the
+ * Navigation down the left, the screen's name and the bell across the top, the
  * screen itself underneath. On a phone the sidebar is replaced by a tab bar
  * along the bottom, which is a CSS decision rather than a measured one, so the
  * server renders one tree and no screen flickers between two layouts.
@@ -136,6 +137,7 @@ export async function AppShell({
         <ProvisionalBanner standing={counts.standing} church={session.tenantSlug} />
 
         <TopBar
+          name={<ScreenName entries={navFor(session).map(({ href, owns, label }) => ({ href, owns, label }))} />}
           logoUrl={logoUrl}
           churchName={session.tenantName}
           bell={

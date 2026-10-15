@@ -121,7 +121,6 @@ export async function GroupsListScreen({
       <Screen>{landing}</Screen>
     ) : (
       <Screen
-        title={t("groups.title")}
         /* Nothing is chosen here, so the press is the plain one. */
         action={
           manage ? (
@@ -272,7 +271,7 @@ export async function GroupsListScreen({
 
   return (
     <Screen
-      title={only?.name ?? t("groups.title")}
+      title={only?.name}
       /* R24.17. An empty list offers the press in the middle of the screen,
          where somebody with nothing is looking, so the top of the screen does
          not offer it twice. */

@@ -119,7 +119,6 @@ export async function EventsListScreen({
   // already is, so the band above it does not say the same thing twice.
   return (
     <Screen
-      title={t("event.title")}
       back={putAway ? { href: "/events", label: t("event.archived.back") } : undefined}
       /* No action in the band above: it shares a line with the search, and on
          an empty screen it sits in the empty state where the eye already is. */

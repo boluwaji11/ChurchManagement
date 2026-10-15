@@ -101,12 +101,9 @@ export default async function AttendanceReport({
   }));
 
   return (
-    <Screen
-      title={t("reports.attendance.title")}
-      trail={[{ label: t("reports.title"), href: "/reports" }, { label: t("reports.attendance.title") }]}
-      wide
-    >
+    <Screen wide>
       <ReportFrame
+        title={t("reports.attendance.title")}
         window={window}
         path="attendance"
       >

@@ -46,7 +46,6 @@ export async function FormsListScreen({
 
   return (
     <Screen
-      title={t("form.title")}
       back={putAway ? { href: "/forms", label: t("form.archived.back") } : undefined}
       /* No action in the band above: it shares a line with the search, and on
          an empty screen it sits in the empty state where the eye already is. */

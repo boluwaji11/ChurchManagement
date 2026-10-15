@@ -118,6 +118,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-362 | A table narrower than it can be read scrolls rather than running into itself | R24.6, R2.14 | Resolved |
 | HRT-363 | Settings closes the area column, the way Overview already does | R24.14 | Resolved |
 | HRT-364 | The pager says which page you are on, and which ones there are | R2.14, R24.6 | Resolved |
+| HRT-366 | The screen's name goes back across the top, where it was | R24.6, R24.11 | Resolved |
 | HRT-365 | Five screens cannot navigate to themselves, so their paging and filters do nothing | R24.12, R13.21 | New |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
 | HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Closed |
@@ -1979,6 +1980,27 @@ permissions. A role change produces a different key, so a permission can never b
 What this does not fix: the frame is still rendered by every screen, so its markup is rebuilt and
 sent on every navigation even though its data is now free. That is HRT-360, and it is the difference
 between 65ms inside a layout and about 560ms across areas.
+
+### HRT-366, how to test it
+
+Open any screen. Its name is across the top of the product again, in IBM Plex Serif at 28px at the
+weight it always had, and nothing says it twice. Click between People, Groups, Calendar, Check-in
+and Settings without reloading: the word in the bar changes with the screen.
+
+HRT-360 moved the name into the screen's own column, as a page header at 32px and semibold, because
+the frame became a layout and a layout cannot be handed a name by the screen inside it. That was the
+wrong trade. The name belongs where a reader looks to know where they are, and the weight was
+nobody's decision.
+
+So the bar reads the address itself, against the same navigation the sidebar draws, which is why the
+lit row and the word in the bar always agree. The first attempt resolved it in the layout and was
+wrong in a way worth writing down: a layout does not run again when the screen under it changes, so
+the bar said Services while the reader was on the calendar until the next reload. It is a client
+component reading the path, the same thing the sidebar does to light its row.
+
+A screen the address cannot name still names itself, under the bar, at 22px: a service, a campaign,
+a kind of group, Statements, Payouts, Labels, Incidents, and the eight reports, which have their own
+heading and their way back to the catalogue again.
 
 ### HRT-364, how to test it
 
