@@ -117,6 +117,8 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-361 | The gifts spreadsheet says how the money came in in the church's own English | R13.23, R22.8 | Resolved |
 | HRT-362 | A table narrower than it can be read scrolls rather than running into itself | R24.6, R2.14 | Resolved |
 | HRT-363 | Settings closes the area column, the way Overview already does | R24.14 | Resolved |
+| HRT-364 | The pager says which page you are on, and which ones there are | R2.14, R24.6 | Resolved |
+| HRT-365 | Five screens cannot navigate to themselves, so their paging and filters do nothing | R24.12, R13.21 | New |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
 | HRT-299 | Compare font systems in the design gallery without changing app fonts | R24.6 | Closed |
 | HRT-300 | Set IBM Plex as the platform type system across web, admin and design tokens | R24.7 | Closed |
@@ -1986,6 +1988,45 @@ permissions. A role change produces a different key, so a permission can never b
 What this does not fix: the frame is still rendered by every screen, so its markup is rebuilt and
 sent on every navigation even though its data is now free. That is HRT-360, and it is the difference
 between 65ms inside a layout and about 560ms across areas.
+
+### HRT-364, how to test it
+
+Open Giving and look at the foot of the gifts. It says "Showing 10 of 306" and now draws the pages
+beside the arrows: 1, 2, an ellipsis, 31, with the page underfoot marked. Press 2, then 31, then the
+first: each is a link, so the middle button opens a page in its own tab and the address can be sent
+to somebody.
+
+The directory and the composer already drew numbers, through a different control written for the
+same job, and the two disagreed about what to draw. Both take the row from one place now, which is
+`pageTokens` in the design system, under test: seven slots at most, the first and the last always
+there, the current one and its neighbours, and a gap where a run is left out.
+
+### HRT-365, how to test it
+
+**Found while testing HRT-364, and not caused by it.** On five screens, a navigation from the screen
+to itself with different parameters does nothing at all: the address does not change and the rows do
+not move. Paging the gifts, narrowing the giving report, and anything else that keeps its state in
+the address is dead on those screens until the page is reloaded.
+
+To see it: open `/giving?gifts=2`, press 3 in the pager, and watch the address stay where it is.
+Then open `/giving?gifts=3` directly and confirm the page itself is right, which it is: the server
+answers correctly, and the client router drops the navigation.
+
+Measured with the router directly, pushing a route to itself with a parameter:
+
+| screen | what happens |
+|---|---|
+| Giving, Reports, the giving report, Check-in, Calendar | the push is dropped |
+| People, Groups, Events, Forms, Services, Schedule, Follow-ups, Messages, Website, Campaigns, Statements, Duplicates, Settings | it navigates |
+
+What is known: the RSC request goes out and answers 200, no history entry is written, nothing is
+logged, and no redirect is involved. Pushing to a different screen works from the same page, and
+pushing back into the stuck screen from elsewhere works. It is the same before every change in this
+release, so it is older than them.
+
+What is not known: what the five have in common. They do not share `useSearchParams`, a metadata
+shape, a table, or a chart. The next step is to bisect one of them by taking its children out one at
+a time, which is a story of its own rather than a line in another one.
 
 ### HRT-362, how to test it
 
