@@ -201,18 +201,17 @@ icon-only controls, 7:1 contrast, 56px targets, no navigation at all.
 
 ### Phase D. What the reference has that we do not
 
-Features, not polish. Two need a schema change.
+Features, not polish.
 
 | ID | Story |
 |---|---|
-| HRT-333 | Tags belong to categories, with a colour and an order the church sets |
 | HRT-334 | A record says how complete it is, and the directory says which are not |
 | HRT-335 | The church's own activity feed, read from the audit log, on the dashboard |
 | HRT-336 | Sweep the dead ends: the `/directory` link that goes nowhere, the empty `groups/find` directories, and the components nothing renders |
 
-HRT-333 needs a `tag_categories` table, a `category_id` and a `position` on `tags`, and a
-migration. It is the largest single piece of new work and could be dropped without
-blocking anything else.
+Tags in categories was the fourth of these, and the church asked for it to come off: it
+wanted a `tag_categories` table, a `category_id` and a `position` on `tags`, and it was the
+largest single piece of new work in the phase.
 
 HRT-335 reads the audit log, which is already append-only and already records the actor
 and their role, so it needs no new writes.
@@ -282,4 +281,4 @@ Per story, before it reaches Resolved:
   there, then rolls outward one area per commit.
 - **HRT-319 moves the navigation everybody has learned.** It is one story, reversible, and
   worth doing before Phase C rather than after, so screens are only restyled once.
-- **HRT-333 is the only schema change here** and can be dropped without affecting the rest.
+- **Nothing here changes the schema** now that tags in categories has come off.
