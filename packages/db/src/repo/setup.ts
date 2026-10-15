@@ -27,7 +27,7 @@ import { canManageServices } from "./services";
  * so four things are in view at a time and each set has a reason to be done
  * by a particular day.
  */
-export const SETUP_PHASES = ["hour", "before", "running", "ready"] as const;
+export const SETUP_PHASES = ["basics", "before", "running", "ready"] as const;
 export type SetupPhase = (typeof SETUP_PHASES)[number];
 
 /*
@@ -37,11 +37,12 @@ export type SetupPhase = (typeof SETUP_PHASES)[number];
  * from signing up to a directory somebody can use.
  */
 export const SETUP_STEPS = [
-  // The first hour. R22.3 measures this one.
+  // The basics: the church itself, and who is in it.
   "members",
-  "services",
   "team",
   "church",
+  // Before the first service day.
+  "services",
   // Before the first service day.
   "rooms",
   "stations",
@@ -62,10 +63,10 @@ export const SETUP_STEPS = [
 export type SetupStep = (typeof SETUP_STEPS)[number];
 
 export const SETUP_PHASE_OF: Record<SetupStep, SetupPhase> = {
-  members: "hour",
-  services: "hour",
-  team: "hour",
-  church: "hour",
+  members: "basics",
+  team: "basics",
+  church: "basics",
+  services: "before",
   rooms: "before",
   stations: "before",
   portal: "before",

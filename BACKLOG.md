@@ -994,6 +994,8 @@ of money and after everything else.
 | HRT-367 | The setup guide walks beside the church, on every screen, and says what to press | R22.1, R22.2, R22.3 | Active |
 | HRT-368 | A church writes down the times it meets | R22.1, R3.1 | Resolved. The premise was wrong: it already can |
 | HRT-369 | A check-in dry run before the first service day | R8.x, R22.1 | New |
+| HRT-370 | The invitation reaches the person it names | R1.7, R16.4, R22.1 | New |
+| HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | New |
 
 R22.1 lists giving and messaging credentials as wizard steps, and both are now built, so both are
 steps of the guide. The five-step wizard of 0.2 is replaced by HRT-367.
@@ -4045,6 +4047,13 @@ The guide is a rail down the right of every screen, for an owner or an administr
 6. **Help on this screen** sits at the foot of the rail, which is where R22.2 has been waiting for
    somewhere to live since the redesign took the button out of the top bar.
 
+**The basics, and where the first service went.** The opening phase was called The first hour,
+after R22.3's sixty-minute target, and a church reading it is not thinking about our target. It is
+The basics: the church's people, who helps run it, and its own details. Creating the first service
+moved out of it and into Before your first service, where the rooms, the station and the portal
+address already are, because a service is something a church sets up for a service day rather than
+part of writing the church down.
+
 **Sixteen, not twelve, and why.** Four were added on 15 October after walking a church that had just
 been written down: volunteer teams, the order of service template, this week's plan, and the kinds
 of group it runs. A new church is given eight plan item kinds and two funds and nothing else, so it
@@ -4056,6 +4065,36 @@ how a church finds out whether its template is the right shape.
 
 What came out: `/setup`, the corner dock, and the checklist across the dashboard. Three drawings of
 one list of five, none of which said what to press on arrival.
+
+### HRT-370, what it is for
+
+Send invite writes a row and sends nothing. A church invites its pastor, watches the row appear
+under Invited, and nothing reaches him: somebody has to be told out of band to go to sign-up and
+use that exact address. The joining itself is sound, by address, on sign-up, sign-in or the
+confirmation callback, and it links or writes the person's record.
+
+What was missing was a way to send. HRT-287 shipped on 13 October, so a church now connects its own
+Resend account or its own mail server and the queue is built. The invitation becomes a message like
+any other: who it is from, which church, what role, and a link to sign up with that address, with
+the fourteen days the row already carries.
+
+Bring your own messaging governs it. The church's own account sends it, we resell nothing, and a
+church that has not connected one yet is told so on the invite panel rather than finding out from
+somebody who never heard from them.
+
+### HRT-371, two things wrong on the same screen
+
+**A church cannot give a role on its first day.** Eight of the nine built-ins are written archived,
+because the roles screen is where a church takes one up. The invite panel offers roles that are
+neither Owner nor archived, which on a new church is none of them: the dropdown is empty, Send
+invite stays dark, and step three of the setup guide cannot be finished at all.
+
+**And the role somebody may give is checked only in the browser.** `invite` guards
+`canManageChurch` and nothing else, so the filtering that stops an Admin handing out Finance lives
+in the panel's own `reachable`. A filter in a screen is a convenience, never a control.
+
+Also here: Role carries no red asterisk though the form refuses a blank, and an Owner cannot invite
+another Owner, only hand the church over, which is not the same thing for a church with two pastors.
 
 ### HRT-368, and the hole that was not there
 

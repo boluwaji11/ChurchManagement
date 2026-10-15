@@ -29,10 +29,10 @@ export interface GuideStep {
 }
 
 export const GUIDE_STEPS: readonly GuideStep[] = [
-  { step: "members", phase: "hour", href: "/members/import", target: "import-file" },
-  { step: "services", phase: "hour", href: "/services", target: "add-service" },
-  { step: "team", phase: "hour", href: "/settings/manage-accesses", target: "invite-person" },
-  { step: "church", phase: "hour", href: "/settings/church", target: "church-details" },
+  { step: "members", phase: "basics", href: "/members/import", target: "import-file" },
+  { step: "team", phase: "basics", href: "/settings/manage-accesses", target: "invite-person" },
+  { step: "church", phase: "basics", href: "/settings/church", target: "church-details" },
+  { step: "services", phase: "before", href: "/services", target: "add-service" },
   { step: "rooms", phase: "before", href: "/settings/rooms", target: "add-room" },
   { step: "stations", phase: "before", href: "/settings/stations", target: "add-station" },
   { step: "portal", phase: "before", href: "/settings/website", target: "portal-address" },

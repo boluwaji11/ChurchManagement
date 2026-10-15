@@ -50,7 +50,7 @@ describe("a church on its first day (R22.1)", () => {
   });
 
   it("opens on the first hour", async () => {
-    expect((await read()).phase).toBe("hour");
+    expect((await read()).phase).toBe("basics");
   });
 
   it("reads them in the order one unblocks the next", async () => {
@@ -159,9 +159,9 @@ describe("doing the work moves the step (R22.1)", () => {
 
   it("opens the next phase once the first is settled", async () => {
     const progress = await read();
-    const hour = progress.steps.filter((row) => row.phase === "hour");
-    expect(hour.filter((row) => !row.done && !row.skipped).map((r) => r.step)).toEqual([]);
-    expect(progress.phase).not.toBe("hour");
+    const basics = progress.steps.filter((row) => row.phase === "basics");
+    expect(basics.filter((row) => !row.done && !row.skipped).map((r) => r.step)).toEqual([]);
+    expect(progress.phase).not.toBe("basics");
   });
 });
 
