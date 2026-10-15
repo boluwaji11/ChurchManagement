@@ -101,7 +101,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-345 | Giving statements are read in set-based queries, not one giver at a time | R24.11, R18.9 | Resolved |
 | HRT-346 | A bulk action over a selection is one write, not one a row | R24.11, R1.13 | Resolved |
 | HRT-347 | The frame and the page read at the same time | R24.11 | Resolved |
-| HRT-348 | Fifteen screens read their independent rows together | R24.11 | Nine done, six to go |
+| HRT-348 | Fifteen screens read their independent rows together | R24.11 | Resolved |
 | HRT-349 | A session resolves in two round trips, not five | R24.11, R1.5 | Resolved |
 | HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | New |
 | HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | New |
@@ -2111,32 +2111,30 @@ the other half of HRT-359.
 
 ### HRT-348, how to test it
 
-Open giving, the schedule, services, a group's record, your own profile under Settings, and the
-member portal's home. Each holds exactly what it held before. These six awaited their independent
-reads one at a time, a round trip each, and now send them down the one connection together.
+Open the email composer, a service's plan, a form's record, an event's record and its edit panel, the
+giving report, and four settings screens: Email, Online giving, Teams and Service template. Each
+holds exactly what it held before. These ten awaited their independent reads one at a time, a round
+trip each, and send them down the one connection together now. The groups list had already been done.
 
-Giving was the worst at fifteen: it read the church for a timezone and then queued fourteen reads
-behind it, on the screen a treasurer opens most. The church now comes out of the frame, which has
-already read it.
+Three of them also stopped asking a question that was already answered. The service plan, the event's
+edit panel, the giving report and the email settings each read the church again for a timezone or a
+website; the frame has already read it, so it comes from there. Online giving read the Stripe account
+twice to answer the same question, and reads it a second time now only when Stripe has been asked for
+something newer.
 
-Two of the six also stopped asking the same question twice. Services asked for the services ahead
-and then for the services behind, where one read over the whole span answers both. The portal home
-asked for today's services and then for today onwards, and the second answer contained the first.
+Checked in a browser against a build, signed in, every screen clean: no console error, no failed
+request, the right name in the tab. The wall clock locally, three runs a screen: Email settings 371ms
+to 453ms becomes 327ms to 358ms, Service template 319ms to 358ms becomes 273ms to 297ms, and Teams,
+Online giving, the giving report and the composer are unchanged within the noise.
 
-Nine screens still read in sequence: the email composer, a service's plan, a form's record, an
-event's record and its edit panel, the giving report, the groups list, and two settings screens.
-They are five reads each rather than fifteen, so they are worth doing and worth doing after this is
-confirmed.
+**Which is the honest answer: against a database this close, a saved round trip is worth about 10ms.**
+The change is right where the database is far, which is where the churches are and where this was
+first measured, and it is worth nothing on a laptop beside a local instance. What it is not is a
+regression, and it takes the last of this class out of the product.
 
-Two things found while measuring, neither a defect:
-
-Riverside's portal name is `riversides`, so signing in locally redirects to `riversides.localhost`,
-where the auth cookie set on `localhost` does not reach and the screen looks signed out. That is the
-local cookie scope, not a bug, and the dev hostname stays as it is.
-
-`/settings` is the only route in the product with a `loading.tsx`, so it is the only one that
-streams: its body can arrive after its document. That is why it feels quicker than screens with a
-similar time to first byte, and it is the evidence for HRT-353.
+Teams is the slowest screen in the product at about 1.2 seconds, and none of it is this: it reads
+every team's roster, one read a team, and then signs every face on them. That is its own story rather
+than this one.
 
 ### HRT-349, how to test it
 

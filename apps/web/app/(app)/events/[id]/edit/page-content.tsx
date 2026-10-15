@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
-import { withTenant, getChurch, getEvent, listForms, canManageEvents } from "@connectapp/db";
+import { withTenant, getEvent, listForms, canManageEvents } from "@connectapp/db";
 import { RecordPanel } from "@/components/record-panel";
 import { returnToUnder } from "@/lib/return-to";
 import { requireSession } from "@/lib/session";
+import { shellData } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -40,6 +41,8 @@ export async function EditEventPanelPage({
     );
   }
 
+  const today = churchNow((await shellData(session)).church?.timezone ?? "America/Chicago").date;
+
   const found = await withTenant(
     {
       tenantId: session.tenantId,
@@ -47,11 +50,12 @@ export async function EditEventPanelPage({
       userId: session.userId,
       permissions: session.permissions,
     },
-    async (tx) => ({
-      event: await getEvent(tx, id),
-      forms: await listForms(tx),
-      today: churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date,
-    }),
+    /* R24.11. Two reads that want nothing from each other, together. The
+       clock comes from the frame, which has already read the church. */
+    async (tx) => {
+      const [event, forms] = await Promise.all([getEvent(tx, id), listForms(tx)]);
+      return { event, forms, today };
+    },
   );
   if (!found.event) notFound();
   const event = found.event;

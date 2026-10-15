@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 import {
   withTenant, getOccurrence, getPlan, ensurePlan, canManageServices,
-  listTemplates, itemKindsForPlans, rosterFor, listOccurrences, getChurch,
+  listTemplates, itemKindsForPlans, rosterFor, listOccurrences,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
-import { requireScreen } from "@/lib/shell-data";
+import { requireScreen, shellData } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { Screen } from "@/components/screen";
 import { longDate, readableTime, shortDate } from "@/lib/dates";
@@ -59,6 +59,12 @@ export default async function PlanPage({
 
   const actor = { tenantId: session.tenantId, role: session.role, userId: session.userId, permissions: session.permissions };
 
+  /*
+   * R24.11. The clock this church keeps, out of the frame, which has already
+   * read it. Reading the church again here was a round trip for a timezone.
+   */
+  const today = churchNow((await shellData(session)).church?.timezone ?? "America/Chicago").date;
+
   const result = await withTenant(actor, async (tx) => {
     const occurrence = await getOccurrence(tx, id);
     if (!occurrence) return null;
@@ -67,24 +73,26 @@ export default async function PlanPage({
     // works from the record's own id rather than from whatever was in the URL.
     const occurrenceId = occurrence.id;
     await ensurePlan(tx, actor, occurrenceId);
-    const plan = await getPlan(tx, occurrenceId);
-    if (!plan) return null;
-    return {
-      occurrence,
-      plan,
+
+    /*
+     * R24.11. Five reads that want nothing from each other, sent together.
+     * Only the plan itself had to wait for the write above.
+     */
+    const [plan, templates, kinds, roster, others] = await Promise.all([
+      getPlan(tx, occurrenceId),
       // R11.8. The shapes to start from, as the church keeps them in settings.
-      templates: await listTemplates(tx),
+      listTemplates(tx),
       // R11.2. The words this church files an item under.
-      kinds: kindOptions(await itemKindsForPlans(tx, { includeArchived: true })),
+      itemKindsForPlans(tx, { includeArchived: true }),
       // R11.9. Who serves, read from the same schedule the serving pages write.
-      roster: await rosterFor(tx, occurrenceId),
+      rosterFor(tx, occurrenceId),
       // R11.1. The church's other services, so a leader planning three in a
       // week moves between them without going back to the list.
-      others: await listOccurrences(tx, {
-        from: churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago").date,
-        to: "2100-01-01",
-      }),
-    };
+      listOccurrences(tx, { from: today, to: "2100-01-01" }),
+    ]);
+    if (!plan) return null;
+
+    return { occurrence, plan, templates, kinds: kindOptions(kinds), roster, others };
   });
 
   if (!result?.plan) notFound();

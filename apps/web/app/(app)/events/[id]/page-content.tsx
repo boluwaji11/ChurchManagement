@@ -62,12 +62,15 @@ export async function EventPanelPage({
   const result = await withTenant(ctx, async (tx) => {
     const found = await getEvent(tx, id);
     if (!found) return null;
-    return {
-      event: found,
-      // R14.12. The roster, and the questions that name its columns.
-      registrations: found.takesRegistrations ? await listRegistrations(tx, found.id) : [],
-      questions: found.formId ? (await getForm(tx, found.formId))?.fields ?? [] : [],
-    };
+
+    // R14.12. The roster, and the questions that name its columns. R24.11.
+    // Neither waits on the other.
+    const [registrations, form] = await Promise.all([
+      found.takesRegistrations ? listRegistrations(tx, found.id) : [],
+      found.formId ? getForm(tx, found.formId) : null,
+    ]);
+
+    return { event: found, registrations, questions: form?.fields ?? [] };
   });
   if (!result) notFound();
 

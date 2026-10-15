@@ -65,16 +65,20 @@ export async function FormPanelPage({
       // Found by its readable address or by its id, so everything after this
       // works from the record's own id rather than from what was in the URL.
       const form = await getForm(tx, id);
-      return {
-      form,
-      responses: reading && form
-        ? await listSubmissions(tx, form.id, { limit: PER_PAGE, offset: (at - 1) * PER_PAGE })
-        : [],
-      total: reading && form ? await countSubmissions(tx, form.id) : 0,
-      // R4.4. The church's own person fields, so a question can be told to
-      // write its answer onto one.
-      personFields: await listCustomFields(tx, "person"),
-      };
+
+      /* R24.11. The three reads behind it want nothing from each other, so
+         they go together rather than a round trip each. */
+      const [responses, total, personFields] = await Promise.all([
+        reading && form
+          ? listSubmissions(tx, form.id, { limit: PER_PAGE, offset: (at - 1) * PER_PAGE })
+          : [],
+        reading && form ? countSubmissions(tx, form.id) : 0,
+        // R4.4. The church's own person fields, so a question can be told to
+        // write its answer onto one.
+        listCustomFields(tx, "person"),
+      ]);
+
+      return { form, responses, total, personFields };
     },
   );
   if (!result.form) notFound();

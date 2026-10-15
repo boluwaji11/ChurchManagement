@@ -1,10 +1,10 @@
 import {
-  withTenant, getChurch, givingTotals, givingByMonth, givingByFund,
+  withTenant, givingTotals, givingByMonth, givingByFund,
   lapsedGivers, firstTimeGivers, canReadGivingAmounts,
 } from "@connectapp/db";
 import { t, plural } from "@connectapp/i18n";
 import { Screen } from "@/components/screen";
-import { requireScreen } from "@/lib/shell-data";
+import { requireScreen, shellData } from "@/lib/shell-data";
 import { Denied } from "@/components/denied";
 import { churchNow } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
@@ -62,17 +62,22 @@ export default async function GivingReport({
     permissions: session.permissions,
   };
 
+  /* R24.11. The clock out of the frame, which has already read the church. */
+  const clock = churchNow((await shellData(session)).church?.timezone ?? "America/Chicago");
+  const range = { from: backBy(clock.date, window), to: clock.date };
+
   const read = await withTenant(ctx, async (tx) => {
-    const clock = churchNow((await getChurch(tx, session.tenantId))?.timezone ?? "America/Chicago");
-    const range = { from: backBy(clock.date, window), to: clock.date };
-    return {
-      range,
-      totals: await givingTotals(tx, range),
-      months: await givingByMonth(tx, range),
-      byFund: await givingByFund(tx, range),
-      lapsed: await lapsedGivers(tx, ctx, range.from),
-      first: await firstTimeGivers(tx, ctx, range),
-    };
+    /* R24.11. Five reads over the same window, none of which wants anything
+       from another, so they go down the one connection together. */
+    const [totals, months, byFund, lapsed, first] = await Promise.all([
+      givingTotals(tx, range),
+      givingByMonth(tx, range),
+      givingByFund(tx, range),
+      lapsedGivers(tx, ctx, range.from),
+      firstTimeGivers(tx, ctx, range),
+    ]);
+
+    return { range, totals, months, byFund, lapsed, first };
   });
 
   /* R13.9. Everything given to a fund the giver's intent binds. */
