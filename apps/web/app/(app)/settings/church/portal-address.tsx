@@ -120,6 +120,10 @@ export function PortalAddress({
     };
   }, [draft, taken, slug, canEdit]);
 
+  /* R1.1. The slug they already answer on, typed back. There is nothing to
+     save, so the button is dark. */
+  const current = draft.trim().toLowerCase() === slug && !taken;
+
   /* R17.1. The address, whole, for pasting anywhere that is not this screen. */
   const [copied, setCopied] = React.useState(false);
   const copy = () => {
@@ -265,9 +269,7 @@ export function PortalAddress({
           style={{ color: "var(--hue-fern-key)" }}
         >
           <CircleCheck className="size-4 shrink-0" aria-hidden />
-          {draft.trim().toLowerCase() === slug && !taken
-            ? t("portal.state.current")
-            : t("portal.state.free")}
+          {current ? t("portal.state.current") : t("portal.state.free")}
         </p>
       ) : null}
 
@@ -275,7 +277,7 @@ export function PortalAddress({
         <Button
           type="button"
           loading={working}
-          disabled={!canEdit || !changed || working || free !== true}
+          disabled={!canEdit || !changed || working || free !== true || current}
           onClick={take}
         >
           <Check /> {t("portal.use")}
