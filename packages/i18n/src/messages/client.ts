@@ -1898,7 +1898,7 @@ export const browserWords: Catalogue = {
   "setup.step.profile": "Complete your profile",
   "setup.what.profile": "Add a profile photo, phone number and other information so your church team can recognize and contact you.",
   "setup.why.profile": "Your profile is part of your church's directory. Keeping it updated helps your team stay connected.",
-  "setup.at.profile": "Click Edit, add your photo and phone number, then save your changes.",
+  "setup.at.profile": "Click Edit, add your photo, phone number and other information, then save your changes.",
   "setup.step.teams": "Who serves on the day",
   "setup.what.teams": "Add the teams your church serves in, such as Welcome, Worship and Kids, and the positions on each one.",
   "setup.why.teams": "A team is what a rota is built from. Until one exists there is nobody to schedule, and a volunteer has nothing to accept or decline.",
