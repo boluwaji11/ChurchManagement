@@ -33,11 +33,11 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { step: "roles", phase: "basics", href: "/settings/roles", target: "take-up-role" },
   { step: "team", phase: "basics", href: "/settings/manage-accesses", target: "invite-person" },
   { step: "church", phase: "basics", href: "/settings/church", target: "church-details" },
+  { step: "portal", phase: "basics", href: "/settings/website", target: "portal-address" },
+  { step: "profile", phase: "basics", href: "/settings/profile", target: "your-details" },
   { step: "services", phase: "before", href: "/services", target: "add-service" },
   { step: "rooms", phase: "before", href: "/settings/rooms", target: "add-room" },
   { step: "stations", phase: "before", href: "/settings/stations", target: "add-station" },
-  { step: "portal", phase: "before", href: "/settings/website", target: "portal-address" },
-  { step: "profile", phase: "before", href: "/settings/profile", target: "your-details" },
   { step: "teams", phase: "running", href: "/settings/teams", target: "add-team" },
   {
     step: "planTemplate",

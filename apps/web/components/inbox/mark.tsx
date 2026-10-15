@@ -206,10 +206,13 @@ export function InboxMark({
            rather than something floating, so the mark moves along the bottom
            rather than up the side, and only where the column is drawn. */
         ? `fixed ${raised ? "z-[60]" : "z-40"} ${
+            /* The guide publishes its width as it is pressed, so this moves
+               with the column. The fallback is what the cookie said, which is
+               what the server drew, so the first paint is already right. */
             clear === "rail"
-              ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[24.75rem]"
+              ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[var(--guide-clear,30.25rem)]"
               : clear === "rail-shut"
-                ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[4rem]"
+                ? "right-[max(1rem,env(safe-area-inset-right))] lg:right-[var(--guide-clear,4rem)]"
                 : "right-[max(1rem,env(safe-area-inset-right))]"
           } ${
             clear === "none"
