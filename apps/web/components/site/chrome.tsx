@@ -131,8 +131,8 @@ export function SiteHeader() {
 
 const FOOT = [
   { href: "/trust", key: "site.foot.data" },
-  { href: "https://github.com/boluwaji11/ChurchManagement", key: "site.foot.source" },
-  { href: "https://github.com/boluwaji11/ChurchManagement/discussions", key: "site.foot.forum" },
+  { href: "https://github.com/boluwaji11/ConnectApp", key: "site.foot.source" },
+  { href: "https://github.com/boluwaji11/ConnectApp/discussions", key: "site.foot.forum" },
   { href: "https://buy.stripe.com/dRmdR23AB9X2e7g6BV63K00", key: "site.foot.donate" },
   { href: "mailto:support@connectapp.church", key: "site.foot.supportEmail" },
 ] as const;

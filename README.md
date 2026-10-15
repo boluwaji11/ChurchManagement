@@ -1,6 +1,6 @@
 # ConnectApp
 
-[![CI](https://github.com/boluwaji11/ChurchManagement/actions/workflows/ci.yml/badge.svg)](https://github.com/boluwaji11/ChurchManagement/actions/workflows/ci.yml)
+[![CI](https://github.com/boluwaji11/ConnectApp/actions/workflows/ci.yml/badge.svg)](https://github.com/boluwaji11/ConnectApp/actions/workflows/ci.yml)
 
 **Church management software.**
 

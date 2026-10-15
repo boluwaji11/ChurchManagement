@@ -3,7 +3,7 @@
 ## Overview
 ConnectApp is free church management software for churches of 50 to 500 people. This redesign covers the whole product for six personas: Administrator, Senior pastor, Group leader, Check-in volunteer, Member, and Network admin. It also covers how each persona enters the product from the church's own website.
 
-Target repo: `boluwaji11/ChurchManagement` (`apps/web`, Next.js). `github.md` maps each design screen to the route files it was built from.
+Target repo: `boluwaji11/ConnectApp` (`apps/web`, Next.js). `github.md` maps each design screen to the route files it was built from.
 
 ## About the design files
 The files in `design/` are **design references built in HTML**. They are working prototypes that show the intended look and behavior, not production code to copy. Rebuild them in `apps/web` using its existing patterns: App Router pages, its components, and its data layer. Do not ship the HTML or port its inline-style approach. Lift the values (colors, sizes, copy, rules) into the codebase's own styling system.
