@@ -107,6 +107,25 @@ describe("doing the work moves the step (R22.1)", () => {
     expect(step(await read(), "members")?.done).toBe(true);
   });
 
+  it("wants a role taken up off the shelf, because a new church runs only Owner", async () => {
+    /* R1.6. Every church is written down with Owner live and the other eight
+       built-ins archived, so there is nothing to invite anybody as yet. */
+    await owner()`
+      insert into tenant_roles (tenant_id, key, name, builtin, archived_at)
+      values (${tenant}, 'owner', 'Owner', true, null)
+      on conflict do nothing`;
+    await owner()`
+      insert into tenant_roles (tenant_id, key, name, builtin, archived_at)
+      values (${tenant}, 'staff', 'Staff', true, now())
+      on conflict do nothing`;
+    expect(step(await read(), "roles")?.done).toBe(false);
+
+    await owner()`
+      update tenant_roles set archived_at = null
+       where tenant_id = ${tenant} and key = 'staff'`;
+    expect(step(await read(), "roles")?.done).toBe(true);
+  });
+
   it("wants a second account, because one is the person who made the church", async () => {
     await owner()`
       insert into app_users (id, email) values (${CREATOR}, 'creator@setuptest.invalid')

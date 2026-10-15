@@ -4135,6 +4135,21 @@ in the panel's own `reachable`. A filter in a screen is a convenience, never a c
 Also here: Role carries no red asterisk though the form refuses a blank, and an Owner cannot invite
 another Owner, only hand the church over, which is not the same thing for a church with two pastors.
 
+### HRT-371, the first fix was the wrong one
+
+Offering the shelf in the invite panel was wrong, and a church caught it on the day: the dropdown
+listed Admin, Staff, Finance, Pastoral, Group leader and Team leader while its own Roles screen
+listed Owner and nothing else. Handing somebody a role the church has never looked at, cannot find,
+and has not read the permissions of, is worse than the empty list it replaced.
+
+The shelf is the model working, and the gap was never in the invite panel: a church is written down
+with Owner live and the other eight archived, so **taking a role up is a step of setting up** and
+nothing said so. The guide now has it, in the basics, between adding members and inviting the team,
+and it settles when a live role past Owner exists. Seventeen steps.
+
+Both the panel and the server guard are back to live roles only, so what can be given is exactly
+what the Roles screen shows.
+
 ### HRT-368, and the hole that was not there
 
 Written on the belief that **nothing writes `service_times`**, the weekly pattern the website reads

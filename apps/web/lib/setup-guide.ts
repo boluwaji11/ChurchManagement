@@ -30,6 +30,7 @@ export interface GuideStep {
 
 export const GUIDE_STEPS: readonly GuideStep[] = [
   { step: "members", phase: "basics", href: "/members/import", target: "import-file" },
+  { step: "roles", phase: "basics", href: "/settings/roles", target: "take-up-role" },
   { step: "team", phase: "basics", href: "/settings/manage-accesses", target: "invite-person" },
   { step: "church", phase: "basics", href: "/settings/church", target: "church-details" },
   { step: "services", phase: "before", href: "/services", target: "add-service" },
