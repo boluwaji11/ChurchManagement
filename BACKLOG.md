@@ -112,7 +112,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | The frame and the signed links done |
 | HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | New |
 | HRT-358 | A screen somebody just looked at is still in hand when they come back | R24.11, R24.12 | Resolved |
-| HRT-359 | Every area's links are always in the navigation, so the browser can fetch them before they are pressed | R24.11, R24.12 | New |
+| HRT-359 | Every area's links are always in the navigation, so the browser can fetch them before they are pressed | R24.11, R24.12 | Resolved |
 | HRT-360 | The shell becomes a layout, so a navigation fetches the screen rather than the whole frame | R24.11, R24.12 | Resolved |
 | HRT-361 | The gifts spreadsheet says how the money came in in the church's own English | R13.23, R22.8 | Resolved |
 | HRT-297 | Collect production Core Web Vitals in Vercel Speed Insights | N3 | Closed |
@@ -2055,19 +2055,30 @@ would refuse, it can only be out of date.
 
 ### HRT-359, how to test it
 
-Open any screen and look at the sidebar. Only the group you are in is expanded, so only its handful of
-links exist in the page at all. Next prefetches what is in the viewport as a link, so the areas a
-church is not currently in cannot be fetched before they are pressed, however cheap they would be.
+**Test this against a build, not the dev server.** Next skips prefetching on hover in development, so
+on `next dev` none of this happens at all. Run `pnpm --filter @connectapp/web build` then
+`pnpm --filter @connectapp/web start`, and open http://localhost:4488.
 
-Two things have to be true for a dynamic route to be prefetched at all, and neither is today. Its
-link has to be on the screen, which the accordion prevents, and the route has to have something
-prefetchable: the Next documentation for `Link` says that for a dynamic route the prefetch covers
-"the partial route down to the nearest segment with a `loading.js` boundary", and this product has one
-`loading.tsx` in it. So nothing is prefetched anywhere, and every first visit starts from nothing.
+Sign in, open the dashboard, and rest the pointer on People in the rail for half a second without
+pressing. Then press it. The screen should be there on the press rather than fetched after it. The
+same on each of the four areas, on the rows inside an area's column, and on Settings at the foot of
+the rail. In the network panel each hover is one request for the screen's own segment, and the press
+that follows asks for nothing.
 
-This is the other half of HRT-358 and it is what the sidecar in docs/redesign already proposes: the
-four areas become a rail whose links are always present. HRT-353's boundary work is what gives each
-route something to prefetch.
+The rail's four marks were buttons that pushed a route in a handler, so nothing in the navigation
+was a link the browser could see, and three quarters of the product had no link on the screen at
+all. They are links now, which also means the middle button and a right press open an area in a tab
+of its own.
+
+What this does not do is fetch every link on sight, which is Next's own default for a link in the
+viewport. Fourteen screens rendered on a server that answers every church, for the one screen
+somebody pressed, is not a trade this product can make. The fetch is on the intent to go: the
+pointer arriving, the row taking focus, a finger landing. That is `experimental.dynamicOnHover` in
+`next.config.ts` and `NavLink` in `components/nav-link.tsx`, which carries the prop Next has not yet
+put in the types `next/link` exports.
+
+The sidecar had already answered the other half of this story: HRT-319 replaced the accordion, so
+the area somebody is in is a fact about where they are rather than a section they left open.
 
 ### HRT-353, how to test it
 

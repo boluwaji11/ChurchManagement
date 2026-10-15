@@ -1,38 +1,31 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@connectapp/ui";
-import { Opening } from "./opening";
 
 /**
- * One link in the header, and whether it is the screen you are on.
+ * R24.12. A link in the navigation, fetched while the pointer is on its way.
  *
- * Seven links with nothing marking the current one is seven links a person has
- * to read every time to work out where they are. Both tab bars in the product
- * already do this; the main navigation did not.
+ * Every screen here is per-church and therefore dynamic, and Next's own
+ * default for a dynamic route fetches only as far as the nearest loading
+ * boundary, which is nothing the reader is waiting for. Fetching the whole
+ * screen on sight would be the other extreme: fourteen screens rendered on
+ * every page load, for a church that pays nothing and a server that answers
+ * every church.
+ *
+ * So it is fetched on the intent to go: the pointer arriving on the row, a
+ * finger touching it, the row taking focus. That is 150ms to 300ms before the
+ * press, which is most of what a navigation costs now that the frame is a
+ * layout and only the screen is fetched.
+ *
+ * `unstable_dynamicOnHover` is the prop that does it. It is in Next's own
+ * types for the app router's Link and not in the one `next/link` exports, so
+ * the cast is here, once, rather than at each of the five places that want it.
  */
-export function NavLink({
-  href,
-  label,
-}: {
-  href: string;
-  label: string;
-}) {
-  const pathname = usePathname();
-  const here = pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+const Warm = Link as React.ComponentType<
+  React.ComponentProps<typeof Link> & { unstable_dynamicOnHover?: boolean }
+>;
 
-  return (
-    <Link
-      href={`${href}`}
-      aria-current={here ? "page" : undefined}
-      className={cn(
-        "inline-flex items-center rounded-md px-2.5 py-1 text-label transition-colors duration-instant",
-        here ? "bg-sunken font-medium text-fg" : "text-fg-muted hover:bg-sunken hover:text-fg",
-      )}
-    >
-      {label}
-      <Opening />
-    </Link>
-  );
+export function NavLink(props: React.ComponentProps<typeof Link>) {
+  return <Warm {...props} unstable_dynamicOnHover />;
 }
