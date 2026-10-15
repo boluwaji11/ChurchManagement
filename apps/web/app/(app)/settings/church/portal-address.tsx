@@ -92,6 +92,18 @@ export function PortalAddress({
       return;
     }
 
+    /*
+     * R1.1. The slug is the address this church already answers on, so
+     * typing it back is not a name becoming available: it is the name they
+     * are using. Free, because it is theirs, and said in its own words.
+     * Nothing is asked of the server, because the answer is here.
+     */
+    if (word === slug) {
+      setAsking(false);
+      setFree(true);
+      return;
+    }
+
     setAsking(true);
     let live = true;
     const timer = setTimeout(async () => {
@@ -106,7 +118,7 @@ export function PortalAddress({
       live = false;
       clearTimeout(timer);
     };
-  }, [draft, taken, canEdit]);
+  }, [draft, taken, slug, canEdit]);
 
   /* R17.1. The address, whole, for pasting anywhere that is not this screen. */
   const [copied, setCopied] = React.useState(false);
@@ -162,7 +174,7 @@ export function PortalAddress({
     });
 
   return (
-    <Card id="portal-address" data-guide="portal-address" className="flex flex-col gap-4">
+    <Card id="portal-address" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <span
           aria-hidden
@@ -203,7 +215,13 @@ export function PortalAddress({
         {/* The name and the part we own, read as one address left to right.
             Capped, because a field the width of the card put the name a hand's
             width from the domain it belongs to. */}
-        <div className="flex w-fit max-w-full items-center rounded-[var(--d-radius-control)] border border-line-strong bg-surface focus-within:border-fg-subtle">
+        {/* R22.1. What the guide rings. The card is the errand; this is the
+            one place on it where anything is typed, and a coachmark against
+            the card put itself a card's height away from the field. */}
+        <div
+          data-guide="portal-address"
+          className="flex w-fit max-w-full items-center rounded-[var(--d-radius-control)] border border-line-strong bg-surface focus-within:border-fg-subtle"
+        >
           <input
             value={draft}
             onChange={(e) => {
@@ -247,7 +265,9 @@ export function PortalAddress({
           style={{ color: "var(--hue-fern-key)" }}
         >
           <CircleCheck className="size-4 shrink-0" aria-hidden />
-          {t("portal.state.free")}
+          {draft.trim().toLowerCase() === slug && !taken
+            ? t("portal.state.current")
+            : t("portal.state.free")}
         </p>
       ) : null}
 
