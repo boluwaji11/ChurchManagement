@@ -15,6 +15,15 @@ set -a; . ./.env.local; set +a
 PLATFORM_HOST=connectapp.church
 AUTH_COOKIE_DOMAIN=.connectapp.church
 
+# Everything the running application reads. This list went stale once: the
+# messaging work added PROVIDER_CREDENTIAL_KEY and the deployment never got it,
+# so every church's sealed credential failed to open in production and the
+# queue's worker answered 500 every five minutes while working locally. Add a
+# name here in the same commit that first reads it.
+#
+# HEARTH_APP_PASSWORD and CONNECTAPP_APP_PASSWORD are deliberately absent: they
+# create the database roles and are read by scripts/migrate.ts, never by a
+# request.
 NAMES=(
   NEXT_PUBLIC_SUPABASE_URL
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
@@ -30,6 +39,21 @@ NAMES=(
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   PLATFORM_HOST
   AUTH_COOKIE_DOMAIN
+  # R16.1, R21.15. Messaging: the key every church's own credential is sealed
+  # with, and the client the Resend connection is made as.
+  PROVIDER_CREDENTIAL_KEY
+  RESEND_OAUTH_CLIENT_ID
+  # R22.2. Signs the one-press DNS handover. Without it the screen shows the
+  # three records to type, which is the right fallback rather than a failure.
+  DOMAIN_CONNECT_PRIVATE_KEY
+  DOMAIN_CONNECT_KEY_ID
+  # R22.1. The support form. Resend carries it and this is the way back.
+  SUPPORT_FROM_EMAIL
+  SUPPORT_SMTP_USER
+  SUPPORT_SMTP_APP_PASSWORD
+  # R19.7. Signs the demo visitor's cookie. Falls back to NOTE_ENCRYPTION_KEY,
+  # so a deployment without it works; named here so it stops being implicit.
+  DEMO_PASS_SECRET
 )
 
 for k in $NAMES; do
