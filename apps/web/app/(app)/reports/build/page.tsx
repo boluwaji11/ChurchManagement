@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
   withTenant, getSavedReport, canEditPeople, canReadIncidents,
@@ -83,14 +84,17 @@ export default async function BuildReportPage({
   }
 
   return (
-    <Screen
-      title={saved?.name ?? t("report.build")}
-      trail={[
-        { label: t("reports.title"), href: "/reports" },
-        { label: saved?.name ?? t("report.build") },
-      ]}
-      wide
-    >
+    <Screen wide>
+      <Link
+        href={"/reports"}
+        className="-mb-5 -mt-3 inline-flex items-center gap-1.5 self-start font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> {t("reports.title")}
+      </Link>
+
+      <h2 className="font-display text-[22px] font-normal leading-[28px] text-fg">
+        {saved?.name ?? t("report.build")}
+      </h2>
       <Builder
         church={session.tenantSlug}
         saved={saved ? { id: saved.id, slug: saved.slug, name: saved.name, spec: saved.spec } : null}

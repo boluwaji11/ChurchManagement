@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { t } from "@connectapp/i18n";
 import { DownloadMenu } from "./download";
 
@@ -19,18 +20,17 @@ export function backBy(iso: string, days: number): string {
 /**
  * R18.x, R18.10. The frame every report sits in.
  *
- * How far back it reads, and the file. Written once so a church that has
- * learned one report has learned all of them, and so the window a report was
- * read at is the window the file carries.
- *
- * The report's name and the way back to the catalogue are in the screen's own
- * header, above this.
+ * The way back, the report's own name, how far back it reads, and the file.
+ * Written once so a church that has learned one report has learned all of
+ * them, and so the window a report was read at is the window the file carries.
  */
 export function ReportFrame({
+  title,
   window: days,
   path,
   children,
 }: {
+  title: string;
   window: Window;
   /** The report's own segment, for the links that change the window. */
   path: string;
@@ -38,7 +38,16 @@ export function ReportFrame({
 }) {
   return (
     <>
-      <div className="flex flex-wrap items-center justify-end gap-3">
+      <Link
+        href={"/reports"}
+        className="inline-flex items-center gap-1.5 self-start font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> {t("reports.title")}
+      </Link>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <h2 className="flex-1 font-display text-[22px] font-normal leading-[28px] text-fg">{title}</h2>
+
         <div className="flex items-center gap-1 rounded-md bg-sunken p-[3px]">
           {WINDOWS.map((one) => (
             <Link

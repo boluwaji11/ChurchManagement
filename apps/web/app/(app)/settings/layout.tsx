@@ -121,7 +121,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
   ].filter((group) => group.items.length > 0);
 
   return (
-    <Screen title={t("nav.settings")}>
+    <Screen >
       <div className="flex flex-col gap-6 -mt-4">
         <SettingsNav groups={groups} />
 

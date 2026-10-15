@@ -178,7 +178,6 @@ export default async function ReportsPage({
 
   return (
     <Screen
-      title={t("reports.title")}
       back={putAway ? { href: "/reports", label: t("report.archived.back") } : undefined}
     >
       {/* No heading: the screen's own header already says Reports, and a

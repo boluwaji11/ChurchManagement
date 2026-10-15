@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Pencil } from "lucide-react";
 import {
@@ -81,12 +82,17 @@ export default async function CustomReportPage({
   const { saved, answers } = found;
 
   return (
-    <Screen
-      title={saved.name}
-      trail={[{ label: t("reports.title"), href: "/reports" }, { label: saved.name }]}
-      wide
-    >
-      <div className="-mt-3 flex flex-wrap items-center justify-end gap-3">
+    <Screen wide>
+      <Link
+        href={"/reports"}
+        className="-mb-5 -mt-3 inline-flex items-center gap-1.5 self-start font-medium text-primary"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> {t("reports.title")}
+      </Link>
+
+      <div className="-mb-3 flex flex-wrap items-center gap-3">
+        <h2 className="flex-1 font-display text-[22px] font-normal leading-[28px] text-fg">{saved.name}</h2>
+
         {/* R18.x. Only whoever wrote it may change it, so nobody else is
             offered the pencil. */}
         {saved.createdByUserId === session.userId ? (

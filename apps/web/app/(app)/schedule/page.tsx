@@ -222,7 +222,7 @@ export default async function ServingPage({
    * separately.
    */
   return (
-    <Screen title={t("serving.title")} wide>
+    <Screen wide>
       <ServingViews
         canManage={canManage}
         /* R10.3. Named by the service's own address rather than its id, and

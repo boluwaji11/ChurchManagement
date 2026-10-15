@@ -1,15 +1,19 @@
 import * as React from "react";
 import { BackLink } from "./back-link";
-import { PageHeader, type Crumb } from "./page-header";
 
 /**
  * R24.6, R24.11. A screen's own column, inside the frame its layout draws.
  *
  * The frame is a layout now, so the sidebar, the top bar and the bell are kept
  * across a navigation and only this column is fetched. What a screen used to
- * hand `AppShell` (its name, its one action, the way back out of a record, how
- * wide it gets) belongs to the screen and lives here, which is also where the
- * design pass put the page header.
+ * hand `AppShell` lives here instead: its one action, the way back out of a
+ * record, and how wide it gets.
+ *
+ * The name across the top is the frame's, read from the address, and a screen
+ * does not pass it one. What a screen passes here is its own name where the
+ * address cannot give it: a service, a campaign, a kind of group, the labels
+ * under check-in. That is drawn at the size a heading inside a screen takes,
+ * under the bar rather than instead of it.
  *
  * The width caps the reading column rather than the frame: `main` keeps the
  * gutter, so a wide screen reaches the edge and a narrow one stops where the
@@ -17,20 +21,17 @@ import { PageHeader, type Crumb } from "./page-header";
  */
 export function Screen({
   title,
-  trail,
-  lede,
   action,
   back,
   wide,
   max,
   children,
 }: {
-  /** The screen's name, where the screen does not already carry one. */
+  /**
+   * This screen's own name, where the bar's is the area's. A record, or a
+   * screen under an entry: the service, the campaign, the label layout.
+   */
   title?: string;
-  /** The screens above this one. One entry draws no trail. */
-  trail?: Crumb[];
-  /** What the screen is for, in a line. The one place a lede is allowed. */
-  lede?: string;
   /** The one filled button for this screen. Some screens have none. */
   action?: React.ReactNode;
   /** The way back out of a record, above its name. */
@@ -49,18 +50,19 @@ export function Screen({
         + (wide ? "" : max ?? "max-w-[1280px]")
       }
     >
-      {back || title || action ? (
-        /* The way back rides above the name rather than a row of its own, so
-           the top of a record is one block. */
-        <div className="flex flex-col gap-3">
-          {back ? <BackLink href={back.href} label={back.label} /> : null}
-
-          {title ? (
-            <PageHeader trail={trail} title={title} lede={lede} action={action} />
-          ) : action ? (
-            <div className="flex flex-wrap items-center justify-end gap-3">{action}</div>
-          ) : null}
+      {back || action ? (
+        /* R24.6. The way out of a record and the screen's one action share a
+           row, which is where they were before the frame became a layout. */
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {back ? <BackLink href={back.href} label={back.label} /> : <span />}
+          {action}
         </div>
+      ) : null}
+
+      {title ? (
+        <h2 className="-mb-2 font-display text-[22px] font-normal leading-[28px] text-fg">
+          {title}
+        </h2>
       ) : null}
 
       {children}

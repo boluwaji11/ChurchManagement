@@ -91,12 +91,9 @@ export default async function GroupsReport({
   }));
 
   return (
-    <Screen
-      title={t("reports.groups.title")}
-      trail={[{ label: t("reports.title"), href: "/reports" }, { label: t("reports.groups.title") }]}
-      wide
-    >
+    <Screen wide>
       <ReportFrame
+        title={t("reports.groups.title")}
         window={window}
         path="groups"
       >

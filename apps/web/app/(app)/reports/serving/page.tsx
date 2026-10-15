@@ -106,12 +106,9 @@ export default async function ServingReport({
   const atRisk = checks.filter((one) => one.scheduledWithChildren).length;
 
   return (
-    <Screen
-      title={t("reports.serving.title")}
-      trail={[{ label: t("reports.title"), href: "/reports" }, { label: t("reports.serving.title") }]}
-      wide
-    >
+    <Screen wide>
       <ReportFrame
+        title={t("reports.serving.title")}
         window={window}
         path="serving"
       >

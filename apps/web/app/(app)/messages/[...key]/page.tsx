@@ -42,7 +42,7 @@ export default async function MessageThreadPage({
 
   if (!canAnswerMessages(session)) {
     return (
-      <Screen title={t("inbox.title")}>
+      <Screen >
         <Denied role={session.role} action="editPerson" church={session.tenantSlug} />
       </Screen>
     );
@@ -52,7 +52,7 @@ export default async function MessageThreadPage({
   const first = await readInbox(session, { key, reading: true });
 
   return (
-    <Screen title={t("inbox.title")} wide>
+    <Screen wide>
       <InboxScreen
         church={session.tenantSlug}
         churchName={session.tenantName}

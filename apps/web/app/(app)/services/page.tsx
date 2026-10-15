@@ -146,9 +146,7 @@ export default async function ServicesPage({
   };
 
   return (
-    <Screen
-      title={t("services.title")}
-    >
+    <Screen>
       {upcoming.length === 0 && past.length === 0 ? (
         <Empty
           icon="calendar"

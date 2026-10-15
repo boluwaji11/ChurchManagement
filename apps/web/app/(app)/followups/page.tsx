@@ -122,9 +122,7 @@ export default async function FollowUpsPage({
     .sort((a, b) => (a.dueOn ?? "9999-12-31").localeCompare(b.dueOn ?? "9999-12-31"));
 
   return (
-    <Screen
-      title={t("queue.title")}
-    >
+    <Screen>
       {/* The pipeline names itself, so the board carries no heading of its
           own. The hint sits beside the picker. */}
       <div className="flex flex-wrap items-center justify-between gap-3">

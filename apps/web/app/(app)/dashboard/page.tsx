@@ -107,7 +107,7 @@ export default async function DashboardPage({
    * church's name put and draws only the board as it comes.
    */
   return (
-    <Screen title={t("dashboard.title")} wide>
+    <Screen wide>
       <Suspense fallback={<BoardSkeleton />}>
         <Board session={session} />
       </Suspense>

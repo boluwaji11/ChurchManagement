@@ -38,7 +38,7 @@ export default async function WebsiteEditorPage() {
   const editorWebsite = website ? await signWebsiteMedia(website) : null;
 
   return (
-    <Screen title={t("website.title")} wide>
+    <Screen wide>
       <WebsiteEditor
         churchName={session.tenantName}
         country={session.tenantCountry}
