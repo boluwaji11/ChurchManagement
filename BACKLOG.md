@@ -109,7 +109,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | Resolved |
 | HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | New |
 | HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | New |
-| HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | The frame and the signed links done |
+| HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | Resolved |
 | HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | New |
 | HRT-358 | A screen somebody just looked at is still in hand when they come back | R24.11, R24.12 | Resolved |
 | HRT-359 | Every area's links are always in the navigation, so the browser can fetch them before they are pressed | R24.11, R24.12 | Resolved |
@@ -2027,6 +2027,21 @@ was handed a word their country does not write.
 
 Change the church's country to the United Kingdom in Settings, Church, download again, and confirm
 the same rows read Cheque. The spelling is resolved from the church's record, as everywhere else.
+
+### HRT-356, what finished it
+
+The frame and the signed links were done in the first pass. What was left is the host.
+
+Every request asks which church an address names, before anything else can be read and before there
+is a tenant context to read it in, so it is a query on the owner connection on every press and on
+every public page a stranger opens. It is held for a minute now, keyed on the host, including the
+answer that a host names nobody, so a crawler working through a hundred unknown names is one query
+rather than a hundred.
+
+A church changing its own address is the case that matters, and the three writers that can change it
+clear the hold. The test that already covered turning the address off and on again is what holds that
+in place: it sets a name, reads the host, turns the address off, and expects the host to name nobody,
+which it only does if the hold was cleared.
 
 ### HRT-358, how to test it
 
