@@ -1965,7 +1965,7 @@ export const browserWords: Catalogue = {
   "portal.state.off": "Turned off",
   "portal.state.checking": "Checking this address",
   "portal.state.free": "This address is available",
-  "portal.state.current": "This is the address you are on already",
+  "portal.state.current": "This is your current address",
   "portal.copy": "Copy this address",
   "portal.copied": "Copied",
   "domain.title": "Members sign in at your own address",
