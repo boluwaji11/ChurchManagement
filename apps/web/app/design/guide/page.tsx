@@ -91,7 +91,7 @@ export default function GuideGallery() {
         <div className="flex flex-wrap items-start gap-6">
           <Rail title="A church on its first morning" steps={make([])} phase="hour" />
           <Rail
-            title="Part walked, one not for us"
+            title="Part walked, one skipped"
             steps={make(["members", "services"], ["team"])}
             phase="hour"
           />
