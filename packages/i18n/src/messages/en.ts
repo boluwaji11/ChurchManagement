@@ -4945,9 +4945,8 @@ export const en = {
   "invite.mail.create": "Create your account with {address}:",
   "invite.mail.already": "Already have an account? Sign in with {address}:",
   "invite.mail.until": "The invitation runs out on {day}.",
-  "invite.unsent.title": "Send invitation?",
-  "invite.unsent.body": "{email} has been added to the new role. Want to send an email invitation?",
-  "invite.unsent.recorded": "Your invitation to {email} is saved but hasn't been sent. Send it again once the account is working.",
-  "invite.unsent.connect": "Send Email",
-  "invite.unsent.later": "Not now",
+  "invite.unsent.title": "The invitation could not be emailed",
+  "invite.unsent.body": "{email} is invited and the email did not go. Send it again from the list, or pass them the join link yourself.",
+  "invite.unsent.recorded": "{email} is invited and the email did not go. Send it again from the list once that is sorted.",
+  "invite.unsent.later": "Close",
 } as const satisfies Record<string, string>;

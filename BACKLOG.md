@@ -996,6 +996,7 @@ of money and after everything else.
 | HRT-369 | A check-in dry run before the first service day | R8.x, R22.1 | New |
 | HRT-370 | The invitation reaches the person it names | R1.7, R16.4, R22.1 | Resolved |
 | HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | Resolved |
+| HRT-372 | An invitation is ConnectApp's own mail, so it sends on day one | R16.4, R22.1 | Resolved |
 
 R22.1 lists giving and messaging credentials as wizard steps, and both are now built, so both are
 steps of the guide. The five-step wizard of 0.2 is replaced by HRT-367.
@@ -4149,6 +4150,24 @@ and it settles when a live role past Owner exists. Seventeen steps.
 
 Both the panel and the server guard are back to live roles only, so what can be given is exactly
 what the Roles screen shows.
+
+### HRT-372, whose mail an invitation is
+
+An invitation went out through the church's own email account, which meant a church could not get
+its second administrator in until it had connected Resend or its own mail server: three steps
+further down the guide than inviting somebody, and the first thing a church does after importing
+its people. The dialog that said so read as a configuration problem the church had caused.
+
+It is our mail. It says somebody has an account on ConnectApp, it links to our sign-in, and it goes
+to an address that is nobody's member yet. "The shared email quota is transactional only" is for
+exactly this, and the platform account the support form already sends through is the one it uses.
+
+Mail a church writes to its congregation is unchanged: that goes through the church's own account,
+which is what `sendAsChurch` stays for. `sendAsPlatform` is the new one beside it, and the only
+thing it sends today is an invitation.
+
+What the unsent dialog means changed with it. It is no longer "connect an account": it is our end
+failing, so it says the invitation is saved, the email did not go, and send it again from the list.
 
 ### HRT-368, and the hole that was not there
 

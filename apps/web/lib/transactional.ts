@@ -83,3 +83,27 @@ export async function sendAsChurch(
 
   return proof.ok ? { ok: true } : { ok: false, connected: true, said: proof.said };
 }
+
+/**
+ * HRT-372, R16.4, R22.1. One message to one address, as ConnectApp.
+ *
+ * An invitation to join ConnectApp is the platform's own mail, not the
+ * church's. It says that somebody has been given an account here, it carries
+ * a link to our sign-in, and it goes to an address that is nobody's member
+ * yet. Holding it until the church connects an account meant a church could
+ * not get its second administrator in without first setting up email, which
+ * is three steps further down the guide.
+ *
+ * This is what "the shared email quota is transactional only" is for. Mail a
+ * church writes to its congregation still goes through the church's own
+ * account, which is what `sendAsChurch` above is.
+ */
+export async function sendAsPlatform(message: Omit<Message, "from">): Promise<Sent> {
+  const key = process.env["RESEND_API_KEY"];
+  const from = process.env["PLATFORM_FROM_EMAIL"] ?? process.env["SUPPORT_FROM_EMAIL"];
+  // A deployment with no platform account of its own, which is a laptop.
+  if (!key || !from) return { ok: false, connected: false };
+
+  const proof = await sendByResend(key, { ...message, from: sender(t("app.name"), from) });
+  return proof.ok ? { ok: true } : { ok: false, connected: true, said: proof.said };
+}

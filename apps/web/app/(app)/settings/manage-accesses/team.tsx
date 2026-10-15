@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, X, HelpCircle, Send } from "lucide-react";
 import {
@@ -69,13 +68,13 @@ function idFor(roles: ChurchRoleOption[], key: string): string {
 
 
 /**
- * HRT-370, R1.7, R16.4. The invitation is written down and nothing was sent.
+ * HRT-370, HRT-372, R1.7, R16.4. The invitation is written down and nothing
+ * was sent.
  *
- * Either because the church has not connected an email account yet, or because
- * the one it has refused the message. Both leave an address invited and nobody
- * told, which is a thing somebody has to go and do something about rather than
- * a line that puts itself away, so it is said in the middle of the screen with
- * the way to the email settings on it.
+ * It goes through ConnectApp's own account, so this is our end failing rather
+ * than anything the church can configure. It still leaves an address invited
+ * and nobody told, which somebody has to go and do something about rather than
+ * a line that puts itself away, so it is said in the middle of the screen.
  */
 function Unsent({
   email,
@@ -95,11 +94,8 @@ function Unsent({
             : t("invite.unsent.body", { email })}
         </p>
         <DialogFooter>
-          <Button variant="ghost" data-dismiss onClick={onClose}>
+          <Button data-dismiss onClick={onClose}>
             {t("invite.unsent.later")}
-          </Button>
-          <Button asChild>
-            <Link href="/settings/email">{t("invite.unsent.connect")}</Link>
           </Button>
         </DialogFooter>
       </DialogContent>

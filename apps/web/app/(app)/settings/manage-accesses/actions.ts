@@ -11,7 +11,7 @@ import { explain } from "@/lib/explain";
 import { requireSession, type Session } from "@/lib/session";
 import { churchOrigin } from "@/lib/church-address";
 import { inviteMessage } from "@/lib/invite-mail";
-import { sendAsChurch } from "@/lib/transactional";
+import { sendAsPlatform } from "@/lib/transactional";
 
 export interface TeamResult {
   error?: string;
@@ -31,11 +31,15 @@ export interface TeamResult {
 /**
  * HRT-370, R1.7, R16.4. Taking one invitation to the address it names.
  *
- * Out through the church's own account the moment it is written, rather than
+ * Out through ConnectApp's own account the moment it is written, rather than
  * into the queue. The queue is for a composed send, with its consent, its
  * targeting and every recipient's own way out of a mailing list, and an
  * invitation has none of those: one address, nothing to unsubscribe from, and
  * somebody standing at the screen waiting to hear whether it went.
+ *
+ * HRT-372. And it is our mail rather than the church's: it says somebody has
+ * an account here and it links to our sign-in. A church should not have to
+ * connect an email account before it can get its second administrator in.
  */
 async function deliver(
   session: Session,
@@ -44,8 +48,7 @@ async function deliver(
   const origin = await churchOrigin(session.tenantSlug);
   if (!origin) return { unsent: true };
 
-  const sent = await sendAsChurch(
-    session,
+  const sent = await sendAsPlatform(
     inviteMessage({
       church: session.tenantName,
       invitedBy: session.displayName,
