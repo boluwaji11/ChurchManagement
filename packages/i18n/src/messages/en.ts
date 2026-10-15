@@ -3004,7 +3004,7 @@ export const en = {
   "joining.copy": "Copy",
   "joining.copied": "Copied",
   // R1.1, R17.1. The name a church chooses for its members' address.
-  "portal.title": "Your church's web address",
+  "portal.title": "Your church's ConnectApp website",
   "portal.lede": "Choose a unique web address for your church.",
   "portal.label": "Church web address",
   "portal.free": "{name} is yours.",

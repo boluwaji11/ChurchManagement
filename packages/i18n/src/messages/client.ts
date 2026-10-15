@@ -1955,7 +1955,7 @@ export const browserWords: Catalogue = {
   "team.invited": "Invited",
   "joining.copy": "Copy",
   "joining.copied": "Copied",
-  "portal.title": "Your church's web address",
+  "portal.title": "Your church's ConnectApp website",
   "portal.lede": "Choose a unique web address for your church.",
   "portal.label": "Church web address",
   "portal.free": "{name} is yours.",
