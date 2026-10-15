@@ -5,7 +5,7 @@ import { Check, ChevronRight, Minus, MoveRight } from "lucide-react";
 import { cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import type { SetupPhase, SetupStep } from "@connectapp/db";
-import { GUIDE_BY_STEP } from "@/lib/setup-guide";
+import { GUIDE_BY_STEP, GUIDE_PHASES } from "@/lib/setup-guide";
 import { NavLink } from "@/components/nav-link";
 import { Opening } from "@/components/opening";
 
@@ -15,8 +15,6 @@ export interface RailStep {
   done: boolean;
   skipped: boolean;
 }
-
-export const PHASES: readonly SetupPhase[] = ["hour", "before", "ready"];
 
 /**
  * R22.1. The guide's contents: the three phases, and the steps of whichever
@@ -88,7 +86,7 @@ export function GuideBody({
 
   return (
     <div className="flex flex-col gap-1">
-      {PHASES.map((one, phaseIndex) => {
+      {GUIDE_PHASES.map((one, phaseIndex) => {
         const open = one === phase;
         const mine = steps.filter((step) => step.phase === one);
         const doneHere = mine.filter((step) => step.done || step.skipped).length;

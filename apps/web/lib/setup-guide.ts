@@ -55,6 +55,17 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
 export const GUIDE_BY_STEP = new Map(GUIDE_STEPS.map((one) => [one.step, one]));
 
 /**
+ * The phases, in the order the steps name them.
+ *
+ * Read off the table rather than written beside it: a fourth phase was added
+ * to the steps and to the model, and the column went on drawing three,
+ * because the order was a list of its own that nobody thought to change.
+ */
+export const GUIDE_PHASES: readonly SetupPhase[] = [
+  ...new Set(GUIDE_STEPS.map((one) => one.phase)),
+];
+
+/**
  * The step whose screen this is, so the guide can lift it and point at the
  * control.
  *
