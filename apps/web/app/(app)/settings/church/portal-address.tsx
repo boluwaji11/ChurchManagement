@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Check, CircleCheck, ExternalLink, Globe } from "lucide-react";
+import { Check, CircleAlert, CircleCheck, Copy, ExternalLink, Globe } from "lucide-react";
 import {
   Banner, Button, Card, CardTitle, Field, Separator, Switch,
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { claimPortalName, openPortal } from "./domain-actions";
+import { checkPortalName, claimPortalName, openPortal } from "./domain-actions";
 
 /**
  * R1.1, R17.1. Where a congregation signs in.
@@ -65,6 +65,57 @@ export function PortalAddress({
 
   const live = taken ?? slug;
   const changed = draft.trim().toLowerCase() !== (taken ?? "");
+
+  /*
+   * R1.1, R17.1. Whether the name in the field is one this church could take,
+   * asked while they are still typing it.
+   *
+   * The press is still the only write and the query layer is still the rule;
+   * this is the screen saying early what it is about to say late. Asked once
+   * the typing stops, and an answer to a word that is no longer in the field
+   * is dropped, because the alternative is the field saying "taken" about
+   * something somebody has already backspaced away from.
+   */
+  const [free, setFree] = React.useState<boolean | null>(null);
+  const [asking, setAsking] = React.useState(false);
+  /* What the check said, under the field. The banner above is for a write
+     that failed, which is a different thing to be told and a different place
+     to be told it. */
+  const [hint, setHint] = React.useState<string>();
+
+  React.useEffect(() => {
+    const word = draft.trim().toLowerCase();
+    setFree(null);
+    setHint(undefined);
+    if (!canEdit || !word || word === (taken ?? "")) {
+      setAsking(false);
+      return;
+    }
+
+    setAsking(true);
+    let live = true;
+    const timer = setTimeout(async () => {
+      const answer = await checkPortalName(word);
+      if (!live) return;
+      setAsking(false);
+      setFree(Boolean(answer.free));
+      setHint(answer.error);
+    }, 400);
+
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+  }, [draft, taken, canEdit]);
+
+  /* R17.1. The address, whole, for pasting anywhere that is not this screen. */
+  const [copied, setCopied] = React.useState(false);
+  const copy = () => {
+    void navigator.clipboard?.writeText(`${origin}//${live}.${host}`).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  };
 
   /*
    * R1.1. One press. Taking the name is the check: the query layer refuses a
@@ -131,7 +182,7 @@ export function PortalAddress({
           }
         >
           {live_ ? <CircleCheck className="size-3.5" aria-hidden /> : null}
-          {live_ ? t("domain.state.live") : t("portal.state.off")}
+          {live_ ? t("portal.state.on") : t("portal.state.off")}
         </span>
       </div>
 
@@ -173,19 +224,38 @@ export function PortalAddress({
              * sized to the last character has nowhere to put the caret.
              */
             size={Math.max((draft || slug).length + 1, 8)}
-            className="min-w-0 bg-transparent py-2.5 pl-3 font-mono text-[13px] text-fg outline-none [field-sizing:content]"
+            className="min-w-0 bg-transparent py-2.5 pl-3 text-[16px] font-medium text-fg outline-none [field-sizing:content]"
           />
-          <span className="shrink-0 py-2.5 pr-3 -ml-px font-mono text-[13px] text-fg-subtle">
+          <span className="shrink-0 border-l border-line bg-sunken py-2.5 pr-3 pl-3 text-[15px] text-fg-subtle">
             .{host}
           </span>
         </div>
       </Field>
 
+      {asking ? (
+        <p className="-mt-1 text-[length:var(--d-text-caption)] text-fg-subtle">
+          {t("portal.state.checking")}
+        </p>
+      ) : hint ? (
+        <p className="-mt-1 flex items-center gap-1.5 text-[length:var(--d-text-caption)] font-medium text-danger-text">
+          <CircleAlert className="size-4 shrink-0" aria-hidden />
+          {hint}
+        </p>
+      ) : free ? (
+        <p
+          className="-mt-1 flex items-center gap-1.5 text-[length:var(--d-text-caption)] font-medium"
+          style={{ color: "var(--hue-fern-key)" }}
+        >
+          <CircleCheck className="size-4 shrink-0" aria-hidden />
+          {t("portal.state.free")}
+        </p>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           loading={working}
-          disabled={!canEdit || !changed || working}
+          disabled={!canEdit || !changed || working || free !== true}
           onClick={take}
         >
           <Check /> {t("portal.use")}
@@ -200,15 +270,26 @@ export function PortalAddress({
           carry a second link to the same place has gone. */}
       {/* R17.1. A link, because the one thing anybody does with it is open
           it. Copying the words off the screen still works. */}
-      <a
-        href={`${origin}//${live}.${host}`}
-        target="_blank"
-        rel="noreferrer noopener"
-        className="inline-flex w-fit max-w-full items-center gap-1.5 break-all font-mono text-[13px] font-medium text-primary no-underline hover:underline"
-      >
-        {live}.{host}
-        <ExternalLink className="size-3.5 shrink-0" aria-hidden />
-      </a>
+      <div className="flex flex-wrap items-center gap-3">
+        <a
+          href={`${origin}//${live}.${host}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex max-w-full items-center gap-1.5 break-all text-[15px] font-medium text-primary no-underline hover:underline"
+        >
+          {live}.{host}
+          <ExternalLink className="size-3.5 shrink-0" aria-hidden />
+        </a>
+
+        <button
+          type="button"
+          onClick={copy}
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded text-[length:var(--d-text-caption)] font-medium text-fg-muted transition-colors duration-instant hover:text-fg"
+        >
+          <Copy className="size-3.5 shrink-0" aria-hidden />
+          {copied ? t("portal.copied") : t("portal.copy")}
+        </button>
+      </div>
 
       {/* R17.1. Whether the address answers at all. Off while a church is
           still getting ready, and staff still work at the main address. */}

@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3304 of 4803 keys.
+ * 3309 of 4808 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1891,10 +1891,10 @@ export const browserWords: Catalogue = {
   "setup.what.stations": "The desk families check in at, and which rooms and services it covers.",
   "setup.why.stations": "A station is what a tablet by the door becomes. It prints the matching label pair that gets the right child back to the right adult, and it keeps working when the wifi does not.",
   "setup.at.stations": "Press Pair a station, name the desk, and tick the rooms it checks into.",
-  "setup.step.portal": "Your portal address",
-  "setup.what.portal": "The word your members type to sign in, in front of connectapp.church.",
-  "setup.why.portal": "It is the address you hand out from the front. Members use it to find their group, answer a serving request and give, and it is easier to say out loud than anything we would pick for you.",
-  "setup.at.portal": "Type the word your church is known by and press Claim.",
+  "setup.step.portal": "Set up your ConnectApp website",
+  "setup.what.portal": "Choose a unique web address where your members can access your church's portal.",
+  "setup.why.portal": "Members can use this link to sign in, connect with groups, make donations, and contact your church.",
+  "setup.at.portal": "Enter a unique name for your church's web address, then click Save web address.",
   "setup.step.profile": "Your own details",
   "setup.what.profile": "Your record in the church directory: a photo, and a number somebody can reach you on.",
   "setup.why.profile": "Your team is about to meet a directory where you are only a name. Filling yours in is the quickest way to see what you are asking everybody else for.",
@@ -1955,13 +1955,18 @@ export const browserWords: Catalogue = {
   "team.invited": "Invited",
   "joining.copy": "Copy",
   "joining.copied": "Copied",
-  "portal.title": "Where members sign in",
-  "portal.lede": "Pick the address to reach ConnectApp.",
-  "portal.label": "Your address",
+  "portal.title": "Your church's web address",
+  "portal.lede": "Choose a unique web address for your church.",
+  "portal.label": "Church web address",
   "portal.free": "{name} is yours.",
-  "portal.use": "Use this address",
-  "portal.open": "Access ConnectApp portal at this address",
+  "portal.use": "Save web address",
+  "portal.open": "Enable your church's portal",
+  "portal.state.on": "Active",
   "portal.state.off": "Turned off",
+  "portal.state.checking": "Checking this address",
+  "portal.state.free": "This address is available",
+  "portal.copy": "Copy this address",
+  "portal.copied": "Copied",
   "domain.title": "Members sign in at your own address",
   "domain.lede": "Members reach their sign-in at an address you own instead of ours.",
   "domain.label": "The address members will use",
