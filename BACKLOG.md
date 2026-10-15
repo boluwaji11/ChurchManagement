@@ -106,7 +106,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-350 | The directory's duplicate count is answered in SQL | R24.11, R1.12 | New |
 | HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | New |
 | HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | New |
-| HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | The dashboard done, as the pattern for the rest |
+| HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | Resolved |
 | HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | New |
 | HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | New |
 | HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | The frame and the signed links done |
@@ -2082,28 +2082,32 @@ the area somebody is in is a fact about where they are rather than a section the
 
 ### HRT-353, how to test it
 
-Open the dashboard. The navigation, the church's name and the heading appear at once, with the
-board's own shape drawn as four tiles and two panels while it is read, and the real numbers replace
-it when they arrive. Then open giving, which has not been done yet, and watch the difference: there
-the whole screen waits.
+Open any screen cold, with the browser's cache off and the network throttled: the sidebar, the
+church's name and the top bar are there at once, with the screen's own shape drawn underneath in
+blocks, and the rows replace it when the database answers. People, Giving and Messages each draw
+their own shape, because a directory, a set of totals and a two-column inbox do not wait alike.
+Everything else gets the one beside the layout.
 
-Measured as a real member, median of five, from the moment the navigation starts: the dashboard's
-frame appears at 772ms against giving's 1,352ms and the schedule's 1,476ms. The dashboard's own time
-to first byte was 1,723ms before this, so its first paint more than halved. Nothing about the
-queries changed; what changed is that the browser is no longer waiting on them to see anything.
+Measured against a build, as a signed-in administrator, three runs a screen. Time to the first byte,
+which is the moment anything at all can be drawn:
 
-This is the lever for how fast the product feels, as against how fast it is, and the evidence was
-already in the tree: `/settings` is the one route with a `loading.tsx`, and it has felt quicker than
-screens with the same time to first byte all along.
+| | before | after | the whole screen |
+|---|---|---|---|
+| People | 439ms, 453ms, 555ms | 133ms, 134ms, 158ms | 427ms to 511ms |
+| Giving | 659ms, 669ms, 722ms | 138ms, 199ms, 207ms | 671ms to 775ms |
+| Messages | 495ms, 503ms, 511ms | 144ms, 152ms, 202ms | 490ms to 590ms |
+| Services | 334ms, 343ms, 465ms | 145ms, 146ms, 151ms | 341ms to 366ms |
+| Dashboard | 141ms to 158ms | unchanged | it already streamed |
 
-Why it is a boundary inside the frame rather than a `loading.tsx`: the shell is rendered by each
-screen rather than by a layout, so a `loading.tsx` would take the frame away with it and read as the
-product blinking. `apps/web/app/settings/loading.tsx` says so in its own comment. A `Suspense` inside
-`AppShell` keeps the navigation put and draws only the body as it comes.
+Nothing about the queries changed. The whole screen takes what it always took; what changed is that
+the browser is no longer holding a blank page until it arrives. The dashboard had this since
+HRT-325, through a `Suspense` inside its own page, and it is why that screen felt quicker than
+screens with the same time to first byte.
 
-The shape to copy for the remaining screens: the page awaits nothing but its session, returns the
-shell, and the screen's reads and markup move into one async component behind the boundary. The
-dashboard is that shape now.
+What made it possible everywhere: the frame is a layout now (HRT-360), so a `loading.tsx` replaces
+the screen rather than the product. Before that it would have taken the sidebar with it, which reads
+as blinking. The same boundary is what Next needs before it will prefetch a dynamic route, which is
+the other half of HRT-359.
 
 ### HRT-348, how to test it
 
