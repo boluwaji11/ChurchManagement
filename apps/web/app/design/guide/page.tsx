@@ -18,10 +18,10 @@ import type { SetupPhase, SetupStep } from "@connectapp/db";
  */
 
 const STEPS: readonly { step: SetupStep; phase: SetupPhase }[] = [
-  { step: "members", phase: "hour" },
-  { step: "services", phase: "hour" },
-  { step: "team", phase: "hour" },
-  { step: "church", phase: "hour" },
+  { step: "members", phase: "basics" },
+  { step: "team", phase: "basics" },
+  { step: "church", phase: "basics" },
+  { step: "services", phase: "before" },
   { step: "rooms", phase: "before" },
   { step: "stations", phase: "before" },
   { step: "portal", phase: "before" },
@@ -90,11 +90,11 @@ export default function GuideGallery() {
         note="A marker each, the thread running between them with a bead at its middle, and the thread coloured as far as the church has got. The step being worked on tells its whole story; the rest are a line each, and pressing one opens it."
       >
         <div className="flex flex-wrap items-start gap-6">
-          <Rail title="A church on its first morning" steps={make([])} phase="hour" />
+          <Rail title="A church on its first morning" steps={make([])} phase="basics" />
           <Rail
             title="Part walked, one skipped"
             steps={make(["members", "services"], ["team"])}
-            phase="hour"
+            phase="basics"
           />
           <Rail
             title="On the screen a step points at"
