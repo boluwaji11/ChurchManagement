@@ -8,7 +8,7 @@ import { Avatar, IconButton } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { SearchField } from "@/components/search-field";
-import { archiveThread } from "@/app/messages/actions";
+import { archiveThread } from "@/app/(app)/messages/actions";
 import { useInbox, type InboxData } from "./data";
 import { Drafts, Threads } from "./list";
 import { Conversation } from "./thread";

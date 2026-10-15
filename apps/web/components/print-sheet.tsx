@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AutoPrint } from "@/app/checkin/rooms/print/auto-print";
+import { AutoPrint } from "@/app/(bare)/checkin/rooms/print/auto-print";
 
 /**
  * R24.6, R2.14. One sheet of paper, the same on every screen that prints one.

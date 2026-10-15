@@ -3,7 +3,7 @@
 import * as React from "react";
 import { SmilePlus } from "lucide-react";
 import { plural, t } from "@connectapp/i18n";
-import { markMessage } from "@/app/messages/actions";
+import { markMessage } from "@/app/(app)/messages/actions";
 import type { Mark } from "./data";
 
 /**

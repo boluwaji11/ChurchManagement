@@ -1,6 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { themeFor } from "@connectapp/db";
-import type { Theme } from "@/app/settings/theme-actions";
+import type { Theme } from "@/app/(app)/settings/theme-actions";
 
 /**
  * The addresses that are ConnectApp's own rather than a church's.

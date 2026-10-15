@@ -6,7 +6,6 @@ import { EventRegisterPage } from "@/components/event-register-page";
 import { knownRegistrant } from "@/lib/registrant";
 import { portalReader } from "@/lib/portal-reader";
 import { PortalShell } from "@/components/portal-shell";
-import { t } from "@connectapp/i18n";
 
 /**
  * R14.2, R14.6. Taking a place at an event, from the open web.
@@ -63,7 +62,7 @@ export async function RegisterScreen({
   /* R17.1. A member taking a place stays in their own frame all the way
      through, so the tabs they came from are still there when they are done. */
   return (
-    <PortalShell session={inPortal} tab={t("nav.events")}>
+    <PortalShell session={inPortal}>
       {page}
     </PortalShell>
   );

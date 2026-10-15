@@ -21,21 +21,24 @@ import { SpellingProvider } from "./spelling-provider";
 import type { Session } from "@/lib/session";
 import { shellData } from "@/lib/shell-data";
 import { photoUrls } from "@/lib/photos";
-import { TabTitle } from "./tab-title";
-import { BackLink } from "./back-link";
 import { Installed } from "./portal/installed";
 import { AskPush } from "./shell/ask-push";
 
 /**
- * R24.6. The frame every staff screen sits in.
+ * R24.6, R24.11. The frame every staff screen sits in.
  *
- * Navigation down the left, the page's title and its one action across the top,
- * the page itself underneath. On a phone the sidebar is replaced by a tab bar
+ * Navigation down the left, the bell and the church's mark across the top, the
+ * screen itself underneath. On a phone the sidebar is replaced by a tab bar
  * along the bottom, which is a CSS decision rather than a measured one, so the
  * server renders one tree and no screen flickers between two layouts.
  *
- * The role shown here comes from tenant_members, not from anything the browser
- * sent. It is the same value the data layer used to answer the request.
+ * Drawn from `(app)/layout.tsx`, so a navigation inside the product fetches
+ * the screen and leaves all of this standing. A screen's own name, action and
+ * width are its own, in `Screen`.
+ *
+ * The role shown here comes from tenant_members, rather than from anything the
+ * browser sent. It is the same value the data layer used to answer the
+ * request.
  */
 /** An ISO date, as written where the church is. */
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -61,42 +64,9 @@ function readable(
 
 export async function AppShell({
   session,
-  title,
-  tab,
-  action,
-  back,
-  wide,
-  density,
-  max,
   children,
 }: {
   session: Session;
-  /** The page's name, where the page does not already carry one. */
-  title?: string;
-  /**
-   * R17.1. What the browser tab says, where the screen draws its own heading.
-   * The title above is used when this is left out.
-   */
-  tab?: string;
-  /** The one filled button for this page. Some pages have none. */
-  action?: React.ReactNode;
-  /**
-   * R24.6. The way back out of a record, which rides the action's own row.
-   *
-   * A record page draws a back link above everything else and the action sat
-   * in a band above that, so the top of the screen was two rows where one
-   * would do and the action floated clear of anything it belonged to.
-   */
-  back?: { href: string; label: string };
-  /** A table-shaped screen that wants the room. */
-  wide?: boolean;
-  /**
-   * The density this screen's body runs at. `office` is the default; the member
-   * screens are `portal`, and a check-in station sets `station` on itself.
-   */
-  density?: "office" | "portal";
-  /** How wide the body gets before it stops growing. */
-  max?: string;
   children: React.ReactNode;
 }) {
   const collapsed = (await cookies()).get(SIDEBAR_COOKIE)?.value === "1";
@@ -135,10 +105,6 @@ export async function AppShell({
        screen drawn over the shell still leaves the shell's navigation under
        the fingers of anybody pressing Tab. */
     <div data-app-shell className="site-wash flex min-h-dvh">
-      {/* R17.1. The screen and the church it belongs to, in the browser tab.
-          React hoists it into the head. */}
-      <TabTitle page={tab ?? title} church={session.tenantName} />
-
       {/* R16.10, R17.11. The worker that takes a push, registered on the staff
           screens as well as in the portal. Without one here, somebody who
           turned notifications on had nothing to deliver them. */}
@@ -170,7 +136,6 @@ export async function AppShell({
         <ProvisionalBanner standing={counts.standing} church={session.tenantSlug} />
 
         <TopBar
-          title={title}
           logoUrl={logoUrl}
           churchName={session.tenantName}
           bell={
@@ -192,38 +157,20 @@ export async function AppShell({
           }
         />
 
-        {/* 28px above, 24px at the sides, 96px below, and it stops growing at
-            1280px. Left-aligned rather than centred, which is what the design
-            does and what keeps the navigation and the content in one column of
-            reading. The 96px is also what keeps a phone's last control clear of
-            the tab bar. */}
+        {/* 28px above, 24px at the sides, 96px below. The screen's own column
+            inside it decides where it stops growing, and is left-aligned
+            rather than centred, which is what the design does and what keeps
+            the navigation and the content in one column of reading. The 96px
+            is also what keeps a phone's last control clear of the tab bar. */}
         <main
           id="main"
-          {...(density ? { "data-density": density } : {})}
           /* The sides take the greater of the gutter and whatever a rounded
              screen keeps for itself. */
-          className={
-            "w-full flex-1 px-[max(1.5rem,env(safe-area-inset-left))] pt-7 pb-24 "
-            + (wide ? "" : max ?? "max-w-[1280px]")
-          }
+          className="w-full flex-1 px-[max(1.5rem,env(safe-area-inset-left))] pt-7 pb-24"
         >
-          {/* Every screen in the design is a column with 28px between its
-              blocks. */}
           <ChurchMarkProvider logoUrl={logoUrl}>
             <SpellingProvider spelling={spelling} locale={locale}>
-            <div className="flex flex-col gap-7">
-              {/* R24.6. The screen's one action sits with the screen rather
-                  than in the bar, which belongs to the product. Beside the
-                  notification bell it read as another piece of chrome, and the
-                  thing this page is for should not. */}
-              {action || back ? (
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  {back ? <BackLink href={back.href} label={back.label} /> : <span />}
-                  {action}
-                </div>
-              ) : null}
               {children}
-            </div>
             </SpellingProvider>
           </ChurchMarkProvider>
         </main>

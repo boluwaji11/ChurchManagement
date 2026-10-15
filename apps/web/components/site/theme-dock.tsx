@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Monitor, Sun, Moon } from "lucide-react";
 import { Tooltip, cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { setTheme, type Theme } from "@/app/settings/theme-actions";
+import { setTheme, type Theme } from "@/app/(app)/settings/theme-actions";
 
 /** The default leads, then the two that override it. */
 const CHOICES: { value: Theme; icon: typeof Sun }[] = [

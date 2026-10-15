@@ -1,0 +1,153 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Pencil } from "lucide-react";
+import {
+  withTenant, getSavedReport, runReport, canEditPeople, canReadIncidents,
+  GRID_COLUMNS, type ReportTile, type ReportResult,
+} from "@connectapp/db";
+import { t } from "@connectapp/i18n";
+import { Screen } from "@/components/screen";
+import { requireScreen } from "@/lib/shell-data";
+import { Denied } from "@/components/denied";
+import { Answer } from "../../answer";
+import { DownloadMenu } from "../../download";
+import { tabMetadata } from "@/lib/page-metadata";
+
+export const dynamic = "force-dynamic";
+
+/** R17.1. What the browser tab says. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ }>;
+}) {
+  const {} = await searchParams;
+  return tabMetadata(t("reports.title"));
+}
+
+/** What a visual is called when nobody has named it. */
+const nameOf = (tile: ReportTile): string =>
+  tile.title
+  || (tile.groupBy
+    ? t("report.by", { field: t(`report.field.${tile.groupBy}` as never) })
+    : t(`report.subject.${tile.subject}` as never));
+
+/**
+ * R18.12. A report the church built, run.
+ *
+ * The same compiler the builder previewed with, laid out on the same grid, so
+ * what was arranged is what is read. The spec is checked against the catalogue
+ * on the way out of the database as well as on the way in.
+ */
+export default async function CustomReportPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ }>;
+}) {
+  const { id } = await params;
+  const {} = await searchParams;
+  const session = await requireScreen();
+  if (!canEditPeople(session) && !canReadIncidents(session)) {
+    return (
+      <Denied role={session.role} action="readReports" church={session.tenantSlug} />
+      
+    );
+  }
+
+  /* R18.x. A report is the reader's own unless the church shares it. */
+  const who = {
+    tenantId: session.tenantId,
+    role: session.role,
+    userId: session.userId,
+    permissions: session.permissions,
+  };
+  const found = await withTenant(
+    who,
+    async (tx) => {
+      const saved = await getSavedReport(tx, who, id);
+      if (!saved) return null;
+
+      const answers: Record<string, ReportResult> = {};
+      for (const tile of saved.spec.tiles) {
+        answers[tile.id] = await runReport(tx, tile);
+      }
+      return { saved, answers };
+    },
+  );
+
+  if (!found) notFound();
+  const { saved, answers } = found;
+
+  return (
+    <Screen
+      title={saved.name}
+      trail={[{ label: t("reports.title"), href: "/reports" }, { label: saved.name }]}
+      wide
+    >
+      <div className="-mt-3 flex flex-wrap items-center justify-end gap-3">
+        {/* R18.x. Only whoever wrote it may change it, so nobody else is
+            offered the pencil. */}
+        {saved.createdByUserId === session.userId ? (
+          <Link
+            href={`/reports/build?id=${saved.slug}`}
+            aria-label={t("report.edit")}
+            className="inline-flex size-[var(--d-tap)] shrink-0 items-center justify-center rounded-[var(--d-radius-control)] text-fg-muted transition-colors hover:bg-sunken hover:text-fg [&_svg]:size-[var(--d-icon)]"
+          >
+            <Pencil />
+          </Link>
+        ) : null}
+
+        <DownloadMenu
+          csv={`/reports/custom/${saved.slug}/export`}
+          pptx={`/reports/custom/${saved.slug}/pptx`}
+          print={`/reports/custom/${saved.slug}/print`}
+        />
+      </div>
+
+      {/* Laid out on the grid it was arranged on. */}
+      <div
+        className="grid gap-3"
+        style={{
+          gridTemplateColumns: `repeat(${GRID_COLUMNS}, minmax(0, 1fr))`,
+          gridAutoRows: "72px",
+        }}
+      >
+        {saved.spec.tiles.map((tile) => {
+          const result = answers[tile.id];
+          return (
+            <section
+              key={tile.id}
+              style={{
+                gridColumn: `${tile.place.x + 1} / span ${tile.place.w}`,
+                gridRow: `${tile.place.y + 1} / span ${tile.place.h}`,
+              }}
+              className="flex min-w-0 flex-col overflow-hidden rounded-[14px] border border-line bg-surface p-4"
+            >
+              <h3 className="mb-2 truncate font-display text-[17px] leading-6 text-fg">
+                {nameOf(tile)}
+              </h3>
+
+              {/* The visual takes the box it was sized to, so reading a report
+                  is reading it rather than scrolling inside each tile. */}
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                {!result || result.rows.length === 0 ? (
+                  <p className="text-[13px] text-fg-muted">{t("report.nothingMatches")}</p>
+                ) : (
+                  <Answer spec={tile} result={result} fill />
+                )}
+              </div>
+
+              {result && result.total !== null ? (
+                <p className="mt-2 shrink-0 border-t border-line pt-2 text-[13px] text-fg">
+                  {t("report.totalIs", { total: result.total.toLocaleString() })}
+                </p>
+              ) : null}
+            </section>
+          );
+        })}
+      </div>
+    </Screen>
+  );
+}

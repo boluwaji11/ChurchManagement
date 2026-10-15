@@ -91,7 +91,7 @@ export function usePush(): {
         const sub = await reg.pushManager.getSubscription();
         if (!sub) { setOn(false); return; }
 
-        const { known, subscribe } = await import("@/app/home/push-actions");
+        const { known, subscribe } = await import("@/app/(app)/home/push-actions");
         if (await known(sub.endpoint)) { setOn(true); return; }
 
         const json = sub.toJSON() as { keys?: { p256dh?: string; auth?: string } };
@@ -121,7 +121,7 @@ export function usePush(): {
         const existing = await reg.pushManager.getSubscription();
 
         if (existing) {
-          const { unsubscribe } = await import("@/app/home/push-actions");
+          const { unsubscribe } = await import("@/app/(app)/home/push-actions");
           await unsubscribe(existing.endpoint);
           await existing.unsubscribe();
           setOn(false);
@@ -130,7 +130,7 @@ export function usePush(): {
 
         if ((await Notification.requestPermission()) !== "granted") return;
 
-        const { publicKey, subscribe } = await import("@/app/home/push-actions");
+        const { publicKey, subscribe } = await import("@/app/(app)/home/push-actions");
         const key = await publicKey();
         if (!key) return;
 

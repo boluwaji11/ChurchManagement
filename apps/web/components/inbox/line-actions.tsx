@@ -4,7 +4,7 @@ import * as React from "react";
 import { Pencil, Reply, Trash2 } from "lucide-react";
 import { Button, Dialog, DialogContent, DialogFooter, Tooltip } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
-import { deleteLine } from "@/app/messages/actions";
+import { deleteLine } from "@/app/(app)/messages/actions";
 import { ReactButton } from "./marks";
 import type { Mark } from "./data";
 

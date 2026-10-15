@@ -161,8 +161,8 @@ catalogue was aligned to them in HRT-201, so a key's value is the design's strin
 | Celebrations | Celebrations | none | Built |
 | Giving, Songs, Calendar, Reports, Churches | | | Excluded, see above |
 
-`AppShell` and `PortalShell` both draw the action they are given in the same place, at the top of
-the content. Serving is the one row that is not built: New team moved to Settings in HRT-226, and
+Both shells are layouts now, drawn once from `app/(app)/layout.tsx` (HRT-360), so a screen's name
+and its one action sit in the screen's own `Screen` header rather than in the frame. Serving is the one row that is not built: New team moved to Settings in HRT-226, and
 sending requests in bulk is not a placement but a feature nobody has asked for yet.
 
 An entry's sidebar label is the same word as its title. The one difference is People, where the

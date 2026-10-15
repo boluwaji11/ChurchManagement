@@ -7,7 +7,7 @@ import { ArrowLeft, Archive, MessageSquare, PenSquare, Users } from "lucide-reac
 import { Avatar, IconButton } from "@connectapp/ui";
 import { t, plural } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
-import { archiveThread } from "@/app/messages/actions";
+import { archiveThread } from "@/app/(app)/messages/actions";
 import { EMPTY, useInbox } from "./data";
 import { Drafts, Threads } from "./list";
 import { Conversation } from "./thread";
