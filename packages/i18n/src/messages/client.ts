@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3310 of 4809 keys.
+ * 3311 of 4810 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1895,10 +1895,10 @@ export const browserWords: Catalogue = {
   "setup.what.portal": "Choose a unique web address where your members can access your church's portal.",
   "setup.why.portal": "Members can use this link to sign in, connect with groups, make donations, and contact your church.",
   "setup.at.portal": "Enter a unique name for your church's web address, then click Save web address.",
-  "setup.step.profile": "Your own details",
-  "setup.what.profile": "Your record in the church directory: a photo, and a number somebody can reach you on.",
-  "setup.why.profile": "Your team is about to meet a directory where you are only a name. Filling yours in is the quickest way to see what you are asking everybody else for.",
-  "setup.at.profile": "Press Edit, add a photo and a phone number, and save.",
+  "setup.step.profile": "Complete your profile",
+  "setup.what.profile": "Add a profile photo, phone number and other information so your church team can recognize and contact you.",
+  "setup.why.profile": "Your profile is part of your church's directory. Keeping it updated helps your team stay connected.",
+  "setup.at.profile": "Click Edit, add your photo and phone number, then save your changes.",
   "setup.step.teams": "Who serves on the day",
   "setup.what.teams": "Add the teams your church serves in, such as Welcome, Worship and Kids, and the positions on each one.",
   "setup.why.teams": "A team is what a rota is built from. Until one exists there is nobody to schedule, and a volunteer has nothing to accept or decline.",
@@ -1935,6 +1935,7 @@ export const browserWords: Catalogue = {
   "setup.shut": "Collapse",
   "setup.do": "Open",
   "setup.showMe": "Show me",
+  "setup.showMe.profile": "Update my profile",
   "setup.gotIt": "Close",
   "setup.skip": "Skip for now",
   "setup.unskip": "Undo skip",
