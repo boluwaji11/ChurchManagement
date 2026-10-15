@@ -30,8 +30,9 @@ export interface RailStep {
  * column.
  */
 export function GuideBody({
-  steps,
+  steps: given,
   phase,
+  pinned,
   here,
   busy,
   onSkip,
@@ -42,6 +43,8 @@ export function GuideBody({
   steps: RailStep[];
   /** The phase being shown, which the caller holds so it survives a press. */
   phase: SetupPhase;
+  /** Whether that phase was opened by hand, and so should be left alone. */
+  pinned: boolean;
   /** The step whose screen is open, if this is one of them. */
   here: SetupStep | null;
   busy: boolean;
@@ -52,7 +55,38 @@ export function GuideBody({
   /** Closes the panel the body is in, where it is in one. */
   onGo?: () => void;
 }) {
+  /*
+   * Skipping shows at once rather than when the server answers.
+   *
+   * The step list is the church's own records read on the server, which is
+   * what keeps the guide honest, and a round trip is a long time to watch a
+   * press do nothing. The press is drawn immediately and the guess is dropped
+   * the moment the records come back saying the same thing.
+   */
+  const [guess, setGuess] = React.useState<Partial<Record<SetupStep, boolean>>>({});
+  const signature = given.map((one) => `${one.step}${one.done}${one.skipped}`).join();
+  React.useEffect(() => setGuess({}), [signature]);
+
+  const steps = given.map((one) =>
+    guess[one.step] === undefined ? one : { ...one, skipped: guess[one.step]! },
+  );
+
   const next = steps.find((one) => !one.done && !one.skipped);
+
+  /*
+   * Which phase is open. Answering the last step of one opens the next at
+   * once, rather than when the records come back, because the press that
+   * settled it is the press that should move the guide on. A phase somebody
+   * opened by hand is left alone, even once it is settled, because they are
+   * reading it.
+   */
+  const settled = (which: SetupPhase) =>
+    !steps.some((one) => one.phase === which && !one.done && !one.skipped);
+
+  const showing =
+    pinned || !settled(phase)
+      ? phase
+      : (GUIDE_PHASES.find((one) => !settled(one)) ?? phase);
 
   /*
    * A step that has just been answered stops being the current one and the
@@ -92,7 +126,7 @@ export function GuideBody({
   return (
     <div className="flex flex-col gap-1">
       {GUIDE_PHASES.map((one, phaseIndex) => {
-        const open = one === phase;
+        const open = one === showing;
         const mine = steps.filter((step) => step.phase === one);
         const doneHere = mine.filter((step) => step.done || step.skipped).length;
         const allDone = doneHere === mine.length;
@@ -161,7 +195,11 @@ export function GuideBody({
                     telling={telling === step.step}
                     busy={busy}
                     onTell={() => setOpened(telling === step.step ? "" : step.step)}
-                    onSkip={(on) => onSkip(step.step, on)}
+                    onSkip={(on) => {
+                      setGuess((was) => ({ ...was, [step.step]: on }));
+                      setOpened(null);
+                      onSkip(step.step, on);
+                    }}
                     onShow={onShow}
                     onGo={onGo}
                   />
