@@ -1,0 +1,6 @@
+# R22.4. Who approves a change to this repository.
+#
+# The source is public and anybody may propose a change. One person decides
+# whether it lands, and the ruleset on main and production requires that
+# person's review by name rather than anybody's.
+* @boluwaji11
