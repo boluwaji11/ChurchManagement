@@ -1,13 +1,11 @@
 import { Skeleton } from "@connectapp/ui";
 
 /**
- * R24.6. The settings frame, while the screen inside it is built.
+ * R24.6. The settings screen's own shape, while it is built.
  *
- * Settings is the one part of the product whose shell is a layout, so a
- * loading state can sit inside it: the tabs and the church's name stay put
- * and only the panel is drawn as it arrives. Everywhere else the shell is
- * rendered by the screen itself, and a loading state would take the frame
- * away with it, which reads as the product blinking.
+ * Settings keeps its own because its sections are drawn by its layout: the
+ * tabs and the church's name stay put and only the panel under them is drawn
+ * as it arrives. The one beside `(app)/layout.tsx` covers every other screen.
  */
 export default function Loading() {
   return (
