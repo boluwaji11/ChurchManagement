@@ -593,17 +593,18 @@ export function InvitePerson({
    * Two rules and no third. A role is giveable when every permission it holds
    * is one the reader holds, so an Admin cannot hand out Finance, and an Owner
    * can hand out anything, Owner included: a church with two pastors should be
-   * able to say so without handing the church over.
+   * able to say so without handing the church over. And it has to be a role
+   * this church actually runs, which means live.
    *
-   * The built-ins count while they are still on the shelf. Eight of the nine
-   * go in archived, because the roles screen is where a church takes one up,
-   * and reading that as "never offer it" left a church on its first day with
-   * an empty list and nobody it could invite.
+   * Eight of the nine built-ins are written down archived, because the roles
+   * screen is the shelf they are taken up from. Offering them here handed out
+   * a role the church had never looked at and could not find on its own
+   * screen, so the guide sends a new church to take one up first.
    */
   const giveable = roles.filter(
     (one) =>
       one.permissions.every((permission) => mine.includes(permission))
-      && (!one.archived || one.builtin),
+      && !one.archived,
   );
   const [role, setRole] = React.useState(giveable[0]?.id ?? "");
   const [failed, setFailed] = React.useState<string>();

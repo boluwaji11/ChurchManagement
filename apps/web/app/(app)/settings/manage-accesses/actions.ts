@@ -99,12 +99,12 @@ export async function invite(data: FormData): Promise<TeamResult> {
     );
 
     /*
-     * R1.6. A built-in still on the shelf is offerable, because eight of the
-     * nine go in archived and a church on its first day would otherwise have
-     * nothing it could give. One the church archived itself is not.
+     * R1.6. A role has to be one this church runs. The built-ins it has not
+     * taken up are archived, and so is one it put away itself; neither is
+     * something to hand an account.
      */
     const picked = chosen.find(
-      (one) => one.id === field(data, "role") && (!one.archived || one.builtin),
+      (one) => one.id === field(data, "role") && !one.archived,
     );
     if (!picked) return { error: t("team.error.role") };
 

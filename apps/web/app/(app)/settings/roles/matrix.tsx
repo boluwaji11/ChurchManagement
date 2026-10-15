@@ -653,7 +653,7 @@ export function NewRole({
 }) {
   return (
     <RoleForm permissions={permissions} groups={groups} shelf={shelf} mine={mine}>
-      <Button>
+      <Button data-guide="take-up-role">
         <Plus /> {t("roles.add")}
       </Button>
     </RoleForm>

@@ -15,6 +15,7 @@ import { useFormError } from "@/lib/form-error";
 import { setGuideShut, showGuide, skip } from "./guide-actions";
 import { GuideBody, type RailStep } from "./body";
 import { Point } from "./point";
+import { Cut } from "./cut";
 
 /**
  * R22.1, R22.2, R22.3. The setup guide, beside whichever screen is open.
@@ -286,9 +287,9 @@ export function Rail({
             <span className="flex min-w-0 flex-col gap-0.5">
               {/* One line. A church with a long name loses the end of it to
                   an ellipsis rather than pushing the path down the column. */}
-              <span className="truncate font-display text-[18px] leading-[24px] font-semibold whitespace-nowrap text-fg">
+              <Cut className="font-display text-[18px] leading-[24px] font-semibold whitespace-nowrap text-fg">
                 {t("setup.title", { name: church })}
-              </span>
+              </Cut>
               <span className="text-[length:var(--d-text-caption)] text-fg-muted">
                 {left === 0 ? t("setup.left.none") : plural("setup.left", left)}
               </span>

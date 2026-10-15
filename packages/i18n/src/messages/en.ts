@@ -2882,7 +2882,7 @@ export const en = {
   "setup.left.none": "All done",
   "setup.soFar": "{done} of {all} done",
   "setup.phase.basics": "The basics",
-  "setup.phase.basics.why": "Add your congregation, invite your team, and set up your church.",
+  "setup.phase.basics.why": "Add your members, invite your team, and set up your church.",
   "setup.phase.before": "Get ready for your service day",
   "setup.phase.before.why": "Set up everything you need for your first service.",
   "setup.phase.running": "Plan your services",
@@ -2890,9 +2890,9 @@ export const en = {
   "setup.phase.ready": "More ways to connect",
   "setup.phase.ready.why": "Set up communication, giving, and follow-ups when you are ready.",
 
-  "setup.step.members": "Bring your members in",
-  "setup.what.members": "Upload a CSV or Excel file containing your congregation's information, such as names, phone numbers, and email addresses. We'll automatically match the columns in your file to the right fields in ConnectApp. You can also add your members one at a time.",
-  "setup.why.members": "Add a member once, and their information will be available across groups, check-in, volunteers, giving, and reports.",
+  "setup.step.members": "Add your members",
+  "setup.what.members": "Upload a CSV or Excel file with your congregation's names and contact details. We'll automatically match the columns, or you can add people individually.",
+  "setup.why.members": "Add people once, and their information is available across groups, check-in, volunteer scheduling, giving, reports, and much more.",
   "setup.at.members": "Drop a file here, or press Choose file. We show you what would change and wait for your go-ahead. To add somebody by hand instead, close this and press Add a member.",
 
   "setup.step.services": "Your first service",
@@ -2900,14 +2900,19 @@ export const en = {
   "setup.why.services": "Use these services to track attendance, check in children, and schedule volunteers.",
   "setup.at.services": "Click Create a service, then enter its name, date, and time. Choose whether it repeats.",
 
-  "setup.step.team": "Who else gets in",
+  "setup.step.roles": "Set up your roles",
+  "setup.what.roles": "Choose from ready-made roles like Admin, Staff, or Pastoral, or create your own.",
+  "setup.why.roles": "Roles control what each person can see and do. Set them up before inviting your team.",
+  "setup.at.roles": "Click Add a new role, choose a ready-made role or create your own, then save.",
+
+  "setup.step.team": "Invite your team",
   "setup.what.team": "Give pastors, staff, and volunteers access to help manage your church.",
   "setup.why.team": "Choose what each person can see and manage. This keeps responsibilities shared and sensitive information private.",
-  "setup.at.team": "Press Send invite and use the address they will sign in with. They choose their own password.",
+  "setup.at.team": "Click Invite team member and enter their email address. They'll receive an invitation to set up their own password.",
 
-  "setup.step.church": "Your church's details",
-  "setup.what.church": "The legal name, address, country and timezone of the church itself.",
-  "setup.why.church": "Giving receipts have to carry them to count for tax, check-in labels print from them, and the timezone is what decides which day a service belongs to.",
+  "setup.step.church": "Church information",
+  "setup.what.church": "Add your church's name, address, country, time zone, and other details.",
+  "setup.why.church": "These details appear on giving receipts, help with check-in, and ensure services are scheduled at the correct times.",
   "setup.at.church": "Press Edit, fill in the address, and save.",
 
   "setup.step.rooms": "Rooms for check-in",

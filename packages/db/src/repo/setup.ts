@@ -39,6 +39,7 @@ export type SetupPhase = (typeof SETUP_PHASES)[number];
 export const SETUP_STEPS = [
   // The basics: the church itself, and who is in it.
   "members",
+  "roles",
   "team",
   "church",
   // Before the first service day.
@@ -64,6 +65,7 @@ export type SetupStep = (typeof SETUP_STEPS)[number];
 
 export const SETUP_PHASE_OF: Record<SetupStep, SetupPhase> = {
   members: "basics",
+  roles: "basics",
   team: "basics",
   church: "basics",
   services: "before",
@@ -91,6 +93,7 @@ export const SETUP_PHASE_OF: Record<SetupStep, SetupPhase> = {
  * broken.
  */
 const STEP_IS_FOR: Partial<Record<SetupStep, (role: { role: TenantRole }) => boolean>> = {
+  roles: canManageChurch,
   rooms: canManageRooms,
   stations: canManageStations,
   teams: canManageServices,
@@ -150,6 +153,15 @@ export async function setupProgress(
       // church can actually produce today.
       services: sql<string>`(select count(*) from service_occurrences)`,
       members: sql<string>`(select count(*) from members where archived_at is null)`,
+      /*
+       * R1.6. A church is written down with Owner live and the other eight
+       * built-ins on the shelf, so until it takes one up there is nothing to
+       * invite anybody as. Live roles past Owner is therefore the question.
+       */
+      roles: sql<string>`(
+        select count(*) from tenant_roles
+         where tenant_id = ${tenantId} and archived_at is null and key <> 'owner'
+      )`,
       team: sql<string>`(
         select count(*) from tenant_members where tenant_id = ${tenantId}
       ) + (
@@ -213,6 +225,7 @@ export async function setupProgress(
     members: n(counts?.members) > 1,
     services: n(counts?.services) > 0,
     // One account is the person who made the church. Two is a church.
+    roles: n(counts?.roles) > 0,
     team: n(counts?.team) > 1,
     church: Boolean(church?.addressLine1),
     rooms: n(counts?.rooms) > 0,

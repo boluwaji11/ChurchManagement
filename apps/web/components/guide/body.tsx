@@ -8,6 +8,7 @@ import type { SetupPhase, SetupStep } from "@connectapp/db";
 import { GUIDE_BY_STEP, GUIDE_PHASES } from "@/lib/setup-guide";
 import { NavLink } from "@/components/nav-link";
 import { Opening } from "@/components/opening";
+import { Cut } from "./cut";
 
 export interface RailStep {
   step: SetupStep;
@@ -99,6 +100,17 @@ export function GuideBody({
       : (GUIDE_PHASES.find((one) => !settled(one)) ?? phase);
 
   /*
+   * A phase somebody has opened or shut by hand, which beats whatever the
+   * guide would have chosen. Every heading is a toggle at any time, the open
+   * one included: a church that has read a section wants it out of the way,
+   * and a church that finished the basics on Tuesday wants to look at them
+   * again on Thursday. Cleared on arriving at a step's screen, because from
+   * there the guide is following the screen again.
+   */
+  const [byHand, setByHand] = React.useState<Partial<Record<SetupPhase, boolean>>>({});
+  React.useEffect(() => setByHand({}), [here]);
+
+  /*
    * A step that has just been answered stops being the current one and the
    * next takes over. Without this, finishing the step whose screen you are on
    * left it open and struck through while the step below went active, and two
@@ -136,7 +148,7 @@ export function GuideBody({
   return (
     <div className="flex flex-col gap-1">
       {GUIDE_PHASES.map((one, phaseIndex) => {
-        const open = one === showing;
+        const open = byHand[one] ?? one === showing;
         const mine = steps.filter((step) => step.phase === one);
         const doneHere = mine.filter((step) => step.done || step.skipped).length;
         const allDone = doneHere === mine.length;
@@ -153,7 +165,17 @@ export function GuideBody({
           >
             <button
               type="button"
-              onClick={() => onOpenPhase(one)}
+              onClick={() => {
+                /*
+                 * A press always wins, so it takes back the hold an answer let
+                 * go of. Skipping a step releases its phase on purpose, and
+                 * until this reset that release outlived the press: a settled
+                 * phase could not be opened again.
+                 */
+                setReleased(false);
+                setByHand((was) => ({ ...was, [one]: !open }));
+                onOpenPhase(one);
+              }}
               aria-expanded={open}
               className={cn(
                 "-mx-1.5 flex cursor-pointer items-center gap-2.5 rounded-[10px] px-1.5 py-2 text-left",
@@ -184,11 +206,11 @@ export function GuideBody({
                 >
                   {t(`setup.phase.${one}` as never)}
                 </span>
-                <span className="truncate text-[12px] leading-[16px] text-fg-subtle">
+                <Cut className="text-[12px] leading-[16px] text-fg-subtle">
                   {open
                     ? t(`setup.phase.${one}.why` as never)
                     : t("setup.count", { done: String(doneHere), all: String(mine.length) })}
-                </span>
+                </Cut>
               </span>
 
               <ChevronRight
