@@ -34,7 +34,7 @@ export async function setGuideShut(shut: boolean): Promise<void> {
   });
 }
 
-/** R22.1. "Not for us", and the same button undoes it. */
+/** R22.1. Skipping a step, and the same button undoing it. */
 export async function skip(step: SetupStep, on: boolean): Promise<GuideResult> {
   const session = await requireSession();
   try {
@@ -43,7 +43,7 @@ export async function skip(step: SetupStep, on: boolean): Promise<GuideResult> {
     return { error: explain(error) };
   }
   // The frame holds its read for twenty seconds, which is long enough for a
-  // church to press Not for us and watch nothing happen.
+  // church to press Skip for now and watch nothing happen.
   forgetShell(session);
   return {};
 }
