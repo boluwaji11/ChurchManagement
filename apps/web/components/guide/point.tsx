@@ -19,6 +19,8 @@ interface Spot {
 const GAP = 12;
 /** Up to three seconds of looking for a control that is still streaming in. */
 const PATIENCE = 3000;
+/** How much of a control has to be on screen before it is worth pointing at. */
+const EDGE = 8;
 
 /**
  * R22.1, R22.3. The guide reaches onto the screen and points at the control.
@@ -60,8 +62,10 @@ export function Point({ target }: { target: string | null }) {
        * stands down until a scroll brings the control back.
        */
       const inView =
-        box.bottom > 8 && box.top < window.innerHeight - 8
-        && box.right > 8 && box.left < window.innerWidth - 8;
+        box.bottom > EDGE
+        && box.top < window.innerHeight - EDGE
+        && box.right > EDGE
+        && box.left < window.innerWidth - EDGE;
       if (!inView) return setSpot(null);
 
       /*
