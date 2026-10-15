@@ -1,6 +1,9 @@
 export * as schema from "./schema/index";
 export type { WebsiteSection, WebsiteSectionType } from "./schema/tenancy";
-export { owner, appDb, withTenant, closeConnections, sql, type Db, type Tx, type TenantContext } from "./client";
+export {
+  owner, appDb, withTenant, closeConnections, sql, setTenantObserver,
+  type Db, type Tx, type TenantContext, type TenantObserver,
+} from "./client";
 export {
   TENANT_ROLES, type TenantRole, PERMISSIONS, PERMISSION_GROUPS, ROLE_PERMISSIONS,
   type Permission, type PermissionGroup, type Who,

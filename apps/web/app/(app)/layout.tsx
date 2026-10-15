@@ -3,6 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { PortalShell } from "@/components/portal-shell";
 import { requireScreen } from "@/lib/shell-data";
 import { readsAsMember } from "@/lib/reads-as-member";
+import { watchTheDatabase, noteThePage } from "@/lib/observe";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,11 @@ export const dynamic = "force-dynamic";
  * addresses in the portal, a row of tabs over one centred column.
  */
 export default async function AppLayout({ children }: { children: ReactNode }) {
+  /* R24.11, N3. One place turns the watching on, and tells it which screen
+     this is, because every screen in the product is drawn inside this. */
+  watchTheDatabase();
+  await noteThePage();
+
   const session = await requireScreen();
 
   if (readsAsMember(session)) {

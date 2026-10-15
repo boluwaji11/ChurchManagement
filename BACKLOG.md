@@ -107,7 +107,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-351 | One authentication call a navigation, and the job routes are left alone | R24.11, R1.5 | Resolved |
 | HRT-352 | The catalogue splits by area, so a screen ships the words it uses | R24.11, R20.1 | New |
 | HRT-353 | The screens stream: the frame paints while the rows arrive | R24.11, R24.12 | Resolved |
-| HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | New |
+| HRT-354 | Server-side observability: which page, which query, which church | R24.11, N3 | Resolved |
 | HRT-355 | The send queue keeps up with a thousand churches | R24.11, R16.6 | New |
 | HRT-356 | The things read on every request are read once: a cache for the church, its host and its signed links | R24.11, R17.1 | Resolved |
 | HRT-357 | Nothing hangs: a statement timeout, and a budget on every call that leaves the building | R24.11, R21.5 | Resolved |
@@ -2062,6 +2062,30 @@ lookups and the SMTP connection already had theirs.
 To see the statement timeout work, open a psql against the app role and run
 `select pg_sleep(20)`: Postgres ends it. The screens are unaffected, because nothing a church does
 takes fifteen seconds.
+
+### HRT-354, how to test it
+
+Run the server and open any screen. Nothing shows on screen. In the server's own output, a
+transaction that took longer than 400ms writes one line:
+
+```
+{"watch":"db","at":"/members","church":"4bbae21f-...","role":"admin","ms":544}
+```
+
+The address, the church, the role and the milliseconds. Set `OBSERVE_EVERY_QUERY=1` to see every
+transaction rather than the slow ones, which is what a measuring run wants, and `SLOW_QUERY_MS` to
+move the line.
+
+Why it is this and not a tracing library: every story in this release was measured by hand, against a
+seeded church, with the database on the same desk. That is how the two worst findings stayed hidden
+for weeks. `photoUrls` was wrapped in a cache keyed on an argument nobody passes twice, so it never
+hit once, and the frame was rebuilt on every press. Neither was visible by reading the code, and
+neither shows in Vercel's own numbers, which say a page was slow and nothing about which church or
+which read. A line of JSON goes wherever the logs already go, costs nothing when nothing is slow, and
+cannot become the reason a church's write fails: anything the watcher throws is dropped.
+
+What the line never carries: a name, an email, a note, a gift. A church's id and the address somebody
+was on, which is what answers "what is slow, and for whom".
 
 ### HRT-358, how to test it
 
