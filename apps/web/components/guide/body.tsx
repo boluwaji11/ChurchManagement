@@ -83,8 +83,18 @@ export function GuideBody({
   const settled = (which: SetupPhase) =>
     !steps.some((one) => one.phase === which && !one.done && !one.skipped);
 
+  /*
+   * Standing on a step's screen holds its phase open, so walking onto a step
+   * already done shows that step rather than jumping the column past it. An
+   * answer is not walking: skipping the step you are standing on is asking the
+   * guide to move on, so it lets go of the phase and the next one opens.
+   * Arriving anywhere takes hold again.
+   */
+  const [released, setReleased] = React.useState(false);
+  React.useEffect(() => setReleased(false), [here]);
+
   const showing =
-    pinned || !settled(phase)
+    (pinned && !released) || !settled(phase)
       ? phase
       : (GUIDE_PHASES.find((one) => !settled(one)) ?? phase);
 
@@ -206,6 +216,7 @@ export function GuideBody({
                     onSkip={(on) => {
                       setGuess((was) => ({ ...was, [step.step]: on }));
                       setOpened(null);
+                      setReleased(true);
                       onSkip(step.step, on);
                     }}
                     onShow={onShow}

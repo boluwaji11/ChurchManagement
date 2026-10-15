@@ -156,10 +156,25 @@ export function Point({
      * above it unfolding, a window resized, all move it, and none of them is
      * a scroll event.
      */
+    /*
+     * Measured once a frame at most.
+     *
+     * The watcher is a MutationObserver over the whole body, because the
+     * control belongs to a screen that redraws it and a listener bound to the
+     * element would not survive that. A busy screen can fire it hundreds of
+     * times in a frame, and each call reads a bounding box, which is a layout.
+     * Coalescing to one read a frame makes the cost of watching the same
+     * whether a row changed or a thousand did.
+     */
+    let queued = 0;
     const watch = () => {
-      const found = document.querySelector(`[data-guide="${CSS.escape(target)}"]`);
-      if (found) place(found);
-      else setSpot(null);
+      if (queued) return;
+      queued = requestAnimationFrame(() => {
+        queued = 0;
+        const found = document.querySelector(`[data-guide="${CSS.escape(target)}"]`);
+        if (found) place(found);
+        else setSpot(null);
+      });
     };
 
     const size = new ResizeObserver(watch);
@@ -172,6 +187,7 @@ export function Point({
     return () => {
       stop = true;
       cancelAnimationFrame(frame);
+      if (queued) cancelAnimationFrame(queued);
       size.disconnect();
       tree.disconnect();
       window.removeEventListener("scroll", watch, true);
