@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { t } from "@connectapp/i18n";
 import { en } from "../src/messages/en";
 import { browserWords } from "../src/messages/client";
 
@@ -16,6 +17,22 @@ import { browserWords } from "../src/messages/client";
  */
 const root = fileURLToPath(new URL("../../..", import.meta.url));
 const OUT = `${root}/packages/i18n/src/messages/client.ts`;
+
+/**
+ * R20.1. Anything that is not a browser reads the whole catalogue.
+ *
+ * The split was keyed on `react-server` for an afternoon, and CI found what
+ * that misses: the data layer builds its error messages through `t` and runs
+ * under plain Node, where no such condition is set, so a church being told a
+ * merge is too old to undo got `merge.error.tooOld` instead of the sentence.
+ * It is the `browser` condition now, and this is what holds it there.
+ */
+describe("what anything outside a browser reads", () => {
+  it("is the whole catalogue, not the screens' share of it", () => {
+    expect(t("merge.error.tooOld")).toBe(en["merge.error.tooOld"]);
+    expect(t("send.foot.sentTo", { address: "someone@example.org" })).not.toContain("send.foot");
+  });
+});
 
 describe("the words the browser is given", () => {
   it("is what the screens name today", () => {

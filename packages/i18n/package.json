@@ -5,8 +5,9 @@
   "type": "module",
   "exports": {
     ".": {
+      "browser": "./src/client.ts",
       "react-server": "./src/index.ts",
-      "default": "./src/client.ts"
+      "default": "./src/index.ts"
     },
     "./server": "./src/index.ts",
     "./en": "./src/messages/en.ts"

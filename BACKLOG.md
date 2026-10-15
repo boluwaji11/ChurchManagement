@@ -2190,6 +2190,12 @@ follows the imports now, which is what actually reaches a browser. Then the team
 `teamLib.worship`, because `schedule/library.ts` holds its keys as data and resolves them later, so
 any key-shaped string a reachable file writes down is taken too.
 
+**And the condition was wrong, which CI caught.** Keyed on `react-server`, the split handed the
+browser's share to anything that was not a React Server Component: the data layer builds its error
+messages through `t` and runs under plain Node, so a church told its merge was too old to undo read
+`merge.error.tooOld`. It is the `browser` condition now, which a bundler sets only for the bundle it
+is building for a browser, and everything else reads the whole catalogue. A test holds it there.
+
 Three things keep it honest: `pnpm catalogue` regenerates it, CI fails if the committed file is
 stale, and a key a screen reads that the catalogue does not hold fails the generator outright. It was
 checked by driving a browser over nineteen screens and five panels and failing on any catalogue key

@@ -9,6 +9,10 @@ import { readerFor } from "./core";
  * 4,729 keys, 67KB over the wire, most of them words a church only ever meets
  * in an email or on a printed sheet.
  *
+ * Reached through the `browser` condition, which a bundler sets only for the
+ * bundle it is building for a browser. Everything else, including the server
+ * components that render those same screens, reads the whole catalogue.
+ *
  * `messages/client.ts` is generated from the screens themselves, by
  * `scripts/build-client-catalogue.mjs`, and committed. A key a client file
  * names, and every key in a group whose keys it builds at runtime, is in it.
