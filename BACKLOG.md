@@ -173,7 +173,6 @@ we do not. The reading that produced them is below the table.
 | HRT-330 | The check-in screens, where the rules deliberately differ | R24.14, R8.8, R24.11 | Resolved |
 | HRT-331 | The public pages and the member portal | R17.1, R24.6 | Resolved |
 | HRT-332 | One paper style across eleven print sheets | R24.6, R2.14 | Resolved |
-| HRT-333 | Tags belong to categories, with a colour and an order the church sets | R1.13, R24.4 | Active |
 | HRT-334 | A record says how complete it is, and the directory says which are not | R2.1, R19.3 | New |
 | HRT-335 | The church's own activity feed, read from the log that already records it | R1.11, R18.1 | New |
 | HRT-336 | Sweep the dead ends: a link to nothing, two empty directories, components nothing renders | R24.18 | Resolved |
@@ -413,7 +412,7 @@ somebody a link to `/directory`, which does not exist.
 So the work is not a repaint. It is building each piece once and then using it, which is
 what the design system was for. Phase A (HRT-307 to HRT-318) builds the vocabulary and a
 church sees nothing change. Phase B (HRT-319, HRT-320) puts it in the shell. Phase C
-(HRT-321 to HRT-332) applies it a screen at a time. Phase D (HRT-333 to HRT-336) adds the
+(HRT-321 to HRT-332) applies it a screen at a time. Phase D (HRT-334 to HRT-336) adds the
 few things the reference has that we do not.
 
 **What is taken from the reference and what is not.** Taken: the structure. Counts in tabs,
@@ -670,14 +669,6 @@ cards, the class rosters, the check-in labels, the order of service, the deposit
 statements, the event roster and a report. Confirm one paper style across all of them, that
 the church's name and the date are in the same place on each, and that none of them carries
 the app's chrome.
-
-### HRT-333, how to test it
-
-Make a category, give it a colour, and put three tags in it. Confirm a tag can take its own
-colour instead of the category's. Reorder them and confirm the order is the order they print
-beside a name. Open the category and confirm it lists the members carrying its tags, with a
-way to take a tag off somebody. Confirm a tag with no category still works, since every
-existing tag starts that way.
 
 ### HRT-334, how to test it
 
