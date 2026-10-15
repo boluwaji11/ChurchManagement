@@ -125,7 +125,12 @@ export function ChurchForm({
               label={t("church.save")}
             />
           ) : canEdit ? (
-            <IconButton label={t("church.edit")} variant="ghost" onClick={() => onEditing(true)}>
+            <IconButton
+              label={t("church.edit")}
+              variant="ghost"
+              data-guide="church-details"
+              onClick={() => onEditing(true)}
+            >
               <Pencil />
             </IconButton>
           ) : null}

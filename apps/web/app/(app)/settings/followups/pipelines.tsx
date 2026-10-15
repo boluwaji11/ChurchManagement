@@ -113,6 +113,13 @@ export function Pipelines({
       {rows.map((row) => (
         <section
           key={row.id}
+          /* R22.1. The setup guide rings the first stage nobody owns, which is
+             the one its step is about. */
+          data-guide={
+            row.id === rows.find((one) => !one.ownerUserId && !one.archived)?.id
+              ? "set-owner"
+              : undefined
+          }
           className={`relative flex flex-col gap-3.5 rounded-[14px] border border-line bg-surface px-5 py-4.5 ${LIFT} ${
             row.archived ? "opacity-55" : ""
           }`}

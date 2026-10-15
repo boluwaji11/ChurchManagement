@@ -103,7 +103,7 @@ export const shellData = cache(async (session: Session): Promise<ShellData> => {
          * somebody who runs the church, because nobody else can do any of it,
          * and read here so the guide can follow them onto any screen.
          */
-        canManageChurch(session) ? setupProgress(tx, session.tenantId) : null,
+        canManageChurch(session) ? setupProgress(tx, session) : null,
         churchStanding(tx, session.tenantId),
         personForUser(tx, session.userId),
       ]);

@@ -55,7 +55,8 @@ export function AddService({
   return (
     <Sheet open={open} onOpenChange={close}>
       <SheetTrigger asChild>
-        <Button>
+        {/* R22.1. Named for the setup guide, which rings it and points at it. */}
+        <Button data-guide="add-service">
           <Plus /> {t("services.add")}
         </Button>
       </SheetTrigger>

@@ -184,7 +184,7 @@ export function navFor(role: Who): NavEntry[] {
   out.push({
     label: t("nav.settings"),
     href: canManageChurch(role) ? "/settings/church" : "/settings/profile",
-    owns: ["/settings", "/setup"],
+    owns: ["/settings"],
     icon: Settings,
   });
 

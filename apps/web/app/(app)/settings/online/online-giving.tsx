@@ -251,6 +251,7 @@ export function OnlineGiving({
                     disabled={pending || !configured || settling}
                     loading={pending || settling}
                     onClick={go}
+                    data-guide="connect-stripe"
                   >
                     {account ? t("stripe.continue") : t("stripe.connect")}
                   </Button>

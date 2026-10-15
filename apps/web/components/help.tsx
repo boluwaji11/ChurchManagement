@@ -11,6 +11,10 @@ import { t } from "@connectapp/i18n";
 /**
  * R22.2. Help, where somebody is rather than where we filed it.
  *
+ * Opened from the foot of the setup guide, which is the one piece of the frame
+ * that is beside every screen. The redesign took the question mark out of the
+ * top bar and this had nowhere to live for a while.
+ *
  * Opening it shows the screen you are on first, and everything else under it.
  * It is behind a button because a product that explains itself on the page is a
  * product that shouts at the ninety-nine members who already knew.
@@ -27,14 +31,14 @@ const ARTICLES = [
   { key: "incidents", match: ["/incidents"] },
   { key: "groups", match: ["/groups"] },
   { key: "followups", match: ["/followups"] },
-  { key: "setup", match: ["/setup"] },
   { key: "settings", match: ["/settings"] },
+  { key: "setup", match: [] },
 ] as const;
 
 const title = (key: string) => t(`help.${key}.title` as never);
 const body = (key: string) => t(`help.${key}.body` as never);
 
-export function Help() {
+export function Help({ trigger }: { trigger?: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -67,9 +71,11 @@ export function Help() {
   return (
     <Dialog open={open} onOpenChange={close}>
       <DialogTrigger asChild>
-        <Button variant="ghost" aria-label={t("help.open")}>
-          <CircleHelp />
-        </Button>
+        {trigger ?? (
+          <Button variant="ghost" aria-label={t("help.open")}>
+            <CircleHelp />
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent title={t("help.title")} closeLabel={t("common.close")} className="max-w-xl">
         <div className="flex flex-col gap-4">
