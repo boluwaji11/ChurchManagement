@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { withTenant, listGifts, toCsv, canManageGiving, canReadGivingAmounts } from "@connectapp/db";
+import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { refused } from "@/lib/refuse";
 
@@ -44,7 +45,10 @@ export async function GET(request: NextRequest) {
       Fund: gift.fundName,
       /* R13.23. What the church's own accounting calls it. */
       Code: gift.fundCode ?? "",
-      Method: gift.method,
+      /* R22.8. The word this church reads on the screen. The stored value is
+         `cheque` for every church, and a church in Missouri reconciling this
+         file against its screen was handed a word it does not write. */
+      Method: t(`giving.method.${gift.method}` as never),
       Reference: gift.reference ?? "",
       Amount: (gift.amountCents / 100).toFixed(2),
       Fee: (gift.feeCents / 100).toFixed(2),
