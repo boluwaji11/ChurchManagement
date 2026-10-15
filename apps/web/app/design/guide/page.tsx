@@ -26,6 +26,10 @@ const STEPS: readonly { step: SetupStep; phase: SetupPhase }[] = [
   { step: "stations", phase: "before" },
   { step: "portal", phase: "before" },
   { step: "profile", phase: "before" },
+  { step: "teams", phase: "running" },
+  { step: "planTemplate", phase: "running" },
+  { step: "plan", phase: "running" },
+  { step: "groupTypes", phase: "running" },
   { step: "email", phase: "ready" },
   { step: "giving", phase: "ready" },
   { step: "funds", phase: "ready" },
@@ -107,14 +111,21 @@ export default function GuideGallery() {
         <div className="flex flex-wrap items-start gap-6">
           <Rail
             title="When you are ready"
-            steps={make(["members", "services", "team", "church", "rooms", "stations", "portal", "profile"])}
+            steps={make([
+              "members", "services", "team", "church",
+              "rooms", "stations", "portal", "profile",
+              "teams", "planTemplate", "plan", "groupTypes",
+            ])}
             phase="ready"
           />
           <Rail
             title="Every step answered"
             steps={make(
-              ["members", "services", "team", "church", "rooms", "stations", "portal", "email", "giving", "funds"],
-              ["profile", "followups"],
+              [
+                "members", "services", "team", "church", "rooms", "stations", "portal",
+                "teams", "planTemplate", "plan", "email", "giving", "funds",
+              ],
+              ["profile", "groupTypes", "followups"],
             )}
             phase="ready"
           />

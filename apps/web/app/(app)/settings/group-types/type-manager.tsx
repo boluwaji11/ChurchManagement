@@ -204,7 +204,7 @@ function TypeDialog({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        {trigger ?? <Button><Plus /> {t("groupType.add")}</Button>}
+        {trigger ?? <Button data-guide="add-group-type"><Plus /> {t("groupType.add")}</Button>}
       </SheetTrigger>
 
       <SheetContent

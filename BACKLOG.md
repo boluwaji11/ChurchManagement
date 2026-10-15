@@ -4044,6 +4044,14 @@ The guide is a rail down the right of every screen, for an owner or an administr
    guide brings it back.
 6. **Help on this screen** sits at the foot of the rail, which is where R22.2 has been waiting for
    somewhere to live since the redesign took the button out of the top bar.
+
+**Sixteen, not twelve, and why.** Four were added on 15 October after walking a church that had just
+been written down: volunteer teams, the order of service template, this week's plan, and the kinds
+of group it runs. A new church is given eight plan item kinds and two funds and nothing else, so it
+starts with no teams, no template, no group types and no follow-up stages. Without a group type it
+cannot write down a single group; without a team there is nobody to put on a rota. Planning the
+week's service is the one step in that phase a church repeats, and it is there because doing one is
+how a church finds out whether its template is the right shape.
 7. **On a phone** the rail is a pill above the tab bar and opens as a panel.
 
 What came out: `/setup`, the corner dock, and the checklist across the dashboard. Three drawings of

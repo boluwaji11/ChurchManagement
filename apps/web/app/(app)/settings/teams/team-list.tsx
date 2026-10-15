@@ -188,7 +188,7 @@ export function AddTeam({ church, taken = [] }: { church: string; taken?: string
       taken={taken}
       title={t("serving.addTeam")}
       trigger={
-        <Button>
+        <Button data-guide="add-team">
           <Plus /> {t("serving.addTeam")}
         </Button>
       }
