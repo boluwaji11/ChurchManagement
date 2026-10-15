@@ -164,7 +164,7 @@ export function Board({
                           nothing left to answer there. */}
                       {stage.id === "done" ? null : (
                         <IconButton
-                          label={t("board.markDone", { name: card.who })}
+                          label={t("board.markDone")}
                           variant="ghost"
                           disabled={pending}
                           className="size-8 min-h-0 [&_svg]:size-4"
