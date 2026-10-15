@@ -567,7 +567,7 @@ export function InvitePerson({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <Button><Plus /> {t("team.invite")}</Button>
+        <Button data-guide="invite-person"><Plus /> {t("team.invite")}</Button>
       </SheetTrigger>
       <SheetContent
         title={t("team.invite")}

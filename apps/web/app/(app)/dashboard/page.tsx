@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { GripVertical } from "lucide-react";
 import {
-  withTenant, dashboard, attendanceByService, openFollowUps, setupProgress,
+  withTenant, dashboard, attendanceByService, openFollowUps,
   listOccurrences, listGroups, listEvents,
   canEditPeople, canReadIncidents,
 } from "@connectapp/db";
@@ -14,7 +14,6 @@ import { Denied } from "@/components/denied";
 import type { Session } from "@/lib/session";
 import { churchNow, hasHappened } from "@/lib/church-now";
 import { shortDate } from "@/lib/dates";
-import { SetupChecklist } from "./checklist";
 import { Tiles, type Tile } from "./tiles";
 import { Weeks } from "./weeks";
 import { ThisWeek, type WeekEntry } from "./this-week";
@@ -149,23 +148,22 @@ async function Board({ session }: { session: Session }) {
   const profile = (await shellData(session)).church;
   const clockNow = churchNow(profile?.timezone ?? "America/Chicago");
 
-  const { numbers, weeks, setup, tasks, week, next, now } = await withTenant(ctx, async (tx) => {
+  const { numbers, weeks, tasks, week, next, now } = await withTenant(ctx, async (tx) => {
     const today = clockNow.date;
     const until = shift(today, AHEAD);
     const brand = profile?.brandHue ?? "indigo";
 
     /*
-     * Seven reads that have nothing to say to each other used to wait on each
+     * Six reads that have nothing to say to each other used to wait on each
      * other, one round trip at a time. They go down the one connection together.
      */
-    const [occurrences, groups, published, counts, byService, progress, followUps] =
+    const [occurrences, groups, published, counts, byService, followUps] =
       await Promise.all([
         listOccurrences(tx, { from: today, to: until }),
         listGroups(tx),
         listEvents(tx),
         dashboard(tx, today),
         attendanceByService(tx, { from: shift(today, -WEEKS * 7), to: today }),
-        setupProgress(tx, session.tenantId),
         openFollowUps(tx, 5),
       ]);
     const events = published.filter((one) => one.status === "published");
@@ -221,7 +219,6 @@ async function Board({ session }: { session: Session }) {
       now: clockNow,
       numbers: counts,
       weeks: byService,
-      setup: progress,
       tasks: followUps,
       week: entries,
       // The service the church is heading towards, which is the one thing
@@ -302,16 +299,6 @@ async function Board({ session }: { session: Session }) {
 
   return (
     <>
-      {/* R22.1. Here while there is something left to do, and gone afterwards
-          rather than sitting in the settings of a church that finished in
-          March. */}
-      {!setup.complete && !setup.dismissed ? (
-        <SetupChecklist
-          churchName={session.tenantName}
-          progress={setup}
-        />
-      ) : null}
-
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-[32px] leading-[38px] text-fg">

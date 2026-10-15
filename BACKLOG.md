@@ -991,10 +991,12 @@ of money and after everything else.
 | HRT-296 | What's on: the church's events, in public and in a frame | R14.2, R9.5 | Closed |
 | HRT-289 | Put a piece of ConnectApp on the church's own site, with the steps for the site they built it on | R9.5, R22.2 | Closed |
 | HRT-291 | The church's own domain: members.church.org and give.church.org, with the screen to set one up | R1.1, R22.2 | New |
+| HRT-367 | The setup guide walks beside the church, on every screen, and says what to press | R22.1, R22.2, R22.3 | Active |
+| HRT-368 | A church writes down the times it meets | R22.1, R3.1 | New |
+| HRT-369 | A check-in dry run before the first service day | R8.x, R22.1 | New |
 
-R22.1 lists giving and messaging credentials as wizard steps. Giving is 0.3 and messaging is not a
-screen a church fills in (HRT-92, dropped), so the 0.2 wizard is church details, service times,
-roles and invitations, and the import.
+R22.1 lists giving and messaging credentials as wizard steps, and both are now built, so both are
+steps of the guide. The five-step wizard of 0.2 is replaced by HRT-367.
 
 ## E7. Children's ministry, the paperwork pass (0.9)
 
@@ -1084,10 +1086,14 @@ marked for 0.3, so the shape of the feature is on the board while the money is b
 governs every row here: a church supplies its own credentials, we resell nothing, and the shared
 email quota stays transactional.
 
-HRT-287 is the way in, and it carries what HRT-137 was for. Nothing in this repo sends yet: what is
-built is the connection, proved against the church's own account before it is written down. The
-composer, the targeting, the queue and the bounces are still ahead, and the rows below carry their
-old state until each is picked up.
+HRT-287 is the way in, and it carries what HRT-137 was for: the connection, proved against the
+church's own account before it is written down. Email is now built end to end. A church connects
+its own Resend key or its own mail server, writes a message in the composer, and the queue sends
+it, retries a soft failure and stops writing to an address that bounced, with a way out on every
+send. SMS is the part that is not built: HRT-286 holds the wiring and waits on Twilio.
+
+This paragraph said the opposite until 15 October 2026, which cost a day's reading of the board
+and one wrong answer about what a pilot church can do.
 
 | ID | Story | Req | State |
 |---|---|---|---|
@@ -4017,6 +4023,46 @@ The **?** beside your name, on any screen.
    people who already knew, which is why there is no hint text under any field in ConnectApp.
 4. **The articles are in the catalogue** like every other string, so they are translated with the
    product rather than left in a wiki somebody forgets.
+
+### HRT-367, how to test it
+
+The guide is a rail down the right of every screen, for an owner or an administrator.
+
+1. **Twelve steps in three phases**, four at a time, so a church is never handed a list of twelve.
+   The first hour, then before your first service day, then when you are ready. A phase opens when
+   the one before it is settled.
+2. **It knows where you are.** Open the screen a step points at and that step rises to the top of
+   the rail and says which control to press on this screen. Everywhere else the rail carries the
+   phase and the next step.
+3. **It points at the thing.** A step whose work happens in one card on a settings screen rings
+   that card on arrival.
+4. **Nothing is stored about your progress**, which is HRT-105's rule and it still holds. Each step
+   is answered by reading the church's own records. Undo the work and the step opens again.
+5. **Skip**, and the step settles without pretending it was done, from the same button that undoes
+   it. **Collapse** leaves a tab on the edge carrying how far through you are, and it is remembered
+   for you rather than for the church. **Hide for good** is one confirm, and Settings then Setup
+   guide brings it back.
+6. **Help on this screen** sits at the foot of the rail, which is where R22.2 has been waiting for
+   somewhere to live since the redesign took the button out of the top bar.
+7. **On a phone** the rail is a pill above the tab bar and opens as a panel.
+
+What came out: `/setup`, the corner dock, and the checklist across the dashboard. Three drawings of
+one list of five, none of which said what to press on arrival.
+
+### HRT-368, what it is for
+
+`service_times` is the weekly pattern a church meets on, as opposed to the dated services on the
+calendar. The website reads it, a check-in station binds to it, and **nothing writes it**:
+`addServiceTime` is wrapped by `addService` in the settings actions and no screen imports that. The
+only writer is the demo loader, so for every real church the table is empty. HRT-367 counts dated
+services instead and leaves this hole to be filled on its own.
+
+### HRT-369, what it is for
+
+A church should meet check-in on a Tuesday rather than with forty families queuing. Both the desk
+and the supervisor board need a service occurrence dated today, which is what HRT-253 records, so a
+dry run is a feature of its own: a practice service that prints a real label pair and then leaves
+nothing behind.
 
 ### HRT-105 and HRT-108, how to test them
 
