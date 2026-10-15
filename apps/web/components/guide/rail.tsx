@@ -132,6 +132,7 @@ export function Rail({
     <GuideBody
       steps={steps}
       phase={showing}
+      pinned={opened !== null}
       here={here}
       busy={pending}
       onSkip={onSkip}

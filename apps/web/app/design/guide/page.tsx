@@ -63,6 +63,7 @@ function Rail({
         <GuideBody
           steps={steps}
           phase={open}
+          pinned
           here={here ?? null}
           busy={false}
           onSkip={() => {}}
