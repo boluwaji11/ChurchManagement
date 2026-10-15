@@ -180,6 +180,25 @@ export function Point({
   }, [target, pathname, height]);
 
   /*
+   * Acting on the control puts the card away.
+   *
+   * The card is there to get somebody to the thing and say what it is for. The
+   * moment they press it they are doing the work, and an instruction still
+   * sitting over it is in the way of what it asked for. Watched on the
+   * document rather than bound to the element, because the control is redrawn
+   * by its own screen and a listener on it would not survive that.
+   */
+  React.useEffect(() => {
+    if (!target) return;
+    const acted = (e: Event) => {
+      const at = e.target as Element | null;
+      if (at?.closest?.(`[data-guide="${CSS.escape(target)}"]`)) onClose();
+    };
+    document.addEventListener("pointerdown", acted, true);
+    return () => document.removeEventListener("pointerdown", acted, true);
+  }, [target, onClose]);
+
+  /*
    * Escape closes the card, and stops there.
    *
    * Caught on the way down and held, so the panel underneath keeps its own
