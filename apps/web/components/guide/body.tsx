@@ -282,7 +282,8 @@ function Row({
             {name}
           </span>
 
-          {here && !step.done ? (
+          {/* A step that is answered, either way, is not the one you are on. */}
+          {here && !step.done && !step.skipped ? (
             <span className="mt-0.5 shrink-0 rounded-full bg-primary px-1.5 py-px text-[10px] font-semibold text-primary-fg">
               {t("setup.here")}
             </span>
