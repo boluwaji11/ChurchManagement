@@ -3310,9 +3310,9 @@ export const browserWords: Catalogue = {
   "email.error.host": "Give the mail server's address",
   "email.error.port": "The port is a number between 1 and 65535",
   "email.error.noDomain": "That address has no domain to verify",
-  "invite.unsent.title": "Send invitation",
-  "invite.unsent.body": "Your invitation to {email} is saved but hasn't been sent. Connect an email account to send it.",
+  "invite.unsent.title": "Send invitation?",
+  "invite.unsent.body": "{email} has been added to the new role. Want to send an email invitation?",
   "invite.unsent.recorded": "Your invitation to {email} is saved but hasn't been sent. Send it again once the account is working.",
-  "invite.unsent.connect": "Connect email",
+  "invite.unsent.connect": "Send Email",
   "invite.unsent.later": "Not now",
 };
