@@ -42,13 +42,13 @@ export const SETUP_STEPS = [
   "roles",
   "team",
   "church",
-  // Before the first service day.
-  "services",
-  // Before the first service day.
-  "rooms",
-  "stations",
   "portal",
   "profile",
+  // Before the first service day, in the order one needs the one before it:
+  // a service to check into, the rooms it runs, then the desk they check in at.
+  "services",
+  "rooms",
+  "stations",
   // Running the service. The one-time work behind a service day, as opposed
   // to the planning a church does every week on top of it.
   "teams",
@@ -68,11 +68,11 @@ export const SETUP_PHASE_OF: Record<SetupStep, SetupPhase> = {
   roles: "basics",
   team: "basics",
   church: "basics",
+  portal: "basics",
+  profile: "basics",
   services: "before",
   rooms: "before",
   stations: "before",
-  portal: "before",
-  profile: "before",
   teams: "running",
   planTemplate: "running",
   plan: "running",

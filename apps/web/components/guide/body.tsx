@@ -186,7 +186,7 @@ export function GuideBody({
               <span
                 aria-hidden
                 className={cn(
-                  "grid size-[22px] shrink-0 place-items-center rounded-[7px] text-[10px] font-bold tabular-nums",
+                  "grid size-[24px] shrink-0 place-items-center rounded-[7px] text-[11px] font-bold tabular-nums",
                   allDone
                     ? "bg-primary text-primary-fg"
                     : open
@@ -200,13 +200,13 @@ export function GuideBody({
               <span className="flex min-w-0 flex-1 flex-col">
                 <span
                   className={cn(
-                    "text-[14px] leading-[18px] font-semibold",
+                    "text-[16px] leading-[21px] font-semibold",
                     open ? "text-fg" : "text-fg-muted",
                   )}
                 >
                   {t(`setup.phase.${one}` as never)}
                 </span>
-                <Cut className="text-[12px] leading-[16px] text-fg-subtle">
+                <Cut className="text-[13px] leading-[18px] text-fg-subtle">
                   {open
                     ? t(`setup.phase.${one}.why` as never)
                     : t("setup.count", { done: String(doneHere), all: String(mine.length) })}
@@ -223,7 +223,12 @@ export function GuideBody({
             </button>
 
             {open ? (
-              <ol data-guide-steps className="m-0 flex list-none flex-col p-0 pt-1">
+              <ol
+                data-guide-steps
+                /* Indented to the heading's words rather than its number, so the
+                   steps read as belonging to the section above them. */
+                className="m-0 flex list-none flex-col p-0 pt-1 pl-[32px]"
+              >
                 {mine.map((step, i) => (
                   <Row
                     key={step.step}
@@ -351,7 +356,7 @@ function Row({
         >
           <span
             className={cn(
-              "min-w-0 flex-1 text-[14px] leading-[20px]",
+              "min-w-0 flex-1 text-[15px] leading-[21px]",
               step.done
                 ? "text-fg-subtle line-through"
                 : step.skipped
@@ -369,12 +374,12 @@ function Row({
               screen that does it. It reads Here on that screen and Next
               anywhere else. A step that is answered, either way, is neither. */}
           {now && !step.done && !step.skipped ? (
-            <span className="mt-0.5 shrink-0 rounded-full bg-primary px-1.5 py-px text-[10px] font-semibold text-primary-fg">
+            <span className="mt-0.5 shrink-0 rounded-full bg-primary px-2 py-px text-[11px] font-semibold text-primary-fg">
               {here ? t("setup.here") : t("setup.next")}
             </span>
           ) : null}
           {step.skipped && !step.done ? (
-            <span className="mt-0.5 shrink-0 rounded-full bg-sunken px-1.5 py-px text-[10px] font-semibold text-fg-subtle">
+            <span className="mt-0.5 shrink-0 rounded-full bg-sunken px-2 py-px text-[11px] font-semibold text-fg-subtle">
               {t("setup.skipped")}
             </span>
           ) : null}
@@ -385,10 +390,10 @@ function Row({
             {/* What it is, then why a church should care. The second one is
                 the question a volunteer actually has, and no screen in the
                 product is the place to answer it. */}
-            <p className="m-0 text-[13px] leading-[19px] text-fg-muted">
+            <p className="m-0 text-[14px] leading-[21px] text-fg-muted">
               {t(`setup.what.${step.step}` as never)}
             </p>
-            <p className="m-0 flex gap-1.5 text-[13px] leading-[19px] text-fg">
+            <p className="m-0 flex gap-1.5 text-[14px] leading-[21px] text-fg">
               <MoveRight aria-hidden className="mt-[3px] size-3 shrink-0 text-primary" />
               <span>{t(`setup.why.${step.step}` as never)}</span>
             </p>
@@ -402,7 +407,7 @@ function Row({
                 <button
                   type="button"
                   onClick={() => onShow(step.step)}
-                  className="inline-flex cursor-pointer items-center gap-0.5 rounded text-[12px] font-semibold text-primary"
+                  className="inline-flex cursor-pointer items-center gap-0.5 rounded text-[13px] font-semibold text-primary"
                 >
                   {t("setup.showMe")}
                   <ChevronRight className="size-3.5" aria-hidden />
@@ -414,7 +419,7 @@ function Row({
                     onShow(step.step);
                     onGo?.();
                   }}
-                  className="inline-flex items-center gap-0.5 rounded text-[12px] font-semibold text-primary no-underline"
+                  className="inline-flex items-center gap-0.5 rounded text-[13px] font-semibold text-primary no-underline"
                 >
                   {t("setup.showMe")}
                   <ChevronRight className="size-3.5" aria-hidden />
@@ -427,7 +432,7 @@ function Row({
                   type="button"
                   disabled={busy}
                   onClick={() => onSkip(!step.skipped)}
-                  className="cursor-pointer rounded text-[12px] text-fg-muted underline underline-offset-4 transition-colors duration-instant hover:text-fg disabled:cursor-default"
+                  className="cursor-pointer rounded text-[13px] text-fg-muted underline underline-offset-4 transition-colors duration-instant hover:text-fg disabled:cursor-default"
                 >
                   {step.skipped ? t("setup.unskip") : t("setup.skip")}
                 </button>

@@ -80,6 +80,23 @@ export function Rail({
     setInvited((was) => (was && stepOnScreen(pathname)?.step === was ? was : null));
   }, [pathname]);
 
+  /*
+   * R22.1, R24.x. How much room the column is taking, for anything floating
+   * over the screen beside it.
+   *
+   * The cookie is what the server reads on the next render, and waiting for
+   * that round trip left the inbox mark sitting under the column for as long
+   * as the write took. This is published the moment the press lands, so the
+   * mark moves with the column rather than after it.
+   */
+  React.useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--guide-clear", shut ? "4rem" : "30.25rem");
+    return () => {
+      root.style.removeProperty("--guide-clear");
+    };
+  }, [shut]);
+
   const close = (next: boolean) => {
     setShut(next);
     void setGuideShut(next);
@@ -219,7 +236,7 @@ export function Rail({
             "right-[max(1rem,env(safe-area-inset-right))]",
             "top-[calc(4.25rem+env(safe-area-inset-top))]",
             "border border-line-strong bg-surface px-3.5 py-2 shadow-md",
-            "text-[13px] font-semibold text-fg",
+            "text-[14px] font-semibold text-fg",
           )}
         >
           <ListChecks className="size-4" aria-hidden />
@@ -278,7 +295,7 @@ export function Rail({
          * sticky rather than fixed, so it keeps its place while a long list
          * scrolls past while still sitting in the frame's own flow.
          */
-        className="sticky top-0 hidden h-dvh w-[380px] shrink-0 self-start overflow-y-auto border-l border-line bg-surface lg:block"
+        className="sticky top-0 hidden h-dvh w-[468px] shrink-0 self-start overflow-y-auto border-l border-line bg-surface lg:block"
       >
         <div className="flex flex-col gap-4 p-5">
           {error ? <Banner tone="danger">{t(error as never)}</Banner> : null}
@@ -287,7 +304,7 @@ export function Rail({
             <span className="flex min-w-0 flex-col gap-0.5">
               {/* One line. A church with a long name loses the end of it to
                   an ellipsis rather than pushing the path down the column. */}
-              <Cut className="font-display text-[18px] leading-[24px] font-semibold whitespace-nowrap text-fg">
+              <Cut className="font-display text-[20px] leading-[26px] font-semibold whitespace-nowrap text-fg">
                 {t("setup.title", { name: church })}
               </Cut>
               <span className="text-[length:var(--d-text-caption)] text-fg-muted">
@@ -329,10 +346,10 @@ export function Rail({
 
           {complete ? (
             <div className="flex flex-col items-start gap-2 rounded-[12px] bg-primary-soft p-4">
-              <span className="text-[14px] font-semibold text-fg">
+              <span className="text-[15px] font-semibold text-fg">
                 {t("setup.done.title", { name: church })}
               </span>
-              <span className="text-[13px] leading-5 text-fg-muted">{t("setup.done.body")}</span>
+              <span className="text-[14px] leading-[21px] text-fg-muted">{t("setup.done.body")}</span>
               <Button variant="secondary" onClick={() => setAsking(true)}>
                 {t("setup.putAway")}
               </Button>

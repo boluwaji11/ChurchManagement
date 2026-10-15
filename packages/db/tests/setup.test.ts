@@ -19,6 +19,7 @@ import { testTenant, dropTenants } from "./helpers/tenant";
 
 let tenant: string;
 const CREATOR = "cccccccc-1111-4111-8111-111111111111";
+const READER = "cccccccc-2222-4222-8222-222222222222";
 
 const as = (role: TenantRole = "owner") => ({ tenantId: tenant, role });
 const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
@@ -37,7 +38,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await dropTenants("setuptest");
-  await owner()`delete from app_users where id = ${CREATOR}`;
+  await owner()`delete from app_users where id in (${CREATOR}, ${READER})`;
   await closeConnections();
 });
 
@@ -176,11 +177,37 @@ describe("doing the work moves the step (R22.1)", () => {
     expect(step(await read(), "email")?.done).toBe(true);
   });
 
+  it("counts the reader's own record being filled in", async () => {
+    /* The one step here that is about the person rather than the church, so
+       it is the one that needs to know who is reading. */
+    const whose = (userId?: string) =>
+      run((tx) => setupProgress(tx, { tenantId: tenant, role: "owner", userId }));
+
+    await owner()`
+      insert into app_users (id, email) values (${READER}, 'reader@setuptest.invalid')
+      on conflict (id) do nothing`;
+    const [person] = await owner()<{ id: string }[]>`
+      insert into members (tenant_id, slug, first_name, last_name, app_user_id, lifecycle_status)
+      values (${tenant}, 'reader-person', 'Reader', 'Person', ${READER}, 'member') returning id`;
+
+    expect(step(await whose(READER), "profile")?.done).toBe(false);
+
+    await owner()`
+      insert into contact_methods (tenant_id, member_id, kind, value)
+      values (${tenant}, ${person!.id}, 'phone', '+15550000000')`;
+    expect(step(await whose(READER), "profile")?.done).toBe(true);
+  });
+
   it("opens the next phase once the first is settled", async () => {
+    /* Their own record is about whoever is reading, and these read as nobody. */
+    await run((tx) => skipSetupStep(tx, as(), "profile"));
+
     const progress = await read();
     const basics = progress.steps.filter((row) => row.phase === "basics");
     expect(basics.filter((row) => !row.done && !row.skipped).map((r) => r.step)).toEqual([]);
     expect(progress.phase).not.toBe("basics");
+
+    await run((tx) => skipSetupStep(tx, as(), "profile", false));
   });
 });
 
