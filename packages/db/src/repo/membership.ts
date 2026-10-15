@@ -262,7 +262,13 @@ export async function setAccountName(userId: string, fullName: string): Promise<
   await owner()`update app_users set full_name = ${name} where id = ${userId}`;
 }
 
-/** R1.7. Invite by email with a role and an expiry. Default 14 days. */
+/**
+ * R1.7. Invite by email with a role and an expiry. Default 14 days.
+ *
+ * The day it runs out comes back with the row, because the message that goes
+ * to the person says when it does and the caller would otherwise read the row
+ * again to find out.
+ */
 export async function createInvitation(input: {
   tenantId: string;
   email: string;
@@ -273,7 +279,7 @@ export async function createInvitation(input: {
   /** R1.7. The record this is for, so accepting ties the account to it. */
   memberId?: string | null;
   days?: number;
-}): Promise<{ id: string }> {
+}): Promise<{ id: string; expiresAt: Date }> {
   const sql = owner();
 
   /*
@@ -289,7 +295,7 @@ export async function createInvitation(input: {
   // audit log records and what anything reading that column alone falls back to.
   const builtIn: TenantRole = input.roleId ? "member" : input.role;
 
-  const rows = await sql<{ id: string }[]>`
+  const rows = await sql<{ id: string; expires_at: Date | string }[]>`
     insert into invitations (tenant_id, email, role, role_id, invited_by_user_id, member_id, expires_at)
     values (
       ${input.tenantId}, ${input.email.trim().toLowerCase()}, ${builtIn}::tenant_role,
@@ -304,9 +310,69 @@ export async function createInvitation(input: {
       expires_at = excluded.expires_at,
       revoked_at = null,
       accepted_at = null
-    returning id`;
+    returning id, expires_at`;
   if (!rows[0]) throw new Error("Invitation insert returned no row.");
-  return rows[0];
+  return { id: rows[0].id, expiresAt: asDate(rows[0].expires_at) ?? new Date() };
+}
+
+/**
+ * HRT-370, R1.7, R16.4. One pending invitation, in the words a message needs.
+ *
+ * Read here rather than assembled by the caller, because sending again from
+ * the Invited list has nothing but the row's id: the address it went to, the
+ * role it carries, who sent it and the day it runs out all live on the row and
+ * the three tables beside it.
+ *
+ * On the owner connection, like everything else about membership, and bounded
+ * by the church it is asked for, so an id from another church answers with
+ * nothing.
+ */
+export interface InvitationToSend {
+  id: string;
+  email: string;
+  role: TenantRole;
+  /** R1.6. The church's own role, where it gave one, by the name it wrote. */
+  roleName: string | null;
+  /** The name on the account that sent it, where the account carries one. */
+  invitedBy: string | null;
+  expiresAt: Date;
+}
+
+export async function invitationToSend(
+  tenantId: string,
+  id: string,
+): Promise<InvitationToSend | null> {
+  const rows = await owner()<
+    {
+      id: string; email: string; role: string; role_name: string | null;
+      invited_by: string | null; expires_at: Date | string;
+    }[]
+  >`
+    select i.id, i.email, i.role::text as role,
+           r.name as role_name,
+           u.full_name as invited_by,
+           i.expires_at
+      from invitations i
+      left join tenant_roles r on r.id = i.role_id
+      left join app_users u on u.id = i.invited_by_user_id
+     where i.tenant_id = ${tenantId}
+       and i.id = ${id}
+       and i.accepted_at is null
+       and i.revoked_at is null
+       and i.expires_at > now()
+     limit 1`;
+
+  const row = rows[0];
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    email: row.email,
+    role: row.role as TenantRole,
+    roleName: row.role_name,
+    invitedBy: row.invited_by,
+    expiresAt: asDate(row.expires_at) ?? new Date(),
+  };
 }
 
 export async function revokeInvitation(id: string): Promise<void> {

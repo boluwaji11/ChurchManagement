@@ -164,9 +164,10 @@ export {
 export {
   membershipsForUser, verifyMembership, syncUserAndAcceptInvitations,
   createInvitation, revokeInvitation, createChurch, slugify, isKnownTimezone, linkOrCreatePerson, setAccountName,
-  listTeam, listInvitations, setMemberRole, memberRole, removeMember, leaveChurch, anotherOwns,
+  listTeam, listInvitations, invitationToSend, setMemberRole, memberRole, removeMember,
+  leaveChurch, anotherOwns,
   RESERVED_SLUGS,
-  type Membership, type TeamMember, type PendingInvitation,
+  type Membership, type TeamMember, type PendingInvitation, type InvitationToSend,
 } from "./repo/membership";
 export {
   churchForSelfSignup, joinChurch, setSelfSignup,
