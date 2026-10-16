@@ -810,12 +810,23 @@ function ResendPath({
               {t("action.back")}
             </Button>
             <div className="flex flex-wrap items-center gap-2">
+              {/* R22.2. Two doors rather than one, because a church that has
+                  no account and a church that has one are looking for
+                  different words. */}
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => open("https://resend.com/signup")}
+              >
+                {t("email.resend.signin.up")}
+                <ExternalLink className="size-[14px]" aria-hidden />
+              </Button>
               <Button
                 type="button"
                 variant="secondary"
                 onClick={() => open("https://resend.com/login")}
               >
-                {t("email.resend.signin.open")}
+                {t("email.resend.signin.in")}
                 <ExternalLink className="size-[14px]" aria-hidden />
               </Button>
               <Button type="button" onClick={() => setSignedIn(true)}>
