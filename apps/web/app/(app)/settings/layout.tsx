@@ -48,6 +48,9 @@ export default async function SettingsLayout({ children }: { children: React.Rea
             { href: "/settings/announcements", label: t("announce.title") },
             { href: "/settings/roles", label: t("settings.tab.roles") },
             { href: "/settings/manage-accesses", label: t("settings.tab.access") },
+            /* R22.1. Where a church that put the setup guide away gets it
+               back, which is what the card offering to put it away says. */
+            { href: "/settings/guide", label: t("settings.tab.guide") },
           ]
         : [],
     },

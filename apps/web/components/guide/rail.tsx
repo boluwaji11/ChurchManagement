@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ListChecks, PanelRightClose, PanelRightOpen } from "lucide-react";
+import { CircleCheck, ListChecks, PanelRightClose, PanelRightOpen } from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogClose, DialogFooter,
   IconButton, Sheet, SheetContent, SheetTrigger, cn,
@@ -371,8 +371,9 @@ export function Rail({
 
           {complete ? (
             <div className="flex flex-col items-start gap-2 rounded-[12px] bg-primary-soft p-4">
-              <span className="text-[15px] font-semibold text-fg">
-                {t("setup.done.title", { name: church })}
+              <span className="inline-flex items-center gap-2 text-[15px] font-semibold text-fg">
+                <CircleCheck className="size-4" style={{ color: "var(--hue-fern-key)" }} aria-hidden />
+                {t("setup.done.title")}
               </span>
               <span className="text-[14px] leading-[21px] text-fg-muted">{t("setup.done.body")}</span>
               <Button variant="secondary" onClick={() => setAsking(true)}>
