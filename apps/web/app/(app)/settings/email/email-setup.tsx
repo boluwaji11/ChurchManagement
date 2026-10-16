@@ -837,7 +837,11 @@ function ResendPath({
                 {t("email.resend.signin.in")}
                 <ExternalLink className="size-[14px]" aria-hidden />
               </Button>
-              <Button type="button" onClick={() => setSignedIn(true)}>
+              <Button
+                data-guide="resend-signedin"
+                type="button"
+                onClick={() => setSignedIn(true)}
+              >
                 {t("email.resend.signin.done")}
               </Button>
             </div>
@@ -885,7 +889,7 @@ function ResendPath({
               <Button type="button" variant="secondary" onClick={() => router.refresh()}>
                 {t("email.resend.waitingCheck")}
               </Button>
-              <Button type="button" onClick={() => open(going)}>
+              <Button data-guide="resend-authorise" type="button" onClick={() => open(going)}>
                 {t("email.resend.waitingAgain")}
               </Button>
             </div>

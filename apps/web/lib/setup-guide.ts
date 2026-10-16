@@ -160,8 +160,14 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     phase: "ready",
     href: "/settings/email",
     target: "connect-email",
+    /*
+     * Two ways out of one screen. A stop whose control is not drawn is
+     * skipped, so the mail server's boxes mean nothing to a church going
+     * through Resend and the other way round.
+     */
     stops: [
       "connect-email",
+      "resend-signedin",
       { target: "email-from", field: true },
       { target: "smtp-host", field: true },
       { target: "smtp-port", field: true },
@@ -169,6 +175,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
       { target: "smtp-password", field: true },
       "email-connect",
       "resend-go",
+      "resend-authorise",
     ],
   },
   { step: "giving", phase: "ready", href: "/settings/online", target: "connect-stripe" },
