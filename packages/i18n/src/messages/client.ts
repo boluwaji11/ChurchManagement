@@ -1932,7 +1932,7 @@ export const browserWords: Catalogue = {
   "setup.at.groupTypes": "Click Add a new group type, enter a category name, and save. You can add more categories later.",
   "setup.at.groupTypes.2": "Click Save to create the group type.",
   "setup.step.email": "Set up church email",
-  "setup.what.email": "Connect an email account or service to send messages to your congregation.",
+  "setup.what.email": "Connect an email account or service to send messages to your members.",
   "setup.why.email": "Send church announcements, invitations, and updates using your existing email account or Resend.",
   "setup.at.email": "Choose your existing email provider or Resend, click Connect, and follow the steps to complete setup.",
   "setup.at.email.2": "Enter the email address your church will be sending emails from.",
