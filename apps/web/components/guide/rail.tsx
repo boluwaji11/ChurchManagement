@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { CircleHelp, ListChecks, PanelRightClose, PanelRightOpen } from "lucide-react";
+import { ListChecks, PanelRightClose, PanelRightOpen } from "lucide-react";
 import {
   Banner, Button, Dialog, DialogContent, DialogClose, DialogFooter,
   IconButton, Sheet, SheetContent, SheetTrigger, cn,
@@ -10,7 +10,6 @@ import {
 import { plural, t } from "@connectapp/i18n";
 import type { SetupPhase, SetupStep } from "@connectapp/db";
 import { GUIDE_BY_STEP, stepOnScreen, stopTarget, stopIsField } from "@/lib/setup-guide";
-import { Help } from "@/components/help";
 import { useFormError } from "@/lib/form-error";
 import { setGuideShut, showGuide, skip } from "./guide-actions";
 import { GuideBody, type RailStep } from "./body";
@@ -383,21 +382,6 @@ export function Rail({
           ) : null}
 
           {body}
-
-          {/* R22.2. Help, on whatever screen this is. It has been built and
-              unreachable since the redesign took the question mark out of the
-              top bar, and the guide is the one part of the frame beside every
-              screen. */}
-          <div className="mt-1 border-t border-line pt-3">
-            <Help
-              trigger={
-                <Button variant="ghost" className="w-full justify-start">
-                  <CircleHelp />
-                  {t("setup.helpHere")}
-                </Button>
-              }
-            />
-          </div>
 
           <span className="sr-only">{count}</span>
         </div>

@@ -417,13 +417,14 @@ export function NewPipeline({
         width="560px"
         footer={
           picking ? null : (
-            <Button type="submit" form={formId} loading={busy} disabled={!full}>
+            <Button data-guide="pipeline-add" type="submit" form={formId} loading={busy} disabled={!full}>
               {t("action.add")}
             </Button>
           )
         }
       >
         {!open ? null : picking ? (
+          <div data-guide="pipeline-pick">
           <LibraryPicker
             ownLabel={t("pipelines.ownStage")}
             items={library}
@@ -436,10 +437,12 @@ export function NewPipeline({
               setPicking(false);
             }}
           />
+          </div>
         ) : (
           <StageForm
             team={team}
             preset={preset}
+            guide
             formId={formId}
             onBusy={setBusy}
             onBack={library.length > 0 ? () => setPicking(true) : undefined}
@@ -508,6 +511,7 @@ function StageForm({
   row,
   team,
   preset,
+  guide,
   onBack,
   formId,
   onBusy,
@@ -518,6 +522,8 @@ function StageForm({
   team: TeamMember[];
   /** R5.2. A journey from the library, filling the form a church would type. */
   preset?: FlowPreset | null;
+  /** R22.3. Whether the setup guide points at this one's owner field. */
+  guide?: boolean;
   /** The way back to the library, when one was offered. */
   onBack?: () => void;
   /** R24.6. The id the panel's footer presses. */
@@ -594,6 +600,10 @@ function StageForm({
       {/* A church of five hundred has more accounts than a list is worth
           scrolling, so the owner is looked up by name. */}
       <Field label={t("pipelines.owner")}>
+        {/* R22.3. Named only on the panel that writes a new stage. The panel
+            that edits one is mounted whether it is open or not, so marking
+            the field in both sent the guide to the end on arrival. */}
+        <div data-guide={guide ? "pipeline-owner" : undefined}>
         <Combobox
           options={[
             { value: NOBODY, label: t("pipelines.nobody") },
@@ -606,6 +616,7 @@ function StageForm({
           clearLabel={t("date.clear")}
           aria-label={t("pipelines.owner")}
         />
+        </div>
       </Field>
 
       <Separator />
