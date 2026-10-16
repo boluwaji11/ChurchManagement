@@ -6,8 +6,14 @@ import { X } from "lucide-react";
 import { cn } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
-/** Which side of the control the card sits on. */
-type Side = "left" | "right" | "above" | "below";
+/**
+ * Which side of the control the card sits on.
+ *
+ * `centre` is the card on its own in the middle of the window, for a stop that
+ * names no control: the first card of a walk says what the screen is for, and
+ * a ring round the whole screen is a ring round nothing.
+ */
+type Side = "left" | "right" | "above" | "below" | "centre";
 
 interface Spot {
   top: number;
@@ -177,7 +183,8 @@ export function Point({
 
   React.useEffect(() => {
     if (!target) {
-      setSpot(null);
+      /* A stop with nothing to ring is a card in the middle of the window. */
+      setSpot({ top: 0, left: 0, width: 0, height: 0, side: "centre", beak: 0 });
       return;
     }
 
@@ -216,8 +223,8 @@ export function Point({
        * would land on something: "I am signed in" sits at the end of a row of
        * three, and a card beside it covered the other two.
        */
-      const asked = found.getAttribute("data-guide-side") as Side | null;
-      const room: Record<Side, boolean> = {
+      const asked = found.getAttribute("data-guide-side") as Exclude<Side, "centre"> | null;
+      const room: Record<Exclude<Side, "centre">, boolean> = {
         left: roomLeft > beside,
         right: roomRight > beside,
         below: roomBelow > tall,
@@ -402,7 +409,15 @@ export function Point({
   let card: React.CSSProperties;
   let beak: React.CSSProperties;
 
-  if (spot.side === "left" || spot.side === "right") {
+  if (spot.side === "centre") {
+    card = {
+      left: "50%",
+      top: "50%",
+      transform: "translate(-50%, -50%)",
+      width: `${CARD + 40}px`,
+    };
+    beak = { display: "none" };
+  } else if (spot.side === "left" || spot.side === "right") {
     const top = inside(spot.beak - height / 2, window.innerHeight - height);
     card = {
       top: `${top}px`,
@@ -439,7 +454,9 @@ export function Point({
      * the card itself does.
      */
     <div className="pointer-events-none fixed inset-0 z-[60]">
-      <span aria-hidden data-guide-ring className="absolute rounded-[12px]" style={ring} />
+      {spot.side === "centre" ? null : (
+        <span aria-hidden data-guide-ring className="absolute rounded-[12px]" style={ring} />
+      )}
 
       <div
         ref={box}
