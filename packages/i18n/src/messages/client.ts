@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3367 of 4866 keys.
+ * 3369 of 4868 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1935,13 +1935,15 @@ export const browserWords: Catalogue = {
   "setup.what.email": "Connect an email account or service to send messages to your members.",
   "setup.why.email": "Send church announcements, invitations, and updates using your existing email account or Resend.",
   "setup.at.email": "Choose your existing email provider or Resend, click Connect, and follow the steps to complete setup.",
-  "setup.at.email.2": "Enter the email address your church will be sending emails from.",
-  "setup.at.email.3": "Enter your mail server, such as smtp.gmail.com.",
-  "setup.at.email.4": "587 works for most providers. Change it only if yours says otherwise.",
-  "setup.at.email.5": "Enter the username for that mailbox, usually the full email address.",
-  "setup.at.email.6": "Enter the password. Google Workspace and Microsoft 365 want an app password rather than the one you sign in with.",
-  "setup.at.email.7": "Click Connect. You can send a test email afterwards.",
-  "setup.at.email.8": "Click Continue to Resend and follow the steps there. You come back here to finish.",
+  "setup.at.email.2": "Sign in to Resend, or create an account and verify your email address, then come back and click I am signed in.",
+  "setup.at.email.3": "Enter the email address your church will be sending emails from.",
+  "setup.at.email.4": "Enter your mail server, such as smtp.gmail.com.",
+  "setup.at.email.5": "587 works for most providers. Change it only if yours says otherwise.",
+  "setup.at.email.6": "Enter the username for that mailbox, usually the full email address.",
+  "setup.at.email.7": "Enter the password. Google Workspace and Microsoft 365 want an app password rather than the one you sign in with.",
+  "setup.at.email.8": "Click Connect. You can send a test email afterwards.",
+  "setup.at.email.9": "Click Continue to Resend, then allow access in the tab that opens.",
+  "setup.at.email.10": "If Resend showed you its dashboard instead, click Authorise ConnectApp to ask again.",
   "setup.step.giving": "Take a gift online",
   "setup.what.giving": "Connect Stripe, so your congregation can give by card or bank from the portal.",
   "setup.why.giving": "The account is your church's own and the money goes straight into it. Our fee on every gift is zero, and we never hold a penny of it on the way through.",
