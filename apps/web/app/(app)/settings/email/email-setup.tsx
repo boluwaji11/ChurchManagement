@@ -742,13 +742,65 @@ function ResendPath({
   busy: boolean;
   onBack: () => void;
 }) {
+  const router = useRouter();
   const [going, setGoing] = React.useState(false);
   const formId = React.useId();
   const full = useAnswered(formId);
 
+  /*
+   * R16.1. Resend is opened in a tab of its own, so this one is still here
+   * when the church comes back.
+   *
+   * It matters most to a church that has no Resend account yet: Resend asks
+   * them to sign up, lands them on its own dashboard rather than back on the
+   * consent screen, and the tab they started in would have gone with it.
+   * This one waits, says what to do, and reads again when they return to it.
+   */
+  React.useEffect(() => {
+    if (!going) return;
+    const look = () => {
+      if (document.visibilityState === "visible") router.refresh();
+    };
+    window.addEventListener("focus", look);
+    document.addEventListener("visibilitychange", look);
+    return () => {
+      window.removeEventListener("focus", look);
+      document.removeEventListener("visibilitychange", look);
+    };
+  }, [going, router]);
+
+  if (going) {
+    return (
+      <Card className="flex flex-col gap-5 p-5">
+        <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
+          <Stages labels={[t("email.stage.connect"), t("email.stage.records")]} at={1} />
+        </div>
+
+        <div className="mx-auto flex w-full max-w-[460px] flex-col gap-4">
+          <span className="inline-flex items-center gap-2 font-display text-[17px] leading-6 text-fg">
+            <span
+              aria-hidden
+              className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none"
+            />
+            {t("email.resend.waiting")}
+          </span>
+          <p className="m-0 text-fg-muted">{t("email.resend.waitingBody")}</p>
+
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <Button type="button" variant="ghost" onClick={() => setGoing(false)}>
+              {t("action.back")}
+            </Button>
+            <Button type="button" onClick={() => router.refresh()}>
+              {t("email.resend.waitingCheck")}
+            </Button>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card className="flex flex-col gap-6 p-5">
-      <Working open={going} label={t("email.resend.leaving")} />
 
       {/* Held to the width of the form under it, so the two dots read as a
           pair rather than as one at each end of the card. */}
@@ -768,7 +820,7 @@ function ResendPath({
           where.searchParams.set("from", String(data.get("fromAddress") ?? ""));
           where.searchParams.set("name", String(data.get("fromName") ?? ""));
           setGoing(true);
-          window.location.href = where.toString();
+          window.open(where.toString(), "_blank", "noopener,noreferrer");
         }}
         noValidate
         className="mx-auto flex w-full max-w-[460px] flex-col gap-4"
