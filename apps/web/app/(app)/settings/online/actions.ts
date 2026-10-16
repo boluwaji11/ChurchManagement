@@ -256,6 +256,25 @@ export async function connectStripe(): Promise<ConnectResult> {
  * Separate from the action below because a screen rendering on the way back
  * from Stripe calls it too, and a render may not ask for a revalidation.
  */
+/**
+ * R13.1. Stripe saying it does not know this account.
+ *
+ * The id came from Stripe, so this means the account has gone from their end,
+ * or the keys have been changed and the id belongs to the other side of test
+ * and live. Either way it is a thing to be told, not a fault: `explain`
+ * rethrows what it does not recognise, and an unrecognised error on a screen
+ * that renders it takes the whole screen down.
+ */
+function beyondUs(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const one = error as { type?: unknown; code?: unknown; statusCode?: unknown };
+  return (
+    one.type === "StripePermissionError"
+    || one.code === "account_invalid"
+    || one.code === "resource_missing"
+  );
+}
+
 export async function syncStripe(): Promise<ConnectResult> {
   const { actor, ctx } = await context();
   if (!stripeConfigured()) return { error: "stripe.unconfigured" };
@@ -279,6 +298,7 @@ export async function syncStripe(): Promise<ConnectResult> {
 
     return {};
   } catch (error) {
+    if (beyondUs(error)) return { error: "stripe.unreachable" };
     return { error: explain(error) };
   }
 }

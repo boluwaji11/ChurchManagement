@@ -1000,6 +1000,7 @@ of money and after everything else.
 | HRT-373 | The invitation email looks like the product it is inviting somebody into | R16.4, R24.x | Resolved |
 | HRT-374 | Rooms open on the rooms churches already have | R8.14, R22.1 | Resolved |
 | HRT-375 | The guide walks a step's whole errand, screen by screen | R22.1, R22.3 | Resolved |
+| HRT-376 | A Stripe account Stripe does not know is said, rather than thrown | R13.1 | Resolved |
 
 R22.1 lists giving and messaging credentials as wizard steps, and both are now built, so both are
 steps of the guide. The five-step wizard of 0.2 is replaced by HRT-367.

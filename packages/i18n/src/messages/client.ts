@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3344 of 4843 keys.
+ * 3345 of 4844 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1225,6 +1225,7 @@ export const browserWords: Catalogue = {
   "stripe.rate.read": "What Stripe says",
   "stripe.rate.subject": "Nonprofit rate request for {church}",
   "stripe.rate.message": "Hello,\n\n{church} is a church and a registered 501(c)(3). We would like to request the nonprofit processing rate on our Stripe account.\n\nStripe account: {id}\nEIN: [your EIN]\n\nMore than 80% of the payment volume on this account is tax-deductible giving. Our IRS determination letter is attached.\n\nThank you,\n{name}",
+  "stripe.unreachable": "We cannot reach your church's Stripe account. It may have been closed at Stripe. Connect again to take gifts online.",
   "stripe.unconfigured": "Online giving is not switched on for this platform yet.",
   "stripe.failed": "Stripe did not answer. Nothing has been charged, so try again.",
   "gift.error.amount": "Enter the amount.",
