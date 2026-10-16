@@ -8,7 +8,7 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
 } from "@connectapp/ui";
-import { t } from "@connectapp/i18n";
+import { plural, t } from "@connectapp/i18n";
 import type { EmailProvider, PlannedRecord } from "@connectapp/db";
 import { usePanelGuard } from "@/components/panel-guard";
 import { useAnswered } from "@/components/form-actions";
@@ -469,9 +469,12 @@ function Records({
             somebody has to recognise before they can open it. */}
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <p className="m-0 text-fg">
+            {/* However many Resend asked for. It was three when this was
+                written and is four now, and a church counting the rows
+                against the sentence is a church that stops trusting it. */}
             {registrar
-              ? t("email.records.lead", { name: registrar })
-              : t("email.records.leadPlain")}
+              ? plural("email.records.lead", domain.records.length, { name: registrar })
+              : plural("email.records.leadPlain", domain.records.length)}
           </p>
           {/* R22.2. What to press once they are there, in that company's own
               menu words. A church told to "add a TXT record at your DNS
@@ -524,7 +527,7 @@ function Records({
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-caption text-fg-subtle">
-          {t("email.watching")}
+          {plural("email.watching", domain.records.length)}
           {domain.checkedAt ? ` · ${t("email.checkedAt", { when: when(domain.checkedAt) })}` : ""}
         </span>
       </div>
