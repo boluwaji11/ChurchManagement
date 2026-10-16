@@ -3,6 +3,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { hue, tenantRole } from "./enums";
+import type { SiteDoc } from "../repo/site-doc";
 
 export type WebsiteSectionType =
   | "hero" | "story" | "banner" | "image" | "video" | "services" | "contact";
@@ -181,6 +182,40 @@ export const tenants = pgTable(
     updatedAt: updated(),
   },
   (t) => [uniqueIndex("tenants_slug_key").on(t.slug)],
+);
+
+/**
+ * HRT-377, R22.2. The church's website, as a draft and a live copy.
+ *
+ * `draft` is what the editor works on and `live` is what the public page is
+ * rendered from, both whole documents whose shape is in repo/site-doc.ts.
+ * `draftVersion` is the number a save has to carry, so two administrators
+ * editing at once are told rather than one of them losing the afternoon.
+ */
+export const churchSites = pgTable("church_sites", {
+  tenantId: uuid("tenant_id").primaryKey().references(() => tenants.id, { onDelete: "cascade" }),
+  draft: jsonb("draft").$type<SiteDoc>().notNull(),
+  draftVersion: integer("draft_version").notNull().default(1),
+  live: jsonb("live").$type<SiteDoc | null>(),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  publishedBy: uuid("published_by"),
+  createdAt: created(),
+  updatedAt: updated(),
+  updatedBy: uuid("updated_by"),
+});
+
+/** R22.2. Every publish, kept, so a church can go back to one. */
+export const churchSiteRevisions = pgTable(
+  "church_site_revisions",
+  {
+    id: pk(),
+    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    doc: jsonb("doc").$type<SiteDoc>().notNull(),
+    publishedAt: timestamp("published_at", { withTimezone: true }).defaultNow().notNull(),
+    publishedBy: uuid("published_by"),
+    note: text("note"),
+  },
+  (table) => [index("church_site_revision_tenant_idx").on(table.tenantId, table.publishedAt)],
 );
 
 /**
