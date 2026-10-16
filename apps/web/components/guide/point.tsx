@@ -51,6 +51,12 @@ export function Point({
   stops,
   title,
   onClose,
+  at,
+  onBack,
+  onNext,
+  lastLabel,
+  count,
+  waits,
 }: {
   /**
    * R22.3. The controls this step is walked through, in order, each with the
@@ -66,11 +72,37 @@ export function Point({
   /** The step's name, so the card says which of the seventeen this is. */
   title: string;
   onClose: () => void;
+  /**
+   * The stop to show, where the caller is driving rather than the screen.
+   *
+   * A setup step points at the work and lets the screen say where somebody has
+   * got to. A walk through one screen is the other way round: everything is
+   * already on the page at once, so the reader moves with Back and Next and
+   * this follows. Pass it with `onBack` and `onNext`.
+   */
+  at?: number;
+  onBack?: () => void;
+  onNext?: () => void;
+  /** What the last Next says, where it finishes rather than continues. */
+  lastLabel?: string;
+  /**
+   * How many stops there are altogether, and which this is, where the walk
+   * runs across two screens and the card should count the whole of it.
+   */
+  count?: { at: number; of: number };
+  /**
+   * Hides Next, for a stop that waits on the reader doing the thing rather
+   * than on them reading the card. The walk carries on by itself afterwards.
+   */
+  waits?: boolean;
 }) {
   const pathname = usePathname();
-  const [at, setAt] = React.useState(0);
-  const target = stops[at]?.target ?? null;
-  const body = stops[at]?.body ?? "";
+  const [found, setFound] = React.useState(0);
+  const driven = at !== undefined;
+  const setAt = driven ? () => {} : setFound;
+  const now = driven ? at : found;
+  const target = stops[now]?.target ?? null;
+  const body = stops[now]?.body ?? "";
 
   /*
    * Which stop the screen is on, re-read whenever the screen changes. The
@@ -79,6 +111,8 @@ export function Point({
    */
   const names = stops.map((one) => one.target).join("|");
   React.useEffect(() => {
+    /* Driven from outside, so the screen does not get a vote. */
+    if (driven) return undefined;
     const look = () => {
       let reached = 0;
       for (let i = 0; i < stops.length; i += 1) {
@@ -125,7 +159,7 @@ export function Point({
       if (queued) cancelAnimationFrame(queued);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [names, pathname]);
+  }, [names, pathname, driven]);
   const [spot, setSpot] = React.useState<Spot | null>(null);
   const box = React.useRef<HTMLDivElement | null>(null);
   const [height, setHeight] = React.useState(124);
@@ -317,16 +351,22 @@ export function Point({
    * document rather than bound to the element, because the control is redrawn
    * by its own screen and a listener on it would not survive that.
    */
-  const last = at === stops.length - 1;
+  const last = now === stops.length - 1;
   React.useEffect(() => {
-    if (!target || !last) return;
+    /*
+     * A walk that is driven from outside carries on past the press: the thing
+     * somebody has just pressed is often the thing that brings the next card
+     * into being, and closing here would end the walk at its second stop.
+     */
+    if (driven) return undefined;
+    if (!target || !last) return undefined;
     const acted = (e: Event) => {
       const on = e.target as Element | null;
       if (on?.closest?.(`[data-guide="${CSS.escape(target)}"]`)) onClose();
     };
     document.addEventListener("pointerdown", acted, true);
     return () => document.removeEventListener("pointerdown", acted, true);
-  }, [target, last, onClose]);
+  }, [target, last, onClose, driven]);
 
   /*
    * Escape closes the card, and stops there.
@@ -453,6 +493,37 @@ export function Point({
         </div>
 
         <p className="m-0 text-[13px] leading-[19px] text-fg">{body}</p>
+
+        {driven ? (
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <span className="text-[12px] text-fg-subtle">
+              {t("setup.walk.count", {
+                at: String(count ? count.at : now + 1),
+                of: String(count ? count.of : stops.length),
+              })}
+            </span>
+            <span className="flex items-center gap-1.5">
+              {now > 0 ? (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="cursor-pointer rounded-md px-2 py-1 text-[12px] font-medium text-fg-muted transition-colors hover:bg-sunken hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+                >
+                  {t("setup.walk.back")}
+                </button>
+              ) : null}
+              {waits ? null : (
+                <button
+                  type="button"
+                  onClick={onNext}
+                  className="cursor-pointer rounded-md bg-primary px-2.5 py-1 text-[12px] font-semibold text-primary-fg transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+                >
+                  {now === stops.length - 1 ? lastLabel ?? t("setup.walk.done") : t("setup.walk.next")}
+                </button>
+              )}
+            </span>
+          </div>
+        ) : null}
       </div>
     </div>
   );

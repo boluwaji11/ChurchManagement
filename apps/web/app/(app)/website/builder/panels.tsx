@@ -19,6 +19,7 @@ import {
   ArrowDown, ArrowUp, ChevronDown, Copy, ExternalLink, ImagePlus, Pencil, Plus,
   Trash2, Upload, X,
   LayoutTemplate,
+  Compass,
 } from "lucide-react";
 import { t, type MessageKey } from "@connectapp/i18n";
 import {
@@ -603,10 +604,13 @@ function ColourRow({
 export function DesignPanel({
   api,
   onChangeDesign,
+  onWalk,
 }: {
   api: BuilderApi;
   /** Opens the gallery of starting designs. */
   onChangeDesign?: () => void;
+  /** Starts the walk through the builder again. */
+  onWalk?: () => void;
 }) {
   const theme = api.doc.theme;
   const warned = tooClose(theme);
@@ -633,6 +637,12 @@ export function DesignPanel({
         <Button variant="secondary" full onClick={onChangeDesign}>
           <LayoutTemplate className="size-4" aria-hidden />
           {t("website.changeDesign")}
+        </Button>
+      ) : null}
+      {onWalk ? (
+        <Button variant="secondary" full onClick={onWalk}>
+          <Compass className="size-4" aria-hidden />
+          {t("website.walk.again")}
         </Button>
       ) : null}
 
