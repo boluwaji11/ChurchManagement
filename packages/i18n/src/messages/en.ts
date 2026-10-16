@@ -1639,7 +1639,6 @@ export const en = {
   "stripe.missing.legalName": "Legal name, exactly as it appears on your IRS documents",
   "stripe.missing.website": "Website",
   "stripe.missing.address": "Address",
-  "stripe.missing.go": "Church profile",
   "stripe.connect": "Connect via Stripe",
   "stripe.continue": "Finish setup",
   "stripe.open": "Open Stripe",
@@ -2985,10 +2984,10 @@ export const en = {
   "setup.at.email.9": "Click Continue to Resend, then allow access in the tab that opens.",
   "setup.at.email.10": "If Resend showed you its dashboard instead, click Authorise ConnectApp to ask again.",
 
-  "setup.step.giving": "Take a gift online",
-  "setup.what.giving": "Connect Stripe, so your congregation can give by card or bank from the portal.",
-  "setup.why.giving": "The account is your church's own and the money goes straight into it. Our fee on every gift is zero, and we never hold a penny of it on the way through.",
-  "setup.at.giving": "Press Connect via Stripe. It asks for your church's details, which is why the step before this one is worth doing first.",
+  "setup.step.giving": "Set up online giving",
+  "setup.what.giving": "Connect Stripe so your members can give securely by card or bank transfer.",
+  "setup.why.giving": "Donations go directly to your church's Stripe account. ConnectApp charges no platform fees, though Stripe's processing fees may apply.",
+  "setup.at.giving": "Click Connect via Stripe and follow the steps to set up online giving for your church. You'll need your church's details to complete the setup.",
 
   "setup.step.funds": "Where gifts go",
   "setup.what.funds": "A fund for each thing your church asks for money towards, beyond the general offering.",

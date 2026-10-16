@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Check, CircleCheck, Copy, Download, ExternalLink, Landmark, Link2, Loader2, Printer,
@@ -237,12 +236,6 @@ export function OnlineGiving({
                         <li key={one}>{t(`stripe.missing.${one}` as never)}</li>
                       ))}
                     </ul>
-                    <Link
-                      href={"/settings/church"}
-                      className="self-start font-medium text-primary"
-                    >
-                      {t("stripe.missing.go")}
-                    </Link>
                   </div>
                 ) : null}
 
