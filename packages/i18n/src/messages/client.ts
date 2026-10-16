@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3327 of 4826 keys.
+ * 3329 of 4828 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -2994,6 +2994,8 @@ export const browserWords: Catalogue = {
   "roomLib.years.one": "1 year",
   "roomLib.years.other": "{count} years",
   "rooms.ownRoom": "Create your own",
+  "rooms.backToList": "Back to the list",
+  "rooms.addThis": "Add",
   "rooms.none.title": "No rooms yet",
   "rooms.none.body": "Add the rooms and spaces your church uses.",
   "rooms.fewer": "Fewer",

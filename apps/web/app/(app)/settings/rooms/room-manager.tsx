@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Minus, Archive, Undo2 } from "lucide-react";
+import { Plus, Minus, Archive, Undo2, ChevronLeft } from "lucide-react";
 import {
   HUES,
   Banner, Button, IconButton, Field, HueDot, Input, Spinner,
@@ -281,6 +281,8 @@ export function RoomSheet({
   /* The band a pick brought, which the age fields read as their default. The
      fields are uncontrolled, so they are rebuilt rather than told. */
   const [band, setBand] = React.useState<{ from?: number; to?: number; at: number }>({ at: 0 });
+  /* Whether this form was reached by picking one off the list. */
+  const [picked, setPicked] = React.useState(false);
 
   // The two units are read back when the form is submitted, so a unit left
   // over from the last room multiplies the next room's number: 18 typed as
@@ -293,6 +295,7 @@ export function RoomSheet({
     setFromUnit(start?.unit ?? "months");
     setToUnit(end?.unit ?? "years");
     setBand({ at: 0 });
+    setPicked(false);
     setPicking(!room && library.length > 0);
   }, [open, room, room?.name, room?.hue, room?.forChildren, start?.unit, end?.unit, library.length]);
 
@@ -333,7 +336,7 @@ export function RoomSheet({
               loading={pending}
               disabled={pending || !name.trim()}
             >
-              {t("action.save")}
+              {picked ? t("rooms.addThis") : t("action.save")}
             </Button>
           </>
           )
@@ -345,6 +348,7 @@ export function RoomSheet({
             items={library}
             onOwn={() => {
               setName("");
+              setPicked(false);
               setPicking(false);
             }}
             onPick={(item) => {
@@ -357,6 +361,7 @@ export function RoomSheet({
                 setToUnit("months");
                 setBand({ from: picked.from, to: picked.to, at: Date.now() });
               }
+              setPicked(true);
               setPicking(false);
             }}
           />
@@ -378,6 +383,23 @@ export function RoomSheet({
           noValidate
           className="flex flex-col gap-4"
         >
+          {/* R24.6. The way back to the list. Picking one is a head start,
+              and a head start somebody cannot undo is a trap: the only way out
+              of the wrong room was to close the panel and open it again. */}
+          {library.length > 0 && !room ? (
+            <button
+              type="button"
+              onClick={() => {
+                setPicked(false);
+                setPicking(true);
+              }}
+              className="-mt-1 inline-flex w-fit cursor-pointer items-center gap-1 rounded text-label font-medium text-primary"
+            >
+              <ChevronLeft className="size-4" aria-hidden />
+              {t("rooms.backToList")}
+            </button>
+          ) : null}
+
           <Field label={t("rooms.name")} required>
             <Input
               name="name"
