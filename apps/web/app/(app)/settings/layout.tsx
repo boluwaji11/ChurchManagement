@@ -43,9 +43,6 @@ export default async function SettingsLayout({ children }: { children: React.Rea
             /* HRT-291, R16.4. The messages a church writes once, beside the
                account they leave through. */
             { href: "/settings/email-templates", label: t("mailTemplate.title") },
-            /* R16.11. What the church tells everybody, which sits with the
-               rest of how the church speaks for itself. */
-            { href: "/settings/announcements", label: t("announce.title") },
             { href: "/settings/roles", label: t("settings.tab.roles") },
             { href: "/settings/manage-accesses", label: t("settings.tab.access") },
             /* R22.1. Where a church that put the setup guide away gets it
@@ -57,6 +54,11 @@ export default async function SettingsLayout({ children }: { children: React.Rea
     {
       title: t("settings.group.members"),
       items: [
+        /* R16.11. What the church tells its members, with the rest of what it
+           keeps about them rather than with its own name and address. */
+        ...(canManageChurch(session)
+          ? [{ href: "/settings/announcements", label: t("announce.title") }]
+          : []),
         ...(canManageTeams(session)
           ? [{ href: "/settings/teams", label: t("settings.tab.teams") }]
           : []),
