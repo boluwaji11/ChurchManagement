@@ -3351,7 +3351,7 @@ export const en = {
   "teamLib.counting.body": "Counting what is given, two people at a time.",
   "teamLib.counting.positions": "Counter",
   "serving.team.name": "Name",
-  "serving.team.description": "What it does",
+  "serving.team.description": "Description",
   "serving.memberCount.one": "{count} serving",
   "serving.memberCount.other": "{count} serving",
   "serving.positionCount.one": "{count} position",
