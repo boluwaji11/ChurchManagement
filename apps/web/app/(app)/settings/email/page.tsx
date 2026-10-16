@@ -48,9 +48,9 @@ const SAID = [
 export default async function EmailPage({
   searchParams,
 }: {
-  searchParams: Promise<{ resend?: string }>;
+  searchParams: Promise<{ resend?: string; domain?: string; why?: string }>;
 }) {
-  const { resend } = await searchParams;
+  const { resend, domain: refused, why } = await searchParams;
   const session = await requireSession();
   if (!canManageChurch(session)) {
     return <Denied role={session.role} action="editChurch" church={session.tenantSlug} />;
@@ -132,7 +132,9 @@ export default async function EmailPage({
 
       {said ? (
         <Banner tone={said === "connected" ? "success" : "danger"}>
-          {t(`email.said.${said}` as never)}
+          {said === "domain" && refused
+            ? t("email.said.domainNamed", { domain: refused, why: why ?? "" })
+            : t(`email.said.${said}` as never)}
         </Banner>
       ) : null}
 
