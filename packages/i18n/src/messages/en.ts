@@ -2942,7 +2942,7 @@ export const en = {
 
   "setup.step.planTemplate": "Create your order of service",
   "setup.what.planTemplate": "Set up the usual flow of your church services, including activities and how long each one takes.",
-  "setup.why.planTemplate": "Use this template to plan future services faster and keep your worship, media, and volunteer teams on the same page.",
+  "setup.why.planTemplate": "Use this template to plan future services faster and keep your serving teams on the same page.",
   "setup.at.planTemplate": "Click Add a new template, give it a name, then add each part of your service and its estimated duration.",
 
   "setup.step.plan": "Plan this week's service",
