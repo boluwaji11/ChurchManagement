@@ -86,11 +86,29 @@ export const GUIDE_PHASES: readonly SetupPhase[] = [
  * because `/members/import` and `/members` are both prefixes of the address a
  * church is looking at and only one of them is the step.
  */
-export function stepOnScreen(pathname: string): GuideStep | null {
-  let best: GuideStep | null = null;
+export function stepOnScreen(
+  pathname: string,
+  /**
+   * Whether a step is still open, where the caller knows.
+   *
+   * Two steps can share a screen: Services is where a church writes down that
+   * it meets on a Sunday, and it is also where this week's plan is started
+   * from. Without this the first of the two wins, so a church that had added
+   * its service months ago arrived on Services with the guide pointing at a
+   * step it had already finished and nothing to press.
+   */
+  open?: (step: SetupStep) => boolean,
+): GuideStep | null {
+  let longest = -1;
+  const here: GuideStep[] = [];
   for (const one of GUIDE_STEPS) {
     if (pathname !== one.href && !pathname.startsWith(`${one.href}/`)) continue;
-    if (!best || one.href.length > best.href.length) best = one;
+    if (one.href.length > longest) {
+      longest = one.href.length;
+      here.length = 0;
+    }
+    if (one.href.length === longest) here.push(one);
   }
-  return best;
+
+  return here.find((one) => open?.(one.step)) ?? here[0] ?? null;
 }

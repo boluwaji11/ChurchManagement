@@ -2945,9 +2945,9 @@ export const en = {
   "setup.why.planTemplate": "Use this template to plan future services faster and keep your serving teams on the same page.",
   "setup.at.planTemplate": "Click Add a new template, give it a name, then add each part of your service and its estimated duration.",
 
-  "setup.step.plan": "Plan this week's service",
-  "setup.what.plan": "The running order for the service you have coming up, built from your template.",
-  "setup.why.plan": "This is the thing your team reads on the day. Doing one now is how you find out whether the template is the right shape before a service day depends on it.",
+  "setup.step.plan": "Plan your next service",
+  "setup.what.plan": "Create a plan for your upcoming service using your order of service template.",
+  "setup.why.plan": "Adjust the activities, timing, and order to fit the service you're planning. Your team can follow the same plan on the day.",
   "setup.at.plan": "Open the service that says Not planned yet, then start from your template.",
 
   "setup.step.groupTypes": "The kinds of group you run",

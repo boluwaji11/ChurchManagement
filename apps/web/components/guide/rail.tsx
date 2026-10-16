@@ -57,6 +57,14 @@ export function Rail({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+
+  /* R22.1. Whether a step still has something to do, for the screens two of
+     them share. */
+  const stillOpen = React.useCallback(
+    (which: SetupStep) =>
+      steps.some((one) => one.step === which && !one.done && !one.skipped),
+    [steps],
+  );
   const [shut, setShut] = React.useState(shutAtFirst);
   const [asking, setAsking] = React.useState(false);
   const [onPhone, setOnPhone] = React.useState(false);
@@ -77,7 +85,10 @@ export function Rail({
     setClosed(null);
     /* An invitation reaches the screen it was made for and goes no further,
        so pressing Show me and then wandering off leaves nothing behind. */
-    setInvited((was) => (was && stepOnScreen(pathname)?.step === was ? was : null));
+    setInvited((was) => (was && stepOnScreen(pathname, stillOpen)?.step === was ? was : null));
+    /* On arriving somewhere, and on nothing else. Progress changing under a
+       standing invitation is not a reason to take the card off the screen. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   /*
@@ -112,7 +123,7 @@ export function Rail({
   const onSkip = (which: SetupStep, on: boolean) => run(() => skip(which, on));
   const count = t("setup.count", { done: String(settled), all: String(steps.length) });
 
-  const onScreen = stepOnScreen(pathname);
+  const onScreen = stepOnScreen(pathname, stillOpen);
   const here = onScreen?.step ?? null;
 
   /*
