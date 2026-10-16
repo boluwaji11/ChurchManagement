@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import {
   withTenant, dnsResolver,
   connectEmailProvider, withdrawEmailProvider,
-  sendingDomain, markSendingDomain,
+  sendingDomain, markSendingDomain, emailProvider,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
@@ -26,6 +26,9 @@ import { sendAsChurch } from "@/lib/transactional";
 
 export interface EmailResult {
   error?: string;
+  /** R16.1. The provider has gone, so the screen leaves the round trip's
+      message behind in the address it arrived in. */
+  went?: boolean;
 }
 
 async function context() {
@@ -110,7 +113,10 @@ export async function checkRecords(): Promise<EmailResult> {
   const { actor, ctx } = await context();
 
   try {
-    const held = await withTenant(ctx, (tx) => sendingDomain(tx));
+    const held = await withTenant(ctx, async (tx) => {
+      const provider = await emailProvider(tx);
+      return provider ? sendingDomain(tx, provider.id) : null;
+    });
     if (!held) return {};
 
     const seen = await recordsPublished(held.records, held.domain, dnsResolver());
@@ -149,7 +155,7 @@ export async function disconnectEmail(): Promise<EmailResult> {
     }
 
     revalidatePath("/settings/email");
-    return {};
+    return { went: true };
   } catch (error) {
     return { error: explain(error) };
   }

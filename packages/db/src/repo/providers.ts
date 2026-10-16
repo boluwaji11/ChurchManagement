@@ -1,4 +1,4 @@
-import { and, eq, ne } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import type { Tx } from "../client";
 import { churchProviders, churchSendingDomains } from "../schema/messaging";
 import { PermissionError } from "../roles";
@@ -305,7 +305,21 @@ export interface SendingDomain {
   failureReason: string | null;
 }
 
-export async function sendingDomain(db: Tx): Promise<SendingDomain | null> {
+export async function sendingDomain(
+  db: Tx,
+  /**
+   * R16.1. The provider this is the domain for.
+   *
+   * A church that connects, disconnects and connects again with a different
+   * address leaves a row behind for each, and a read of "one of them" is a
+   * read of whichever Postgres hands back first. A church that had verified
+   * connectapp.church and then connected onefamilychurch.com was shown the
+   * old row, told it was ready to send, and met the refusal on the first
+   * message. Without an id this still answers, newest first, so a caller that
+   * has no provider in its hand gets the current one rather than the oldest.
+   */
+  providerId?: string | null,
+): Promise<SendingDomain | null> {
   const [row] = await db
     .select({
       id: churchSendingDomains.id,
@@ -317,6 +331,8 @@ export async function sendingDomain(db: Tx): Promise<SendingDomain | null> {
       failureReason: churchSendingDomains.failureReason,
     })
     .from(churchSendingDomains)
+    .where(providerId ? eq(churchSendingDomains.providerId, providerId) : undefined)
+    .orderBy(desc(churchSendingDomains.updatedAt))
     .limit(1);
 
   if (!row) return null;
