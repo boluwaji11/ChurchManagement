@@ -704,6 +704,7 @@ export function InvitePerson({
         footer={
           <>
             <Button
+              data-guide="invite-send"
               type="submit"
               form={formId}
               loading={saving}

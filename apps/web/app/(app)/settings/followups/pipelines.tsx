@@ -476,7 +476,7 @@ function EditDialog({
         closeLabel={t("common.close")}
         width="560px"
         footer={
-          <Button type="submit" form={formId} loading={busy} disabled={pending || !full}>
+          <Button data-guide="pipeline-save" type="submit" form={formId} loading={busy} disabled={pending || !full}>
             {t("action.save")}
           </Button>
         }

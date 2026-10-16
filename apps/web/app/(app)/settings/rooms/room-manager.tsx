@@ -331,6 +331,7 @@ export function RoomSheet({
               {t("action.cancel")}
             </Button>
             <Button
+              data-guide="room-save"
               type="submit"
               form="room-form"
               loading={pending}

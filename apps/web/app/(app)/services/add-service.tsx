@@ -69,7 +69,7 @@ export function AddService({
             <Button type="button" variant="secondary" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form="add-service" disabled={pending || !full}>
+            <Button data-guide="service-save" type="submit" form="add-service" disabled={pending || !full}>
               {t("action.add")}
             </Button>
           </>

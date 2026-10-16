@@ -251,7 +251,7 @@ function TypeDialog({
                   <Archive />
                 </IconButton>
               ) : null}
-              <Button type="submit" form={formId} disabled={pending || saving || !dirty || !name.trim()}>
+              <Button data-guide="group-type-save" type="submit" form={formId} disabled={pending || saving || !dirty || !name.trim()}>
                 {t("action.save")}
               </Button>
             </>

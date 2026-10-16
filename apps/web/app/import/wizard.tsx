@@ -472,7 +472,7 @@ function MapColumns({
         <Button variant="secondary" onClick={onBack}>
           {t("import.back")}
         </Button>
-        <Button onClick={onNext} loading={busy}>
+        <Button data-guide="import-next" onClick={onNext} loading={busy}>
           {t("import.checkFile")}
         </Button>
       </div>
@@ -642,7 +642,7 @@ function PreviewStep({
         </Button>
         {/* R24.6. `Button` reads an explicit `disabled` ahead of `loading`,
             so a button carrying both says so in one condition. */}
-        <Button onClick={onConfirm} loading={busy} disabled={busy || willWrite === 0}>
+        <Button data-guide="import-commit" onClick={onConfirm} loading={busy} disabled={busy || willWrite === 0}>
           {totals.skip + totals.fail > 0
             ? plural("import.commitSkipping", willWrite, {
                 skipped: totals.skip + totals.fail,

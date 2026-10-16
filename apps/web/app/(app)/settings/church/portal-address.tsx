@@ -275,6 +275,7 @@ export function PortalAddress({
 
       <div className="flex flex-wrap items-center gap-2">
         <Button
+          data-guide="portal-save"
           type="button"
           loading={working}
           disabled={!canEdit || !changed || working || free !== true || current}
