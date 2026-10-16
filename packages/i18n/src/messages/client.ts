@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3366 of 4865 keys.
+ * 3368 of 4867 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1197,6 +1197,8 @@ export const browserWords: Catalogue = {
   "stripe.state.none": "Not connected",
   "stripe.state.pending": "Stripe still needs details from your church",
   "stripe.state.settling": "Stripe is checking what your church sent",
+  "stripe.state.waiting": "Stripe has what your church sent and is still deciding",
+  "stripe.lookAgain": "Check again",
   "stripe.state.ready": "Active for online giving",
   "stripe.account": "Account: {id}",
   "stripe.payingTo": "Pays out to {bank}",
@@ -1944,10 +1946,10 @@ export const browserWords: Catalogue = {
   "setup.what.giving": "Connect Stripe so your members can give securely by card or bank transfer.",
   "setup.why.giving": "Donations go directly to your church's Stripe account. ConnectApp charges no platform fees, though Stripe's processing fees may apply.",
   "setup.at.giving": "Click Connect via Stripe and follow the steps to set up online giving for your church. You'll need your church's details to complete the setup.",
-  "setup.step.funds": "Where gifts go",
-  "setup.what.funds": "A fund for each thing your church asks for money towards, beyond the general offering.",
-  "setup.why.funds": "A gift to the building fund has to be spent on the building. Naming funds up front is what lets a giver choose, and what keeps a restricted gift from being counted as general income.",
-  "setup.at.funds": "Press Add a new fund, name it the way your church says it, and say whether it is restricted.",
+  "setup.step.funds": "Set up your giving funds",
+  "setup.what.funds": "Create funds for different church needs, such as general offering, building projects, or missions.",
+  "setup.why.funds": "Members can choose which fund to give to, helping your church organise donations and track how they're allocated.",
+  "setup.at.funds": "Click Add a new fund, enter a name, and choose whether donations to it must be used for a specific purpose.",
   "setup.at.funds.2": "Give the fund a name and a code, then click Save.",
   "setup.step.followups": "Who follows people up",
   "setup.what.followups": "A follow-up stage is the short path somebody goes down after a first visit, a baptism request or a quiet few weeks, with an owner against it.",
