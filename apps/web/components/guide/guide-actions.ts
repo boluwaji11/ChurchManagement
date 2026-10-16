@@ -48,6 +48,26 @@ export async function skip(step: SetupStep, on: boolean): Promise<GuideResult> {
   return {};
 }
 
+/**
+ * R22.1. Skipping everything still open, in one press.
+ *
+ * A church that knows it is not doing any of the rest should not have to say
+ * so sixteen times. Each one is still skipped on its own terms, so each one
+ * can be undone on its own terms afterwards.
+ */
+export async function skipAll(steps: SetupStep[]): Promise<GuideResult> {
+  const session = await requireSession();
+  try {
+    await withTenant(session, async (tx) => {
+      for (const step of steps) await skipSetupStep(tx, session, step, true);
+    });
+  } catch (error) {
+    return { error: explain(error) };
+  }
+  forgetShell(session);
+  return {};
+}
+
 /** R22.1. Putting it away, and Settings bringing it back. */
 export async function showGuide(show: boolean): Promise<GuideResult> {
   const session = await requireSession();

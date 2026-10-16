@@ -11,7 +11,7 @@ import { plural, t } from "@connectapp/i18n";
 import type { SetupPhase, SetupStep } from "@connectapp/db";
 import { GUIDE_BY_STEP, stepOnScreen, stopTarget, stopIsField } from "@/lib/setup-guide";
 import { useFormError } from "@/lib/form-error";
-import { setGuideShut, showGuide, skip } from "./guide-actions";
+import { setGuideShut, showGuide, skip, skipAll } from "./guide-actions";
 import { GuideBody, type RailStep } from "./body";
 import { Point } from "./point";
 import { Cut } from "./cut";
@@ -120,6 +120,16 @@ export function Rail({
     });
 
   const onSkip = (which: SetupStep, on: boolean) => run(() => skip(which, on));
+
+  /*
+   * R22.1. Everything still open, skipped at once.
+   *
+   * A church that is not going to do the rest today should not have to say so
+   * sixteen times. Each one is skipped on its own terms, so Undo skip still
+   * works on any of them afterwards.
+   */
+  const open = steps.filter((one) => !one.done && !one.skipped).map((one) => one.step);
+  const onSkipAll = () => run(() => skipAll(open));
   const count = t("setup.count", { done: String(settled), all: String(steps.length) });
 
   const onScreen = stepOnScreen(pathname, stillOpen);
@@ -347,6 +357,20 @@ export function Rail({
               </IconButton>
             </span>
           </div>
+
+          {/* R22.1. The way past the whole thing, while there is a whole thing
+              left to be past. Nothing is lost by it: every step it answers is
+              a step Undo skip brings back. */}
+          {open.length > 0 ? (
+            <button
+              type="button"
+              disabled={pending}
+              onClick={onSkipAll}
+              className="-mt-1 cursor-pointer self-end rounded text-[13px] text-fg-muted underline underline-offset-4 transition-colors duration-instant hover:text-fg disabled:cursor-default"
+            >
+              {t("setup.skipAll")}
+            </button>
+          ) : null}
 
           {/* R22.1. A bar that moves. Twelve steps is a long way, and the thing
               that keeps somebody going is seeing the last press count for
