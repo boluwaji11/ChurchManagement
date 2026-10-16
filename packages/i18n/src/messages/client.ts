@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3331 of 4830 keys.
+ * 3330 of 4829 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -2276,7 +2276,6 @@ export const browserWords: Catalogue = {
   "planTpl.item.remove": "Remove",
   "planTpl.item.removeTitle": "Remove {name}?",
   "planTpl.item.removeUntitled": "Remove this item?",
-  "planTpl.item.removeBody": "It comes off this template. Services already planned from it keep what they have.",
   "planTpl.item.none": "Nothing on this template yet.",
   "planTpl.archive": "Archive",
   "planTpl.archiveTitle": "Archive {name}?",
