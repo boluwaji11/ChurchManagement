@@ -14,6 +14,7 @@ import {
 import { updateChurch } from "../src/repo/church";
 import { createPerson } from "../src/repo/members";
 import { addRoom } from "../src/repo/rooms";
+import { publishSite, startSite } from "../src/repo/church-site";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { testTenant, dropTenants } from "./helpers/tenant";
 
@@ -175,6 +176,26 @@ describe("doing the work moves the step (R22.1)", () => {
       insert into church_providers (tenant_id, channel, vendor, state, connected_at)
       values (${tenant}, 'email', 'smtp', 'connected', now())`;
     expect(step(await read(), "email")?.done).toBe(true);
+  });
+
+  it("counts the website being on the internet, rather than a draft", async () => {
+    expect(step(await read(), "website")?.done).toBe(false);
+
+    await run((tx) => startSite(tx, as(), {
+      template: "gathering",
+      homeId: "home",
+      pages: [{
+        id: "home", title: "Home", slug: "", inNav: true, seo: {},
+        sections: [{
+          id: "hero", type: "hero", variant: "split", content: { title: "Welcome" },
+        }],
+      }],
+    }));
+    /* A draft is work in progress, so the step stays open until it is out. */
+    expect(step(await read(), "website")?.done).toBe(false);
+
+    await run((tx) => publishSite(tx, as()));
+    expect(step(await read(), "website")?.done).toBe(true);
   });
 
   it("counts the reader's own record being filled in", async () => {

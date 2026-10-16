@@ -11,6 +11,7 @@ import {
   cleanTheme, mediaKeysIn, navPages, pageFor, RESERVED_SLUGS, SITE_DOC_VERSION,
 } from "../src/repo/site-doc";
 import { blankContent, cleanSectionContent, SITE_SECTIONS } from "../src/repo/site-sections";
+import { cleanTextStyle, cleanTextStyles } from "../src/repo/site-doc";
 
 const clean = (value: unknown) => cleanSiteDoc(value, cleanSectionContent);
 
@@ -227,5 +228,49 @@ describe("the whole document", () => {
       }] })],
     }));
     expect(mediaKeysIn(settled).sort()).toEqual([KEY, other].sort());
+  });
+});
+
+describe("how one piece of text is set", () => {
+  it("keeps the answers it knows and drops the rest", () => {
+    expect(cleanTextStyle({
+      face: "display", size: "large", weight: "bold", align: "centre",
+      tone: "primary", space: "loose",
+    })).toEqual({
+      face: "display", size: "large", weight: "bold", align: "centre",
+      tone: "primary", space: "loose",
+    });
+    expect(cleanTextStyle({ size: "47px", tone: "#ff0000", face: "Comic Sans" }))
+      .toBeUndefined();
+  });
+
+  it("is nothing at all when nothing was set, so the document stays small", () => {
+    expect(cleanTextStyle({})).toBeUndefined();
+    expect(cleanTextStyles({})).toBeUndefined();
+    expect(cleanTextStyles({ title: {} })).toBeUndefined();
+  });
+
+  it("keys each one by the path the editor marks, and refuses a strange one", () => {
+    expect(cleanTextStyles({
+      "title": { align: "centre" },
+      "items.0.title": { size: "small" },
+      "../../etc": { size: "small" },
+      "a b": { size: "small" },
+    })).toEqual({
+      "title": { align: "centre" },
+      "items.0.title": { size: "small" },
+    });
+  });
+
+  it("carries through a whole document", () => {
+    const settled = clean(doc({
+      pages: [page({ sections: [{
+        id: "hero", type: "hero", variant: "split",
+        content: { title: "Welcome" },
+        text: { title: { align: "centre", size: "larger" } },
+      }] })],
+    }));
+    expect(settled.pages[0]!.sections[0]!.text)
+      .toEqual({ title: { align: "centre", size: "larger" } });
   });
 });

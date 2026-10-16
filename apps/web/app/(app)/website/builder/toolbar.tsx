@@ -117,6 +117,7 @@ export function Toolbar({
   onRetry,
   onPublish,
   previewHref,
+  onPreview,
 }: {
   doc: SiteDoc;
   pageId: string;
@@ -135,6 +136,8 @@ export function Toolbar({
   onRetry: () => void;
   onPublish: () => void;
   previewHref: string;
+  /** Saves whatever is in hand, then opens the preview in its own tab. */
+  onPreview: () => void;
 }) {
   return (
     <div className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-3">
@@ -198,18 +201,29 @@ export function Toolbar({
           <Redo2 className="size-4" aria-hidden />
         </Bare>
         <Tooltip content={t("website.openPreview")}>
+          {/*
+            * A link, so it can be opened in a tab of its own the usual way,
+            * with the press intercepted: the preview reads the saved draft,
+            * and a page added a second ago is not in it yet.
+            */}
           <a
             href={previewHref}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={t("website.openPreview")}
             className={BAR_BUTTON}
+            onClick={(event) => {
+              if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+              event.preventDefault();
+              onPreview();
+            }}
           >
             <ExternalLink className="size-4" aria-hidden />
           </a>
         </Tooltip>
         <Button
           type="button"
+          data-guide="publish-website"
           onClick={onPublish}
           disabled={!canPublish || publishing || (published && !changed)}
           aria-busy={publishing}

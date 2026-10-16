@@ -156,6 +156,22 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     stops: ["add-group-type", "group-type-save"],
   },
   {
+    step: "website",
+    phase: "ready",
+    href: "/website",
+    target: "use-design",
+    /*
+     * The gallery, then the press that puts the page on the internet.
+     *
+     * Two stops rather than three. A stop on the canvas was tried and it never
+     * showed: choosing a design draws the canvas and Publish website in the
+     * same render, and the walk lands on the deepest stop present. Editing the
+     * page is what the editor's own line says the moment it opens, so the
+     * guide saying it again would be a card nobody ever read.
+     */
+    stops: ["use-design", "publish-website"],
+  },
+  {
     step: "email",
     phase: "ready",
     href: "/settings/email",

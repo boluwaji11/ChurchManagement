@@ -90,6 +90,14 @@ export interface SiteImage {
   /** Where the middle of the picture is, 0 to 1 on each axis. */
   focus?: { x: number; y: number };
   fit?: "cover" | "contain";
+  /**
+   * How far in the picture is cropped, 1 being the whole of it.
+   *
+   * A crop box in the editor is this and the focus together: dragging moves the
+   * middle, the slider moves this, and the frame the section drew stays the
+   * shape the design asks for. A church never meets a pixel measurement.
+   */
+  zoom?: number;
 }
 
 /* ----------------------------------------------------------------- theme --- */
@@ -190,6 +198,28 @@ export interface SectionStyle {
   hideOn?: "phone" | "desk";
 }
 
+/**
+ * What one piece of text on a page is set in, where a church has asked for
+ * something other than what the design gives it.
+ *
+ * Deliberately relative and deliberately small. The face is one of the two the
+ * church's pairing already carries, and the size is a step up or down from
+ * whatever the slot is, so a heading stays a heading. A church that wants a
+ * different look changes its design; this is for the one line it wants larger.
+ */
+export interface TextStyle {
+  /** Which of the pairing's two faces, where the slot's own is not wanted. */
+  face?: "display" | "body";
+  /** A step either side of the size the design gives this slot. */
+  size?: "smaller" | "small" | "regular" | "large" | "larger";
+  weight?: "light" | "regular" | "medium" | "bold";
+  align?: "left" | "centre" | "right";
+  /** One of the theme's own colours. Never a colour picked by hand here. */
+  tone?: "ink" | "muted" | "primary" | "accent";
+  /** How much air under it. */
+  space?: "tight" | "regular" | "loose";
+}
+
 export interface SiteSection {
   id: string;
   type: string;
@@ -200,6 +230,12 @@ export interface SiteSection {
   style?: SectionStyle;
   /** Checked against the kind's own rules in `site-sections.ts`. */
   content: Record<string, unknown>;
+  /**
+   * What a church has changed about one piece of text, keyed by the same path
+   * the editor marks it with. Absent for everything it has left alone, which
+   * is nearly all of it.
+   */
+  text?: Record<string, TextStyle>;
 }
 
 /* ----------------------------------------------------------------- pages --- */
@@ -368,6 +404,7 @@ export function cleanImage(value: unknown): SiteImage | null {
     alt: str(one["alt"], 300),
     focus,
     fit: pick(one["fit"], ["cover", "contain"] as const, "cover"),
+    zoom: num(one["zoom"], 1, 4, 1),
   };
 }
 
@@ -490,6 +527,51 @@ export function cleanBinding(value: unknown): SiteBinding | undefined {
   }
 }
 
+/** One piece of text's own setting, with anything unknown dropped. */
+export function cleanTextStyle(value: unknown): TextStyle | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const one = value as Record<string, unknown>;
+  const out: TextStyle = {};
+  if (one["face"] === "display" || one["face"] === "body") out.face = one["face"];
+  const size = one["size"];
+  if (typeof size === "string"
+    && ["smaller", "small", "regular", "large", "larger"].includes(size)) {
+    out.size = size as TextStyle["size"];
+  }
+  const weight = one["weight"];
+  if (typeof weight === "string"
+    && ["light", "regular", "medium", "bold"].includes(weight)) {
+    out.weight = weight as TextStyle["weight"];
+  }
+  const align = one["align"];
+  if (align === "left" || align === "centre" || align === "right") out.align = align;
+  const tone = one["tone"];
+  if (typeof tone === "string" && ["ink", "muted", "primary", "accent"].includes(tone)) {
+    out.tone = tone as TextStyle["tone"];
+  }
+  const space = one["space"];
+  if (space === "tight" || space === "regular" || space === "loose") out.space = space;
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/** Every piece of text a church has set, keyed by its path in the content. */
+export function cleanTextStyles(value: unknown): Record<string, TextStyle> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const given = value as Record<string, unknown>;
+  const out: Record<string, TextStyle> = {};
+  let n = 0;
+  for (const [path, held] of Object.entries(given)) {
+    if (n >= 60) break;
+    if (!/^[A-Za-z0-9_.-]{1,80}$/.test(path)) continue;
+    const one = cleanTextStyle(held);
+    if (one) {
+      out[path] = one;
+      n += 1;
+    }
+  }
+  return n > 0 ? out : undefined;
+}
+
 export function cleanSectionStyle(value: unknown): SectionStyle | undefined {
   if (!value || typeof value !== "object") return undefined;
   const one = value as Record<string, unknown>;
@@ -577,6 +659,8 @@ export function cleanSiteDoc(
       if (bind) out.bind = bind;
       const style = cleanSectionStyle(section["style"]);
       if (style) out.style = style;
+      const text = cleanTextStyles(section["text"]);
+      if (text) out.text = text;
       return out;
     });
 

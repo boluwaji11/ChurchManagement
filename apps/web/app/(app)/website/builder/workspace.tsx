@@ -15,7 +15,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Images, LayoutGrid, Palette, Plus, Settings2 } from "lucide-react";
+import {
+  Images, LayoutGrid, Palette, PanelRight, PanelRightClose, Plus, Settings2,
+} from "lucide-react";
 import { t } from "@connectapp/i18n";
 import {
   Banner, Button, Dialog, DialogContent, DialogFooter, Field, Input, Sheet,
@@ -54,6 +56,7 @@ const RAIL: { key: Panel; icon: typeof LayoutGrid; label: string }[] = [
 ];
 
 const TIP_SEEN = "connectapp-website-tip";
+const PANE_SHUT = "connectapp-website-pane-shut";
 
 let ids = 0;
 const newId = (stem: string): string => {
@@ -191,14 +194,51 @@ function Builder({
   const [revisions, setRevisions] = React.useState<RevisionRow[]>([]);
   const [linkAt, setLinkAt] = React.useState<{ sectionId: string; path: string } | null>(null);
   const [mediaFor, setMediaFor] = React.useState<{ sectionId: string; path: string } | null>(null);
+  /*
+   * The editing panel, which a church can put away.
+   *
+   * The canvas is the point of this screen, and the room it gets depends on
+   * what else is open: the setup guide's rail takes 440px while a church is
+   * still being set up. So the panel closes itself when there is no room for
+   * all three, and stays however the church last left it.
+   */
+  const [pane, setPane] = React.useState(true);
+  const [paneByHand, setPaneByHand] = React.useState(false);
+  const body = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     try {
       if (!window.localStorage.getItem(TIP_SEEN)) setTip(true);
+      if (window.localStorage.getItem(PANE_SHUT) === "yes") {
+        setPane(false);
+        setPaneByHand(true);
+      }
     } catch {
       /* A private window, where there is nothing to remember. */
     }
   }, []);
+
+  /* Until the church says otherwise, the panel follows the room there is. */
+  React.useEffect(() => {
+    const held = body.current;
+    if (!held || paneByHand) return undefined;
+    const watch = new ResizeObserver(([entry]) => {
+      const wide = (entry?.contentRect.width ?? 0) >= 1180;
+      setPane((now) => (now === wide ? now : wide));
+    });
+    watch.observe(held);
+    return () => watch.disconnect();
+  }, [paneByHand]);
+
+  const showPane = (open: boolean) => {
+    setPane(open);
+    setPaneByHand(true);
+    try {
+      window.localStorage.setItem(PANE_SHUT, open ? "no" : "yes");
+    } catch {
+      /* Nothing to remember in a private window. */
+    }
+  };
 
   const page: SitePage = pageOf(state.doc, state.pageId);
 
@@ -206,6 +246,10 @@ function Builder({
 
   const latest = React.useRef(state);
   latest.current = state;
+
+  /* The save that is in flight, so anything that needs the server to be up to
+     date can wait for it rather than racing it. */
+  const inFlight = React.useRef<Promise<void> | null>(null);
 
   const write = React.useCallback(async () => {
     const now = latest.current;
@@ -223,13 +267,20 @@ function Builder({
     send({ kind: "saved", version: result.version });
   }, []);
 
+  /** Writes, and holds the promise so a press can wait for it. */
+  const writeNow = React.useCallback(() => {
+    const run = write().finally(() => { inFlight.current = null; });
+    inFlight.current = run;
+    return run;
+  }, [write]);
+
   /* Settles after a change rather than on every keystroke, so a church typing
      a paragraph sends one save instead of forty. */
   React.useEffect(() => {
     if (state.save !== "dirty") return undefined;
-    const timer = window.setTimeout(() => { void write(); }, 1200);
+    const timer = window.setTimeout(() => { void writeNow(); }, 1200);
     return () => window.clearTimeout(timer);
-  }, [state.save, state.doc, write]);
+  }, [state.save, state.doc, writeNow]);
 
   /* Leaving the tab with work in hand saves it rather than asking. */
   React.useEffect(() => {
@@ -327,7 +378,15 @@ function Builder({
     publishedAt: state.publishedAt,
     changed: state.changed,
     change,
-    select: (selection) => send({ kind: "select", selection }),
+    /*
+     * Pressing something on the page is asking to change it, so the panel
+     * comes back whether it was put away by hand or stepped aside on its own.
+     * Clearing the selection leaves the panel where the church left it.
+     */
+    select: (selection) => {
+      if (selection) setPane(true);
+      send({ kind: "select", selection });
+    },
     setPanel: (panel) => send({ kind: "panel", panel }),
     setPage: (pageId) => send({ kind: "page", pageId }),
     openLibrary: (at) => setLibrary(at),
@@ -347,12 +406,35 @@ function Builder({
 
   /* ------------------------------------------------------------ publishing --- */
 
+  /**
+   * The preview, showing what is on screen rather than what was last settled.
+   *
+   * It is a route that reads the saved draft, so a page added a moment ago is
+   * not in it yet and the address 404s. The tab is opened on the press, because
+   * a browser blocks one opened after an await, and sent to the preview once
+   * the save has landed.
+   */
+  const openPreview = () => {
+    const tab = window.open("", "connectapp-website-preview");
+    void (async () => {
+      /* A save started a moment ago has to land first, and a change made since
+         it started has to go up after it. */
+      await inFlight.current;
+      if (latest.current.save === "dirty") await writeNow();
+      const now = pageOf(latest.current.doc, latest.current.pageId);
+      const where = now.slug ? `/website/preview/${now.slug}` : "/website/preview";
+      if (tab) tab.location.href = where;
+      else window.location.href = where;
+    })();
+  };
+
   const doPublish = () => {
     setPublishing(true);
     void (async () => {
       /* Anything in hand goes up first, so what is published is what is on
          screen rather than what was last settled. */
-      if (latest.current.save === "dirty") await write();
+      await inFlight.current;
+      if (latest.current.save === "dirty") await writeNow();
       const result = await publish(note.trim() || undefined);
       setPublishing(false);
       setPublishAsk(false);
@@ -400,7 +482,8 @@ function Builder({
   const panel = (() => {
     switch (state.panel) {
       case "pages": return <PagesPanel api={api} />;
-      case "design": return <DesignPanel api={api} />;
+      case "design":
+        return <DesignPanel api={api} onChangeDesign={() => setGallery(true)} />;
       case "media":
         return <MediaPanel api={api} onUsed={() => setMediaFor(null)} />;
       case "settings":
@@ -449,6 +532,7 @@ function Builder({
         onRetry={() => { void write(); }}
         onPublish={() => setPublishAsk(true)}
         previewHref={previewHref}
+        onPreview={openPreview}
       />
 
       {state.error ? (
@@ -485,7 +569,7 @@ function Builder({
           </div>
         </div>
       ) : (
-      <div className="flex min-h-0 flex-1">
+      <div ref={body} className="@container/editor flex min-h-0 flex-1">
         {/* The rail: what the website is made of. */}
         <nav
           aria-label={t("website.panel.pages")}
@@ -533,7 +617,7 @@ function Builder({
         ) : null}
 
         {/* The website. */}
-        <div className="min-w-0 flex-1 overflow-y-auto bg-sunken">
+        <div className="min-w-[380px] flex-1 overflow-y-auto bg-sunken">
           {state.device === "desk" ? (
             <div className="min-h-full">
               <Canvas
@@ -542,7 +626,10 @@ function Builder({
                 site={api.site}
                 selected={state.selected}
                 handlers={{
-                  onSelect: (selection) => send({ kind: "select", selection }),
+                  onSelect: (selection) => {
+                    if (selection) setPane(true);
+                    send({ kind: "select", selection });
+                  },
                   onField: (sectionId, path, value) =>
                     change(
                       setField(state.doc, state.pageId, sectionId, path, value),
@@ -584,9 +671,53 @@ function Builder({
         </div>
 
         {/* Whatever is selected. */}
-        <aside className="hidden w-[332px] shrink-0 overflow-y-auto border-l border-line bg-surface lg:block">
-          <Inspector api={api} />
-        </aside>
+        {pane ? (
+          <aside className="flex w-[332px] shrink-0 flex-col border-l border-line bg-surface">
+            {/* The way to put it away sits on the panel it puts away. */}
+            <div className="flex shrink-0 justify-end border-b border-line px-2 py-1.5">
+              <Tooltip content={t("website.pane.close")}>
+                <button
+                  type="button"
+                  aria-label={t("website.pane.close")}
+                  aria-expanded
+                  onClick={() => showPane(false)}
+                  className={
+                    "inline-flex size-8 items-center justify-center rounded-md text-fg-muted"
+                    + " transition-colors hover:bg-raised hover:text-fg focus-visible:outline"
+                    + " focus-visible:outline-2 focus-visible:outline-offset-2"
+                    + " focus-visible:outline-primary"
+                  }
+                >
+                  <PanelRightClose className="size-4" aria-hidden />
+                </button>
+              </Tooltip>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <Inspector api={api} />
+            </div>
+          </aside>
+        ) : (
+          /* A slim tab on the edge, which is the only thing left of the panel
+             once it is away. */
+          <div className="shrink-0 border-l border-line bg-surface">
+            <Tooltip content={t("website.pane.open")} side="left">
+              <button
+                type="button"
+                aria-label={t("website.pane.open")}
+                aria-expanded={false}
+                onClick={() => showPane(true)}
+                className={
+                  "flex h-full w-9 items-center justify-center text-fg-muted"
+                  + " transition-colors hover:bg-raised hover:text-fg focus-visible:outline"
+                  + " focus-visible:outline-2 focus-visible:-outline-offset-2"
+                  + " focus-visible:outline-primary"
+                }
+              >
+                <PanelRight className="size-4" aria-hidden />
+              </button>
+            </Tooltip>
+          </div>
+        )}
       </div>
       )}
 
@@ -723,7 +854,7 @@ function LinkDialog({
         <Field
           label={t("website.field.external")}
           htmlFor="rich-link"
-          {...(bad ? { error: t("website.error.imageUrl") } : {})}
+          {...(bad ? { error: t("website.error.webAddress") } : {})}
         >
           <Input
             id="rich-link"

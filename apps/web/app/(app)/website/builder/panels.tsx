@@ -18,6 +18,7 @@ import * as React from "react";
 import {
   ArrowDown, ArrowUp, ChevronDown, Copy, ExternalLink, ImagePlus, Pencil, Plus,
   Trash2, Upload, X,
+  LayoutTemplate,
 } from "lucide-react";
 import { t, type MessageKey } from "@connectapp/i18n";
 import {
@@ -599,7 +600,14 @@ function ColourRow({
   );
 }
 
-export function DesignPanel({ api }: { api: BuilderApi }) {
+export function DesignPanel({
+  api,
+  onChangeDesign,
+}: {
+  api: BuilderApi;
+  /** Opens the gallery of starting designs. */
+  onChangeDesign?: () => void;
+}) {
   const theme = api.doc.theme;
   const warned = tooClose(theme);
 
@@ -618,6 +626,16 @@ export function DesignPanel({ api }: { api: BuilderApi }) {
 
   return (
     <div className="flex flex-col gap-3">
+      {/* The whole design, which is where a church starts and where it comes
+          back to. It was only reachable from Settings, which is not where
+          anybody looks for it. */}
+      {onChangeDesign ? (
+        <Button variant="secondary" full onClick={onChangeDesign}>
+          <LayoutTemplate className="size-4" aria-hidden />
+          {t("website.changeDesign")}
+        </Button>
+      ) : null}
+
       <div className="flex flex-col gap-2">
         <h3 className="text-label font-medium text-fg">{t("website.design.preset")}</h3>
         <div className="grid grid-cols-2 gap-2">
@@ -1305,11 +1323,6 @@ export function SettingsPanel({
       <section className="flex flex-col gap-2">
         {onChangeDesign ? (
           <Button variant="secondary" full onClick={onChangeDesign}>
-            {t("website.changeDesign")}
-          </Button>
-        ) : null}
-        {onChangeDesign ? (
-          <Button variant="secondary" onClick={onChangeDesign}>
             {t("website.changeDesign")}
           </Button>
         ) : null}

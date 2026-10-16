@@ -15,6 +15,7 @@ import * as React from "react";
 import Link from "next/link";
 import type {
   Rich as RichText, Run, SiteImage, SiteLink, LinkTarget, SiteDoc, SectionStyle,
+  TextStyle,
 } from "@connectapp/db/rules";
 import { localeFor } from "@connectapp/i18n";
 import { withAlpha, paletteFor } from "./theme";
@@ -50,6 +51,12 @@ export interface SiteCtx {
   data: SiteDataForView;
   /** Drawn inside the editor, where an empty section still has to be visible. */
   editing?: boolean;
+  /**
+   * What the church has changed about particular pieces of text in the section
+   * being drawn, keyed by the path the editor marks them with. The page sets
+   * it per section, so a section component never has to thread it through.
+   */
+  text?: Record<string, TextStyle>;
   /**
    * Whether this section carries the page's one h1.
    *
@@ -133,6 +140,67 @@ const away = (href: string) => /^https?:/i.test(href);
 
 /* ----------------------------------------------------------------- text --- */
 
+/* ------------------------------------------------- one piece of text's own --- */
+
+const FACE: Record<NonNullable<TextStyle["face"]>, string> = {
+  display: "font-[family-name:var(--s-display)]",
+  body: "font-[family-name:var(--s-body)]",
+};
+
+/**
+ * A step either side of whatever size the design gives the slot.
+ *
+ * Relative rather than absolute, so a heading set larger is still a heading in
+ * every design and at every width. A church cannot type a pixel value, which is
+ * the whole point: that is how a site stops holding together.
+ */
+const SIZE: Record<NonNullable<TextStyle["size"]>, string> = {
+  smaller: "text-[0.78em]",
+  small: "text-[0.9em]",
+  regular: "",
+  large: "text-[1.15em]",
+  larger: "text-[1.35em]",
+};
+
+const WEIGHT: Record<NonNullable<TextStyle["weight"]>, string> = {
+  light: "font-light",
+  regular: "font-normal",
+  medium: "font-medium",
+  bold: "font-bold",
+};
+
+const ALIGN: Record<NonNullable<TextStyle["align"]>, string> = {
+  left: "text-left",
+  centre: "text-center",
+  right: "text-right",
+};
+
+const TONE: Record<NonNullable<TextStyle["tone"]>, string> = {
+  ink: "text-[var(--s-ink)]",
+  muted: "text-[var(--s-muted)]",
+  primary: "text-[var(--s-primary)]",
+  accent: "text-[var(--s-accent)]",
+};
+
+const SPACE: Record<NonNullable<TextStyle["space"]>, string> = {
+  tight: "leading-[1.15]",
+  regular: "",
+  loose: "leading-[1.7]",
+};
+
+/** The classes one piece of text asks for, or nothing where it asks for none. */
+export function textClasses(style: TextStyle | undefined): string {
+  if (!style) return "";
+  return [
+    style.face ? FACE[style.face] : "",
+    style.size ? SIZE[style.size] : "",
+    style.weight ? WEIGHT[style.weight] : "",
+    style.align ? ALIGN[style.align] : "",
+    style.tone ? TONE[style.tone] : "",
+    style.space ? SPACE[style.space] : "",
+  ].filter(Boolean).join(" ");
+}
+
 /** Marks an element as the thing the canvas can edit, when it is editing. */
 export const marks = (
   editing: boolean | undefined, at: string | undefined, kind: string,
@@ -212,10 +280,13 @@ export function T({
 }) {
   const empty = !value.trim();
   if (empty && !site.editing) return null;
+  const own = at ? textClasses(site.text?.[at]) : "";
   return (
     <Tag
       {...(id ? { id } : {})}
-      className={`${className} ${empty ? "text-[var(--s-muted)] opacity-60" : ""}`.trim()}
+      className={
+        `${className} ${own} ${empty ? "text-[var(--s-muted)] opacity-60" : ""}`.trim()
+      }
       {...marks(site.editing, at, "line")}
     >
       {empty ? placeholder ?? "" : value}
@@ -241,9 +312,12 @@ export function P({
 }) {
   const empty = richIsEmpty(value);
   if (empty && !site.editing) return null;
+  const own = at ? textClasses(site.text?.[at]) : "";
   return (
     <p
-      className={`m-0 whitespace-pre-line ${className} ${empty ? "opacity-60" : ""}`.trim()}
+      className={
+        `m-0 whitespace-pre-line ${className} ${own} ${empty ? "opacity-60" : ""}`.trim()
+      }
       style={style}
       {...marks(site.editing, at, "rich")}
     >
@@ -326,6 +400,11 @@ export function Pic({
         style={{
           objectFit: value?.fit === "contain" ? "contain" : "cover",
           objectPosition: position,
+          /* The crop: how far in, around the middle the church chose. The
+             frame clips, so the shape the design asked for is kept. */
+          ...(value?.zoom && value.zoom > 1
+            ? { transform: `scale(${value.zoom})`, transformOrigin: position }
+            : {}),
         }}
       />
     </div>

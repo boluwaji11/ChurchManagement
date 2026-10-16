@@ -22,6 +22,7 @@ import {
   Button, cn, Dialog, DialogClose, DialogContent, DialogFooter,
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from "@connectapp/ui";
+import { SearchField } from "@/components/search-field";
 import { SiteFrame, SitePageView } from "@/components/church-site/page-view";
 import type { SiteCtx } from "@/components/church-site/kit";
 import { docFromTemplate, SITE_TEMPLATES, type TemplateKey } from "@/components/church-site/starter";
@@ -177,7 +178,10 @@ function FullStage({ site, width, className }: {
   return (
     <div
       ref={box}
-      className={cn("scroll-quiet relative w-full overflow-y-auto overflow-x-hidden", className)}
+      /* The scrollbar is drawn rather than hidden: a preview of a whole page
+         that gives no sign it continues below the fold reads as a page that
+         ends there. */
+      className={cn("relative w-full overflow-y-auto overflow-x-hidden", className)}
     >
       <div style={{ height: stageSize.height * scale }}>
         <div
@@ -202,6 +206,53 @@ function FullStage({ site, width, className }: {
   );
 }
 
+/** One of the filter words, pressable. */
+function Chip({
+  on,
+  onPress,
+  children,
+}: {
+  on: boolean;
+  onPress: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onPress}
+      className={cn(
+        "rounded-full border px-3 py-1.5 text-label font-medium transition-colors",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+        "focus-visible:outline-primary",
+        on
+          ? "border-primary bg-primary text-primary-fg"
+          : "border-line bg-surface text-fg-muted hover:bg-sunken hover:text-fg",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/**
+ * What each design feels like.
+ *
+ * Six is few enough to read at a glance and too many to compare at a glance,
+ * and a church arrives knowing the feeling it wants rather than the name.
+ */
+const FEELS = ["warm", "bold", "traditional", "calm", "modern", "friendly"] as const;
+type Feel = (typeof FEELS)[number];
+
+const FEEL_OF: Record<TemplateKey, Feel[]> = {
+  gathering: ["warm", "traditional"],
+  community: ["bold", "modern"],
+  heritage: ["traditional", "calm"],
+  vibrant: ["bold", "modern"],
+  sanctuary: ["calm", "modern"],
+  neighbourhood: ["warm", "friendly"],
+};
+
 /* --------------------------------------------------------- the gallery --- */
 
 export function Gallery({
@@ -225,6 +276,7 @@ export function Gallery({
       site: siteFor({ name, slug }, docFromTemplate(key, { name })),
       name: t(`website.template.${key}` as MessageKey),
       body: t(`website.template.${key}.body` as MessageKey),
+      feels: FEEL_OF[key],
     })),
     /* On the name and the address rather than on the object the caller passed,
        which is written fresh on every render of the screen above. */
@@ -233,6 +285,20 @@ export function Gallery({
 
   const [shown, setShown] = React.useState<TemplateKey | null>(null);
   const [asking, setAsking] = React.useState<TemplateKey | null>(null);
+  const [query, setQuery] = React.useState("");
+  const [feel, setFeel] = React.useState<Feel | null>(null);
+
+  const needle = query.trim().toLowerCase();
+  const showingDesigns = designs.filter((one) => {
+    if (feel && !one.feels.includes(feel)) return false;
+    if (!needle) return true;
+    return (
+      one.name.toLowerCase().includes(needle)
+      || one.body.toLowerCase().includes(needle)
+      || one.feels.some((f) => t(`website.gallery.feel.${f}` as MessageKey)
+        .toLowerCase().includes(needle))
+    );
+  });
 
   const showing = designs.find((one) => one.key === shown);
   const asked = designs.find((one) => one.key === asking);
@@ -244,8 +310,30 @@ export function Gallery({
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
+        <SearchField
+          value={query}
+          onChange={setQuery}
+          placeholder={t("website.gallery.search")}
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Chip on={feel === null} onPress={() => setFeel(null)}>
+            {t("website.gallery.all")}
+          </Chip>
+          {FEELS.map((one) => (
+            <Chip key={one} on={feel === one} onPress={() => setFeel(feel === one ? null : one)}>
+              {t(`website.gallery.feel.${one}` as MessageKey)}
+            </Chip>
+          ))}
+        </div>
+      </div>
+
+      {showingDesigns.length === 0 ? (
+        <p className="m-0 text-body text-fg-muted">{t("website.gallery.none")}</p>
+      ) : null}
+
       <ul className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {designs.map((design) => {
+        {showingDesigns.map((design) => {
           const here = design.key === current;
           const headingId = `design-${design.key}`;
           return (
@@ -274,7 +362,11 @@ export function Gallery({
                   {t("website.gallery.preview")}
                 </Button>
                 {here ? null : (
-                  <Button aria-describedby={headingId} onClick={() => press(design.key)}>
+                  <Button
+                    aria-describedby={headingId}
+                    data-guide="use-design"
+                    onClick={() => press(design.key)}
+                  >
                     {t("website.gallery.use")}
                   </Button>
                 )}
