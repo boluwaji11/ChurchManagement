@@ -839,6 +839,9 @@ function ResendPath({
               </Button>
               <Button
                 data-guide="resend-signedin"
+                /* The other two doors are to its left, so the card goes
+                   underneath rather than over them. */
+                data-guide-side="below"
                 type="button"
                 onClick={() => setSignedIn(true)}
               >
@@ -854,19 +857,15 @@ function ResendPath({
   if (going) {
     return (
       <Card className="flex flex-col gap-4 p-5">
-        {/* R24.6. The way out, where a reader looks for it: the top left of
-            the thing they are in, as an arrow rather than a word. */}
-        <IconButton
-          label={t("action.back")}
-          variant="ghost"
-          className="-mt-1 -ml-1 self-start"
-          onClick={() => setGoing(null)}
-        >
-          <ArrowLeft />
-        </IconButton>
-
         <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
-          <Stages labels={RESEND_STAGES} at={2} />
+          <Stages
+            labels={RESEND_STAGES}
+            at={2}
+            onBack={(stage) => {
+              setGoing(null);
+              if (stage === 1) setSignedIn(false);
+            }}
+          />
         </div>
 
         <div className="mx-auto flex w-full max-w-[460px] flex-col gap-4">
@@ -901,22 +900,10 @@ function ResendPath({
 
   return (
     <Card className="flex flex-col gap-4 p-5">
-        {/* R24.6. The way out, where a reader looks for it: the top left of
-            the thing they are in, as an arrow rather than a word. */}
-        <IconButton
-          label={t("action.back")}
-          variant="ghost"
-          className="-mt-1 -ml-1 self-start"
-          onClick={() => setSignedIn(false)}
-        >
-          <ArrowLeft />
-        </IconButton>
-
-
-      {/* Held to the width of the form under it, so the two dots read as a
-          pair rather than as one at each end of the card. */}
+      {/* Held to the width of the form under it, so the dots read as a row
+          rather than as one at each end of the card. */}
       <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
-        <Stages labels={RESEND_STAGES} at={2} />
+        <Stages labels={RESEND_STAGES} at={2} onBack={() => setSignedIn(false)} />
       </div>
 
       <form

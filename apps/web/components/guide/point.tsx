@@ -177,13 +177,28 @@ export function Point({
       const beside = CARD + GAP + MARGIN;
       const tall = height + GAP + MARGIN;
 
-      const side: Side = box.width > 420
-        ? roomBelow > tall ? "below"
-          : roomAbove > tall ? "above"
-          : roomRight > beside ? "right" : "left"
-        : roomLeft > beside ? "left"
-          : roomRight > beside ? "right"
-          : roomBelow > tall ? "below" : "above";
+      /*
+       * A control can ask for a side, and does where the guide's own choice
+       * would land on something: "I am signed in" sits at the end of a row of
+       * three, and a card beside it covered the other two.
+       */
+      const asked = found.getAttribute("data-guide-side") as Side | null;
+      const room: Record<Side, boolean> = {
+        left: roomLeft > beside,
+        right: roomRight > beside,
+        below: roomBelow > tall,
+        above: roomAbove > tall,
+      };
+
+      const side: Side = asked && room[asked]
+        ? asked
+        : box.width > 420
+          ? room.below ? "below"
+            : room.above ? "above"
+            : room.right ? "right" : "left"
+          : room.left ? "left"
+            : room.right ? "right"
+            : room.below ? "below" : "above";
 
       /*
        * The beak points at the middle of the control, and the card is kept
