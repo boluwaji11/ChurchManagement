@@ -232,6 +232,33 @@ export function Point({
     look();
 
     /*
+     * R24.x. And again until it stops moving, for about a second.
+     *
+     * A panel slides in from the right, which is a transform: it fires no
+     * mutation, no resize and no scroll, so the first measurement is taken
+     * while the field is still travelling and the ring is left where the
+     * field was rather than where it landed. Measured every frame while
+     * anything is changing, and only when it has changed, so a box that
+     * settles immediately costs one comparison a frame and nothing else.
+     */
+    let settling = 0;
+    let was = "";
+    const settle = () => {
+      if (stop) return;
+      const found = document.querySelector(`[data-guide="${CSS.escape(target)}"]`);
+      if (found) {
+        const b = found.getBoundingClientRect();
+        const now = `${b.x},${b.y},${b.width},${b.height}`;
+        if (now !== was) {
+          was = now;
+          place(found);
+        }
+      }
+      if (Date.now() - since < 1200) settling = requestAnimationFrame(settle);
+    };
+    settling = requestAnimationFrame(settle);
+
+    /*
      * Its box is watched rather than polled: a panel opening over it, a row
      * above it unfolding, a window resized, all move it, and none of them is
      * a scroll event.
@@ -263,15 +290,21 @@ export function Point({
     tree.observe(document.body, { childList: true, subtree: true });
     window.addEventListener("scroll", watch, true);
     window.addEventListener("resize", watch);
+    /* Anything that slides or grows, once it has finished doing so. */
+    document.addEventListener("transitionend", watch, true);
+    document.addEventListener("animationend", watch, true);
 
     return () => {
       stop = true;
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(settling);
       if (queued) cancelAnimationFrame(queued);
       size.disconnect();
       tree.disconnect();
       window.removeEventListener("scroll", watch, true);
       window.removeEventListener("resize", watch);
+      document.removeEventListener("transitionend", watch, true);
+      document.removeEventListener("animationend", watch, true);
     };
   }, [target, pathname, height]);
 
