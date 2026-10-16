@@ -2975,7 +2975,7 @@ export const en = {
   "setup.what.email": "Connect an email account or service to send messages to your congregation.",
   "setup.why.email": "Send church announcements, invitations, and updates using your existing email account or Resend.",
   "setup.at.email": "Choose your existing email provider or Resend, click Connect, and follow the steps to complete setup.",
-  "setup.at.email.2": "Enter the address your church sends from.",
+  "setup.at.email.2": "Enter the email address your church will be sending emails from.",
   "setup.at.email.3": "Enter your mail server, such as smtp.gmail.com.",
   "setup.at.email.4": "587 works for most providers. Change it only if yours says otherwise.",
   "setup.at.email.5": "Enter the username for that mailbox, usually the full email address.",
