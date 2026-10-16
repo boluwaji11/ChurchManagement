@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3330 of 4829 keys.
+ * 3331 of 4830 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -2269,6 +2269,7 @@ export const browserWords: Catalogue = {
   "planTpl.name": "Name",
   "planTpl.namePlaceholder": "e.g. Morning service",
   "planTpl.items": "Order of service",
+  "planTpl.items.drag": "Drag to reorder items",
   "planTpl.item.kind": "Type",
   "planTpl.item.title": "Title",
   "planTpl.item.minutes": "Minutes",

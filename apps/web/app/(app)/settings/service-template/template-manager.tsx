@@ -404,6 +404,14 @@ function Lines({
     <div className="flex flex-col gap-2">
       <span className="text-label text-fg">{t("planTpl.items")}</span>
 
+      {/* R24.x. The grip is the only thing on the row that says the order can
+          be changed, and a grip is a shape somebody has to already know. */}
+      {lines.length > 1 ? (
+        <p className="-mt-1 text-[length:var(--d-text-caption)] text-fg-subtle">
+          {t("planTpl.items.drag")}
+        </p>
+      ) : null}
+
       {lines.length === 0 ? (
         <p className="text-[13px] text-fg-muted">{t("planTpl.item.none")}</p>
       ) : (

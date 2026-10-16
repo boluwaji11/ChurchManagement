@@ -3555,6 +3555,7 @@ export const en = {
   "planTpl.name": "Name",
   "planTpl.namePlaceholder": "e.g. Morning service",
   "planTpl.items": "Order of service",
+  "planTpl.items.drag": "Drag to reorder items",
   "planTpl.item.kind": "Type",
   "planTpl.item.title": "Title",
   "planTpl.item.minutes": "Minutes",
