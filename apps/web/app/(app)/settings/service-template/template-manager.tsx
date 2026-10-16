@@ -402,7 +402,17 @@ function Lines({
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-label text-fg">{t("planTpl.items")}</span>
+      {/* R24.6. The heading, and what the whole thing comes to, on one line.
+          The count belongs with the words it counts rather than at the foot
+          of a list somebody has scrolled past. */}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+        <span className="text-label text-fg">{t("planTpl.items")}</span>
+        {lines.length > 0 ? (
+          <span className="text-[length:var(--d-text-caption)] text-fg-muted">
+            {summary(lines)}
+          </span>
+        ) : null}
+      </div>
 
       {/* R24.x. The grip is the only thing on the row that says the order can
           be changed, and a grip is a shape somebody has to already know. */}
@@ -535,9 +545,6 @@ function Lines({
         <Plus className="size-4" aria-hidden /> {t("planTpl.item.add")}
       </button>
 
-      {lines.length > 0 ? (
-        <span className="text-[13px] text-fg-muted">{summary(lines)}</span>
-      ) : null}
     </div>
   );
 }
