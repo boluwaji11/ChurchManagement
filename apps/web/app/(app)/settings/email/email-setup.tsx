@@ -610,6 +610,7 @@ function Sender({ church }: { church: { name: string; email: string } }) {
       </Field>
       <Field label={t("email.from.address")} required>
         <Input
+          data-guide="email-from"
           name="fromAddress"
           defaultValue={church.email}
           autoComplete="off"
@@ -684,18 +685,19 @@ function SmtpSheet({
           <Sender church={church} />
 
           <Field label={t("email.smtp.host")} required>
-            <Input name="host" autoComplete="off" placeholder={t("email.smtp.hostPlaceholder")} />
+            <Input data-guide="smtp-host" name="host" autoComplete="off" placeholder={t("email.smtp.hostPlaceholder")} />
           </Field>
 
           {/* Typed rather than chosen. 587 and 465 cover nearly every church,
               and the ones they do not cover are on 2525 or 2587 because their
               host blocks the usual two, which a list of three would refuse. */}
           <Field label={t("email.smtp.port")} required>
-            <Input name="port" defaultValue="587" inputMode="numeric" autoComplete="off" />
+            <Input data-guide="smtp-port" name="port" defaultValue="587" inputMode="numeric" autoComplete="off" />
           </Field>
 
           <Field label={t("email.smtp.username")} required>
             <Input
+              data-guide="smtp-username"
               name="username"
               autoComplete="off"
               placeholder={t("email.smtp.usernamePlaceholder")}
@@ -703,7 +705,7 @@ function SmtpSheet({
           </Field>
 
           <Field label={t("email.smtp.password")} required>
-            <Input name="password" type="password" autoComplete="new-password" />
+            <Input data-guide="smtp-password" name="password" type="password" autoComplete="new-password" />
           </Field>
         </form>
       </SheetContent>
@@ -772,7 +774,7 @@ function ResendPath({
           <Button type="button" variant="ghost" onClick={onBack} disabled={going}>
             {t("action.back")}
           </Button>
-          <Button type="submit" disabled={busy || going || !full}>
+          <Button data-guide="resend-go" type="submit" disabled={busy || going || !full}>
             {going ? t("email.resend.leaving") : t("email.resend.go")}
           </Button>
         </div>

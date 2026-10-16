@@ -62,7 +62,7 @@ export function Point({
    * and the later one is the answer. Closing the box takes it away again and
    * the card goes back to the press before, which is what going back means.
    */
-  stops: readonly { target: string; body: string }[];
+  stops: readonly { target: string; body: string; field?: boolean }[];
   /** The step's name, so the card says which of the seventeen this is. */
   title: string;
   onClose: () => void;
@@ -80,11 +80,27 @@ export function Point({
   const names = stops.map((one) => one.target).join("|");
   React.useEffect(() => {
     const look = () => {
-      let deepest = 0;
-      stops.forEach((one, i) => {
-        if (document.querySelector(`[data-guide="${CSS.escape(one.target)}"]`)) deepest = i;
-      });
-      setAt(deepest);
+      let reached = 0;
+      for (let i = 0; i < stops.length; i += 1) {
+        const one = stops[i]!;
+        const found = document.querySelector(`[data-guide="${CSS.escape(one.target)}"]`);
+        if (!found) continue;
+
+        /*
+         * A field stops the walk while it is empty. Everything in a form is
+         * on the screen at once, so going by what is drawn would put the card
+         * on the last box rather than the first one left to fill in.
+         */
+        if (one.field) {
+          const value = (found as HTMLInputElement).value;
+          if (!value || !value.trim()) {
+            reached = i;
+            break;
+          }
+        }
+        reached = i;
+      }
+      setAt(reached);
     };
     look();
 
@@ -98,8 +114,14 @@ export function Point({
     };
     const tree = new MutationObserver(watch);
     tree.observe(document.body, { childList: true, subtree: true });
+    /* Filling a box changes nothing in the tree, so the typing is listened
+       for as well. */
+    document.addEventListener("input", watch, true);
+    document.addEventListener("change", watch, true);
     return () => {
       tree.disconnect();
+      document.removeEventListener("input", watch, true);
+      document.removeEventListener("change", watch, true);
       if (queued) cancelAnimationFrame(queued);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
