@@ -107,6 +107,9 @@ export function TeamPanel({
   const [step, setStep] = React.useState<"pick" | "team" | "members">(
     team || library.length === 0 ? "team" : "pick",
   );
+  /* R24.6. Whether this form was reached by picking a team off the list,
+     which is what the button at the foot is called after. */
+  const [picked, setPicked] = React.useState(false);
   const [error, setError] = useFormError(open && step === "team");
   const [hits, setHits] = React.useState<PersonHit[]>([]);
   const [searching, setSearching] = React.useState(false);
@@ -152,6 +155,7 @@ export function TeamPanel({
     setName(team?.name ?? "");
     setAbout(team?.description ?? "");
     setStep(team || library.length === 0 ? "team" : "pick");
+    setPicked(false);
     setDirty(false);
     setDirty(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -220,7 +224,7 @@ export function TeamPanel({
                 {t("action.cancel")}
               </Button>
               <Button type="submit" form={formId} disabled={saving || !dirty || !name.trim()}>
-                {t("action.save")}
+                {picked ? t("action.add") : t("action.save")}
               </Button>
             </>
           )
@@ -236,6 +240,7 @@ export function TeamPanel({
               setName("");
               setAbout("");
               setPositions([EMPTY_POSITION]);
+              setPicked(false);
               setStep("team");
             }}
             onPick={(item) => {
@@ -248,6 +253,7 @@ export function TeamPanel({
                   : [EMPTY_POSITION],
               );
               setDirty(true);
+              setPicked(true);
               setStep("team");
             }}
           />
@@ -396,7 +402,10 @@ export function TeamPanel({
           {team || library.length === 0 ? null : (
             <button
               type="button"
-              onClick={() => setStep("pick")}
+              onClick={() => {
+                setPicked(false);
+                setStep("pick");
+              }}
               className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
             >
               <ArrowLeft className="size-4" aria-hidden /> {t("fields.back")}

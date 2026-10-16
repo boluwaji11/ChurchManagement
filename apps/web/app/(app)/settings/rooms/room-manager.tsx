@@ -336,7 +336,7 @@ export function RoomSheet({
               loading={pending}
               disabled={pending || !name.trim()}
             >
-              {picked ? t("rooms.addThis") : t("action.save")}
+              {picked ? t("action.add") : t("action.save")}
             </Button>
           </>
           )
