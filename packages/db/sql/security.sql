@@ -520,6 +520,21 @@ begin
   execute 'drop policy if exists church_update on storage.objects';
   execute 'drop policy if exists church_delete on storage.objects';
 
+  /*
+   * HRT-377, R22.2. Whether a stored picture is one a published website shows.
+   *
+   * A church's website media sits in the church's own private folder, and this
+   * is the one thing that lets a reader with no account fetch any of it. So it
+   * answers the narrowest question there is: does the church's LIVE document
+   * point at this exact object. A picture on the draft is refused, and so is a
+   * picture the church has taken off the page, within the same press.
+   *
+   * The document is a tree, so the key is looked for at any depth rather than
+   * in named fields: a hero's photograph, a card's picture inside a repeated
+   * row, a section's background, the header's logo. The old flat homepage is
+   * still answered underneath, for a church whose site has not been brought
+   * forward yet.
+   */
   execute $fn$
     create or replace function connectapp.website_media_is_public(p_key text)
     returns boolean
@@ -531,19 +546,32 @@ begin
       select exists (
         select 1
         from public.stored_files sf
-        join public.church_websites w on w.tenant_id = sf.tenant_id
         join public.tenants t on t.id = sf.tenant_id
+        left join public.church_sites cs on cs.tenant_id = sf.tenant_id
+        left join public.church_websites w on w.tenant_id = sf.tenant_id
         where sf.bucket = 'church'
           and sf.key = p_key
           and sf.purpose = 'website_media'
-          and w.published
           and t.approved_at is not null
           and t.demo_expires_at is null
-          and exists (
-            select 1
-            from pg_catalog.jsonb_array_elements(w.sections) section(value)
-            where section.value ->> 'imageKey' = p_key
-               or section.value ->> 'videoKey' = p_key
+          and (
+            (
+              cs.live is not null
+              and pg_catalog.jsonb_path_exists(
+                cs.live,
+                '$.**.key ? (@ == $k)',
+                pg_catalog.jsonb_build_object('k', p_key)
+              )
+            )
+            or (
+              w.published
+              and exists (
+                select 1
+                from pg_catalog.jsonb_array_elements(w.sections) section(value)
+                where section.value ->> 'imageKey' = p_key
+                   or section.value ->> 'videoKey' = p_key
+              )
+            )
           )
       )
     $body$;

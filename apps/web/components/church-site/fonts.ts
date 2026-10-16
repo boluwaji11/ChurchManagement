@@ -15,18 +15,19 @@ import {
   Source_Sans_3, Source_Serif_4, Work_Sans,
 } from "next/font/google";
 
-const common = { subsets: ["latin", "latin-ext"] as const, display: "swap" as const, preload: false };
+const SUBSETS = ["latin", "latin-ext"] as const;
+const common = () => ({ subsets: [...SUBSETS], display: "swap" as const, preload: false });
 
-const fraunces = Fraunces({ ...common, weight: "variable", variable: "--site-font-fraunces" });
-const inter = Inter({ ...common, weight: "variable", variable: "--site-font-inter" });
-const outfit = Outfit({ ...common, weight: "variable", variable: "--site-font-outfit" });
-const playfair = Playfair_Display({ ...common, weight: "variable", variable: "--site-font-playfair" });
-const lora = Lora({ ...common, weight: "variable", variable: "--site-font-lora" });
-const sourceSerif = Source_Serif_4({ ...common, weight: "variable", variable: "--site-font-source-serif" });
-const sourceSans = Source_Sans_3({ ...common, weight: "variable", variable: "--site-font-source-sans" });
-const archivo = Archivo({ ...common, weight: "variable", variable: "--site-font-archivo" });
-const garamond = EB_Garamond({ ...common, weight: "variable", variable: "--site-font-garamond" });
-const workSans = Work_Sans({ ...common, weight: "variable", variable: "--site-font-work-sans" });
+const fraunces = Fraunces({ ...common(), weight: "variable", variable: "--site-font-fraunces" });
+const inter = Inter({ ...common(), weight: "variable", variable: "--site-font-inter" });
+const outfit = Outfit({ ...common(), weight: "variable", variable: "--site-font-outfit" });
+const playfair = Playfair_Display({ ...common(), weight: "variable", variable: "--site-font-playfair" });
+const lora = Lora({ ...common(), weight: "variable", variable: "--site-font-lora" });
+const sourceSerif = Source_Serif_4({ ...common(), weight: "variable", variable: "--site-font-source-serif" });
+const sourceSans = Source_Sans_3({ ...common(), weight: "variable", variable: "--site-font-source-sans" });
+const archivo = Archivo({ ...common(), weight: "variable", variable: "--site-font-archivo" });
+const garamond = EB_Garamond({ ...common(), weight: "variable", variable: "--site-font-garamond" });
+const workSans = Work_Sans({ ...common(), weight: "variable", variable: "--site-font-work-sans" });
 
 /** Every face's variable, for the element that wraps a church's website. */
 export const SITE_FONT_CLASS = [
