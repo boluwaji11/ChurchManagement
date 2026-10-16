@@ -459,6 +459,7 @@ export function Point({
       )}
 
       <div
+        key={`${target ?? "centre"}:${now}`}
         ref={box}
         data-guide-card
         role="note"
