@@ -828,9 +828,9 @@ function ResendPath({
             thing still to fill in. */}
         {signedIn ? null : (
           <div className="mx-auto flex w-full max-w-[460px] flex-col gap-4">
-            <span className="font-display text-[17px] leading-6 text-fg">
-              {t("email.resend.signin.title")}
-            </span>
+            {/* The sentence says what to do and the dots say which stage this
+                is, so a heading repeating the first door's words sat between
+                them saying neither. */}
             <p className="m-0 text-fg-muted">{t("email.resend.signin.body")}</p>
 
             <div className="flex flex-wrap items-center justify-end gap-2">
