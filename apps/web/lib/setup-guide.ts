@@ -40,8 +40,28 @@ export interface GuideStep {
    * Each stop reads `setup.at.<step>` for the first and `setup.at.<step>.2`,
    * `.3` and so on for the rest.
    */
-  stops?: readonly string[];
+  stops?: readonly GuideStop[];
 }
+
+/**
+ * R22.3. One stop on a step's walk.
+ *
+ * A plain name is a control that takes somebody onward: a button that opens a
+ * panel, a card that opens a box. The guide moves past it as soon as whatever
+ * it opened is on the screen.
+ *
+ * `field: true` is a box somebody types in. Every field in a form is on the
+ * screen from the moment it opens, so the deepest one is not where anybody
+ * is: the first empty one is. The guide works down them and lands on the
+ * press at the end once they are all answered.
+ */
+export type GuideStop = string | { target: string; field: true };
+
+export const stopTarget = (one: GuideStop): string =>
+  typeof one === "string" ? one : one.target;
+
+export const stopIsField = (one: GuideStop): boolean =>
+  typeof one !== "string" && one.field;
 
 export const GUIDE_STEPS: readonly GuideStep[] = [
   {
@@ -140,7 +160,16 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     phase: "ready",
     href: "/settings/email",
     target: "connect-email",
-    stops: ["connect-email", "email-connect"],
+    stops: [
+      "connect-email",
+      { target: "email-from", field: true },
+      { target: "smtp-host", field: true },
+      { target: "smtp-port", field: true },
+      { target: "smtp-username", field: true },
+      { target: "smtp-password", field: true },
+      "email-connect",
+      "resend-go",
+    ],
   },
   { step: "giving", phase: "ready", href: "/settings/online", target: "connect-stripe" },
   {

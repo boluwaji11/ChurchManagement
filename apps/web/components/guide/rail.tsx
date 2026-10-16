@@ -9,7 +9,7 @@ import {
 } from "@connectapp/ui";
 import { plural, t } from "@connectapp/i18n";
 import type { SetupPhase, SetupStep } from "@connectapp/db";
-import { GUIDE_BY_STEP, stepOnScreen } from "@/lib/setup-guide";
+import { GUIDE_BY_STEP, stepOnScreen, stopTarget, stopIsField } from "@/lib/setup-guide";
 import { Help } from "@/components/help";
 import { useFormError } from "@/lib/form-error";
 import { setGuideShut, showGuide, skip } from "./guide-actions";
@@ -199,8 +199,9 @@ export function Rail({
   const stops = React.useMemo(() => {
     if (!walking || !onScreen) return [];
     const names = onScreen.stops ?? (onScreen.target ? [onScreen.target] : []);
-    return names.map((target, i) => ({
-      target,
+    return names.map((one, i) => ({
+      target: stopTarget(one),
+      field: stopIsField(one),
       body: t(
         (i === 0 ? `setup.at.${onScreen.step}` : `setup.at.${onScreen.step}.${i + 1}`) as never,
       ),
