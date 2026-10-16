@@ -48,12 +48,10 @@ function Rail({
   title,
   steps,
   phase,
-  here,
 }: {
   title: string;
   steps: RailStep[];
   phase: SetupPhase;
-  here?: SetupStep | null;
 }) {
   const [open, setOpen] = React.useState<SetupPhase>(phase);
   return (
@@ -64,7 +62,6 @@ function Rail({
           steps={steps}
           phase={open}
           pinned
-          here={here ?? null}
           busy={false}
           onSkip={() => {}}
           onOpenPhase={setOpen}
@@ -97,10 +94,9 @@ export default function GuideGallery() {
             phase="basics"
           />
           <Rail
-            title="On the screen a step points at"
+            title="A section opened by hand, past the church's own progress"
             steps={make(["members", "services", "team", "church"])}
             phase="before"
-            here="rooms"
           />
         </div>
       </Section>

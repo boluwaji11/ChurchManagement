@@ -124,7 +124,6 @@ export function Rail({
   const count = t("setup.count", { done: String(settled), all: String(steps.length) });
 
   const onScreen = stepOnScreen(pathname, stillOpen);
-  const here = onScreen?.step ?? null;
 
   /*
    * Which step the guide was asked to show, and whether its card is still up.
@@ -151,24 +150,26 @@ export function Rail({
   };
 
   /*
-   * Which phase is open. The one holding the screen somebody is looking at,
-   * so a church that opens Rooms is not left reading the first hour, then
-   * whatever they opened by hand, and only then the church's own progress.
+   * R22.1. Which section is open: the one somebody chose, or the one their
+   * own progress is up to.
+   *
+   * The screen they are looking at does not come into it. The guide used to
+   * follow them, and following somebody means moving under them: opening
+   * Teams to look at a rota shut the section they were reading and opened the
+   * one holding a step finished a week ago. What follows somebody onto a
+   * screen is the coachmark, and that is asked for by pressing Show me.
    */
-  const showing = opened ?? onScreen?.phase ?? phase;
+  const showing = opened ?? phase;
 
   const body = (
     <GuideBody
       steps={steps}
       phase={showing}
       /*
-       * Held open, rather than given up the moment it is settled: a phase
-       * somebody chose, and the phase holding the screen they are standing
-       * on. Walking onto a finished step should show that step, not jump the
-       * column to the next phase.
+       * Held open, rather than given up the moment it is settled, where
+       * somebody chose it: they are reading it.
        */
-      pinned={opened !== null || onScreen !== null}
-      here={here}
+      pinned={opened !== null}
       busy={pending}
       onSkip={onSkip}
       onOpenPhase={setOpened}
@@ -210,11 +211,11 @@ export function Rail({
 
   /* The card carries the step's name and the sentence for wherever they have
      got to. Both are read here because the card is drawn from the frame. */
-  const card = here && stops.length > 0 ? (
+  const card = onScreen && stops.length > 0 ? (
     <Point
       stops={stops}
-      title={t(`setup.step.${here}` as never)}
-      onClose={() => setClosed(here)}
+      title={t(`setup.step.${onScreen.step}` as never)}
+      onClose={() => setClosed(onScreen.step)}
     />
   ) : null;
 
