@@ -114,8 +114,16 @@ export function OnlineGiving({
    * R13.1. Stripe makes its mind up a moment after the church finishes its
    * form, so the screen waits with them rather than leaving a button.
    */
+  /*
+   * R13.1. Stripe usually makes its mind up in seconds, and sometimes it
+   * takes a person. The watching stops after half a minute, and when it does
+   * the screen says so rather than spinning at somebody for an hour.
+   */
+  const [watched, setWatched] = React.useState(false);
+  React.useEffect(() => setWatched(false), [settling]);
+
   React.useEffect(() => {
-    if (!settling) return;
+    if (!settling || watched) return;
     let stop = false;
 
     const timer = window.setInterval(async () => {
@@ -126,6 +134,7 @@ export function OnlineGiving({
     const give = window.setTimeout(() => {
       stop = true;
       window.clearInterval(timer);
+      setWatched(true);
     }, 30_000);
 
     return () => {
@@ -133,7 +142,18 @@ export function OnlineGiving({
       window.clearInterval(timer);
       window.clearTimeout(give);
     };
-  }, [settling, church, router]);
+  }, [settling, watched, church, router]);
+
+  /** Looking once, by hand, after the watching has stopped. */
+  const lookAgain = () =>
+    startTransition(async () => {
+      await refreshStripe();
+      router.refresh();
+      setWatched(false);
+    });
+
+  /* Only while something is actually being watched for. */
+  const checking = settling && !watched;
 
   /*
    * R13.1, R22.2. Stripe opens in a tab of its own.
@@ -247,14 +267,16 @@ export function OnlineGiving({
                 : { background: "var(--color-sunken)", color: "var(--color-fg-muted)" }
             }
           >
-            {settling ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
+            {checking ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
             {ready ? <CircleCheck className="size-3.5" aria-hidden /> : null}
             {!account
               ? t("stripe.state.none")
               : ready
                 ? t("stripe.state.ready")
-                : settling
+                : checking
                   ? t("stripe.state.settling")
+                  : settling
+                    ? t("stripe.state.waiting")
                   : t("stripe.state.pending")}
           </span>
         </div>
@@ -289,14 +311,24 @@ export function OnlineGiving({
                 ) : null}
 
                 <div className="flex flex-wrap items-center gap-2">
+                  {/* R13.1. Pressable while Stripe is still deciding: an
+                      account waiting on one more paper is an account whose
+                      church needs the way back to it, and a button that is
+                      busy for as long as Stripe takes is a dead end. */}
                   <Button
-                    disabled={pending || !configured || settling}
-                    loading={pending || settling}
+                    disabled={pending || !configured || checking}
+                    loading={pending || checking}
                     onClick={go}
                     data-guide="connect-stripe"
                   >
                     {account ? t("stripe.continue") : t("stripe.connect")}
                   </Button>
+
+                  {settling && watched ? (
+                    <Button variant="secondary" disabled={pending} onClick={lookAgain}>
+                      {t("stripe.lookAgain")}
+                    </Button>
+                  ) : null}
                 </div>
               </>
             )}
