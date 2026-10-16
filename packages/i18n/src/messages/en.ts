@@ -4934,7 +4934,6 @@ export const en = {
   "email.sendingAs": "Sending as",
   "email.checkedAt": "Last checked {when}",
   "email.choose": "How will your church send email via ConnectApp?",
-  "email.stage.signin": "Sign in to Resend",
   "email.stage.connect": "Connect Resend",
   "email.stage.records": "Update your domain provider",
   "email.stage.done": "Ready to send",

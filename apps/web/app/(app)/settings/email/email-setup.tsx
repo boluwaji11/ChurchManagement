@@ -257,7 +257,7 @@ function Connected({
           so it shows none of this. */}
       {provider.vendor === "resend" ? (
         <div className="mx-auto w-full max-w-[520px] px-6 pb-1 pt-1">
-          <Stages labels={RESEND_STAGES} at={waiting ? 3 : 4} />
+          <Stages labels={RESEND_STAGES} at={waiting ? 2 : 3} />
         </div>
       ) : null}
 
@@ -728,7 +728,6 @@ function SmtpSheet({
  * a church reads the same four words wherever it has got to.
  */
 const RESEND_STAGES = [
-  t("email.stage.signin"),
   t("email.stage.connect"),
   t("email.stage.records"),
   t("email.stage.done"),
@@ -792,11 +791,25 @@ function ResendPath({
 
   const open = (where: string) => window.open(where, "_blank", "noopener,noreferrer");
 
-  if (!signedIn && !going) {
+  /*
+   * R22.2. Connecting is one errand with two parts, in one card.
+   *
+   * Getting signed in at Resend has to happen first, because its consent
+   * screen handles a sign-in and does not handle a sign-up, and a church
+   * taken through one is left on a dashboard with the permission never
+   * asked for. Two stages for that read as twice the work; one card that
+   * opens the second part when the first is answered reads as the one thing
+   * it is.
+   *
+   * Nothing here can tell whether they really signed in. Resend is somewhere
+   * else and we cannot see their session. What answers that question is the
+   * consent screen itself, which is why the way back to these two doors
+   * stays on the card after they say they are through.
+   */
+  if (!going) {
     return (
       <Card className="flex flex-col gap-4 p-5">
-        {/* R24.6. The way out, where a reader looks for it: the top left of
-            the thing they are in, as an arrow rather than a word. */}
+        {/* R24.6. The way out, where a reader looks for it. */}
         <IconButton
           label={t("action.back")}
           variant="ghost"
@@ -816,27 +829,28 @@ function ResendPath({
           </span>
           <p className="m-0 text-fg-muted">{t("email.resend.signin.body")}</p>
 
-          <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
-            <div className="flex flex-wrap items-center gap-2">
-              {/* R22.2. Two doors rather than one, because a church that has
-                  no account and a church that has one are looking for
-                  different words. */}
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => open("https://resend.com/signup")}
-              >
-                {t("email.resend.signin.up")}
-                <ExternalLink className="size-[14px]" aria-hidden />
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => open("https://resend.com/login")}
-              >
-                {t("email.resend.signin.in")}
-                <ExternalLink className="size-[14px]" aria-hidden />
-              </Button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {/* R22.2. Two doors rather than one, because a church that has no
+                account and a church that has one are looking for different
+                words. They stay here once the form is open: somebody who said
+                they were through and was not comes back to them. */}
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => open("https://resend.com/signup")}
+            >
+              {t("email.resend.signin.up")}
+              <ExternalLink className="size-[14px]" aria-hidden />
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => open("https://resend.com/login")}
+            >
+              {t("email.resend.signin.in")}
+              <ExternalLink className="size-[14px]" aria-hidden />
+            </Button>
+            {signedIn ? null : (
               <Button
                 data-guide="resend-signedin"
                 /* The other two doors are to its left, so the card goes
@@ -847,9 +861,49 @@ function ResendPath({
               >
                 {t("email.resend.signin.done")}
               </Button>
-            </div>
+            )}
           </div>
         </div>
+
+        {signedIn ? (
+          <>
+            <div className="mx-auto w-full max-w-[460px]">
+              <hr className="border-0 border-t border-line" />
+            </div>
+
+            <form
+              id={formId}
+              /* It leaves the product rather than saving anything, and the
+                 whole handshake is set up on the server: the browser never
+                 holds anything Resend would accept. */
+              onSubmit={(event) => {
+                event.preventDefault();
+                const data = new FormData(event.currentTarget);
+                const where = new URL("/api/providers/resend/start", window.location.origin);
+                where.searchParams.set("from", String(data.get("fromAddress") ?? ""));
+                where.searchParams.set("name", String(data.get("fromName") ?? ""));
+                setGoing(where.toString());
+                open(where.toString());
+              }}
+              noValidate
+              className="mx-auto flex w-full max-w-[460px] flex-col gap-4"
+            >
+              {/* R21.15. What the church is agreeing to, said where the press
+                  is rather than found out afterwards. */}
+              <Banner tone="info">{t("email.resend.access")}</Banner>
+
+              <Sender church={church} />
+
+              <p className="m-0 text-fg-muted">{t("email.resend.free")}</p>
+
+              <div className="flex items-center justify-end gap-3 pt-1">
+                <Button data-guide="resend-go" type="submit" disabled={busy || !full}>
+                  {t("email.resend.go")}
+                </Button>
+              </div>
+            </form>
+          </>
+        ) : null}
       </Card>
     );
   }
@@ -858,14 +912,7 @@ function ResendPath({
     return (
       <Card className="flex flex-col gap-4 p-5">
         <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
-          <Stages
-            labels={RESEND_STAGES}
-            at={2}
-            onBack={(stage) => {
-              setGoing(null);
-              if (stage === 1) setSignedIn(false);
-            }}
-          />
+          <Stages labels={RESEND_STAGES} at={1} />
         </div>
 
         <div className="mx-auto flex w-full max-w-[460px] flex-col gap-4">
@@ -898,45 +945,5 @@ function ResendPath({
     );
   }
 
-  return (
-    <Card className="flex flex-col gap-4 p-5">
-      {/* Held to the width of the form under it, so the dots read as a row
-          rather than as one at each end of the card. */}
-      <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
-        <Stages labels={RESEND_STAGES} at={2} onBack={() => setSignedIn(false)} />
-      </div>
-
-      <form
-        id={formId}
-        /* It leaves the product rather than saving anything, and the whole
-           handshake is set up on the server: the browser never holds
-           anything Resend would accept. */
-        onSubmit={(event) => {
-          event.preventDefault();
-          const data = new FormData(event.currentTarget);
-          const where = new URL("/api/providers/resend/start", window.location.origin);
-          where.searchParams.set("from", String(data.get("fromAddress") ?? ""));
-          where.searchParams.set("name", String(data.get("fromName") ?? ""));
-          setGoing(where.toString());
-          open(where.toString());
-        }}
-        noValidate
-        className="mx-auto flex w-full max-w-[460px] flex-col gap-4"
-      >
-        {/* R21.15. What the church is agreeing to, said where the press is
-            rather than found out afterwards. */}
-        <Banner tone="info">{t("email.resend.access")}</Banner>
-
-        <Sender church={church} />
-
-        <p className="m-0 text-fg-muted">{t("email.resend.free")}</p>
-
-        <div className="flex items-center justify-end gap-3 pt-1">
-          <Button data-guide="resend-go" type="submit" disabled={busy || !full}>
-            {t("email.resend.go")}
-          </Button>
-        </div>
-      </form>
-    </Card>
-  );
+  return null;
 }
