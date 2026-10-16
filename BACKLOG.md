@@ -457,6 +457,35 @@ page, the public empty states, `storedFiles` and `/api/upload` with the
 forms, groups and events, `withTenant` and RLS for every write, and
 `canManageWebsite`.
 
+**What was built, October 2026.** HRT-377 to HRT-383, in that order.
+
+The keystone is that a section is a pure presentational component writing
+`data-edit` through the kit, and the editor's canvas reads those attributes by
+delegation. So the canvas is the page: there is no preview implementation, no
+editor implementation, and adding a kind of section changes nothing about the
+editor. Twenty-two kinds, about seventy layouts.
+
+What the walk found in a browser that reading the code did not: the church's own
+mark 404ed because the view context dropped its key; the storage policy still
+asked the old flat homepage whether a picture was public, so every photograph on
+a new site would have been refused to visitors; a page could carry two h1s once a
+church added a second welcome; a bound section with nothing to show drew a
+heading over a blank space on a live page; the starting designs were four
+text-only pages, because a layout built around a picture draws nothing without
+one; and a church's website was missing from its own data export, which the
+table-walking export test caught.
+
+Measured on a build, on the church's own host: 50 to 56ms to first byte for a
+47KB home page, 7ms for a second page, with the document held under a tag
+dropped on publish and the bound data held five minutes. The editor is 53.7KB of
+its own JavaScript.
+
+Still open, named rather than quietly skipped: HRT-368 still has no writer for
+`service_times`, so a church's times section is bound to a table only the demo
+loader fills; cropping a picture is a focal point and two sliders rather than a
+crop box; and the website is not a step on the setup guide, which belongs to
+whoever owns HRT-367 rather than being taken while passing.
+
 ## The pass against the reference, October 2026
 
 HRT-307 to HRT-336. Seventeen screens from another church product were held up as the
