@@ -60,7 +60,20 @@ export async function GET(request: Request) {
   if (!root) return refuse("noAddress");
 
   const made = await resendDomain(got.tokens.accessToken, root);
-  if (!made.ok) return refuse("domain");
+  if (!made.ok) {
+    /*
+     * R16.1, R22.2. Resend's own sentence, carried to the screen.
+     *
+     * "Resend would not take that domain" tells a church nothing it can act
+     * on. Resend says why, in its own words, and those words name the thing:
+     * a domain somebody else already holds, an address that is not a domain,
+     * an account that has reached its limit. They are the church's to read.
+     */
+    console.error("[resend] domain refused", root, made.said);
+    back.searchParams.set("domain", root);
+    back.searchParams.set("why", made.said.slice(0, 200));
+    return refuse("domain");
+  }
 
   const actor = {
     tenantId: held.tenantId,
