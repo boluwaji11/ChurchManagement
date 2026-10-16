@@ -148,6 +148,7 @@ export function StationManager({
                   />
                 }
                 onSave={(fields) => act(saveStation, { id: station.id, ...fields })}
+                onArchive={() => act(archiveStation, { id: station.id, archived: "1" })}
               />
 
               <span className="pointer-events-none relative grid size-9 shrink-0 place-items-center rounded-[10px] bg-sunken text-fg-muted">
@@ -185,13 +186,6 @@ export function StationManager({
                 ))}
               </div>
 
-              <span className="relative">
-                <ArchiveDialog
-                  station={station}
-                  pending={pending}
-                  onConfirm={() => act(archiveStation, { id: station.id, archived: "1" })}
-                />
-              </span>
             </div>
           ))}
         </section>
@@ -207,12 +201,15 @@ function StationDialog({
   title,
   trigger,
   onSave,
+  onArchive,
 }: {
   station?: StationItem;
   pending: boolean;
   title: string;
   trigger: React.ReactNode;
   onSave: (fields: Record<string, string>) => void;
+  /** R8.1. Archiving this station, from the panel that opens it. */
+  onArchive?: () => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [mode, setMode] = React.useState(station?.mode ?? "desk");
@@ -245,6 +242,21 @@ function StationDialog({
         closeLabel={t("common.close")}
         footer={
           <>
+            {/* R24.6. Archiving lives on the station itself rather than on
+                every row. Down the left of the footer, away from Save, which
+                is where the rest of the product puts it. */}
+            {station && onArchive ? (
+              <span className="mr-auto">
+                <ArchiveDialog
+                  station={station}
+                  pending={pending}
+                  onConfirm={() => {
+                    onArchive();
+                    close(false);
+                  }}
+                />
+              </span>
+            ) : null}
             <Button type="button" variant="ghost" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
