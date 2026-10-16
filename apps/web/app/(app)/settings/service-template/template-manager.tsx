@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Archive, ArrowLeft, GripVertical, Plus, Trash2, Undo2 } from "lucide-react";
+import { Archive, ArrowLeft, GripVertical, Plus, Undo2, X } from "lucide-react";
 import {
   Banner, Button, Field, IconButton, Input, LIFT, cn,
   Dialog, DialogContent, DialogFooter,
@@ -13,6 +13,7 @@ import { t } from "@connectapp/i18n";
 import type { TemplateShape } from "@connectapp/db";
 import type { KindOption } from "@/lib/kind-label";
 import { Empty } from "@/components/empty";
+import { Confirm } from "@/components/confirm";
 import { usePanelGuard } from "@/components/panel-guard";
 import { LibraryPicker } from "@/components/library-picker";
 import { useFormError } from "@/lib/form-error";
@@ -496,13 +497,23 @@ function Lines({
                   }
                 />
 
-                <IconButton
-                  label={t("planTpl.item.remove")}
-                  variant="ghost"
-                  onClick={() => onChange(lines.filter((_, i) => i !== at))}
-                >
-                  <Trash2 />
-                </IconButton>
+                {/* R24.x. The x takes a row off a list and asks first. The
+                    bin is for a record being destroyed, which this is not. */}
+                <Confirm
+                  title={
+                    line.title.trim()
+                      ? t("planTpl.item.removeTitle", { name: line.title.trim() })
+                      : t("planTpl.item.removeUntitled")
+                  }
+                  body={t("planTpl.item.removeBody")}
+                  confirmLabel={t("planTpl.item.remove")}
+                  onConfirm={() => onChange(lines.filter((_, i) => i !== at))}
+                  trigger={
+                    <IconButton label={t("planTpl.item.remove")} variant="ghost">
+                      <X />
+                    </IconButton>
+                  }
+                />
               </div>
             </li>
           ))}
