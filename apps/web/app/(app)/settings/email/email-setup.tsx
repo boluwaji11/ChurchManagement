@@ -743,7 +743,9 @@ function ResendPath({
   onBack: () => void;
 }) {
   const router = useRouter();
-  const [going, setGoing] = React.useState(false);
+  /* Where Resend was sent to, kept so the consent screen can be opened again
+     without the church retyping anything. */
+  const [going, setGoing] = React.useState<string | null>(null);
   const formId = React.useId();
   const full = useAnswered(formId);
 
@@ -769,6 +771,8 @@ function ResendPath({
     };
   }, [going, router]);
 
+  const open = (where: string) => window.open(where, "_blank", "noopener,noreferrer");
+
   if (going) {
     return (
       <Card className="flex flex-col gap-5 p-5">
@@ -786,13 +790,23 @@ function ResendPath({
           </span>
           <p className="m-0 text-fg-muted">{t("email.resend.waitingBody")}</p>
 
-          <div className="flex items-center justify-between gap-3 pt-1">
-            <Button type="button" variant="ghost" onClick={() => setGoing(false)}>
+          {/* R22.2. The other way this goes, said before the church has to
+              work it out: Resend takes a new account through sign-up and
+              leaves it on a dashboard, with the permission never asked for. */}
+          <Banner tone="info">{t("email.resend.waitingNew")}</Banner>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <Button type="button" variant="ghost" onClick={() => setGoing(null)}>
               {t("action.back")}
             </Button>
-            <Button type="button" onClick={() => router.refresh()}>
-              {t("email.resend.waitingCheck")}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="secondary" onClick={() => router.refresh()}>
+                {t("email.resend.waitingCheck")}
+              </Button>
+              <Button type="button" onClick={() => open(going)}>
+                {t("email.resend.waitingAgain")}
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
@@ -819,8 +833,8 @@ function ResendPath({
           const where = new URL("/api/providers/resend/start", window.location.origin);
           where.searchParams.set("from", String(data.get("fromAddress") ?? ""));
           where.searchParams.set("name", String(data.get("fromName") ?? ""));
-          setGoing(true);
-          window.open(where.toString(), "_blank", "noopener,noreferrer");
+          setGoing(where.toString());
+          open(where.toString());
         }}
         noValidate
         className="mx-auto flex w-full max-w-[460px] flex-col gap-4"
@@ -832,13 +846,14 @@ function ResendPath({
         <Sender church={church} />
 
         <p className="m-0 text-fg-muted">{t("email.resend.free")}</p>
+        <p className="m-0 text-fg-muted">{t("email.resend.mayAsk")}</p>
 
         <div className="flex items-center justify-between gap-3 pt-1">
-          <Button type="button" variant="ghost" onClick={onBack} disabled={going}>
+          <Button type="button" variant="ghost" onClick={onBack} disabled={busy}>
             {t("action.back")}
           </Button>
-          <Button data-guide="resend-go" type="submit" disabled={busy || going || !full}>
-            {going ? t("email.resend.leaving") : t("email.resend.go")}
+          <Button data-guide="resend-go" type="submit" disabled={busy || !full}>
+            {t("email.resend.go")}
           </Button>
         </div>
       </form>
