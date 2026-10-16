@@ -161,15 +161,19 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     href: "/website",
     target: "use-design",
     /*
-     * The gallery, then the press that puts the page on the internet.
+     * No stops, because the builder teaches itself.
      *
-     * Two stops rather than three. A stop on the canvas was tried and it never
-     * showed: choosing a design draws the canvas and Publish website in the
-     * same render, and the walk lands on the deepest stop present. Editing the
-     * page is what the editor's own line says the moment it opens, so the
-     * guide saying it again would be a card nobody ever read.
+     * Every other step points at a screen with one job and names the control
+     * to press on it. A builder is twelve jobs on one screen, so it carries a
+     * walk of its own, eleven cards from the gallery to Publish. Two cards
+     * over one screen, each ringing a different control and each claiming to
+     * be the instruction, is the worst of both: the guide's own card said
+     * "choose a design" while the walk said what the whole thing was for.
+     *
+     * So Show me brings a church here and hands over. The walk lives in
+     * app/(app)/website/builder/tour.tsx.
      */
-    stops: ["use-design", "publish-website"],
+    stops: [],
   },
   {
     step: "email",
