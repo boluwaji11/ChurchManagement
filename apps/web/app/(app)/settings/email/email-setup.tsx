@@ -823,54 +823,55 @@ function ResendPath({
           <Stages labels={RESEND_STAGES} at={1} />
         </div>
 
-        <div className="mx-auto flex w-full max-w-[460px] flex-col gap-4">
-          <span className="font-display text-[17px] leading-6 text-fg">
-            {t("email.resend.signin.title")}
-          </span>
-          <p className="m-0 text-fg-muted">{t("email.resend.signin.body")}</p>
+        {/* R22.2. The doors into Resend, until the church says it is through
+            them. Once it has, this is answered and what is left is the one
+            thing still to fill in. */}
+        {signedIn ? null : (
+          <div className="mx-auto flex w-full max-w-[460px] flex-col gap-4">
+            <span className="font-display text-[17px] leading-6 text-fg">
+              {t("email.resend.signin.title")}
+            </span>
+            <p className="m-0 text-fg-muted">{t("email.resend.signin.body")}</p>
 
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            {/* R22.2. Two doors rather than one, because a church that has no
-                account and a church that has one are looking for different
-                words. They stay here once the form is open: somebody who said
-                they were through and was not comes back to them. */}
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => open("https://resend.com/signup")}
-            >
-              {t("email.resend.signin.up")}
-              <ExternalLink className="size-[14px]" aria-hidden />
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => open("https://resend.com/login")}
-            >
-              {t("email.resend.signin.in")}
-              <ExternalLink className="size-[14px]" aria-hidden />
-            </Button>
-            {signedIn ? null : (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {/* R22.2. Two doors rather than one, because a church that has no
+                  account and a church that has one are looking for different
+                  words. They stay here once the form is open: somebody who said
+                  they were through and was not comes back to them. */}
               <Button
-                data-guide="resend-signedin"
-                /* The other two doors are to its left, so the card goes
-                   underneath rather than over them. */
-                data-guide-side="below"
                 type="button"
-                onClick={() => setSignedIn(true)}
+                variant="secondary"
+                onClick={() => open("https://resend.com/signup")}
               >
-                {t("email.resend.signin.done")}
+                {t("email.resend.signin.up")}
+                <ExternalLink className="size-[14px]" aria-hidden />
               </Button>
-            )}
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => open("https://resend.com/login")}
+              >
+                {t("email.resend.signin.in")}
+                <ExternalLink className="size-[14px]" aria-hidden />
+              </Button>
+              {signedIn ? null : (
+                <Button
+                  data-guide="resend-signedin"
+                  /* The other two doors are to its left, so the card goes
+                     underneath rather than over them. */
+                  data-guide-side="below"
+                  type="button"
+                  onClick={() => setSignedIn(true)}
+                >
+                  {t("email.resend.signin.done")}
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {signedIn ? (
           <>
-            <div className="mx-auto w-full max-w-[460px]">
-              <hr className="border-0 border-t border-line" />
-            </div>
-
             <form
               id={formId}
               /* It leaves the product rather than saving anything, and the
@@ -888,10 +889,10 @@ function ResendPath({
               noValidate
               className="mx-auto flex w-full max-w-[460px] flex-col gap-4"
             >
-              {/* R21.15. What the church is agreeing to, said where the press
-                  is rather than found out afterwards. */}
-              <Banner tone="info">{t("email.resend.access")}</Banner>
-
+              {/* R21.15. What the church is agreeing to is on Resend's own
+                  screen, in its words, at the moment it is agreed to. Saying
+                  it here as well was a banner over a form with two boxes in
+                  it. */}
               <Sender church={church} />
 
               <p className="m-0 text-fg-muted">{t("email.resend.free")}</p>
