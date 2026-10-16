@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3346 of 4845 keys.
+ * 3350 of 4849 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -72,23 +72,27 @@ export const browserWords: Catalogue = {
   "site.why.quote": "Each of you should use whatever gift you have received to serve others, as faithful stewards of God's grace in its various forms.",
   "site.why.cite": "1 Peter 4:10",
   "site.features.title": "Everything in one place",
-  "site.features.sub": "One platform, one set of records",
-  "site.features.people": "Congregants",
-  "site.features.people.body": "The record of everyone the church knows, from a first visit onward.",
+  "site.features.sub": "Everything your church needs to stay organised, connected and growing.",
+  "site.features.people": "Members",
+  "site.features.people.body": "Keep your congregation's contact details, families and membership records organised.",
   "site.features.groups": "Groups",
-  "site.features.groups.body": "Where people meet through the week, and how a newcomer finds a way in.",
+  "site.features.groups.body": "Organise small groups, ministries and classes, and help people find where they belong.",
   "site.features.checkin": "Check-in",
-  "site.features.checkin.body": "Getting children into their rooms safely, and home with the right adult.",
+  "site.features.checkin.body": "Check children into classes securely, with matching labels for easy pickup.",
   "site.features.giving": "Giving",
-  "site.features.giving.body": "How a church receives what its people give, and accounts for it.",
-  "site.features.serving": "Schedule",
-  "site.features.serving.body": "Who is on each team, and who is on this week.",
+  "site.features.giving.body": "Accept online donations, manage giving funds and track contributions.",
+  "site.features.serving": "Volunteer scheduling",
+  "site.features.serving.body": "Organise your teams, assign volunteers and keep everyone informed of when they are serving.",
   "site.features.services": "Services",
-  "site.features.services.body": "What happens in a service, and who makes it happen.",
+  "site.features.services.body": "Plan your services, organise the order of worship and coordinate your teams.",
   "site.features.events": "Events",
-  "site.features.events.body": "Anything the church puts on, and everyone who signs up for it.",
+  "site.features.events.body": "Create events, manage registrations and keep your congregation informed.",
   "site.features.reports": "Reports",
-  "site.features.reports.body": "What the numbers say about how the church is doing.",
+  "site.features.reports.body": "Understand attendance, giving and church activity with clear reports.",
+  "site.features.website": "Website",
+  "site.features.website.body": "Build your church website and publish it for your community to find.",
+  "site.features.forms": "Forms",
+  "site.features.forms.body": "Create online forms and collect the answers straight into your church records.",
   "site.people.eyebrow": "Member management",
   "site.people.title": "Know your congregants",
   "site.people.households": "Members and households",
