@@ -998,6 +998,7 @@ of money and after everything else.
 | HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | Resolved |
 | HRT-372 | An invitation is ConnectApp's own mail, so it sends on day one | R16.4, R22.1 | Resolved |
 | HRT-373 | The invitation email looks like the product it is inviting somebody into | R16.4, R24.x | Resolved |
+| HRT-374 | Rooms open on the rooms churches already have | R8.14, R22.1 | Resolved |
 
 R22.1 lists giving and messaging credentials as wizard steps, and both are now built, so both are
 steps of the guide. The five-step wizard of 0.2 is replaced by HRT-367.
@@ -4190,6 +4191,20 @@ engine that ignores a radius draws three squares, which is still the mark. The c
 Nothing in the acceptance path changed, because nothing needed to: the address in the link grants
 nothing. An invitation is matched on a Supabase-verified address, against a row that is unaccepted,
 unrevoked and unexpired, and `accepted_at` is written as it is taken up, so it cannot be used twice.
+
+### HRT-374, the one panel that still opened on nothing
+
+Tags, group types, funds, service types, service templates, email templates, teams, forms and
+follow-ups all open on the ones churches keep. Rooms and stations did not, and rooms is the panel
+where it matters most, because a room carries a number: a church knows what it calls its nursery
+and hesitates over whether the toddlers' room starts at eighteen months or two.
+
+Ten rooms, five of them children's with the usual bands, five of them the spaces a church meets in.
+Picking one fills the same form somebody would have typed, ages included, and every field is still
+typed over. The list leaves out what the church already has.
+
+Stations are the remaining one, and a station is a device rather than a record, so the shape that
+fits it is a different question.
 
 ### HRT-368, and the hole that was not there
 
