@@ -4441,6 +4441,8 @@ export const en = {
   "roomLib.years.one": "1 year",
   "roomLib.years.other": "{count} years",
   "rooms.ownRoom": "Create your own",
+  "rooms.backToList": "Back to the list",
+  "rooms.addThis": "Add",
   "rooms.none.title": "No rooms yet",
   "rooms.none.body": "Add the rooms and spaces your church uses.",
   "settings.tab.rooms": "Rooms",
