@@ -29,7 +29,7 @@ import { supabaseServer } from "@/lib/supabase/server";
  * church is read off the key and checked rather than taken on trust.
  */
 
-const KEY = /^[a-z0-9][a-z0-9-]{0,62}\/website_media\/[a-f0-9-]{36}\.(?:png|jpg|webp|mp4|webm)$/;
+const KEY = /^[a-z0-9][a-z0-9-]{0,62}\/(website_media|logo)\/[a-f0-9-]{36}\.(?:png|jpg|webp|mp4|webm)$/;
 
 /** An hour less a little, so a held redirect never outlives what it points at. */
 const SIGNED_FOR = 3600;
@@ -46,7 +46,13 @@ export async function GET(
   if (!KEY.test(key)) return gone();
   const slug = key.split("/")[0]!;
 
-  const open = await siteMediaIsPublic(slug, key);
+  /*
+   * A church's mark is public by nature: it is on its website, its giving page
+   * and its notice sheet, and the storage policy says so by name. Everything
+   * else has to be on the published website.
+   */
+  const isLogo = key.split("/")[1] === "logo";
+  const open = isLogo || await siteMediaIsPublic(slug, key);
   if (!open) {
     /* Not on the published page. Only this church's own staff may see it. */
     const user = await currentUser();

@@ -240,3 +240,93 @@ describe("the old homepage, brought forward", () => {
     expect(await publicSite(TWO)).not.toBeNull();
   });
 });
+
+/**
+ * R21.1. The storage policy, which is the real guard on a church's pictures.
+ *
+ * `siteMediaIsPublic` above is the application's own answer and the route asks
+ * it first. This asks the database the same question, because the policy is
+ * what stands between a photograph in a church's private folder and anybody who
+ * can guess its name. The function is only defined where Supabase's storage
+ * schema is, so against a plain Postgres container there is nothing to assert.
+ */
+describe("the storage policy on website media", () => {
+  const key = `${ONE}/website_media/22222222-3333-4444-5555-666666666666.webp`;
+  let present = false;
+
+  beforeAll(async () => {
+    const rows = await owner()<{ there: boolean }[]>`
+      select to_regproc('connectapp.website_media_is_public(text)') is not null as there`;
+    present = rows[0]?.there ?? false;
+    if (!present) return;
+    await owner()`
+      insert into stored_files (tenant_id, bucket, key, purpose, content_type, bytes)
+      values (${one}, 'church', ${key}, 'website_media', 'image/webp', 1024)
+      on conflict do nothing`;
+  });
+
+  const ask = async (): Promise<boolean> => {
+    const rows = await owner()<{ open: boolean }[]>`
+      select connectapp.website_media_is_public(${key}) as open`;
+    return rows[0]?.open ?? false;
+  };
+
+  it("refuses a picture only the draft points at", async () => {
+    if (!present) return;
+    const state = await run(one, "owner", (tx) => siteState(tx, one));
+    await run(one, "owner", (tx) => saveSiteDraft(tx, actor(one), {
+      doc: {
+        ...state!.draft,
+        pages: [{
+          ...state!.draft.pages[0]!,
+          sections: [{
+            id: "hero", type: "hero", variant: "split",
+            content: { title: "Draft", image: { key, url: null, alt: "" } },
+          }],
+        }],
+      },
+      version: state!.draftVersion,
+    }));
+    expect(await ask()).toBe(false);
+  });
+
+  it("allows it once the church publishes, at whatever depth it sits", async () => {
+    if (!present) return;
+    await run(one, "owner", (tx) => publishSite(tx, actor(one)));
+    expect(await ask()).toBe(true);
+  });
+
+  it("refuses it again the moment it comes off the page", async () => {
+    if (!present) return;
+    const state = await run(one, "owner", (tx) => siteState(tx, one));
+    await run(one, "owner", (tx) => saveSiteDraft(tx, actor(one), {
+      doc: {
+        ...state!.draft,
+        pages: [{ ...state!.draft.pages[0]!, sections: [] }],
+      },
+      version: state!.draftVersion,
+    }));
+    await run(one, "owner", (tx) => publishSite(tx, actor(one)));
+    expect(await ask()).toBe(false);
+  });
+
+  it("finds a picture inside a repeated row, not only a named field", async () => {
+    if (!present) return;
+    const state = await run(one, "owner", (tx) => siteState(tx, one));
+    await run(one, "owner", (tx) => saveSiteDraft(tx, actor(one), {
+      doc: {
+        ...state!.draft,
+        pages: [{
+          ...state!.draft.pages[0]!,
+          sections: [{
+            id: "cards", type: "cards", variant: "threeCards",
+            content: { items: [{ title: "One", image: { key, url: null, alt: "" } }] },
+          }],
+        }],
+      },
+      version: state!.draftVersion,
+    }));
+    await run(one, "owner", (tx) => publishSite(tx, actor(one)));
+    expect(await ask()).toBe(true);
+  });
+});

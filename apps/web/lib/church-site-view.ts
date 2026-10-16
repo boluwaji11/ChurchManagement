@@ -20,8 +20,10 @@ export function siteCtxFrom(
     name: site.church.name,
     country: site.church.country,
     timezone: site.church.timezone,
+    /* The church's own mark, which it uploaded once in Settings and which the
+       giving page and the group finder already show. */
     logo: site.church.logoKey
-      ? { key: null, url: null, alt: site.church.name }
+      ? { key: site.church.logoKey, url: null, alt: site.church.name }
       : null,
     email: site.church.email,
     phone: site.church.phone,

@@ -141,10 +141,22 @@ function RunView({ run, site }: { run: Run; site: SiteCtx }) {
     : run.t;
   const href = hrefFor(site, run.href);
   if (!href) return <>{inner}</>;
+  const look =
+    "underline decoration-[1.5px] underline-offset-[3px] transition-colors"
+    + " hover:text-[var(--s-primary)]";
+  /*
+   * Inside the canvas the destination rides along on the element, because the
+   * editor reads the words back out of the DOM after somebody has typed in
+   * them. Without it a link to another page would come back as the address it
+   * happened to resolve to, and a page renamed later would break it.
+   */
+  if (site.editing) {
+    return <span className={look} data-to={JSON.stringify(run.href)}>{inner}</span>;
+  }
   return (
     <a
       href={href}
-      className="underline decoration-[1.5px] underline-offset-[3px] transition-colors hover:text-[var(--s-primary)]"
+      className={look}
       {...(away(href) ? { target: "_blank", rel: "noopener noreferrer" } : {})}
     >
       {inner}
