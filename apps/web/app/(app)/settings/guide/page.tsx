@@ -1,8 +1,7 @@
-import { canManageChurch, withTenant, setupProgress } from "@connectapp/db";
+import { canManageChurch } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { requireSession } from "@/lib/session";
 import { Denied } from "@/components/denied";
-import { SettingsHeading } from "../heading";
 import { BringBack } from "./bring-back";
 import { tabMetadata } from "@/lib/page-metadata";
 
@@ -16,9 +15,10 @@ export async function generateMetadata() {
 /**
  * R22.1. Where the setup guide comes back from.
  *
- * Putting it away is church-wide and final from the rail's side, and the card
- * that offers it says a church can come back to anything it skipped. This is
- * where coming back happens, so that sentence is true.
+ * Nothing to read: a church pressing Setup guide wants the guide, so this
+ * turns it back on and goes to the first settings screen, with the rail
+ * beside it. A screen saying "the guide is beside every screen" over a screen
+ * that has it beside it is a screen saying what the reader can see.
  */
 export default async function GuidePage() {
   const session = await requireSession();
@@ -26,15 +26,5 @@ export default async function GuidePage() {
     return <Denied role={session.role} action="editChurch" church={session.tenantSlug} />;
   }
 
-  const setup = await withTenant(
-    { tenantId: session.tenantId, role: session.role, userId: session.userId },
-    (tx) => setupProgress(tx, session),
-  );
-
-  return (
-    <>
-      <SettingsHeading title="settings.tab.guide" lede="settings.lede.guide" />
-      <BringBack away={setup.dismissed} />
-    </>
-  );
+  return <BringBack />;
 }

@@ -222,7 +222,7 @@ export function Rail({
      left in it to lose. */
   const confirm = (
     <Dialog open={asking} onOpenChange={setAsking}>
-      <DialogContent alert title={t("setup.putAway.title")}>
+      <DialogContent alert title={t("setup.putAway.title", { name: church })}>
         <p className="mb-5 text-[length:var(--d-text-body)] text-fg">
           {t("setup.putAway.body")}
         </p>

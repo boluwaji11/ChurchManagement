@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3345 of 4846 keys.
+ * 3344 of 4843 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1943,13 +1943,12 @@ export const browserWords: Catalogue = {
   "setup.skipped": "Skipped",
   "setup.next": "Next",
   "setup.putAway": "Finish setup",
-  "setup.putAway.title": "Put the setup guide away?",
-  "setup.putAway.body": "It goes from every screen and does not come back.",
-  "setup.putAway.keep": "Keep it",
+  "setup.putAway.title": "Finish setting up {name}?",
+  "setup.putAway.body": "Your setup guide will be hidden. You can still manage your church's settings and set up skipped features anytime.",
+  "setup.putAway.keep": "Keep guide",
   "setup.done.title": "You're all set!",
   "setup.done.body": "You've finished your setup guide. You can start using ConnectApp and return to any skipped steps whenever you're ready.",
-  "setup.bringBack": "Show the setup guide",
-  "setup.bringBack.showing": "The setup guide is beside every screen.",
+  "settings.tab.guide": "Setup guide",
   "team.send": "Send invite",
   "team.waiting": "Invitations open once this church is approved",
   "team.waitingBody": "Usually within the hour. Your own account works as it does now.",
