@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, ExternalLink, Mail, Send, Server, Unplug } from "lucide-react";
+import { ArrowLeft, Check, Copy, ExternalLink, Mail, Send, Server, Unplug } from "lucide-react";
 import {
-  Banner, Button, Card, Field, Input, Tooltip, Working,
+  Banner, Button, Card, Field, IconButton, Input, Tooltip, Working,
   Dialog, DialogTrigger, DialogContent, DialogFooter,
   Sheet, SheetTrigger, SheetContent,
 } from "@connectapp/ui";
@@ -794,7 +794,18 @@ function ResendPath({
 
   if (!signedIn && !going) {
     return (
-      <Card className="flex flex-col gap-6 p-5">
+      <Card className="flex flex-col gap-4 p-5">
+        {/* R24.6. The way out, where a reader looks for it: the top left of
+            the thing they are in, as an arrow rather than a word. */}
+        <IconButton
+          label={t("action.back")}
+          variant="ghost"
+          className="-mt-1 -ml-1 self-start"
+          onClick={onBack}
+        >
+          <ArrowLeft />
+        </IconButton>
+
         <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
           <Stages labels={RESEND_STAGES} at={1} />
         </div>
@@ -805,10 +816,7 @@ function ResendPath({
           </span>
           <p className="m-0 text-fg-muted">{t("email.resend.signin.body")}</p>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-            <Button type="button" variant="ghost" onClick={onBack}>
-              {t("action.back")}
-            </Button>
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
             <div className="flex flex-wrap items-center gap-2">
               {/* R22.2. Two doors rather than one, because a church that has
                   no account and a church that has one are looking for
@@ -841,7 +849,18 @@ function ResendPath({
 
   if (going) {
     return (
-      <Card className="flex flex-col gap-5 p-5">
+      <Card className="flex flex-col gap-4 p-5">
+        {/* R24.6. The way out, where a reader looks for it: the top left of
+            the thing they are in, as an arrow rather than a word. */}
+        <IconButton
+          label={t("action.back")}
+          variant="ghost"
+          className="-mt-1 -ml-1 self-start"
+          onClick={() => setGoing(null)}
+        >
+          <ArrowLeft />
+        </IconButton>
+
         <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
           <Stages labels={RESEND_STAGES} at={2} />
         </div>
@@ -861,10 +880,7 @@ function ResendPath({
               leaves it on a dashboard, with the permission never asked for. */}
           <Banner tone="info">{t("email.resend.waitingNew")}</Banner>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-            <Button type="button" variant="ghost" onClick={() => setGoing(null)}>
-              {t("action.back")}
-            </Button>
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
             <div className="flex flex-wrap items-center gap-2">
               <Button type="button" variant="secondary" onClick={() => router.refresh()}>
                 {t("email.resend.waitingCheck")}
@@ -880,7 +896,18 @@ function ResendPath({
   }
 
   return (
-    <Card className="flex flex-col gap-6 p-5">
+    <Card className="flex flex-col gap-4 p-5">
+        {/* R24.6. The way out, where a reader looks for it: the top left of
+            the thing they are in, as an arrow rather than a word. */}
+        <IconButton
+          label={t("action.back")}
+          variant="ghost"
+          className="-mt-1 -ml-1 self-start"
+          onClick={() => setSignedIn(false)}
+        >
+          <ArrowLeft />
+        </IconButton>
+
 
       {/* Held to the width of the form under it, so the two dots read as a
           pair rather than as one at each end of the card. */}
@@ -913,10 +940,7 @@ function ResendPath({
 
         <p className="m-0 text-fg-muted">{t("email.resend.free")}</p>
 
-        <div className="flex items-center justify-between gap-3 pt-1">
-          <Button type="button" variant="ghost" onClick={() => setSignedIn(false)} disabled={busy}>
-            {t("action.back")}
-          </Button>
+        <div className="flex items-center justify-end gap-3 pt-1">
           <Button data-guide="resend-go" type="submit" disabled={busy || !full}>
             {t("email.resend.go")}
           </Button>
