@@ -334,7 +334,19 @@ function TemplatePanel({
             {template || library.length === 0 ? null : (
               <button
                 type="button"
-                onClick={() => setPicking(true)}
+                /*
+                 * R24.6. Going back to the list abandons the draft, so what
+                 * the pick filled in goes with it. Without this, reading the
+                 * shapes and closing the panel was answered with "you have
+                 * changes that are not saved", about words nobody typed.
+                 */
+                onClick={() => {
+                  setName("");
+                  setLines([]);
+                  setFromLibrary(false);
+                  setDirty(false);
+                  setPicking(true);
+                }}
                 className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
               >
                 <ArrowLeft className="size-4" aria-hidden /> {t("fields.back")}

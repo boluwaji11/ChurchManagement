@@ -402,8 +402,17 @@ export function TeamPanel({
           {team || library.length === 0 ? null : (
             <button
               type="button"
+              /*
+               * R24.6. Going back to the list abandons the draft, so what the
+               * pick filled in goes with it rather than being reported as
+               * unsaved changes nobody typed.
+               */
               onClick={() => {
+                setName("");
+                setAbout("");
+                setPositions([EMPTY_POSITION]);
                 setPicked(false);
+                setDirty(false);
                 setStep("pick");
               }}
               className="flex cursor-pointer items-center gap-1.5 self-start font-medium text-primary"
