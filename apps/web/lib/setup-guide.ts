@@ -135,7 +135,13 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     target: "add-group-type",
     stops: ["add-group-type", "group-type-save"],
   },
-  { step: "email", phase: "ready", href: "/settings/email", target: "connect-email" },
+  {
+    step: "email",
+    phase: "ready",
+    href: "/settings/email",
+    target: "connect-email",
+    stops: ["connect-email", "email-connect"],
+  },
   { step: "giving", phase: "ready", href: "/settings/online", target: "connect-stripe" },
   {
     step: "funds",
