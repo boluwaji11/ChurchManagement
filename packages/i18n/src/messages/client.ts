@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3367 of 4866 keys.
+ * 3370 of 4869 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -3320,11 +3320,11 @@ export const browserWords: Catalogue = {
   "email.resend.waitingNew": "If Resend shows you its dashboard rather than asking for permission, nothing there is for your church: come back to this tab and press Authorise ConnectApp.",
   "email.resend.waitingAgain": "Authorise ConnectApp",
   "email.resend.waitingCheck": "Check again",
-  "email.resend.free": "Resend is free up to 100 emails a day. Past that, Resend bills your church.",
+  "email.resend.free": "Resend offers a free plan for up to 100 emails per day. Higher sending limits may require a paid plan.",
   "email.resend.leaving": "Taking you to Resend",
-  "email.from.name": "Which name appears on emails",
+  "email.from.name": "Sender name",
   "email.from.namePlaceholder": "e.g. Grace Chapel",
-  "email.from.address": "Which address it is sent from",
+  "email.from.address": "Sender email address",
   "email.from.addressPlaceholder": "e.g. office@your-church.org",
   "email.connected.smtp": "Emails are sent via {host}",
   "email.connected.resend": "Emails are sent via Resend",
@@ -3332,18 +3332,21 @@ export const browserWords: Catalogue = {
   "email.checkedAt": "Last checked {when}",
   "email.choose": "How will your church send email via ConnectApp?",
   "email.stage.connect": "Connect Resend",
-  "email.stage.records": "Update your domain provider",
+  "email.stage.records": "Verify your domain",
   "email.stage.done": "Ready to send",
   "email.records.onepress": "Add them for me",
   "email.records.onepressWhat": "Your domain provider can do this for you. You will be asked to approve it there.",
-  "email.records.lead": "Add the three items below to your domain provider at {name}.",
-  "email.records.leadPlain": "Add the three items below to your domain provider.",
+  "email.records.lead.one": "Add the item below to your domain provider at {name}.",
+  "email.records.lead.other": "Add the {count} items below to your domain provider at {name}.",
+  "email.records.leadPlain.one": "Add the item below to your domain provider.",
+  "email.records.leadPlain.other": "Add the {count} items below to your domain provider.",
   "email.records.open": "Open {name}",
   "email.record.type": "Kind",
   "email.record.host": "Name",
   "email.record.value": "Value",
   "email.record.priority": "Priority",
-  "email.watching": "This turns itself over as soon as the three are in.",
+  "email.watching.one": "This turns itself over as soon as it is in.",
+  "email.watching.other": "This turns itself over as soon as all {count} are in.",
   "email.test": "Send a test email",
   "email.test.sending": "Sending",
   "email.test.sent": "Sent to {address}. If it is not there in a minute, look in the spam folder.",

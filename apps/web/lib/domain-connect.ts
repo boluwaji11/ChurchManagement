@@ -37,15 +37,34 @@ const PATIENCE = 4000;
  * that moved last week gets the right answer.
  */
 export async function discover(domain: string, resolver: Resolver): Promise<string | null> {
-  const at = `_domainconnect.${domain}`;
+  /*
+   * R22.2. Up the labels until somebody answers.
+   *
+   * Domain Connect is published on the zone, which is the apex: Vercel
+   * answers for connectapp.church and has nothing to say about
+   * test.connectapp.church. A church sending from a subdomain is sending
+   * from a name whose records are kept at the apex, so asking only the name
+   * it typed found nothing and the one press was never offered.
+   *
+   * The walk stops before the public suffix, so `church` is never asked.
+   */
+  const labels = domain.split(".").filter(Boolean);
+  for (let i = 0; i + 2 <= labels.length; i += 1) {
+    const where = labels.slice(i).join(".");
+    const at = `_domainconnect.${where}`;
 
-  const txt = await resolver.txt(at).catch(() => []);
-  const named = txt.map((parts) => parts.join("").trim()).find(Boolean);
-  if (named) return named.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    const txt = await resolver.txt(at).catch(() => []);
+    const named = txt
+      .map((parts) => parts.join("").trim())
+      .find((one) => Boolean(one) && !one.startsWith("v="));
+    if (named) return named.replace(/^https?:\/\//, "").replace(/\/+$/, "");
 
-  const cname = await resolver.cname(at).catch(() => []);
-  const pointed = cname[0]?.trim().replace(/\.$/, "");
-  return pointed || null;
+    const cname = await resolver.cname(at).catch(() => []);
+    const pointed = cname[0]?.trim().replace(/\.$/, "");
+    if (pointed) return pointed;
+  }
+
+  return null;
 }
 
 interface Settings {
