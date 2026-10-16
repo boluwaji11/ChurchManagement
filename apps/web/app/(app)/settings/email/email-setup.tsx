@@ -98,6 +98,14 @@ export function EmailSetup({
       setError(answer.error);
       return false;
     }
+    /*
+     * R16.1. A disconnect leaves the round trip's message in the address,
+     * where a reload would bring it back. The screen is the same one, so the
+     * address is tidied rather than navigated.
+     */
+    if (answer.went && typeof window !== "undefined" && window.location.search) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
     router.refresh();
     return true;
   };

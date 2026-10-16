@@ -68,7 +68,11 @@ export default async function EmailPage({
     /* R24.11. Two reads that want nothing from each other, together. The
        church itself comes from the frame, which has already read it. */
     async (tx) => {
-      const [provider, domain] = await Promise.all([emailProvider(tx), sendingDomain(tx)]);
+      /* The provider first, because the domain is read for that provider:
+         an older one left behind by a church that connected twice is not the
+         one it is sending from. */
+      const provider = await emailProvider(tx);
+      const domain = provider ? await sendingDomain(tx, provider.id) : null;
       return { provider, domain, profile };
     },
   );
@@ -110,7 +114,17 @@ export default async function EmailPage({
     });
   })();
 
-  const said = SAID.find((one) => one === resend);
+  /*
+   * R16.1. What the round trip to Resend said, where it is still true.
+   *
+   * It arrives in the address, and the address survives a disconnect: the
+   * action writes, revalidates, and the screen comes back on the same URL
+   * with "Connected to Resend" sitting over two cards offering to connect.
+   * A message about having connected is only worth saying while something is
+   * connected.
+   */
+  const told = SAID.find((one) => one === resend);
+  const said = told === "connected" && !read.provider ? undefined : told;
 
   return (
     <>
