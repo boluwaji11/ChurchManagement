@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3367 of 4866 keys.
+ * 3366 of 4865 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -3310,7 +3310,6 @@ export const browserWords: Catalogue = {
   "email.resend.what": "Send announcements and updates to your members using Resend.",
   "email.resend.learn": "See what Resend is",
   "email.resend.connect": "Connect Resend",
-  "email.resend.access": "ConnectApp sets up your sending domain and sends your church's email from this account.",
   "email.resend.go": "Continue to Resend",
   "email.resend.signin.title": "Sign in to Resend",
   "email.resend.signin.body": "Sign in to Resend, or create an account and verify your email address. That is all you need to do there.",
