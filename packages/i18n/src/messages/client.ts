@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3343 of 4842 keys.
+ * 3346 of 4846 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1825,7 +1825,7 @@ export const browserWords: Catalogue = {
   "setup.count": "{done} of {all}",
   "setup.left.one": "1 step left",
   "setup.left.other": "{count} steps left",
-  "setup.left.none": "All done",
+  "setup.left.none": "Setup complete",
   "setup.soFar": "{done} of {all} done",
   "setup.phase.basics": "The basics",
   "setup.phase.basics.why": "Add your members, invite your team, and set up your church.",
@@ -1942,12 +1942,15 @@ export const browserWords: Catalogue = {
   "setup.unskip": "Undo skip",
   "setup.skipped": "Skipped",
   "setup.next": "Next",
-  "setup.putAway": "Put the guide away",
+  "setup.putAway": "Finish setup",
   "setup.putAway.title": "Put the setup guide away?",
   "setup.putAway.body": "It goes from every screen and does not come back.",
   "setup.putAway.keep": "Keep it",
-  "setup.done.title": "{name} is set up",
-  "setup.done.body": "Every step is answered, one way or the other.",
+  "setup.done.title": "You're all set!",
+  "setup.done.body": "You've finished your setup guide. You can start using ConnectApp and return to any skipped steps whenever you're ready.",
+  "setup.bringBack.lede": "The guide walks you through setting your church up, step by step.",
+  "setup.bringBack": "Show the setup guide",
+  "setup.bringBack.showing": "The setup guide is beside every screen.",
   "team.send": "Send invite",
   "team.waiting": "Invitations open once this church is approved",
   "team.waitingBody": "Usually within the hour. Your own account works as it does now.",
