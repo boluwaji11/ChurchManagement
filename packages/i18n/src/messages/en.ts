@@ -2940,10 +2940,10 @@ export const en = {
   "setup.why.teams": "Teams help you organise volunteers, assign responsibilities, and schedule who's serving at each service.",
   "setup.at.teams": "Click Add a team, enter its name, add the positions volunteers can serve in, and save.",
 
-  "setup.step.planTemplate": "Your order of service",
-  "setup.what.planTemplate": "A template holding the shape your services usually follow, with each item and how long it runs.",
-  "setup.why.planTemplate": "Every service starts from it, so the week's planning becomes editing rather than writing. It also gives your musicians and tech team one order to read from.",
-  "setup.at.planTemplate": "Press Add template, then add an item for each part of the service and give it a length.",
+  "setup.step.planTemplate": "Create your order of service",
+  "setup.what.planTemplate": "Set up the usual flow of your church services, including activities and how long each one takes.",
+  "setup.why.planTemplate": "Use this template to plan future services faster and keep your worship, media, and volunteer teams on the same page.",
+  "setup.at.planTemplate": "Click Add a new template, give it a name, then add each part of your service and its estimated duration.",
 
   "setup.step.plan": "Plan this week's service",
   "setup.what.plan": "The running order for the service you have coming up, built from your template.",
@@ -3519,8 +3519,8 @@ export const en = {
 
   // Plan templates, configured in settings
   "settings.group.services": "Services",
-  "settings.tab.plans": "Service template",
-  "settings.lede.plans": "The outline your service plans start from.",
+  "settings.tab.plans": "Service templates",
+  "settings.lede.plans": "Create reusable outlines for planning your church services.",
   "settings.tab.kinds": "Service type",
   "settings.lede.kinds": "What your church puts on a plan.",
   "itemKind.add": "Add a new type",
@@ -3571,8 +3571,8 @@ export const en = {
   "planTpl.archived.none": "No archived service templates",
   "planTpl.archived.back": "Service template",
   "planTpl.keep": "Keep it",
-  "planTpl.empty.title": "No plan templates yet",
-  "planTpl.empty.body": "Write down the shape your services run to.",
+  "planTpl.empty.title": "No service templates yet",
+  "planTpl.empty.body": "Create a reusable outline for your church services.",
   "planTpl.failed": "That did not save. Try again.",
   "planTpl.manage": "Manage templates",
   "planTpl.search": "Search templates",
