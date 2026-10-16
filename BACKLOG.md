@@ -181,12 +181,12 @@ we do not. The reading that produced them is below the table.
 | HRT-340 | Take out the church prop nothing reads | R24.18 | Resolved |
 | HRT-338 | Website Builder 2.0: a church builds a site it is proud of (umbrella) | R22.2, R24.15 | New |
 | HRT-377 | The website document model: pages, sections, theme, draft and published revisions | R22.2, R24.15 | Resolved |
-| HRT-378 | The visual editor: canvas, selection, inline text, inspector, undo, autosave | R22.2, R24.15 | New |
-| HRT-379 | The section library and its layout variants | R22.2, R24.15 | New |
-| HRT-380 | Six art-directed templates, and site styles a church changes once | R22.2, R24.6 | New |
-| HRT-381 | Pages, navigation, the shared header and the shared footer | R22.2, R17.1 | New |
-| HRT-382 | What the site reads from the church: service times, events, groups, forms, giving | R22.2, R1.5 | New |
-| HRT-383 | Publish, revisions, preview, search engines, and how fast the page is | R22.2, R24.15, R22.7 | New |
+| HRT-378 | The visual editor: canvas, selection, inline text, inspector, undo, autosave | R22.2, R24.15 | Resolved |
+| HRT-379 | The section library and its layout variants | R22.2, R24.15 | Resolved |
+| HRT-380 | Six art-directed templates, and site styles a church changes once | R22.2, R24.6 | Resolved |
+| HRT-381 | Pages, navigation, the shared header and the shared footer | R22.2, R17.1 | Resolved |
+| HRT-382 | What the site reads from the church: service times, events, groups, forms, giving | R22.2, R1.5 | Resolved |
+| HRT-383 | Publish, revisions, preview, search engines, and how fast the page is | R22.2, R24.15, R22.7 | Resolved |
 | HRT-384 | The landing page's feature grid says what each part is for | R24.6, R22.1 | Resolved |
 
 
