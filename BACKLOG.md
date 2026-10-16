@@ -187,6 +187,7 @@ we do not. The reading that produced them is below the table.
 | HRT-381 | Pages, navigation, the shared header and the shared footer | R22.2, R17.1 | New |
 | HRT-382 | What the site reads from the church: service times, events, groups, forms, giving | R22.2, R1.5 | New |
 | HRT-383 | Publish, revisions, preview, search engines, and how fast the page is | R22.2, R24.15, R22.7 | New |
+| HRT-384 | The landing page's feature grid says what each part is for | R24.6, R22.1 | Resolved |
 
 
 

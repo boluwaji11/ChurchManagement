@@ -11,7 +11,9 @@ import {
   CalendarCheck,
   ChartColumn,
   CircleDot,
+  ClipboardList,
   Download,
+  Globe,
   HandCoins,
   ListMusic,
   Lock,
@@ -71,6 +73,8 @@ const FEATURES = [
   { icon: <ListMusic />, key: "services" },
   { icon: <Calendar />, key: "events" },
   { icon: <ChartColumn />, key: "reports" },
+  { icon: <Globe />, key: "website" },
+  { icon: <ClipboardList />, key: "forms" },
 ] as const;
 
 const TRUST = [
