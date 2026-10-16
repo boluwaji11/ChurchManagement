@@ -147,9 +147,17 @@ export default function GuideGallery() {
           </div>
 
           <Point
-            target={pointing ? "design-gallery-target" : null}
-            title="A check-in station"
-            body="Press Pair a station, name the desk, and tick the rooms it checks into."
+            stops={
+              pointing
+                ? [
+                    {
+                      target: "design-gallery-target",
+                      body: "Click Add a station, give it a name, and select the rooms it will handle.",
+                    },
+                  ]
+                : []
+            }
+            title="Set up a check-in station"
             onClose={() => setPointing(false)}
           />
         </div>

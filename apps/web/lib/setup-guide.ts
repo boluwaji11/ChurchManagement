@@ -26,6 +26,21 @@ export interface GuideStep {
    * at it on arrival. Left out where the whole screen is the step.
    */
   target?: string;
+  /**
+   * R22.3. The rest of the walk, where the step is more than one press.
+   *
+   * Finishing a step is rarely one control: a plan is started from a template
+   * chosen in a box that opens over the screen, and a church that was pointed
+   * at the first press and then left alone is a church holding an empty plan.
+   * So a step may name the controls in the order they appear, and the guide
+   * shows the deepest one that is on the screen right now. Nothing is stored
+   * and nothing advances: the screen says where somebody has got to, so going
+   * back puts the card back on the press before.
+   *
+   * Each stop reads `setup.at.<step>` for the first and `setup.at.<step>.2`,
+   * `.3` and so on for the rest.
+   */
+  stops?: readonly string[];
 }
 
 export const GUIDE_STEPS: readonly GuideStep[] = [
@@ -45,7 +60,13 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     href: "/settings/service-template",
     target: "add-template",
   },
-  { step: "plan", phase: "running", href: "/services", target: "plan-service" },
+  {
+    step: "plan",
+    phase: "running",
+    href: "/services",
+    target: "plan-service",
+    stops: ["plan-service", "plan-from-template", "plan-pick-template", "plan-use-template"],
+  },
   { step: "groupTypes", phase: "running", href: "/settings/group-types", target: "add-group-type" },
   { step: "email", phase: "ready", href: "/settings/email", target: "connect-email" },
   { step: "giving", phase: "ready", href: "/settings/online", target: "connect-stripe" },
