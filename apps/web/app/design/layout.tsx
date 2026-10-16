@@ -11,6 +11,7 @@ const NAV = [
   { href: "/design/components", label: "Components" },
   { href: "/design/inbox", label: "Inbox" },
   { href: "/design/guide", label: "Setup guide" },
+  { href: "/design/website", label: "Church websites" },
   { href: "/design/station", label: "Station" },
 ];
 
