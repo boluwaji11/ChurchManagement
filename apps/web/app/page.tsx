@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { siteTheme } from "@/lib/theme";
 import { churchFromHost, currentUser } from "@/lib/session";
-import { membershipsForUser, publicWebsite } from "@connectapp/db";
+import { membershipsForUser } from "@connectapp/db";
 import { landingForRole } from "@/lib/landing";
 import Link from "next/link";
 import {
@@ -39,8 +39,7 @@ import {
 import { StartDemoButton } from "./demo/start";
 import { HeroTypewriter } from "./hero-typewriter";
 import { SupportMessage } from "@/components/site/support-message";
-import { ChurchWebsitePage } from "@/components/church-website";
-import { signWebsiteMedia } from "@/lib/website-media";
+import { churchSiteMetadata, churchSitePage } from "@/lib/church-site-page";
 
 export const dynamic = "force-dynamic";
 
@@ -48,8 +47,8 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata() {
   const church = await churchFromHost();
   if (church) {
-    const website = await publicWebsite(church);
-    if (website) return { title: website.churchName };
+    const own = await churchSiteMetadata(church, "");
+    if (own) return own;
   }
   return { title: `${t("app.name")} - ${t("site.hero.title")}` };
 }
@@ -143,8 +142,8 @@ export default async function Site() {
       const membership = memberships.find((one) => one.tenantSlug === church);
       if (membership) redirect(landingForRole(membership.role));
     }
-    const website = await publicWebsite(church);
-    if (website) return <ChurchWebsitePage website={await signWebsiteMedia(website)} />;
+    const hit = await churchSitePage(church, "");
+    if (hit) return hit.body;
     redirect("/join");
   }
 

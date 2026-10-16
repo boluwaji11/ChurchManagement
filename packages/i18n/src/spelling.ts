@@ -39,6 +39,8 @@ const WORDS: [string, string][] = [
   ["labour", "labor"],
   ["neighbour", "neighbor"],
   ["neighbours", "neighbors"],
+  ["neighbourhood", "neighborhood"],
+  ["neighbourhoods", "neighborhoods"],
   ["rumour", "rumor"],
   ["savour", "savor"],
 

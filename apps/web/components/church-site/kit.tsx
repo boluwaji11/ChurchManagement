@@ -304,7 +304,7 @@ export function Pic({
 
 /* --------------------------------------------------------------- buttons --- */
 
-const BUTTON_BASE =
+export const BUTTON_BASE =
   "inline-flex items-center justify-center gap-2 rounded-[var(--s-button-corner)]"
   + " px-[1.35em] py-[0.78em] font-[family-name:var(--s-body)] text-[0.95rem]"
   + " font-semibold leading-none no-underline transition-[transform,background-color,color,border-color]"
@@ -312,7 +312,7 @@ const BUTTON_BASE =
   + " focus-visible:outline-offset-2 focus-visible:outline-[var(--s-primary)]"
   + " motion-safe:active:translate-y-px";
 
-const TONES: Record<NonNullable<SiteLink["tone"]>, string> = {
+export const TONES: Record<NonNullable<SiteLink["tone"]>, string> = {
   primary:
     "bg-[var(--s-primary)] text-[var(--s-primary-ink)] border border-[var(--s-primary)]"
     + " hover:brightness-[1.08]",
@@ -502,6 +502,7 @@ export function Head({
   className = "",
   as = "h2",
   max = "62ch",
+  ph,
 }: {
   content: Record<string, unknown>;
   site: SiteCtx;
@@ -509,6 +510,14 @@ export function Head({
   className?: string;
   as?: "h1" | "h2" | "h3";
   max?: string;
+  /**
+   * What an empty heading and standfirst say inside the editor.
+   *
+   * Without it an empty title renders as a zero-size element carrying
+   * `data-edit`, which is a thing the canvas can select and a church cannot
+   * see. Every kind passes its own `website.ph.<type>.*` pair.
+   */
+  ph?: { title?: string; body?: string };
 }) {
   const eyebrow = typeof content["eyebrow"] === "string" ? content["eyebrow"] : "";
   const title = typeof content["title"] === "string" ? content["title"] : "";
@@ -525,6 +534,7 @@ export function Head({
           as={as}
           at="title"
           site={site}
+          placeholder={ph?.title}
           className={as === "h1" ? `${DISPLAY} text-[length:var(--s-hero)]` : HEADING}
         />
       </div>
@@ -532,6 +542,7 @@ export function Head({
         value={body}
         at="body"
         site={site}
+        placeholder={ph?.body}
         className={`${BODY} text-[var(--s-muted)]`}
         style={{ maxWidth: max }}
       />

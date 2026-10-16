@@ -476,6 +476,8 @@ export async function publicSite(slug: string): Promise<PublicSite | null> {
     region: string | null;
     postalCode: string | null;
     takesGifts: boolean;
+    oldLayout: string | null;
+    oldSections: WebsiteSection[] | null;
   }[]>`
     select t.slug, w.live, t.name, t.country, t.timezone,
            t.brand_hue::text as "brandHue", t.logo_key as "logoKey",
@@ -485,18 +487,33 @@ export async function publicSite(slug: string): Promise<PublicSite | null> {
            exists (
              select 1 from stripe_accounts s
               where s.tenant_id = t.id and s.charges_enabled
-           ) as "takesGifts"
+           ) as "takesGifts",
+           case when o.published then o.layout end as "oldLayout",
+           case when o.published then o.sections end as "oldSections"
       from tenants t
-      join church_sites w on w.tenant_id = t.id
+      left join church_sites w on w.tenant_id = t.id
+      left join church_websites o on o.tenant_id = t.id
      where t.slug = ${slug}
        and t.approved_at is not null
        and t.demo_expires_at is null
-       and w.live is not null
+       and (w.live is not null or o.published)
      limit 1`;
   const row = rows[0];
-  if (!row?.live) return null;
-  const { slug: found, live, ...church } = row;
-  return { slug: found, doc: cleanDoc(live), church };
+  if (!row) return null;
+  const { slug: found, live, oldLayout, oldSections, ...church } = row;
+  /*
+   * A church that published on the old editor and has not opened the new one
+   * keeps its page. The conversion that `siteState` writes down happens when an
+   * administrator next opens the editor; until then it is done here, on the
+   * read, so nobody's website goes dark waiting for them to log in.
+   */
+  const doc = live
+    ? cleanDoc(live)
+    : oldSections && oldSections.length > 0
+      ? docFromOldWebsite({ layout: oldLayout ?? "gathering", sections: oldSections })
+      : null;
+  if (!doc) return null;
+  return { slug: found, doc, church };
 }
 
 /** The page an address names on a published website, or nothing. */
