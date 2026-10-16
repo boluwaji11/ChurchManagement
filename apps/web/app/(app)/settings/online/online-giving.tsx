@@ -135,15 +135,66 @@ export function OnlineGiving({
     };
   }, [settling, church, router]);
 
-  const go = () =>
+  /*
+   * R13.1, R22.2. Stripe opens in a tab of its own.
+   *
+   * Its form is long, it asks for papers somebody may have to go and find,
+   * and taking this tab with it meant coming back to whatever Stripe decided
+   * to show rather than to the screen the church started on. One named tab,
+   * reused, so pressing again replaces it rather than leaving another behind.
+   */
+  const [waiting, setWaiting] = React.useState(false);
+
+  const go = () => {
+    /*
+     * The tab is opened on the press, while the press is still what the
+     * browser is answering. Asking for the link first and opening afterwards
+     * is a window.open with no gesture behind it, which every browser blocks,
+     * and the church presses a button that does nothing at all.
+     */
+    const tab = window.open("", "connectapp-stripe");
+
     startTransition(async () => {
       const result = await connectStripe();
       if (result.error) {
+        tab?.close();
         setError(result.error === "stripe.unconfigured" ? t("stripe.unconfigured") : result.error);
         return;
       }
-      if (result.url) window.location.href = result.url;
+      if (!result.url) {
+        tab?.close();
+        return;
+      }
+
+      setWaiting(true);
+      /* Blocked anyway, by a setting rather than by the rule above: this tab
+         goes instead, which is what it used to do. */
+      if (tab) tab.location.href = result.url;
+      else window.location.href = result.url;
     });
+  };
+
+  /*
+   * R13.1. And this tab reads again when the church comes back to it, which
+   * is the moment they have finished over there. At most once every five
+   * seconds, so returning to the tab is not a way to make Stripe work.
+   */
+  React.useEffect(() => {
+    if (!waiting) return;
+    let last = 0;
+    const look = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - last < 5000) return;
+      last = Date.now();
+      void refreshStripe().then(() => router.refresh());
+    };
+    window.addEventListener("focus", look);
+    document.addEventListener("visibilitychange", look);
+    return () => {
+      window.removeEventListener("focus", look);
+      document.removeEventListener("visibilitychange", look);
+    };
+  }, [waiting, router]);
 
   return (
     <div className="flex max-w-[1120px] flex-col gap-4">
