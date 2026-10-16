@@ -2915,10 +2915,10 @@ export const en = {
   "setup.why.church": "These details appear on giving receipts, help with check-in, and ensure services are scheduled at the correct times.",
   "setup.at.church": "Click Edit, add or update your church's information, then save your changes.",
 
-  "setup.step.rooms": "Rooms for check-in",
-  "setup.what.rooms": "One room per class, with the ages it takes and a colour of its own.",
-  "setup.why.rooms": "Check-in asks which room a child goes to. The colour prints on the label, so a volunteer can point a parent down the corridor without reading anything.",
-  "setup.at.rooms": "Press Add room. Name it the way your church already says it, and give it an age range.",
+  "setup.step.rooms": "Set up your rooms",
+  "setup.what.rooms": "Add the rooms and spaces your church uses for services, classes, and check-in.",
+  "setup.why.rooms": "Assign names and colours to help volunteers identify rooms. You can also set age ranges where needed.",
+  "setup.at.rooms": "Click Add room, enter a name, and save. You can also add a colour and age range if needed.",
 
   "setup.step.stations": "A check-in station",
   "setup.what.stations": "The desk families check in at, and which rooms and services it covers.",
@@ -4426,7 +4426,7 @@ export const en = {
   "rooms.archived.back": "Rooms",
   "rooms.restore": "Restore",
   "rooms.none.title": "No rooms yet",
-  "rooms.none.body": "Create the rooms here.",
+  "rooms.none.body": "Add the rooms and spaces your church uses.",
   "settings.tab.rooms": "Rooms",
   "rooms.ratioLabel": "Adults to children",
   "rooms.fewer": "Fewer",
