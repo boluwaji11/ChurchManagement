@@ -6,6 +6,7 @@ import { canManageChurch } from "./church";
 import { canManageRooms } from "./rooms";
 import { canManageStations } from "./stations";
 import { canManageServices } from "./services";
+import { canManageSite } from "./church-site";
 
 /**
  * R22.1, R22.2, R22.3. Setting a church up.
@@ -56,6 +57,7 @@ export const SETUP_STEPS = [
   "plan",
   "groupTypes",
   // When they are ready. None of this is needed to run a service.
+  "website",
   "email",
   "giving",
   "funds",
@@ -77,6 +79,7 @@ export const SETUP_PHASE_OF: Record<SetupStep, SetupPhase> = {
   planTemplate: "running",
   plan: "running",
   groupTypes: "running",
+  website: "ready",
   email: "ready",
   giving: "ready",
   funds: "ready",
@@ -99,6 +102,7 @@ const STEP_IS_FOR: Partial<Record<SetupStep, (role: { role: TenantRole }) => boo
   teams: canManageServices,
   planTemplate: canManageServices,
   plan: canManageServices,
+  website: canManageSite,
   giving: canManageGiving,
   funds: canManageGiving,
 };
@@ -191,6 +195,11 @@ export async function setupProgress(
         select count(*) from pipelines
          where owner_user_id is not null and archived_at is null
       )`,
+      /* A website on the internet, as opposed to a draft somebody started. */
+      website: sql<string>`(
+        select count(*) from church_sites
+         where tenant_id = ${tenantId} and live is not null
+      )`,
       email: sql<string>`(
         select count(*) from church_providers
          where tenant_id = ${tenantId} and channel = 'email' and state = 'connected'
@@ -244,6 +253,7 @@ export async function setupProgress(
     stations: n(counts?.stations) > 0,
     portal: Boolean(church?.portalName),
     profile: n(counts?.profile) > 0,
+    website: n(counts?.website) > 0,
     email: n(counts?.email) > 0,
     giving: n(counts?.giving) > 0,
     funds: n(counts?.funds) > 2,

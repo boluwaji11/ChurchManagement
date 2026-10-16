@@ -236,7 +236,12 @@ function FormatBar({ onLink }: { onLink: () => void }) {
 
 function Insert({ at, onAddAt }: { at: number; onAddAt: (index: number) => void }) {
   return (
-    <div className="relative z-20 h-0">
+    /*
+     * Above the website's own chrome. A church's header can be sticky, which
+     * puts it on a layer of its own, and the first Add section sat half behind
+     * it. The editor's own controls are always on top of the page they edit.
+     */
+    <div className="relative z-50 h-0">
       <div
         className={
           "pointer-events-none absolute inset-x-0 top-0 flex -translate-y-1/2 items-center"
@@ -319,7 +324,7 @@ function Wrap({
         <span
           aria-hidden
           className={
-            "absolute inset-x-0 z-30 h-[3px] bg-primary"
+            "absolute inset-x-0 z-50 h-[3px] bg-primary"
             + (over === "above" ? " top-0" : " bottom-0")
           }
         />
@@ -328,7 +333,7 @@ function Wrap({
       {/* The section's own controls, drawn only on the one being worked on. */}
       {selected ? (
         <div
-          className="absolute right-3 top-3 z-30 flex items-center gap-1"
+          className="absolute right-3 top-3 z-50 flex items-center gap-1"
           onClick={(event) => event.stopPropagation()}
         >
           <span
@@ -372,7 +377,7 @@ function Wrap({
       {selected ? (
         <span
           className={
-            "absolute left-3 top-3 z-30 rounded-md bg-primary px-2 py-1 text-[11px]"
+            "absolute left-3 top-3 z-50 rounded-md bg-primary px-2 py-1 text-[11px]"
             + " font-semibold uppercase tracking-wide text-primary-fg"
           }
         >
@@ -495,6 +500,9 @@ export function Canvas({
           <SiteHeaderView site={site} />
         </div>
 
+        {/* The first one gets a little air, so it is not drawn on the
+            header's own edge. */}
+        <div className="h-3" aria-hidden />
         <Insert at={0} onAddAt={handlers.onAddAt} />
 
         {sections.map((section, index) => (
@@ -552,7 +560,7 @@ export function Canvas({
       {typing?.kind === "rich" ? (
         <div
           data-chrome
-          className="pointer-events-none sticky bottom-4 z-40 flex justify-center"
+          className="pointer-events-none sticky bottom-4 z-50 flex justify-center"
         >
           <FormatBar
             onLink={() => onLink({ sectionId: typing.sectionId, path: typing.path })}

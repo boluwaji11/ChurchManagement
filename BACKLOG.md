@@ -188,6 +188,7 @@ we do not. The reading that produced them is below the table.
 | HRT-382 | What the site reads from the church: service times, events, groups, forms, giving | R22.2, R1.5 | Resolved |
 | HRT-383 | Publish, revisions, preview, search engines, and how fast the page is | R22.2, R24.15, R22.7 | Resolved |
 | HRT-384 | The landing page's feature grid says what each part is for | R24.6, R22.1 | Resolved |
+| HRT-385 | The setup guide offers a church the website it can have | R22.1, R22.2 | Resolved |
 
 
 
@@ -480,11 +481,16 @@ Measured on a build, on the church's own host: 50 to 56ms to first byte for a
 dropped on publish and the bound data held five minutes. The editor is 53.7KB of
 its own JavaScript.
 
-Still open, named rather than quietly skipped: HRT-368 still has no writer for
-`service_times`, so a church's times section is bound to a table only the demo
-loader fills; cropping a picture is a focal point and two sliders rather than a
-crop box; and the website is not a step on the setup guide, which belongs to
-whoever owns HRT-367 rather than being taken while passing.
+Three things that were listed as still open have since been closed, and one of
+the three was never open. Cropping is now a drag-and-zoom box on the picture
+itself (`builder/crop.tsx`), and the guide offers the website as a step
+(HRT-385). The third was a mistake of mine, and the same mistake the note on
+HRT-368 below already records: I repeated "nothing writes `service_times`" from
+the older paragraph without reading the correction under it, and built a second
+writer on Church profile before checking. `addService` has written the pattern
+since services became one idea, which is the one place a church would look, so
+the second writer came out again. A function with no callers is not a capability
+with no screen.
 
 ## The pass against the reference, October 2026
 

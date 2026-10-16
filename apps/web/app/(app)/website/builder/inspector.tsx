@@ -23,6 +23,7 @@ import {
   SITE_SECTIONS, imageOf, linkOf, richOf, rowsOf, textOf,
   type FieldShape, type LinkTarget, type Rich, type SectionStyle, type SiteField,
   type SiteImage, type SiteLink, type SitePage, type SiteSection,
+  type TextStyle,
 } from "@connectapp/db/rules";
 import {
   Button, Dialog, DialogClose, DialogContent, DialogFooter, Field, IconButton,
@@ -32,6 +33,7 @@ import {
 import { mediaUrl } from "@/components/church-site/kit";
 import { kindOf } from "@/components/church-site/registry";
 import type { BuilderApi, FormChoice } from "./api";
+import { CropControl } from "./crop";
 import {
   FOOTER, HEADER, addRow, atPath, moveRow, removeRow, sectionOf, setBinding,
   setField, setStyle, setVariant, withPath,
@@ -235,7 +237,6 @@ function Picture({
       </Button>
     );
   }
-  const focus = image.focus ?? { x: 0.5, y: 0.5 };
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-start gap-3">
@@ -270,29 +271,7 @@ function Picture({
         onPick={(value) => onSet({ ...image, fit: value === "contain" ? "contain" : "cover" })}
       />
 
-      <Disclosure>
-        <p className="text-[length:var(--d-text-label)] font-medium text-fg">
-          {t("website.field.focus")}
-        </p>
-        <Slider
-          label={t("website.field.focusAcross")}
-          value={Math.round(focus.x * 100)}
-          low={0}
-          high={100}
-          onSet={(given) => onSet(
-            { ...image, focus: { x: given / 100, y: focus.y } }, "image:focus",
-          )}
-        />
-        <Slider
-          label={t("website.field.focusDown")}
-          value={Math.round(focus.y * 100)}
-          low={0}
-          high={100}
-          onSet={(given) => onSet(
-            { ...image, focus: { x: focus.x, y: given / 100 } }, "image:focus",
-          )}
-        />
-      </Disclosure>
+      <CropControl image={image} onSet={onSet} merge="image:crop" />
     </div>
   );
 }
@@ -403,7 +382,7 @@ function LinkControl({
       {mode === "url" ? (
         <Field
           label={t("website.field.external")}
-          error={typed && !httpsOk(typed) ? t("website.error.linkUrl") : undefined}
+          error={typed && !httpsOk(typed) ? t("website.error.webAddress") : undefined}
         >
           <Input
             value={typed}
@@ -1111,6 +1090,126 @@ function SectionControls({
 
 /* -------------------------------------------------------------- one field --- */
 
+
+/* -------------------------------------------------- how a piece is set --- */
+
+const AS_DESIGN = "__design";
+
+/**
+ * What a church can change about one line or one paragraph.
+ *
+ * Every answer is relative to what the design already gives the slot, and the
+ * colours are the theme's own. A church that wants a different look changes its
+ * design; this is for the one heading it wants larger or centred.
+ */
+function TypeControls({
+  style,
+  onSet,
+  merge,
+}: {
+  style: TextStyle | undefined;
+  onSet: (next: TextStyle | undefined, merge?: string) => void;
+  merge: string;
+}) {
+  const put = (over: Partial<TextStyle>) => {
+    const next: TextStyle = { ...style, ...over };
+    for (const key of Object.keys(next) as (keyof TextStyle)[]) {
+      if (next[key] === undefined) delete next[key];
+    }
+    onSet(Object.keys(next).length > 0 ? next : undefined);
+  };
+  const held = (key: keyof TextStyle) =>
+    (style?.[key] as string | undefined) ?? AS_DESIGN;
+  const asDesign = { value: AS_DESIGN, label: t("website.type.asDesign") };
+  const set = style !== undefined && Object.keys(style).length > 0;
+  const take = (key: keyof TextStyle) => (value: string) =>
+    put({ [key]: value === AS_DESIGN ? undefined : value } as Partial<TextStyle>);
+
+  /*
+   * Every option's key is written out rather than built from a variable: the
+   * catalogue is worked out by reading these files, and a key it cannot see is
+   * a key the browser never receives.
+   */
+  return (
+    <Group title={t("website.type.title")}>
+      <Choice
+        label={t("website.type.face")}
+        value={held("face")}
+        onPick={take("face")}
+        options={[
+          asDesign,
+          { value: "display", label: t("website.type.face.display") },
+          { value: "body", label: t("website.type.face.body") },
+        ]}
+      />
+      <Choice
+        label={t("website.type.size")}
+        value={held("size")}
+        onPick={take("size")}
+        options={[
+          asDesign,
+          { value: "smaller", label: t("website.type.size.smaller") },
+          { value: "small", label: t("website.type.size.small") },
+          { value: "regular", label: t("website.type.size.regular") },
+          { value: "large", label: t("website.type.size.large") },
+          { value: "larger", label: t("website.type.size.larger") },
+        ]}
+      />
+      <Choice
+        label={t("website.type.weight")}
+        value={held("weight")}
+        onPick={take("weight")}
+        options={[
+          asDesign,
+          { value: "light", label: t("website.type.weight.light") },
+          { value: "regular", label: t("website.type.weight.regular") },
+          { value: "medium", label: t("website.type.weight.medium") },
+          { value: "bold", label: t("website.type.weight.bold") },
+        ]}
+      />
+      <Choice
+        label={t("website.type.align")}
+        value={held("align")}
+        onPick={take("align")}
+        options={[
+          asDesign,
+          { value: "left", label: t("website.type.align.left") },
+          { value: "centre", label: t("website.type.align.centre") },
+          { value: "right", label: t("website.type.align.right") },
+        ]}
+      />
+      <Choice
+        label={t("website.type.tone")}
+        value={held("tone")}
+        onPick={take("tone")}
+        options={[
+          asDesign,
+          { value: "ink", label: t("website.type.tone.ink") },
+          { value: "muted", label: t("website.type.tone.muted") },
+          { value: "primary", label: t("website.type.tone.primary") },
+          { value: "accent", label: t("website.type.tone.accent") },
+        ]}
+      />
+      <Choice
+        label={t("website.type.space")}
+        value={held("space")}
+        onPick={take("space")}
+        options={[
+          asDesign,
+          { value: "tight", label: t("website.type.space.tight") },
+          { value: "regular", label: t("website.type.space.regular") },
+          { value: "loose", label: t("website.type.space.loose") },
+        ]}
+      />
+      {set ? (
+        <Button variant="secondary" onClick={() => onSet(undefined, merge)}>
+          {t("website.type.reset")}
+        </Button>
+      ) : null}
+    </Group>
+  );
+}
+
 function FieldControls({
   api, section, path,
 }: {
@@ -1125,6 +1224,30 @@ function FieldControls({
   const merge = `field:${section.id}:${path}`;
   const put = (value: unknown, key?: string) =>
     api.change(setField(api.doc, api.pageId, section.id, path, value), key);
+
+  /* How this one piece of text is set, which lives beside the content rather
+     than inside it, so the words and their setting stay separable. */
+  const setType = (next: TextStyle | undefined, key?: string) => {
+    const text = { ...(section.text ?? {}) };
+    if (next) text[path] = next;
+    else delete text[path];
+    api.change(
+      withPath(
+        api.doc,
+        `pages.${api.doc.pages.findIndex((one) => one.id === api.pageId)}`
+        + `.sections.${api.page.sections.findIndex((one) => one.id === section.id)}.text`,
+        Object.keys(text).length > 0 ? text : undefined,
+      ),
+      key,
+    );
+  };
+  const typeControls = (
+    <TypeControls
+      style={section.text?.[path]}
+      onSet={setType}
+      merge={`${merge}:type`}
+    />
+  );
 
   if (!field) return <SectionControls api={api} section={section} />;
 
@@ -1141,6 +1264,7 @@ function FieldControls({
               />
             </Field>
           </Group>
+          {typeControls}
         </Groups>
       );
 
@@ -1164,6 +1288,7 @@ function FieldControls({
               />
             </Field>
           </Group>
+          {typeControls}
         </Groups>
       );
     }

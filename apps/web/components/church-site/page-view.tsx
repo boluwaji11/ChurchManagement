@@ -21,7 +21,11 @@ export function SectionView({ section, site }: { section: SiteSection; site: Sit
   const View = SECTION_VIEWS[section.type];
   if (!View) return null;
   if (section.hidden && !site.editing) return null;
-  return <View section={section} site={site} />;
+  /* What this church has changed about particular pieces of text in this
+     section, put on the context so the kit can apply it and no section
+     component has to know it exists. */
+  const held = section.text ? { ...site, text: section.text } : site;
+  return <View section={section} site={held} />;
 }
 
 /**
