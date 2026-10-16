@@ -83,6 +83,11 @@ export * from "./repo/campuses";
 export * from "./repo/provisional";
 export * from "./repo/public-groups";
 export * from "./repo/website";
+// HRT-377. The website as a document, with a draft and a live copy.
+export * from "./repo/site-doc";
+export * from "./repo/site-sections";
+export * from "./repo/church-site";
+export * from "./repo/site-data";
 export * from "./repo/public-forms";
 export * from "./repo/form-matching";
 export * from "./repo/public-events";

@@ -180,7 +180,7 @@ we do not. The reading that produced them is below the table.
 | HRT-337 | Lint in CI, with the rules of hooks enforced | R22.7, N7 | Resolved |
 | HRT-340 | Take out the church prop nothing reads | R24.18 | Resolved |
 | HRT-338 | Website Builder 2.0: a church builds a site it is proud of (umbrella) | R22.2, R24.15 | New |
-| HRT-377 | The website document model: pages, sections, theme, draft and published revisions | R22.2, R24.15 | New |
+| HRT-377 | The website document model: pages, sections, theme, draft and published revisions | R22.2, R24.15 | Resolved |
 | HRT-378 | The visual editor: canvas, selection, inline text, inspector, undo, autosave | R22.2, R24.15 | New |
 | HRT-379 | The section library and its layout variants | R22.2, R24.15 | New |
 | HRT-380 | Six art-directed templates, and site styles a church changes once | R22.2, R24.6 | New |
