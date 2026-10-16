@@ -147,7 +147,11 @@ export default async function ServicesPage({
 
   return (
     <Screen>
-      {upcoming.length === 0 && past.length === 0 ? (
+      {/* R11.1. Nothing to show means nothing at all, which is what the board
+          below would be handed. A church whose only service ran at two this
+          afternoon has one; asking `past` rather than `over` left it reading
+          "No services yet" about a service it had just held. */}
+      {upcoming.length === 0 && over.length === 0 ? (
         <Empty
           icon="calendar"
           title={t("services.none.title")}
