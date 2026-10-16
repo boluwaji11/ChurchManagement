@@ -47,11 +47,18 @@ import {
   type RevisionRow,
 } from "../actions";
 
+/*
+ * The rail, with its words.
+ *
+ * Five marks and nothing else was five guesses: a volunteer looking for the
+ * designs had no way of knowing a palette meant Design, and a tooltip only
+ * answers somebody who already suspects the answer.
+ */
 const RAIL: { key: Panel; icon: typeof LayoutGrid; label: string }[] = [
   { key: "pages", icon: LayoutGrid, label: "website.panel.pages" },
   { key: "add", icon: Plus, label: "website.panel.add" },
   { key: "design", icon: Palette, label: "website.panel.design" },
-  { key: "media", icon: Images, label: "website.panel.media" },
+  { key: "media", icon: Images, label: "website.panel.mediaShort" },
   { key: "settings", icon: Settings2, label: "website.panel.settings" },
 ];
 
@@ -572,35 +579,37 @@ function Builder({
       <div ref={body} className="@container/editor flex min-h-0 flex-1">
         {/* The rail: what the website is made of. */}
         <nav
-          aria-label={t("website.panel.pages")}
-          className="flex w-14 shrink-0 flex-col items-center gap-1 border-r border-line bg-surface py-3"
+          aria-label={t("website.yourWebsite")}
+          className="flex w-[72px] shrink-0 flex-col items-center gap-1 border-r border-line bg-surface py-3"
         >
           {RAIL.map((one) => {
             const Icon = one.icon;
             const open = state.panel === one.key;
+            const words = t(one.label as "website.panel.pages");
             return (
-              <Tooltip key={one.key} content={t(one.label as "website.panel.pages")} side="right">
-                <button
-                  type="button"
-                  aria-label={t(one.label as "website.panel.pages")}
-                  aria-pressed={open}
-                  onClick={() => {
-                    if (one.key === "add") {
-                      setLibrary(page.sections.length);
-                      return;
-                    }
-                    send({ kind: "panel", panel: open ? null : one.key });
-                  }}
-                  className={
-                    "inline-flex size-10 items-center justify-center rounded-lg transition-colors"
-                    + " focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                    + " focus-visible:outline-primary "
-                    + (open ? "bg-primary text-primary-fg" : "text-fg-muted hover:bg-raised hover:text-fg")
+              <button
+                key={one.key}
+                type="button"
+                aria-pressed={open}
+                onClick={() => {
+                  if (one.key === "add") {
+                    setLibrary(page.sections.length);
+                    return;
                   }
-                >
-                  <Icon className="size-5" aria-hidden />
-                </button>
-              </Tooltip>
+                  send({ kind: "panel", panel: open ? null : one.key });
+                }}
+                className={
+                  "flex w-16 flex-col items-center gap-1 rounded-lg px-1 py-2 text-center"
+                  + " transition-colors focus-visible:outline focus-visible:outline-2"
+                  + " focus-visible:outline-offset-2 focus-visible:outline-primary "
+                  + (open
+                    ? "bg-primary text-primary-fg"
+                    : "text-fg-muted hover:bg-raised hover:text-fg")
+                }
+              >
+                <Icon className="size-5" aria-hidden />
+                <span className="text-[11px] font-medium leading-tight">{words}</span>
+              </button>
             );
           })}
         </nav>
