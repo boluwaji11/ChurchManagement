@@ -256,6 +256,7 @@ export function Pic({
   sizes = "100vw",
   priority,
   alt,
+  drawn,
 }: {
   value: SiteImage | null;
   at?: string;
@@ -266,6 +267,11 @@ export function Pic({
   sizes?: string;
   priority?: boolean;
   alt?: string;
+  /**
+   * Draws the theme's own artwork when there is no photograph, for a layout
+   * built around a picture. Left off, an empty picture closes the space up.
+   */
+  drawn?: boolean;
 }) {
   const url = mediaUrl(value);
   const position = value?.focus
@@ -275,10 +281,15 @@ export function Pic({
   const style = ratio ? { aspectRatio: ratio } : undefined;
 
   if (!url) {
-    /* Nothing uploaded. On a page, the space closes up. In the editor, it is a
-       place to press, drawn in the site's own colours rather than as a grey
-       box with a cross through it. */
-    if (!site.editing) return null;
+    /* Nothing uploaded. On a page the space closes up, unless the layout is
+       built around a picture, where the theme's own artwork stands in it. In
+       the editor it is always a place to press, drawn in the site's own
+       colours rather than as a grey box with a cross through it. */
+    if (!site.editing) {
+      return drawn
+        ? <Drawn site={site} ratio={ratio} className={`${className} rounded-[var(--s-image-corner)]`} />
+        : null;
+    }
     return (
       <div
         className={`${frame} grid place-items-center border border-dashed border-[var(--s-line)]`}
@@ -310,6 +321,63 @@ export function Pic({
           objectPosition: position,
         }}
       />
+    </div>
+  );
+}
+
+
+/**
+ * What stands in for a photograph a church has not taken yet.
+ *
+ * Drawn in the theme's own colours rather than a stock photograph of somebody
+ * else's building: a church's website should never show a picture of a place
+ * that is not its place. It is deliberately abstract, so nobody mistakes it for
+ * the church, and it carries the first letter of the church's name so the space
+ * says whose it is.
+ *
+ * Used where a layout falls apart without something in the frame, which is the
+ * hero and the bands that are built around a picture. Everywhere else an empty
+ * picture simply closes up.
+ */
+export function Drawn({
+  site,
+  className = "",
+  ratio,
+}: {
+  site: SiteCtx;
+  className?: string;
+  ratio?: string;
+}) {
+  const letter = site.name.trim().charAt(0).toUpperCase() || "C";
+  return (
+    <div
+      aria-hidden
+      className={`relative overflow-hidden bg-[var(--s-primary-soft)] ${className}`}
+      style={ratio ? { aspectRatio: ratio } : undefined}
+    >
+      <span
+        className="absolute -right-[18%] -top-[22%] block size-[78%] rounded-full"
+        style={{ background: "var(--s-accent-soft)" }}
+      />
+      <span
+        className="absolute -bottom-[26%] -left-[14%] block size-[64%] rounded-full"
+        style={{ background: "var(--s-primary)", opacity: 0.14 }}
+      />
+      <span
+        className="absolute inset-x-0 bottom-0 block h-[38%]"
+        style={{
+          background: "linear-gradient(to top, var(--s-accent-soft), transparent)",
+        }}
+      />
+      <span
+        className={
+          "absolute inset-0 grid place-items-center font-[family-name:var(--s-display)]"
+          + " text-[clamp(72px,16cqw,180px)] leading-none text-[var(--s-primary)] opacity-35"
+        }
+        style={{ containerType: "inline-size" }}
+      >
+        {letter}
+      </span>
     </div>
   );
 }

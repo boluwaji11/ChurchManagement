@@ -42,6 +42,7 @@ export function TextImageSection({ section, site }: SectionViewProps) {
               ratio="21 / 9"
               sizes="100vw"
               className="w-full rounded-[var(--s-image-corner)]"
+              drawn
               alt={t("website.ph.textImage.image")}
             />
             {words}
@@ -62,6 +63,7 @@ export function TextImageSection({ section, site }: SectionViewProps) {
             ratio="16 / 7"
             sizes="100vw"
             className="w-full rounded-[var(--s-image-corner)]"
+            drawn
             alt={t("website.ph.textImage.image")}
           />
           {/* The card climbs over the picture's lower edge from the small
@@ -86,6 +88,7 @@ export function TextImageSection({ section, site }: SectionViewProps) {
         "w-full rounded-[var(--s-image-corner)]"
         + (variant === "imageLeft" ? " lg:order-first" : "")
       }
+      drawn
       alt={t("website.ph.textImage.image")}
     />
   );
