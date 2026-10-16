@@ -145,6 +145,38 @@ export function Team({
   /** R1.4. Whether the person reading this holds the church's own keys. */
   const iAmOwner = members.some((one) => one.isSelf && one.role === "owner");
 
+  /*
+   * R1.7. An invitation is taken up somewhere else.
+   *
+   * Whoever was invited accepts in their own browser, or on their phone, and
+   * this screen has no way of hearing about it: it was drawn when it was
+   * opened and the row sat under Invited until somebody reloaded. The church
+   * sends an invitation, watches for it to land, and the screen it is watching
+   * is the one that cannot tell them.
+   *
+   * So it reads again when the tab comes back, which is exactly when somebody
+   * has gone to look. Only while an invitation is outstanding, and at most
+   * once every ten seconds, so alt-tabbing is not a way to make the server
+   * work.
+   */
+  const outstanding = invitations.length > 0;
+  React.useEffect(() => {
+    if (!outstanding) return;
+    let last = Date.now();
+    const look = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - last < 10_000) return;
+      last = Date.now();
+      router.refresh();
+    };
+    window.addEventListener("focus", look);
+    document.addEventListener("visibilitychange", look);
+    return () => {
+      window.removeEventListener("focus", look);
+      document.removeEventListener("visibilitychange", look);
+    };
+  }, [outstanding, router]);
+
   /** R1.6. Whether every permission this role holds is one the reader holds. */
   const reachable = (role: ChurchRoleOption) =>
     role.permissions.every((permission) => mine.includes(permission));
