@@ -4912,7 +4912,6 @@ export const en = {
   "email.resend.learn": "See what Resend is",
   "email.resend.connect": "Connect Resend",
   "email.resend.go": "Continue to Resend",
-  "email.resend.signin.title": "Sign in to Resend",
   "email.resend.signin.body": "Sign in to Resend, or create an account and verify your email address. That is all you need to do there.",
   "email.resend.signin.in": "Sign in",
   "email.resend.signin.up": "Create an account",
