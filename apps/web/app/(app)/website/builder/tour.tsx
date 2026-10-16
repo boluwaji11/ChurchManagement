@@ -43,7 +43,9 @@ interface Stop {
 
 const STOPS: Stop[] = [
   {
-    target: "website-gallery",
+    /* Nothing to ring: this card says what the screen is for, and a ring round
+       the whole gallery is a ring round nothing. */
+    target: "",
     title: "website.walk.1.title",
     body: "website.walk.1",
     when: "before",
