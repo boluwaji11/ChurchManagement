@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Archive, ArrowLeft, Plus, Trash2, UserPlus, X } from "lucide-react";
+import { Archive, ArrowLeft, Plus, UserPlus, X } from "lucide-react";
 import {
   Avatar, Banner, Button, Combobox, IconButton, Field, Input, Switch, Textarea,
   Sheet, SheetTrigger, SheetContent,
@@ -473,7 +473,6 @@ export function TeamPanel({
                             if (one.id) setDropped((was) => [...was, one.id!]);
                             setPositions((was) => was.filter((_, at) => at !== i));
                             setDirty(true);
-                            setDirty(true);
                           }}
                           trigger={
                             <IconButton
@@ -481,7 +480,7 @@ export function TeamPanel({
                               variant="ghost"
                               className="-mt-2.5"
                             >
-                              <Trash2 />
+                              <X />
                             </IconButton>
                           }
                         />
