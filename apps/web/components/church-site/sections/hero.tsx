@@ -218,6 +218,7 @@ export function HeroSection({ section, site }: SectionViewProps) {
             ratio="21 / 9"
             sizes="100vw"
             priority
+            drawn
             className="w-full rounded-[var(--s-image-corner)]"
             alt={t("website.ph.hero.image")}
           />
@@ -312,6 +313,9 @@ export function HeroSection({ section, site }: SectionViewProps) {
       <Inner wide>
         <div className="grid items-center gap-[calc(var(--s-gap)*1.6)] lg:grid-cols-[1.05fr_1fr]">
           <Words content={content} site={site} />
+          {/* Capped, because a tall portrait on a wide screen pushes the
+              welcome into the middle of an empty page and leaves the first
+              screen saying almost nothing. */}
           <Pic
             value={imageOf(content["image"])}
             at="image"
@@ -319,7 +323,8 @@ export function HeroSection({ section, site }: SectionViewProps) {
             ratio="4 / 5"
             sizes="(min-width: 1024px) 46vw, 100vw"
             priority
-            className="w-full rounded-[var(--s-image-corner)]"
+            drawn
+            className="w-full max-h-[min(66svh,620px)] rounded-[var(--s-image-corner)]"
             alt={t("website.ph.hero.image")}
           />
         </div>
