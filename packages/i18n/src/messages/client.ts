@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3369 of 4868 keys.
+ * 3367 of 4866 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1191,9 +1191,7 @@ export const browserWords: Catalogue = {
   "stripe.title": "Stripe",
   "stripe.description": "{church} is a church. It receives one-off and recurring donations from its congregation, online by card and bank, and offerings in cash and cheque at its services.",
   "stripe.missing": "Fill these in and Stripe will not ask for them",
-  "stripe.missing.legalName": "Legal name, exactly as it appears on your IRS documents",
-  "stripe.missing.website": "Website",
-  "stripe.missing.address": "Address",
+  "stripe.missing.what": "Legal name, addresses and other information exactly as it appears on your legal documents",
   "stripe.connect": "Connect via Stripe",
   "stripe.continue": "Finish setup",
   "stripe.open": "Open Stripe",
