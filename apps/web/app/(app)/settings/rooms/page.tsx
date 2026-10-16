@@ -62,7 +62,9 @@ export default async function RoomsPage({
         title={putAway ? "rooms.archived.title" : "settings.tab.rooms"}
         lede={putAway ? undefined : "settings.lede.rooms"}
         action={
-          !putAway && rooms.length > 0 ? <AddRoom /> : undefined
+          !putAway && rooms.length > 0
+            ? <AddRoom taken={rooms.map((one) => one.name)} />
+            : undefined
         }
       />
       <RoomManager

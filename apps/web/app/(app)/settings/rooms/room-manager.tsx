@@ -14,6 +14,8 @@ import { t } from "@connectapp/i18n";
 import { Empty } from "@/components/empty";
 import { ageLine, say } from "@/lib/room-ages";
 import { createRoom, saveRoom, archiveRoom } from "./actions";
+import { LibraryPicker } from "@/components/library-picker";
+import { roomLibrary } from "./library";
 
 
 export interface RoomItem {
@@ -137,7 +139,7 @@ export function RoomManager({
           icon="room"
           title={t("rooms.none.title")}
           body={t("rooms.none.body")}
-          action={<AddRoom />}
+          action={<AddRoom taken={open.map((one) => one.name)} />}
         />
       ) : (
         <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr))]">
@@ -237,10 +239,13 @@ export function RoomSheet({
   pending,
   trigger,
   title,
+  taken = [],
   onSave,
   onArchive,
 }: {
   room?: RoomItem;
+  /** R8.14. The rooms this church already has, which the library leaves out. */
+  taken?: string[];
   pending: boolean;
   trigger: React.ReactNode;
   title: string;
@@ -263,6 +268,20 @@ export function RoomSheet({
   const [fromUnit, setFromUnit] = React.useState<string>(start?.unit ?? "months");
   const [toUnit, setToUnit] = React.useState<string>(end?.unit ?? "years");
 
+  /*
+   * R8.14, R24.6. The rooms churches keep, offered before the blank form.
+   *
+   * Only when writing a new one: opening a room that exists is opening that
+   * room. Picking fills this same form, so it is a head start rather than a
+   * second way of writing a room down, and the ages it brings are the part
+   * worth having.
+   */
+  const library = React.useMemo(() => (room ? [] : roomLibrary(taken)), [room, taken]);
+  const [picking, setPicking] = React.useState(false);
+  /* The band a pick brought, which the age fields read as their default. The
+     fields are uncontrolled, so they are rebuilt rather than told. */
+  const [band, setBand] = React.useState<{ from?: number; to?: number; at: number }>({ at: 0 });
+
   // The two units are read back when the form is submitted, so a unit left
   // over from the last room multiplies the next room's number: 18 typed as
   // months, stored as 216.
@@ -273,7 +292,9 @@ export function RoomSheet({
     setForChildren(room?.forChildren ?? false);
     setFromUnit(start?.unit ?? "months");
     setToUnit(end?.unit ?? "years");
-  }, [open, room?.name, room?.hue, room?.forChildren, start?.unit, end?.unit]);
+    setBand({ at: 0 });
+    setPicking(!room && library.length > 0);
+  }, [open, room, room?.name, room?.hue, room?.forChildren, start?.unit, end?.unit, library.length]);
 
   const months = (raw: FormDataEntryValue | null, unit: string): string => {
     const text = String(raw ?? "").trim();
@@ -290,6 +311,7 @@ export function RoomSheet({
         title={title}
         closeLabel={t("common.close")}
         footer={
+          picking ? null : (
           <>
             {onArchive ? (
               <IconButton
@@ -314,8 +336,31 @@ export function RoomSheet({
               {t("action.save")}
             </Button>
           </>
+          )
         }
       >
+        {picking ? (
+          <LibraryPicker
+            ownLabel={t("rooms.ownRoom")}
+            items={library}
+            onOwn={() => {
+              setName("");
+              setPicking(false);
+            }}
+            onPick={(item) => {
+              const picked = library.find((one) => one.key === item.key);
+              setName(item.label);
+              if (picked) {
+                setHue(picked.hue);
+                setForChildren(picked.forChildren);
+                setFromUnit("months");
+                setToUnit("months");
+                setBand({ from: picked.from, to: picked.to, at: Date.now() });
+              }
+              setPicking(false);
+            }}
+          />
+        ) : (
         <form
           id="room-form"
           action={(data) => {
@@ -375,16 +420,18 @@ export function RoomSheet({
             <>
           <div className="flex flex-wrap gap-4">
             <AgeField
+              key={`from-${band.at}`}
               label={t("rooms.from")}
               name="from"
-              defaultValue={start?.value}
+              defaultValue={band.from ?? start?.value}
               unit={fromUnit}
               onUnit={setFromUnit}
             />
             <AgeField
+              key={`to-${band.at}`}
               label={t("rooms.to")}
               name="to"
-              defaultValue={end?.value}
+              defaultValue={band.to ?? end?.value}
               unit={toUnit}
               onUnit={setToUnit}
             />
@@ -412,6 +459,7 @@ export function RoomSheet({
             />
           </Field>
         </form>
+        )}
       </SheetContent>
     </Sheet>
   );
@@ -423,13 +471,14 @@ export function RoomSheet({
  * A new room is six fields rather than a name in a box, because a room nobody
  * gave an age band to is a room the station cannot route a child into.
  */
-export function AddRoom({}: {  }) {
+export function AddRoom({ taken = [] }: { taken?: string[] }) {
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
 
   return (
     <RoomSheet
       pending={pending}
+      taken={taken}
       title={t("rooms.add")}
       trigger={
         <Button data-guide="add-room">
