@@ -191,7 +191,12 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
     phase: "ready",
     href: "/settings/followups",
     target: "set-owner",
-    stops: ["set-owner", "pipeline-save"],
+    /*
+     * The new stage panel only. The Save on the panel that edits an existing
+     * stage is in the document whether that panel is open or not, so naming
+     * it here sent the walk to the end the moment the screen drew.
+     */
+    stops: ["set-owner", "pipeline-pick", "pipeline-owner", "pipeline-add"],
   },
 ] as const;
 

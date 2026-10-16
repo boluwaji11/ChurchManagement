@@ -604,7 +604,7 @@ export const en = {
   "settings.lede.stations": "Manage the devices and printers used for check-in.",
   "settings.lede.tags": "Short labels for filtering members.",
   "settings.lede.fields": "Extra details you keep on each member.",
-  "settings.lede.followups": "The follow up steps your members go through.",
+  "settings.lede.followups": "Manage how your church follows up with visitors, members, and requests.",
   "settings.title.profile": "Your profile",
   "settings.lede.profile": "View and update your details.",
   "settings.profile.you": "You",
@@ -822,13 +822,15 @@ export const en = {
   "domain.error.notADomain": "That does not look like a domain name.",
   "domain.error.notAllowed": "Your role cannot change the church's settings.",
   "church.taxIdSample": "e.g. {sample}",
-  "church.taxIdHint": "What is this",
-  // HRT-284, R22.2. What the number is, for whoever has not met it before.
-  // Two articles: the United States has an EIN and everywhere else does not.
+  // R22.2. The one hint left, on the one field whose answer a church has
+  // to go and find.
   "help.taxId.title": "Your EIN",
   "help.taxId.body": "An EIN is the nine-digit number the IRS gave your church when it registered. It is also called a federal tax ID. It looks like 12-3456789.\n\nIt is on your IRS determination letter, on any 990 your church has filed, and on the paperwork your bank holds. Your treasurer will know it.\n\nConnectApp asks once and fills it in everywhere it is needed afterwards: opening your giving account, and registering with the carriers when your church sends text messages.",
   "help.taxIdOther.title": "Your registration number",
   "help.taxIdOther.body": "The number your church is registered under with your own government. What it is called depends on where you are: a charity number in the United Kingdom, an ABN in Australia, an RC number in Nigeria.\n\nIt is on whatever certificate your church was given when it registered, and on the paperwork your bank holds.\n\nConnectApp asks once and fills it in everywhere it is needed afterwards: opening your giving account, and registering with the carriers when your church sends text messages.",
+  "church.taxIdHint": "What is this",
+  // HRT-284, R22.2. What the number is, for whoever has not met it before.
+  // Two articles: the United States has an EIN and everywhere else does not.
   "church.address": "Address",
   "church.addressLine2": "Address line 2",
   "church.city": "City",
@@ -2555,7 +2557,7 @@ export const en = {
   "pipelines.addTitle": "New stage",
   "pipelines.editOne": "Edit {name}",
   "pipelines.none.title": "No follow-up stages yet",
-  "pipelines.none.body": "Write down the steps your church already takes.",
+  "pipelines.none.body": "Create steps to help your church stay connected with visitors and members.",
   "settings.tab.followups": "Follow-up stages",
   "queue.late": "Late",
   "queue.mine": "Mine",
@@ -2606,42 +2608,16 @@ export const en = {
   "followups.exitAction": "Remove",
   "followups.exitKeep": "Cancel",
   "followups.reason": "Why",
-  "help.title": "Help",
-  "help.open": "Help",
-  "help.search": "Search help",
-  "help.thisScreen": "This screen",
-  "help.everything": "Everything else",
-  "help.none": "Nothing matches that",
 
-  "help.people.title": "The directory",
-  "help.people.body": "Every member the church knows, and the households they belong to. Search by a name, an email or a phone number. A member is archived rather than deleted, so their giving and their attendance stay answerable. Two records for the same member are merged from Duplicates, and a merge can be undone for thirty days.",
 
-  "help.import.title": "Bringing members in",
-  "help.import.body": "A spreadsheet from whatever you use now. ConnectApp shows you what it read before anything is written, and you say which column is which. An import can be rolled back for thirty days, so the first one does not have to be the right one.",
 
-  "help.services.title": "Services and attendance",
-  "help.services.body": "A service time repeats, and each time it comes round is an occurrence. Recording attendance is ticking a roster, or a headcount if that is all you keep. A cancelled service is marked cancelled rather than deleted, so nobody is counted absent from a service the church called off.",
 
-  "help.checkin.title": "Check-in",
-  "help.checkin.body": "Type any part of a name. A child's label and their guardian's carry the same code, and that code is what releases them at the end. Allergies show on the screen as you check them in and print on the label. If the wifi drops the station keeps working and reconciles when it comes back.",
 
-  "help.rooms.title": "Kids classes",
-  "help.rooms.body": "Who is in each class right now, and who has been collected. Tapping a class shows the children in it with their codes and what a volunteer has to know about them. The printed roster is what goes on the wall.",
 
-  "help.incidents.title": "Incident reports",
-  "help.incidents.body": "Written at the station by whoever was there, and kept here. A report cannot be edited or removed by anybody, including an owner: what was written at the time is what a church may need years later. Owner, admin and pastoral can read them.",
 
-  "help.groups.title": "Groups",
-  "help.groups.body": "What a church does between services. A group has a leader, a roster, and a night it meets. Members browse the ones open to join and ask; a leader approves, which puts them on the roster in the same press. A leader records whether the group met, which is attendance for the group.",
 
-  "help.followups.title": "Follow-ups",
-  "help.followups.body": "Six pipelines, each a few steps with a day each one is due. A first visit, a second visit and three missed services raise themselves from the attendance record. Answering a step records what happened, and that sentence is the thing worth having six months later.",
 
-  "help.settings.title": "Settings",
-  "help.settings.body": "The church's own details, who can get in and what they may do, your kids classes and stations, and the tags and fields you keep on members. Changing a role takes effect the next time that member loads a page.",
 
-  "help.setup.title": "Setting up",
-  "help.setup.body": "Sixteen things a church does once, in four sets. The guide beside each screen names the next one, opens the screen that does it, and points at the control, so you learn where things live. A step you do not need yet is skipped, and comes back whenever you want it. Collapse the guide to the edge whenever it is in the way.",
 
   "dashboard.title": "Dashboard",
   "dashboard.attendance": "Last service",
@@ -2994,11 +2970,13 @@ export const en = {
   "setup.at.funds": "Click Add a new fund, enter a name, and choose whether donations to it must be used for a specific purpose.",
   "setup.at.funds.2": "Give the fund a name and a code, then click Save.",
 
-  "setup.step.followups": "Who follows people up",
-  "setup.what.followups": "A follow-up stage is the short path somebody goes down after a first visit, a baptism request or a quiet few weeks, with an owner against it.",
-  "setup.why.followups": "A stage owned by nobody falls due on nobody's desk. Naming an owner is what turns a visitor in a list into a visitor somebody telephones.",
-  "setup.at.followups": "Start from a prepared stage or write your own, and set its owner. First visit is the one worth doing today.",
-  "setup.at.followups.2": "Choose who follows people up at each stage, then click Save.",
+  "setup.step.followups": "Set up your follow-ups",
+  "setup.what.followups": "Create follow-up steps for welcoming visitors, responding to requests, and staying connected with members.",
+  "setup.why.followups": "Assign someone to each step so your team knows who's responsible for reaching out and keeping in touch.",
+  "setup.at.followups": "Click New stage, choose a ready-made option or create your own, then assign someone to manage it.",
+  "setup.at.followups.2": "Choose a ready-made stage, or create your own.",
+  "setup.at.followups.3": "Choose who manages this stage.",
+  "setup.at.followups.4": "Click Add to create the stage.",
 
   "setup.open": "Open setup guide",
   "setup.shut": "Collapse",
@@ -3010,7 +2988,6 @@ export const en = {
   "setup.unskip": "Undo skip",
   "setup.skipped": "Skipped",
   "setup.next": "Next",
-  "setup.helpHere": "Help on this screen",
   "setup.putAway": "Put the guide away",
   "setup.putAway.title": "Put the setup guide away?",
   "setup.putAway.body": "It goes from every screen and does not come back.",
