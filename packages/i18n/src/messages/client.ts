@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3346 of 4846 keys.
+ * 3345 of 4846 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1948,7 +1948,6 @@ export const browserWords: Catalogue = {
   "setup.putAway.keep": "Keep it",
   "setup.done.title": "You're all set!",
   "setup.done.body": "You've finished your setup guide. You can start using ConnectApp and return to any skipped steps whenever you're ready.",
-  "setup.bringBack.lede": "The guide walks you through setting your church up, step by step.",
   "setup.bringBack": "Show the setup guide",
   "setup.bringBack.showing": "The setup guide is beside every screen.",
   "team.send": "Send invite",
