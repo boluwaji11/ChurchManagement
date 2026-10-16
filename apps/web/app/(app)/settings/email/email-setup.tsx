@@ -654,7 +654,7 @@ function SmtpSheet({
             <Button type="button" variant="ghost" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form={formId} disabled={busy || !dirty || !full}>
+            <Button data-guide="email-connect" type="submit" form={formId} disabled={busy || !dirty || !full}>
               {t("email.connect")}
             </Button>
           </>

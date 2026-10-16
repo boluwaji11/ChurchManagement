@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3349 of 4848 keys.
+ * 3350 of 4849 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1931,10 +1931,11 @@ export const browserWords: Catalogue = {
   "setup.why.groupTypes": "Group types help you organise your groups. Create the categories now, then add individual groups under them later.",
   "setup.at.groupTypes": "Click Add a new group type, enter a category name, and save. You can add more categories later.",
   "setup.at.groupTypes.2": "Click Save to create the group type.",
-  "setup.step.email": "Send email to your church",
-  "setup.what.email": "Connect the account your church sends from, either Resend or your own mail server.",
-  "setup.why.email": "Mail from your own account arrives, because it carries your church's name and reputation. The account stays yours, billed to you by your provider.",
-  "setup.at.email": "Press Connect and follow it through. We send you a test before anything is written down.",
+  "setup.step.email": "Set up church email",
+  "setup.what.email": "Connect an email account or service to send messages to your congregation.",
+  "setup.why.email": "Send church announcements, invitations, and updates using your existing email account or Resend.",
+  "setup.at.email": "Choose your existing email provider or Resend, click Connect, and follow the steps to complete setup.",
+  "setup.at.email.2": "Enter your mail server details, then click Connect. You can send a test email afterwards.",
   "setup.step.giving": "Take a gift online",
   "setup.what.giving": "Connect Stripe, so your congregation can give by card or bank from the portal.",
   "setup.why.giving": "The account is your church's own and the money goes straight into it. Our fee on every gift is zero, and we never hold a penny of it on the way through.",
@@ -3289,9 +3290,9 @@ export const browserWords: Catalogue = {
   "wayOut.backDone": "You have been resubscribed",
   "wayOut.backBody": "{church} can email you again.",
   "email.connect": "Connect",
-  "email.smtp.title": "The mail you already have",
-  "email.smtp.what": "Send through the email your church already uses, like Google Workspace or Microsoft 365.",
-  "email.smtp.connect": "Connect your mail server",
+  "email.smtp.title": "Use your existing email",
+  "email.smtp.what": "Connect your church's existing email account, such as Google Workspace or Microsoft 365.",
+  "email.smtp.connect": "Connect email",
   "email.smtp.host": "Server",
   "email.smtp.hostPlaceholder": "e.g. smtp.gmail.com",
   "email.smtp.port": "Port",
@@ -3299,7 +3300,7 @@ export const browserWords: Catalogue = {
   "email.smtp.usernamePlaceholder": "e.g. office@your-church.org",
   "email.smtp.password": "Password",
   "email.resend.title": "Resend",
-  "email.resend.what": "An email service for sending to your whole church at once.",
+  "email.resend.what": "Send announcements and updates to your congregation using Resend.",
   "email.resend.learn": "See what Resend is",
   "email.resend.connect": "Connect Resend",
   "email.resend.access": "ConnectApp sets up your sending domain and sends your church's email from this account.",
