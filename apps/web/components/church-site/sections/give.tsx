@@ -16,6 +16,7 @@ import {
 } from "@connectapp/db/rules";
 import {
   BODY, Band, Btn, Btns, Card, Grid, Head, Inner, NothingYet, P, Pic, SUBHEAD, T,
+  standsDown,
   type SiteCtx,
 } from "../kit";
 import type { SectionViewProps } from "../section-props";
@@ -88,8 +89,13 @@ export function GiveSection({ section, site }: SectionViewProps) {
   const content = section.content;
   const bound = section.bind?.source === "funds";
   const items = bound ? boundItems(site) : manualItems(content);
+
   const centred = section.style?.align === "centre";
   const variant = section.variant;
+
+  /* Bound and empty: the band comes off a published page rather than
+     standing there with a heading and a blank space under it. */
+  if (standsDown(site, bound, items.length)) return null;
   const written = linkOf(content["action"]);
 
   /* Bound, the button is the platform's giving page under whatever the church
@@ -170,6 +176,7 @@ export function GiveSection({ section, site }: SectionViewProps) {
 
   /* The band: one strip, the ask on the left and the press on the right, with
      the funds named small underneath so the reader knows what it reaches. */
+
   return (
     <Band id={section.id} style={section.style} site={site}>
       <Inner wide>

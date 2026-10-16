@@ -29,3 +29,4 @@ export * from "./repo/website-rules";
 // HRT-377, HRT-379. The website document and its kinds of section, both pure.
 export * from "./repo/site-doc";
 export * from "./repo/site-sections";
+export * from "./repo/site-palettes";

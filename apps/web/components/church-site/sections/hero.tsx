@@ -63,9 +63,11 @@ function Words({
           site={site}
           className={over ? EYEBROW_OVER : EYEBROW}
         />
+        {/* The page says which welcome carries its h1, because a church can
+            put a second one further down. */}
         <T
           value={textOf(content["title"])}
-          as="h1"
+          as={site.owns ? "h1" : "h2"}
           at="title"
           site={site}
           className={HERO}
@@ -243,7 +245,7 @@ export function HeroSection({ section, site }: SectionViewProps) {
             <div className="grid gap-[calc(var(--s-gap)*1.3)] lg:grid-cols-12">
               <T
                 value={textOf(content["title"])}
-                as="h1"
+                as={site.owns ? "h1" : "h2"}
                 at="title"
                 site={site}
                 className={`${HERO} lg:col-span-7`}
