@@ -72,7 +72,10 @@ export async function GET(request: Request) {
     console.error("[resend] domain refused", root, made.said);
     back.searchParams.set("domain", root);
     back.searchParams.set("why", made.said.slice(0, 200));
-    return refuse("domain");
+    /* The one refusal with a thing to do about it: somebody already holds
+       this domain on Resend, here or on another account. */
+    const held = /already exist|registered already|already registered|already in use/i;
+    return refuse(held.test(made.said) ? "domainTaken" : "domain");
   }
 
   const actor = {

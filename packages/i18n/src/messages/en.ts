@@ -4990,6 +4990,7 @@ export const en = {
   "email.said.exchange": "Resend would not finish the connection. Try again",
   "email.said.domain": "Resend would not take that domain",
   "email.said.domainNamed": "Resend would not take {domain}. It said: {why}",
+  "email.said.domainTaken": "This domain is already registered with Resend. Check your existing connection before trying again.",
   "email.said.noAddress": "That address has no domain to verify",
   "email.said.unconfigured": "Resend is not set up on this deployment yet",
   "email.error.from": "Give the address mail goes out as",

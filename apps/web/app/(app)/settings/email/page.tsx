@@ -22,7 +22,8 @@ export async function generateMetadata() {
 
 /** What came back from Resend, where there is anything to say. */
 const SAID = [
-  "connected", "refused", "expired", "exchange", "domain", "noAddress", "unconfigured",
+  "connected", "refused", "expired", "exchange", "domain", "domainTaken", "noAddress",
+  "unconfigured",
 ] as const;
 
 /**

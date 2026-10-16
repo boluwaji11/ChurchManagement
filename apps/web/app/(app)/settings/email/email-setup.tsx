@@ -789,7 +789,24 @@ function ResendPath({
     };
   }, [going, router]);
 
-  const open = (where: string) => window.open(where, "_blank", "noopener,noreferrer");
+  /*
+   * R16.1. One tab for Resend, reused.
+   *
+   * Every press mints a fresh authorisation request, and Resend retires the
+   * one before it. Opening a tab each time left the earlier ones sitting on
+   * a dead request, saying "This authorization request is no longer active"
+   * at somebody who had done nothing wrong. A named target puts the new
+   * request in the tab the old one was in.
+   */
+  const open = (where: string) => {
+    /*
+     * `noopener` in the features string makes the browser ignore the name and
+     * build a new context every time, and cutting the opener afterwards takes
+     * the window out of this one's family, where the name is looked up. So
+     * neither: the name is the whole point, and what it opens is Resend.
+     */
+    window.open(where, "connectapp-resend");
+  };
 
   /*
    * R22.2. Connecting is one errand with two parts, in one card.
@@ -912,6 +929,17 @@ function ResendPath({
   if (going) {
     return (
       <Card className="flex flex-col gap-4 p-5">
+        {/* R24.6. Nothing is behind this on the dots, so the way out is here:
+            a church that cannot finish at Resend has to be able to leave. */}
+        <IconButton
+          label={t("action.back")}
+          variant="ghost"
+          className="-mt-1 -ml-1 self-start"
+          onClick={() => setGoing(null)}
+        >
+          <ArrowLeft />
+        </IconButton>
+
         <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
           <Stages labels={RESEND_STAGES} at={1} />
         </div>
