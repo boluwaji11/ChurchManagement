@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3345 of 4844 keys.
+ * 3346 of 4845 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1940,6 +1940,7 @@ export const browserWords: Catalogue = {
   "setup.showMe.profile": "Update my profile",
   "setup.gotIt": "Close",
   "setup.skip": "Skip for now",
+  "setup.skipAll": "Skip all for now",
   "setup.unskip": "Undo skip",
   "setup.skipped": "Skipped",
   "setup.next": "Next",

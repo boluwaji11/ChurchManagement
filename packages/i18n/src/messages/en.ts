@@ -2986,6 +2986,7 @@ export const en = {
   "setup.showMe.profile": "Update my profile",
   "setup.gotIt": "Close",
   "setup.skip": "Skip for now",
+  "setup.skipAll": "Skip all for now",
   "setup.unskip": "Undo skip",
   "setup.skipped": "Skipped",
   "setup.next": "Next",
