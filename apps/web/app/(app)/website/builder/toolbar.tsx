@@ -211,6 +211,7 @@ export function Toolbar({
             target="_blank"
             rel="noopener noreferrer"
             aria-label={t("website.openPreview")}
+            data-guide="website-preview"
             className={BAR_BUTTON}
             onClick={(event) => {
               if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;

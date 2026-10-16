@@ -30,6 +30,7 @@ import {
   type PageStarter, type TemplateKey,
 } from "@/components/church-site/starter";
 import { Canvas } from "./canvas";
+import { Walk, walkSeen } from "./tour";
 import { Inspector } from "./inspector";
 import {
   DesignPanel, MediaPanel, PagesPanel, PanelFrame, SettingsPanel,
@@ -126,6 +127,11 @@ function FirstRun({
 }) {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [walking, setWalking] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!walkSeen()) setWalking(true);
+  }, []);
 
   const choose = (key: string) => {
     setBusy(true);
@@ -146,7 +152,16 @@ function FirstRun({
     <div className="flex min-h-[calc(100dvh-180px)] flex-col gap-6">
       {error ? <Banner tone="danger">{error}</Banner> : null}
       <Working open={busy} label={t("website.savingNow")} />
-      <Gallery church={{ name: church.name, slug: church.slug }} onChoose={choose} />
+      <div data-guide="website-gallery">
+        <Gallery church={{ name: church.name, slug: church.slug }} onChoose={choose} />
+      </div>
+
+      <Walk
+        started={false}
+        open={walking}
+        onClose={() => setWalking(false)}
+        onNeeds={() => {}}
+      />
     </div>
   );
 }
@@ -196,6 +211,7 @@ function Builder({
   const [publishAsk, setPublishAsk] = React.useState(false);
   const [note, setNote] = React.useState("");
   const [tip, setTip] = React.useState(false);
+  const [walking, setWalking] = React.useState(false);
   const [uploads, setUploads] = React.useState(0);
   const [held, setHeld] = React.useState<MediaItem[]>(media);
   const [revisions, setRevisions] = React.useState<RevisionRow[]>([]);
@@ -214,6 +230,9 @@ function Builder({
   const body = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
+    /* The walk is offered once. A church that has met it gets the short line
+       instead, and the Design panel offers the walk back. */
+    if (!walkSeen()) setWalking(true);
     try {
       if (!window.localStorage.getItem(TIP_SEEN)) setTip(true);
       if (window.localStorage.getItem(PANE_SHUT) === "yes") {
@@ -490,7 +509,13 @@ function Builder({
     switch (state.panel) {
       case "pages": return <PagesPanel api={api} />;
       case "design":
-        return <DesignPanel api={api} onChangeDesign={() => setGallery(true)} />;
+        return (
+          <DesignPanel
+            api={api}
+            onChangeDesign={() => setGallery(true)}
+            onWalk={() => setWalking(true)}
+          />
+        );
       case "media":
         return <MediaPanel api={api} onUsed={() => setMediaFor(null)} />;
       case "settings":
@@ -598,6 +623,7 @@ function Builder({
                   }
                   send({ kind: "panel", panel: open ? null : one.key });
                 }}
+                data-guide={`rail-${one.key}`}
                 className={
                   "flex w-16 flex-col items-center gap-1 rounded-lg px-1 py-2 text-center"
                   + " transition-colors focus-visible:outline focus-visible:outline-2"
@@ -626,7 +652,7 @@ function Builder({
         ) : null}
 
         {/* The website. */}
-        <div className="min-w-[380px] flex-1 overflow-y-auto bg-sunken">
+        <div data-guide="website-canvas" className="min-w-[380px] flex-1 overflow-y-auto bg-sunken">
           {state.device === "desk" ? (
             <div className="min-h-full">
               <Canvas
@@ -681,7 +707,10 @@ function Builder({
 
         {/* Whatever is selected. */}
         {pane ? (
-          <aside className="flex w-[332px] shrink-0 flex-col border-l border-line bg-surface">
+          <aside
+            data-guide="website-inspector"
+            className="flex w-[332px] shrink-0 flex-col border-l border-line bg-surface"
+          >
             {/* The way to put it away sits on the panel it puts away. */}
             <div className="flex shrink-0 justify-end border-b border-line px-2 py-1.5">
               <Tooltip content={t("website.pane.close")}>
@@ -730,8 +759,21 @@ function Builder({
       </div>
       )}
 
+      <Walk
+        started
+        open={walking}
+        onClose={() => setWalking(false)}
+        onNeeds={(panel) => {
+          if (panel === "inspector") {
+            setPane(true);
+            return;
+          }
+          if (panel) send({ kind: "panel", panel });
+        }}
+      />
+
       {/* The first thing a church is told, once. */}
-      {tip ? (
+      {tip && !walking ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
           <div
             className={
