@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3369 of 4868 keys.
+ * 3368 of 4867 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1967,7 +1967,6 @@ export const browserWords: Catalogue = {
   "setup.skip": "Skip for now",
   "setup.unskip": "Undo skip",
   "setup.skipped": "Skipped",
-  "setup.here": "Here",
   "setup.next": "Next",
   "setup.helpHere": "Help on this screen",
   "setup.putAway": "Put the guide away",
@@ -3308,7 +3307,7 @@ export const browserWords: Catalogue = {
   "email.smtp.usernamePlaceholder": "e.g. office@your-church.org",
   "email.smtp.password": "Password",
   "email.resend.title": "Resend",
-  "email.resend.what": "Send announcements and updates to your congregation using Resend.",
+  "email.resend.what": "Send announcements and updates to your members using Resend.",
   "email.resend.learn": "See what Resend is",
   "email.resend.connect": "Connect Resend",
   "email.resend.access": "ConnectApp sets up your sending domain and sends your church's email from this account.",
@@ -3333,7 +3332,7 @@ export const browserWords: Catalogue = {
   "email.connected.resend": "Emails are sent via Resend",
   "email.sendingAs": "Sending as",
   "email.checkedAt": "Last checked {when}",
-  "email.choose": "How will your church send email?",
+  "email.choose": "How will your church send email via ConnectApp?",
   "email.stage.signin": "Sign in to Resend",
   "email.stage.connect": "Connect Resend",
   "email.stage.records": "Update your domain provider",

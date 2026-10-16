@@ -34,7 +34,6 @@ export function GuideBody({
   steps: given,
   phase,
   pinned,
-  here,
   busy,
   onSkip,
   onOpenPhase,
@@ -46,8 +45,6 @@ export function GuideBody({
   phase: SetupPhase;
   /** Whether that phase was opened by hand, and so should be left alone. */
   pinned: boolean;
-  /** The step whose screen is open, if this is one of them. */
-  here: SetupStep | null;
   busy: boolean;
   onSkip: (step: SetupStep, on: boolean) => void;
   onOpenPhase: (phase: SetupPhase) => void;
@@ -85,38 +82,12 @@ export function GuideBody({
     !steps.some((one) => one.phase === which && !one.done && !one.skipped);
 
   /*
-   * Standing on a step's screen holds its phase open, so walking onto a step
-   * already done shows that step rather than jumping the column past it. An
-   * answer is not walking: skipping the step you are standing on is asking the
-   * guide to move on, so it lets go of the phase and the next one opens.
-   * Arriving anywhere takes hold again.
+   * R22.1. A section somebody opened by hand stays open, even once it is
+   * settled, because they are reading it. Answering the last step in it is
+   * them saying they are finished, so the hold goes and the next section
+   * takes over.
    */
   const [released, setReleased] = React.useState(false);
-  React.useEffect(() => setReleased(false), [here]);
-
-  /*
-   * And doing the work is not walking either. The step somebody is standing
-   * on going green is the same request as skipping it: they are finished with
-   * it, so the phase lets go and the next one opens.
-   *
-   * It has to be the step turning over while they are here rather than the
-   * state of it on arrival, because arriving at a step already done is the
-   * case above, which holds the phase open so the step they came for is in
-   * front of them.
-   */
-  const hereAnswered = steps.some(
-    (one) => one.step === here && (one.done || one.skipped),
-  );
-  const before = React.useRef<{ step: SetupStep | null; answered: boolean }>({
-    step: null,
-    answered: false,
-  });
-  React.useEffect(() => {
-    if (before.current.step === here && !before.current.answered && hereAnswered) {
-      setReleased(true);
-    }
-    before.current = { step: here, answered: hereAnswered };
-  }, [here, hereAnswered]);
 
   const showing =
     (pinned && !released) || !settled(phase)
@@ -128,27 +99,21 @@ export function GuideBody({
    * guide would have chosen. Every heading is a toggle at any time, the open
    * one included: a church that has read a section wants it out of the way,
    * and a church that finished the basics on Tuesday wants to look at them
-   * again on Thursday. Cleared on arriving at a step's screen, because from
-   * there the guide is following the screen again.
+   * again on Thursday.
    */
   const [byHand, setByHand] = React.useState<Partial<Record<SetupPhase, boolean>>>({});
-  React.useEffect(() => setByHand({}), [here]);
 
   /*
-   * A step that has just been answered stops being the current one and the
-   * next takes over. Without this, finishing the step whose screen you are on
-   * left it open and struck through while the step below went active, and two
-   * of them read as current.
+   * R22.1. The one step that is now, which is the next one still open.
+   *
+   * It used to be whichever step's screen was in front of them, and that made
+   * the guide move whenever anybody went anywhere: opening Teams to look at a
+   * rota shut the section they were reading, opened the one three above it,
+   * and put Here on a step finished a week ago. The guide is left alone now,
+   * and the coachmark, which is asked for by pressing Show me, is what
+   * follows somebody onto a screen.
    */
-  const answered = (which: SetupStep | null) =>
-    Boolean(which) && steps.some((one) => one.step === which && (one.done || one.skipped));
-
-  /*
-   * The one step that is now: the one whose screen is open, or the one that
-   * is next. Its marker breathes, which is the whole of how somebody finds
-   * their place again after looking away.
-   */
-  const now = (answered(here) ? null : here) ?? next?.step ?? null;
+  const now = next?.step ?? null;
 
   /*
    * Which step is telling its whole story. Sixteen steps each explaining
@@ -164,10 +129,7 @@ export function GuideBody({
    */
   const [opened, setOpened] = React.useState<SetupStep | "" | null>(null);
 
-  const telling =
-    opened === null
-      ? ((answered(here) ? null : here) ?? next?.step ?? null)
-      : (opened || null);
+  const telling = opened === null ? (next?.step ?? null) : (opened || null);
 
   return (
     <div className="flex flex-col gap-1">
@@ -258,7 +220,6 @@ export function GuideBody({
                     key={step.step}
                     step={step}
                     last={i === mine.length - 1}
-                    here={here === step.step}
                     nextUp={next?.step === step.step}
                     now={now === step.step}
                     telling={telling === step.step}
@@ -290,7 +251,6 @@ export function GuideBody({
 function Row({
   step,
   last,
-  here,
   nextUp,
   now,
   telling,
@@ -302,7 +262,6 @@ function Row({
 }: {
   step: RailStep;
   last: boolean;
-  here: boolean;
   nextUp: boolean;
   /** The step somebody is on, whose marker breathes. */
   now: boolean;
@@ -330,7 +289,7 @@ function Row({
               ? "bg-primary text-primary-fg"
               : step.skipped
                 ? "border-2 border-dashed border-line-strong bg-surface text-fg-subtle"
-                : here || nextUp
+                : nextUp
                   ? "border-2 border-primary bg-surface"
                   : "border-2 border-line-strong bg-surface",
           )}
@@ -339,7 +298,7 @@ function Row({
             <Check className="size-3.5" strokeWidth={3} />
           ) : step.skipped ? (
             <Minus className="size-3" strokeWidth={3} />
-          ) : here || nextUp ? (
+          ) : nextUp ? (
             <span data-guide-pip className="size-2 rounded-full bg-primary" />
           ) : null}
         </span>
@@ -385,7 +344,7 @@ function Row({
                 ? "text-fg-subtle line-through"
                 : step.skipped
                   ? "text-fg-subtle"
-                  : here || nextUp
+                  : nextUp
                     ? "font-semibold text-fg"
                     : "text-fg-muted",
             )}
@@ -399,7 +358,7 @@ function Row({
               anywhere else. A step that is answered, either way, is neither. */}
           {now && !step.done && !step.skipped ? (
             <span className="mt-0.5 shrink-0 rounded-full bg-primary px-2 py-px text-[11px] font-semibold text-primary-fg">
-              {here ? t("setup.here") : t("setup.next")}
+              {t("setup.next")}
             </span>
           ) : null}
           {step.skipped && !step.done ? (
@@ -423,20 +382,11 @@ function Row({
             </p>
 
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 pl-[18px]">
-              {/* Show me is the whole of it: on this screen it points at the
-                  control again, and anywhere else it opens the screen and
-                  points when it gets there. The instruction itself is on the
-                  work, not in this column. */}
-              {step.done || step.skipped ? null : here ? (
-                <button
-                  type="button"
-                  onClick={() => onShow(step.step)}
-                  className="inline-flex cursor-pointer items-center gap-0.5 rounded text-[13px] font-semibold text-primary"
-                >
-                  {t((GUIDE_SHOW[step.step] ?? "setup.showMe") as never)}
-                  <ChevronRight className="size-3.5" aria-hidden />
-                </button>
-              ) : (
+              {/* Show me is the whole of it: it opens the screen and points at
+                  the control when it gets there, and on the screen already it
+                  points again without going anywhere. The instruction itself
+                  is on the work, not in this column. */}
+              {step.done || step.skipped ? null : (
                 <NavLink
                   href={where?.href ?? "/dashboard"}
                   onClick={() => {
