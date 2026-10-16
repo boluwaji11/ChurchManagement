@@ -94,6 +94,30 @@ export function GuideBody({
   const [released, setReleased] = React.useState(false);
   React.useEffect(() => setReleased(false), [here]);
 
+  /*
+   * And doing the work is not walking either. The step somebody is standing
+   * on going green is the same request as skipping it: they are finished with
+   * it, so the phase lets go and the next one opens.
+   *
+   * It has to be the step turning over while they are here rather than the
+   * state of it on arrival, because arriving at a step already done is the
+   * case above, which holds the phase open so the step they came for is in
+   * front of them.
+   */
+  const hereAnswered = steps.some(
+    (one) => one.step === here && (one.done || one.skipped),
+  );
+  const before = React.useRef<{ step: SetupStep | null; answered: boolean }>({
+    step: null,
+    answered: false,
+  });
+  React.useEffect(() => {
+    if (before.current.step === here && !before.current.answered && hereAnswered) {
+      setReleased(true);
+    }
+    before.current = { step: here, answered: hereAnswered };
+  }, [here, hereAnswered]);
+
   const showing =
     (pinned && !released) || !settled(phase)
       ? phase

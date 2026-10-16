@@ -78,7 +78,6 @@ export const shellData = cache(async (session: Session): Promise<ShellData> => {
   const key = holdKey(session);
   const now = Date.now();
   const held = HELD.get(key);
-  if (held && held.until > now) return held.data;
 
   const ctx = {
     tenantId: session.tenantId,
@@ -86,6 +85,30 @@ export const shellData = cache(async (session: Session): Promise<ShellData> => {
     userId: session.userId,
     permissions: session.permissions,
   };
+
+  /*
+   * R22.1, R24.11. A church still setting up reads its own progress every
+   * time; everybody else reads the hold.
+   *
+   * The guide's whole promise is that it ticks itself off as the work is done,
+   * and the work is done on the screens the guide sent them to. Holding the
+   * answer for twenty seconds meant a church saved a room, watched the step
+   * sit there, and saved it again. That is the one thing this cannot do.
+   *
+   * It costs one counting statement, measured at p50 46ms, and only while a
+   * church is in its first week: once the guide is finished or put away there
+   * is no progress to read and the hold serves everything, which is the state
+   * every church is in for the rest of its life.
+   */
+  if (held && held.until > now) {
+    const walking = held.data.setup && !held.data.setup.complete && !held.data.setup.dismissed;
+    if (!walking) return held.data;
+
+    const setup = await withTenant(ctx, (tx) => setupProgress(tx, session));
+    const data = { ...held.data, setup };
+    HELD.set(key, { data, until: held.until });
+    return data;
+  }
 
   /*
    * The demo check is cross-tenant by nature and runs on its own connection, so
