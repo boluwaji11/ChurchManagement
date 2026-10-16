@@ -1616,6 +1616,7 @@ export const en = {
   "website.panel.add": "Add",
   "website.panel.design": "Design",
   "website.panel.media": "Photos and video",
+  "website.panel.mediaShort": "Photos",
   "website.panel.settings": "Settings",
   "website.panel.close": "Close this panel",
   "website.inspector.nothing": "Press anything on your website to change it.",
