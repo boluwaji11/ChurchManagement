@@ -1905,7 +1905,7 @@ export const browserWords: Catalogue = {
   "setup.at.teams": "Click Add a team, enter its name, add the positions volunteers can serve in, and save.",
   "setup.step.planTemplate": "Create your order of service",
   "setup.what.planTemplate": "Set up the usual flow of your church services, including activities and how long each one takes.",
-  "setup.why.planTemplate": "Use this template to plan future services faster and keep your worship, media, and volunteer teams on the same page.",
+  "setup.why.planTemplate": "Use this template to plan future services faster and keep your serving teams on the same page.",
   "setup.at.planTemplate": "Click Add a new template, give it a name, then add each part of your service and its estimated duration.",
   "setup.step.plan": "Plan this week's service",
   "setup.what.plan": "The running order for the service you have coming up, built from your template.",
