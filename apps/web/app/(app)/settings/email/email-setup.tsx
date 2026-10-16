@@ -54,6 +54,7 @@ export function EmailSetup({
   /** R22.2. Who answers for the domain, and where its settings are typed. */
   registrar: string | null;
   console_: string | null;
+  /** What to press at this company, in its own menu words. */
   steps: string;
   onepress: string | null;
 }) {
@@ -227,6 +228,7 @@ function Connected({
   domain: DomainState | null;
   registrar: string | null;
   console_: string | null;
+  /** What to press at this company, in its own menu words. */
   steps: string;
   onepress: string | null;
   busy: boolean;
@@ -424,6 +426,7 @@ function Records({
   /** The page at that company where these are typed in. */
   console_: string | null;
   /** The catalogue key for what to press once they are there. */
+  /** What to press at this company, in its own menu words. */
   steps: string;
   /** R22.2. Where the DNS company can write them itself, the address to send
       the church to. Null everywhere else, and the press is not drawn. */
@@ -469,7 +472,7 @@ function Records({
               menu words. A church told to "add a TXT record at your DNS
               provider" goes looking for a thing called DNS on a screen that
               calls it something else. */}
-          <p className="m-0 text-fg-muted">{t(steps as never)}</p>
+          <p className="m-0 text-fg-muted">{steps}</p>
         </div>
         {onepress ? null : registrar && console_ ? (
           <a

@@ -136,7 +136,13 @@ export default async function EmailPage({
         signedInAs={session.email}
         registrar={found?.registrar ?? null}
         console_={consoleFor(found?.registrar)}
-        steps={stepsFor(found?.registrar)}
+        /* R22.2, R16.1. The words, rather than the key that names them.
+           The key is chosen in the db package by the registrar's own name, so
+           nothing in the browser's own files ever writes it down and the
+           client catalogue cannot know to carry it: the screen drew
+           "dns.steps.vercel" at the reader. Read here, where the whole
+           catalogue is. */
+        steps={t(stepsFor(found?.registrar) as never)}
         onepress={onepress}
       />
 
