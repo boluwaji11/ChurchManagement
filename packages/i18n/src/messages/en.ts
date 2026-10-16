@@ -2936,7 +2936,7 @@ export const en = {
   "setup.at.profile": "Click Edit, add your photo, phone number and other information, then save your changes.",
 
   "setup.step.teams": "Set up your volunteer teams",
-  "setup.what.teams": "Create teams like Welcome, Worship, or Kids, and add the roles needed for each team.",
+  "setup.what.teams": "Create serving teams like Welcome, Worship, or Kids, and add the roles needed for each team.",
   "setup.why.teams": "Teams help you organise volunteers, assign responsibilities, and schedule who's serving at each service.",
   "setup.at.teams": "Click Add a team, enter its name, add the positions volunteers can serve in, and save.",
 
