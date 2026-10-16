@@ -5,6 +5,7 @@ import { shellData } from "@/lib/shell-data";
 import { publicLink } from "@/lib/church-address";
 import { SettingsHeading } from "../heading";
 import { Denied } from "@/components/denied";
+import { Banner } from "@connectapp/ui";
 import { stripeConfigured } from "@/lib/stripe";
 import { syncStripe, accountFace } from "./actions";
 import { OnlineGiving } from "./online-giving";
@@ -64,8 +65,12 @@ export default async function OnlineGivingPage({
   /* The account was read once and then read again to answer the same
      question. It is read again here only when Stripe has been asked for
      something newer. */
+  /* R13.1. And where Stripe says it does not know the account we hold, the
+     screen says so rather than falling over: the id is theirs, so this is
+     either an account deleted at their end or keys pointing somewhere else. */
+  let unreachable = false;
   if (stale && account && !account.chargesEnabled) {
-    await syncStripe();
+    unreachable = (await syncStripe()).error === "stripe.unreachable";
     account = await withTenant(
       { tenantId: session.tenantId, role: session.role },
       (tx) => getStripeAccount(tx),
@@ -108,6 +113,7 @@ export default async function OnlineGivingPage({
   return (
     <div className="flex flex-col gap-5">
       <SettingsHeading title="settings.tab.online" lede="settings.lede.online" />
+      {unreachable ? <Banner tone="danger">{t("stripe.unreachable")}</Banner> : null}
       {manage ? (
         <OnlineGiving
           church={session.tenantSlug}
