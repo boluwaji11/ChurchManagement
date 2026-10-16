@@ -230,11 +230,10 @@ export function OnlineGiving({
               <>
                 {missing.length > 0 ? (
                   <div className="flex flex-col gap-1 text-[13px] text-fg-muted">
-                    <span>{t("stripe.missing")}</span>
                     {/* R12.x. One line rather than a list of the fields that
                         happen to be blank: a church reads what Stripe is
                         going to want, not which of three boxes we noticed. */}
-                    <span>{t("stripe.missing.what")}</span>
+                    <span>{t("stripe.missing")}</span>
                   </div>
                 ) : null}
 
