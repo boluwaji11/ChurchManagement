@@ -505,7 +505,6 @@ function Lines({
                       ? t("planTpl.item.removeTitle", { name: line.title.trim() })
                       : t("planTpl.item.removeUntitled")
                   }
-                  body={t("planTpl.item.removeBody")}
                   confirmLabel={t("planTpl.item.remove")}
                   onConfirm={() => onChange(lines.filter((_, i) => i !== at))}
                   trigger={
