@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import {
-  withTenant, apexOf, connectEmailProvider, saveSendingDomain, type TenantRole,
+  withTenant, connectEmailProvider, saveSendingDomain, type TenantRole,
 } from "@connectapp/db";
 import { exchangeCode, openHandshake, resendClientId } from "@/lib/resend-oauth";
 import { resendDomain } from "@/lib/email-provider";
@@ -56,8 +56,18 @@ export async function GET(request: Request) {
   });
   if (!got.ok) return refuse("exchange");
 
-  const root = apexOf(held.from.split("@")[1] ?? "");
-  if (!root) return refuse("noAddress");
+  /*
+   * R16.1. The domain exactly as the church typed it, rather than the apex
+   * above it.
+   *
+   * Resend verifies the domain it was given and nothing under or over it, so
+   * a church sending from office@mail.church.org needs mail.church.org
+   * verified; registering church.org for it is registering the wrong thing.
+   * Sending from a subdomain is also what Resend asks for, because it keeps
+   * the apex's reputation out of whatever the church sends.
+   */
+  const root = (held.from.split("@")[1] ?? "").trim().toLowerCase().replace(/\.$/, "");
+  if (!root || !root.includes(".") || root.startsWith(".")) return refuse("noAddress");
 
   const made = await resendDomain(got.tokens.accessToken, root);
   if (!made.ok) {
