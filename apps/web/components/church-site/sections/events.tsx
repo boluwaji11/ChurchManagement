@@ -16,6 +16,7 @@ import {
 } from "@connectapp/db/rules";
 import {
   BODY, Band, Btn, Btns, Card, Grid, Head, Inner, NothingYet, P, Pic, SUBHEAD, T,
+  standsDown,
   dateLabel, timeLabel, type SiteCtx,
 } from "../kit";
 import type { SectionViewProps } from "../section-props";
@@ -289,10 +290,15 @@ export function EventsSection({ section, site }: SectionViewProps) {
   const content = section.content;
   const bound = section.bind?.source === "events";
   const rows = bound
+
     ? boundRows(site, section.bind?.source === "events" ? section.bind.limit : 3)
     : manualRows(content);
   const centred = section.style?.align === "centre";
   const variant = section.variant;
+
+  /* Bound and empty: the band comes off a published page rather than
+     standing there with a heading and a blank space under it. */
+  if (standsDown(site, bound, rows.length)) return null;
 
   const body = rows.length === 0
     ? <NothingYet site={site}>{t("website.empty.events")}</NothingYet>
@@ -327,6 +333,7 @@ export function EventsSection({ section, site }: SectionViewProps) {
             ))}
           </Grid>
         );
+
 
   return (
     <Band id={section.id} style={section.style} site={site}>

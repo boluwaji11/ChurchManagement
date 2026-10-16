@@ -22,7 +22,7 @@ import {
 import { t, type MessageKey } from "@connectapp/i18n";
 import {
   RESERVED_SLUGS, SITE_COLOR_TOKENS, SITE_LIMITS, SITE_PAIRINGS, SITE_PALETTES,
-  SITE_SECTIONS, UPLOAD_RULES, imageOf,
+  SITE_SECTIONS, UPLOAD_RULES, contrast, imageOf,
   type FieldShape, type SiteColorToken, type SiteField, type SiteImage,
   type SitePage, type SiteSocial, type SiteTheme,
 } from "@connectapp/db/rules";
@@ -467,33 +467,6 @@ export function PagesPanel({ api }: { api: BuilderApi }) {
 }
 
 /* ------------------------------------------------------------ the design --- */
-
-const channel = (value: number): number =>
-  value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-
-/** A colour's relative luminance, or nothing where it cannot be read. */
-function luminance(hex: string): number | null {
-  const clean = hex.trim().replace("#", "");
-  const full = clean.length === 3
-    ? clean.split("").map((one) => one + one).join("")
-    : clean;
-  if (!/^[0-9a-fA-F]{6}$/.test(full)) return null;
-  const parts = [0, 2, 4].map((at) => parseInt(full.slice(at, at + 2), 16) / 255);
-  return 0.2126 * channel(parts[0]!) + 0.7152 * channel(parts[1]!) + 0.0722 * channel(parts[2]!);
-}
-
-/**
- * The contrast between two colours, as the ratio WCAG 2.2 measures.
- *
- * A colour neither of us can parse comes back as 21, so a half-typed hex value
- * does not flash a warning at somebody mid-keystroke.
- */
-function contrast(one: string, two: string): number {
-  const a = luminance(one);
-  const b = luminance(two);
-  if (a === null || b === null) return 21;
-  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-}
 
 /** Text on the page, text on a card, and the primary's own ink on it. */
 const COLOUR_PAIRS: [SiteColorToken, SiteColorToken][] = [

@@ -86,6 +86,7 @@ export * from "./repo/website";
 // HRT-377. The website as a document, with a draft and a live copy.
 export * from "./repo/site-doc";
 export * from "./repo/site-sections";
+export * from "./repo/site-palettes";
 export * from "./repo/church-site";
 export * from "./repo/site-data";
 export * from "./repo/public-forms";

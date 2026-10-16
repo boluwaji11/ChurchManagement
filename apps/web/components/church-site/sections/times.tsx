@@ -14,6 +14,7 @@ import { t } from "@connectapp/i18n";
 import { linkOf, rowsOf, textOf } from "@connectapp/db/rules";
 import {
   Band, BODY, Btn, Btns, Card, EYEBROW, Grid, Head, Inner, NothingYet, SUBHEAD, T,
+  standsDown,
   dayName, timeLabel,
 } from "../kit";
 import type { SectionViewProps } from "../section-props";
@@ -51,7 +52,14 @@ export function TimesSection({ section, site }: SectionViewProps) {
 
   const action = linkOf(section.content["action"]);
   const variant = section.variant;
+
+  /* Bound and empty: the band comes off a published page rather than
+     standing there with a heading and a blank space under it. */
+  if (standsDown(site, bound, rows.length)) return null;
+
+
   const centred = section.style?.align === "centre" || variant === "band";
+
 
   return (
     <Band id={section.id} style={section.style} site={site}>

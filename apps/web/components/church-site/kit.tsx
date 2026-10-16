@@ -50,6 +50,13 @@ export interface SiteCtx {
   data: SiteDataForView;
   /** Drawn inside the editor, where an empty section still has to be visible. */
   editing?: boolean;
+  /**
+   * Whether this section carries the page's one h1.
+   *
+   * A page has exactly one, and a church can put two welcomes on a page, so the
+   * page decides rather than the section. Set on the first welcome it finds.
+   */
+  owns?: boolean;
 }
 
 /** The read-only shape of the bound data a section may draw. */
@@ -673,6 +680,17 @@ export function Grid({
     </div>
   );
 }
+
+/**
+ * Whether a section that reads from the church has nothing to say yet.
+ *
+ * On a published page it comes off altogether: a visitor met with "Service
+ * times" and a blank space under it learns less than a visitor who never saw
+ * the band. In the editor it stays, because the church is the one who has to
+ * know the section is waiting on something.
+ */
+export const standsDown = (site: SiteCtx, bound: boolean, rows: number): boolean =>
+  bound && rows === 0 && !site.editing;
 
 /** What a section shows the church when it has nothing to show a visitor. */
 export function NothingYet({ site, children }: { site: SiteCtx; children: React.ReactNode }) {

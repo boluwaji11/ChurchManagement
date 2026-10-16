@@ -78,11 +78,27 @@ export function SitePageView({
     ? site
     : { ...site, doc: { ...site.doc, header: { ...site.doc.header, transparent: false } } };
 
+  /*
+   * R22.7. One h1 a page, whatever a church has put on it.
+   *
+   * The first welcome carries it. A page with no welcome, or with a second one
+   * added below the first, would otherwise have none or two, and the heading
+   * order is how somebody reading with a screen reader moves around a page.
+   */
+  const ownerId = page.sections.find(
+    (one) => one.type === "hero" && (!one.hidden || site.editing),
+  )?.id ?? null;
+
   return (
     <>
       <SiteHeaderView site={held} />
+      {ownerId === null ? <h1 className="sr-only">{page.title}</h1> : null}
       {page.sections.map((section) => (
-        <SectionView key={section.id} section={section} site={held} />
+        <SectionView
+          key={section.id}
+          section={section}
+          site={section.id === ownerId ? { ...held, owns: true } : held}
+        />
       ))}
       <SiteFooterView site={held} />
     </>

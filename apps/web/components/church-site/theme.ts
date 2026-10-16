@@ -13,66 +13,9 @@
  */
 
 import type { CSSProperties } from "react";
-import type { PairingKey, PaletteKey, SiteTheme } from "@connectapp/db/rules";
-
-export interface Palette {
-  /** The page's ground. */
-  bg: string;
-  /** A card or a band that lifts off the ground. */
-  surface: string;
-  ink: string;
-  muted: string;
-  line: string;
-  primary: string;
-  /** What is legible on the primary. */
-  primaryInk: string;
-  accent: string;
-  /** Whether this palette is a dark one, which decides a few treatments. */
-  dark?: true;
-}
-
-/**
- * Eight grounds, each one a whole look rather than a hue swap.
- *
- * Every pair here clears 4.5:1 for body text and 3:1 for a control, measured
- * with the same contrast test the design gallery runs. A church can change any
- * one of them by hand afterwards and the editor says when a pair stops clearing.
- */
-export const PALETTES: Record<PaletteKey, Palette> = {
-  stone: {
-    bg: "#faf7f1", surface: "#ffffff", ink: "#24221e", muted: "#5d5a52",
-    line: "#e6dfd3", primary: "#7d4f2d", primaryInk: "#fffaf4", accent: "#44614f",
-  },
-  forest: {
-    bg: "#f4f5ef", surface: "#ffffff", ink: "#182519", muted: "#475044",
-    line: "#dce0d3", primary: "#2b4631", primaryInk: "#f6f5ec", accent: "#8a6a1b",
-  },
-  ivory: {
-    bg: "#fffdf8", surface: "#ffffff", ink: "#221d19", muted: "#59524a",
-    line: "#e9e2d4", primary: "#1d3147", primaryInk: "#ffffff", accent: "#8a2d37",
-  },
-  dusk: {
-    bg: "#14161a", surface: "#1e2127", ink: "#f3f2ef", muted: "#b2b7c0",
-    line: "#2e333b", primary: "#dfa257", primaryInk: "#191b1f", accent: "#8fa9d4",
-    dark: true,
-  },
-  clay: {
-    bg: "#fbf6f2", surface: "#ffffff", ink: "#271f1b", muted: "#64544c",
-    line: "#ecdfd5", primary: "#a63f1c", primaryInk: "#fff8f4", accent: "#2f615c",
-  },
-  harbour: {
-    bg: "#f3f7f9", surface: "#ffffff", ink: "#13202a", muted: "#475a66",
-    line: "#d8e1e7", primary: "#0f4e5e", primaryInk: "#f2fafc", accent: "#c25a22",
-  },
-  sand: {
-    bg: "#f7f3e8", surface: "#fffdf6", ink: "#282419", muted: "#5f5945",
-    line: "#e4dbc4", primary: "#5f5228", primaryInk: "#fffdf6", accent: "#9a4d26",
-  },
-  slate: {
-    bg: "#f6f7f8", surface: "#ffffff", ink: "#181b1f", muted: "#4f555d",
-    line: "#dee1e5", primary: "#263040", primaryInk: "#ffffff", accent: "#9c5529",
-  },
-};
+import {
+  PALETTES, type Palette, type PairingKey, type SiteTheme,
+} from "@connectapp/db/rules";
 
 export interface Pairing {
   /** The CSS variable the display face is served under. */
@@ -148,6 +91,9 @@ const CARDS: Record<SiteTheme["cards"], { border: string; shadow: string }> = {
 };
 
 /** A hex colour with an alpha channel, for a wash over a photograph. */
+export { PALETTES };
+export type { Palette };
+
 export function withAlpha(hex: string, alpha: number): string {
   const value = hex.replace("#", "");
   const r = parseInt(value.slice(0, 2), 16);

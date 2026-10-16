@@ -15,6 +15,7 @@ import type { Rich, SiteImage, SiteLink } from "@connectapp/db/rules";
 import { imageOf, linkOf, richOf, rowsOf, textOf } from "@connectapp/db/rules";
 import {
   Band, BODY, Btn, Btns, Card, EYEBROW, Grid, Head, Inner, NothingYet, P, Pic,
+  standsDown,
   SUBHEAD, T, dayName, timeLabel,
 } from "../kit";
 import type { SectionViewProps } from "../section-props";
@@ -74,7 +75,12 @@ export function MinistriesSection({ section, site }: SectionViewProps) {
 
   const action = linkOf(section.content["action"]);
   const variant = section.variant;
+
+  /* Bound and empty: the band comes off a published page rather than
+     standing there with a heading and a blank space under it. */
+  if (standsDown(site, bound, entries.length)) return null;
   const centred = section.style?.align === "centre" && variant === "threeCards";
+
 
   return (
     <Band id={section.id} style={section.style} site={site}>
