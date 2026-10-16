@@ -850,7 +850,7 @@ function StartFrom({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" disabled={disabled || pending}>
+        <Button variant="ghost" disabled={disabled || pending} data-guide="plan-from-template">
           <Copy /> {t("order.start")}
         </Button>
       </DialogTrigger>
@@ -912,13 +912,13 @@ function StartFrom({
             </ul>
 
             <DialogFooter>
-              <Button onClick={use} loading={pending}>
+              <Button onClick={use} loading={pending} data-guide="plan-use-template">
                 {t("order.start.use")}
               </Button>
             </DialogFooter>
           </div>
         ) : (
-          <div className="flex max-h-[60vh] flex-col gap-3 overflow-y-auto">
+          <div data-guide="plan-pick-template" className="flex max-h-[60vh] flex-col gap-3 overflow-y-auto">
             {/* R11.8. A church with a dozen shapes reads them by name, so the
                 list is filtered rather than scrolled. */}
             {templates.length > 5 ? (

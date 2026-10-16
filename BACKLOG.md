@@ -999,6 +999,7 @@ of money and after everything else.
 | HRT-372 | An invitation is ConnectApp's own mail, so it sends on day one | R16.4, R22.1 | Resolved |
 | HRT-373 | The invitation email looks like the product it is inviting somebody into | R16.4, R24.x | Resolved |
 | HRT-374 | Rooms open on the rooms churches already have | R8.14, R22.1 | Resolved |
+| HRT-375 | The guide walks a step's whole errand, screen by screen | R22.1, R22.3 | Active |
 
 R22.1 lists giving and messaging credentials as wizard steps, and both are now built, so both are
 steps of the guide. The five-step wizard of 0.2 is replaced by HRT-367.
@@ -4205,6 +4206,21 @@ typed over. The list leaves out what the church already has.
 
 Stations are the remaining one, and a station is a device rather than a record, so the shape that
 fits it is a different question.
+
+### HRT-375, the guide walks the whole errand
+
+Pointing once and stopping was half a guide. A church pressed Not planned yet, landed on an empty
+plan, and the instruction that had brought it there was still describing the press it had already
+made. Finishing a step is rarely one control.
+
+A step may now name the controls in the order they appear, and the coachmark shows the deepest one
+that is on the screen. Nothing is stored and nothing advances: the screen says where somebody has
+got to, so closing a box puts the card back on the press before it, and pressing Escape cannot
+leave the guide believing something the screen disagrees with.
+
+Walked first on the plan: Not planned yet, then Create from template, then the list of templates
+inside the box, then Use this template. The remaining steps still name one control each, which is
+the same thing with a list of one.
 
 ### HRT-368, and the hole that was not there
 

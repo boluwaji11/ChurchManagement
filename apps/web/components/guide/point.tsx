@@ -48,19 +48,62 @@ const PATIENCE = 3000;
  * would rather do something else first is not being held by the wrist.
  */
 export function Point({
-  target,
+  stops,
   title,
-  body,
   onClose,
 }: {
-  target: string | null;
-  /** The step's name, so the card says which of the twelve this is. */
+  /**
+   * R22.3. The controls this step is walked through, in order, each with the
+   * sentence that belongs to it.
+   *
+   * The deepest one on the screen is the one shown, because that is where
+   * somebody has got to: pressing Create from template leaves the button
+   * where it was and puts the box of templates over it, so both are present
+   * and the later one is the answer. Closing the box takes it away again and
+   * the card goes back to the press before, which is what going back means.
+   */
+  stops: readonly { target: string; body: string }[];
+  /** The step's name, so the card says which of the seventeen this is. */
   title: string;
-  /** The one sentence naming what to press on this screen. */
-  body: string;
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const [at, setAt] = React.useState(0);
+  const target = stops[at]?.target ?? null;
+  const body = stops[at]?.body ?? "";
+
+  /*
+   * Which stop the screen is on, re-read whenever the screen changes. The
+   * query is cheap and the alternative, remembering, is a state machine that
+   * disagrees with the screen the first time somebody presses Escape.
+   */
+  const names = stops.map((one) => one.target).join("|");
+  React.useEffect(() => {
+    const look = () => {
+      let deepest = 0;
+      stops.forEach((one, i) => {
+        if (document.querySelector(`[data-guide="${CSS.escape(one.target)}"]`)) deepest = i;
+      });
+      setAt(deepest);
+    };
+    look();
+
+    let queued = 0;
+    const watch = () => {
+      if (queued) return;
+      queued = requestAnimationFrame(() => {
+        queued = 0;
+        look();
+      });
+    };
+    const tree = new MutationObserver(watch);
+    tree.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      tree.disconnect();
+      if (queued) cancelAnimationFrame(queued);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [names, pathname]);
   const [spot, setSpot] = React.useState<Spot | null>(null);
   const box = React.useRef<HTMLDivElement | null>(null);
   const [height, setHeight] = React.useState(124);
@@ -204,15 +247,16 @@ export function Point({
    * document rather than bound to the element, because the control is redrawn
    * by its own screen and a listener on it would not survive that.
    */
+  const last = at === stops.length - 1;
   React.useEffect(() => {
-    if (!target) return;
+    if (!target || !last) return;
     const acted = (e: Event) => {
-      const at = e.target as Element | null;
-      if (at?.closest?.(`[data-guide="${CSS.escape(target)}"]`)) onClose();
+      const on = e.target as Element | null;
+      if (on?.closest?.(`[data-guide="${CSS.escape(target)}"]`)) onClose();
     };
     document.addEventListener("pointerdown", acted, true);
     return () => document.removeEventListener("pointerdown", acted, true);
-  }, [target, onClose]);
+  }, [target, last, onClose]);
 
   /*
    * Escape closes the card, and stops there.

@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 3331 of 4830 keys.
+ * 3334 of 4833 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1911,6 +1911,9 @@ export const browserWords: Catalogue = {
   "setup.what.plan": "Create a plan for your upcoming service using your order of service template.",
   "setup.why.plan": "Adjust the activities, timing, and order to fit the service you're planning. Your team can follow the same plan on the day.",
   "setup.at.plan": "Click Not planned yet, choose your service template, and customise the plan for this service.",
+  "setup.at.plan.2": "Click Create from template to start from the order of service you wrote.",
+  "setup.at.plan.3": "Choose the template this service follows.",
+  "setup.at.plan.4": "Click Use this template, then change the items and timings to suit the day.",
   "setup.step.groupTypes": "The kinds of group you run",
   "setup.what.groupTypes": "The sorts of group your church gathers in: small groups, classes, ministries, whatever you call them.",
   "setup.why.groupTypes": "A group is created as one of these, so until there is at least one kind your church cannot write down a single group.",

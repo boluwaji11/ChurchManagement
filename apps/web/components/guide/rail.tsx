@@ -183,23 +183,36 @@ export function Rail({
    * the answer is on this screen and knowing what to press.
    */
   const step = onScreen ? steps.find((one) => one.step === onScreen.step) : null;
-  const pointAt =
+  const walking =
     onScreen
     && step
     && !step.done
     && !step.skipped
     && invited === onScreen.step
-    && closed !== onScreen.step
-      ? (onScreen.target ?? null)
-      : null;
+    && closed !== onScreen.step;
 
-  /* The card carries the step's name and the one sentence naming what to
-     press. Both are read here because the card is drawn from the frame. */
-  const card = here ? (
+  /*
+   * R22.3. The controls this step is walked through, with the sentence that
+   * belongs to each. A step that names one is a list of one, which is how it
+   * behaved before and how most of them still do.
+   */
+  const stops = React.useMemo(() => {
+    if (!walking || !onScreen) return [];
+    const names = onScreen.stops ?? (onScreen.target ? [onScreen.target] : []);
+    return names.map((target, i) => ({
+      target,
+      body: t(
+        (i === 0 ? `setup.at.${onScreen.step}` : `setup.at.${onScreen.step}.${i + 1}`) as never,
+      ),
+    }));
+  }, [walking, onScreen]);
+
+  /* The card carries the step's name and the sentence for wherever they have
+     got to. Both are read here because the card is drawn from the frame. */
+  const card = here && stops.length > 0 ? (
     <Point
-      target={pointAt}
+      stops={stops}
       title={t(`setup.step.${here}` as never)}
-      body={t(`setup.at.${here}` as never)}
       onClose={() => setClosed(here)}
     />
   ) : null;
