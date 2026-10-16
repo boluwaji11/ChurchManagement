@@ -65,6 +65,10 @@ const TABLES = [
   "form_fields",
   "form_submissions",
   "church_websites",
+  /* R19.1. The church's website, which is its own words and its own design. A
+     church taking its records elsewhere takes its website with them. */
+  "church_sites",
+  "church_site_revisions",
   "stored_files",
   "demo_records",
   "tenant_members",
