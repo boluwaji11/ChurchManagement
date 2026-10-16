@@ -33,7 +33,7 @@ export default async function GuidePage() {
 
   return (
     <>
-      <SettingsHeading title="settings.tab.guide" lede="setup.bringBack.lede" />
+      <SettingsHeading title="settings.tab.guide" lede="settings.lede.guide" />
       <BringBack away={setup.dismissed} />
     </>
   );

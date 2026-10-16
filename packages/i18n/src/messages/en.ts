@@ -2995,7 +2995,7 @@ export const en = {
   "setup.done.title": "You're all set!",
   "setup.done.body": "You've finished your setup guide. You can start using ConnectApp and return to any skipped steps whenever you're ready.",
   "settings.tab.guide": "Setup guide",
-  "setup.bringBack.lede": "The guide walks you through setting your church up, step by step.",
+  "settings.lede.guide": "The guide walks you through setting your church up, step by step.",
   "setup.bringBack": "Show the setup guide",
   "setup.bringBack.showing": "The setup guide is beside every screen.",
   "team.failed": "That did not save. Try again.",
