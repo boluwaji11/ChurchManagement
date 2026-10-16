@@ -223,7 +223,7 @@ export function TeamPanel({
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 {t("action.cancel")}
               </Button>
-              <Button type="submit" form={formId} disabled={saving || !dirty || !name.trim()}>
+              <Button data-guide="team-save" type="submit" form={formId} disabled={saving || !dirty || !name.trim()}>
                 {picked ? t("action.add") : t("action.save")}
               </Button>
             </>

@@ -260,7 +260,7 @@ function StationDialog({
             <Button type="button" variant="ghost" onClick={() => close(false)}>
               {t("action.cancel")}
             </Button>
-            <Button type="submit" form={formId} disabled={pending || !dirty || !full}>
+            <Button data-guide="station-save" type="submit" form={formId} disabled={pending || !dirty || !full}>
               {t("action.save")}
             </Button>
           </>

@@ -272,6 +272,7 @@ export function ProfileForm({
           <FormActions
             pending={saving}
             form="profile-form"
+            guide="profile-save"
             label={t("settings.profile.save")}
           />
         ) : (

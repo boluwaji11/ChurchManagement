@@ -280,6 +280,7 @@ function TemplatePanel({
                 </IconButton>
               ) : null}
               <Button
+                data-guide="template-save"
                 type="button"
                 disabled={pending || saving || !dirty || !name.trim()}
                 loading={saving}

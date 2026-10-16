@@ -401,6 +401,7 @@ export function RoleForm({
             ) : null}
 
             <Button
+              data-guide="role-save"
               type="button"
               /* R1.6. A role that holds nothing is a member with a different
                  word on it. The built-ins are exempt: Group leader holds none

@@ -87,9 +87,12 @@ export function useReportBusy(form: string, on: boolean): void {
 export function FormActions({
   form,
   label,
+  guide,
   pending = false,
   disabled = false,
 }: {
+  /** R22.3. The name the setup guide points at this by, where it walks here. */
+  guide?: string;
   /** The id of the form this commits. */
   form: string;
   label: string;
@@ -114,7 +117,7 @@ export function FormActions({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button type="submit" form={form} disabled={!dirty || !full || working || disabled}>
+      <Button data-guide={guide} type="submit" form={form} disabled={!dirty || !full || working || disabled}>
         {working ? (
           <span
             aria-hidden

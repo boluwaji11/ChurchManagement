@@ -268,6 +268,7 @@ function FundPanel({
               </IconButton>
             ) : null}
             <Button
+              data-guide="fund-save"
               type="button"
               disabled={pending || saving || !dirty || !name.trim()}
               loading={saving}

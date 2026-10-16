@@ -122,6 +122,7 @@ export function ChurchForm({
             <FormActions
               pending={pending}
               form="church-form"
+              guide="church-save"
               label={t("church.save")}
             />
           ) : canEdit ? (
