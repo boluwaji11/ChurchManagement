@@ -257,10 +257,7 @@ function Connected({
           so it shows none of this. */}
       {provider.vendor === "resend" ? (
         <div className="mx-auto w-full max-w-[520px] px-6 pb-1 pt-1">
-          <Stages
-            labels={[t("email.stage.connect"), t("email.stage.records"), t("email.stage.done")]}
-            at={waiting ? 2 : 3}
-          />
+          <Stages labels={RESEND_STAGES} at={waiting ? 3 : 4} />
         </div>
       ) : null}
 
@@ -725,6 +722,19 @@ function SmtpSheet({
 }
 
 /**
+ * R22.2. The four stages of connecting Resend, in one place.
+ *
+ * Both cards draw them, the one before the connection and the one after, so
+ * a church reads the same four words wherever it has got to.
+ */
+const RESEND_STAGES = [
+  t("email.stage.signin"),
+  t("email.stage.connect"),
+  t("email.stage.records"),
+  t("email.stage.done"),
+];
+
+/**
  * HRT-288, R16.1. The Resend path, which is two things in order.
  *
  * On the screen rather than in a panel, because the second thing happens
@@ -746,6 +756,15 @@ function ResendPath({
   /* Where Resend was sent to, kept so the consent screen can be opened again
      without the church retyping anything. */
   const [going, setGoing] = React.useState<string | null>(null);
+  /*
+   * R22.2. Signing in at Resend is its own step, ahead of everything else.
+   *
+   * Resend's consent screen handles a sign-in and does not handle a sign-up:
+   * a church with no account is taken through one and left on a dashboard,
+   * with the permission never asked for. Getting that out of the way first
+   * means the press that matters meets a church Resend already knows.
+   */
+  const [signedIn, setSignedIn] = React.useState(false);
   const formId = React.useId();
   const full = useAnswered(formId);
 
@@ -773,11 +792,47 @@ function ResendPath({
 
   const open = (where: string) => window.open(where, "_blank", "noopener,noreferrer");
 
+  if (!signedIn && !going) {
+    return (
+      <Card className="flex flex-col gap-6 p-5">
+        <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
+          <Stages labels={RESEND_STAGES} at={1} />
+        </div>
+
+        <div className="mx-auto flex w-full max-w-[460px] flex-col gap-4">
+          <span className="font-display text-[17px] leading-6 text-fg">
+            {t("email.resend.signin.title")}
+          </span>
+          <p className="m-0 text-fg-muted">{t("email.resend.signin.body")}</p>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <Button type="button" variant="ghost" onClick={onBack}>
+              {t("action.back")}
+            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => open("https://resend.com/login")}
+              >
+                {t("email.resend.signin.open")}
+                <ExternalLink className="size-[14px]" aria-hidden />
+              </Button>
+              <Button type="button" onClick={() => setSignedIn(true)}>
+                {t("email.resend.signin.done")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
   if (going) {
     return (
       <Card className="flex flex-col gap-5 p-5">
         <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
-          <Stages labels={[t("email.stage.connect"), t("email.stage.records")]} at={1} />
+          <Stages labels={RESEND_STAGES} at={2} />
         </div>
 
         <div className="mx-auto flex w-full max-w-[460px] flex-col gap-4">
@@ -819,7 +874,7 @@ function ResendPath({
       {/* Held to the width of the form under it, so the two dots read as a
           pair rather than as one at each end of the card. */}
       <div className="mx-auto w-full max-w-[460px] px-6 pt-1">
-        <Stages labels={[t("email.stage.connect"), t("email.stage.records")]} at={1} />
+        <Stages labels={RESEND_STAGES} at={2} />
       </div>
 
       <form
@@ -846,10 +901,9 @@ function ResendPath({
         <Sender church={church} />
 
         <p className="m-0 text-fg-muted">{t("email.resend.free")}</p>
-        <p className="m-0 text-fg-muted">{t("email.resend.mayAsk")}</p>
 
         <div className="flex items-center justify-between gap-3 pt-1">
-          <Button type="button" variant="ghost" onClick={onBack} disabled={busy}>
+          <Button type="button" variant="ghost" onClick={() => setSignedIn(false)} disabled={busy}>
             {t("action.back")}
           </Button>
           <Button data-guide="resend-go" type="submit" disabled={busy || !full}>
