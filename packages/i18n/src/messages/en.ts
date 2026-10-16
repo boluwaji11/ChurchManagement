@@ -4970,7 +4970,7 @@ export const en = {
   "invite.mail.already": "If you already have a ConnectApp account, {signIn}.",
   "invite.mail.signIn": "sign in to accept your invitation",
   "invite.mail.until": "This invitation expires on {day}.",
-  "invite.mail.sentBy": "Sent by ConnectApp on behalf of {church}.",
+  "invite.mail.sentBy": "Sent by {app} on behalf of {church}.",
   "invite.mail.ignore": "If you weren't expecting this invitation, you can safely ignore this email.",
   "invite.unsent.title": "The invitation could not be emailed",
   "invite.unsent.body": "{email} is invited and the email did not go. Send it again from the list, or pass them the join link yourself.",
