@@ -1910,7 +1910,7 @@ export const browserWords: Catalogue = {
   "setup.step.plan": "Plan your next service",
   "setup.what.plan": "Create a plan for your upcoming service using your order of service template.",
   "setup.why.plan": "Adjust the activities, timing, and order to fit the service you're planning. Your team can follow the same plan on the day.",
-  "setup.at.plan": "Open the service that says Not planned yet, then start from your template.",
+  "setup.at.plan": "Click Not planned yet, choose your service template, and customise the plan for this service.",
   "setup.step.groupTypes": "The kinds of group you run",
   "setup.what.groupTypes": "The sorts of group your church gathers in: small groups, classes, ministries, whatever you call them.",
   "setup.why.groupTypes": "A group is created as one of these, so until there is at least one kind your church cannot write down a single group.",
