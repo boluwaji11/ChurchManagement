@@ -179,7 +179,14 @@ we do not. The reading that produced them is below the table.
 | HRT-336 | Sweep the dead ends: a link to nothing, two empty directories, components nothing renders | R24.18 | Resolved |
 | HRT-337 | Lint in CI, with the rules of hooks enforced | R22.7, N7 | Resolved |
 | HRT-340 | Take out the church prop nothing reads | R24.18 | Resolved |
-| HRT-338 | The church website builder: what a Path B church can actually build | R22.2, R24.15 | New |
+| HRT-338 | Website Builder 2.0: a church builds a site it is proud of (umbrella) | R22.2, R24.15 | New |
+| HRT-377 | The website document model: pages, sections, theme, draft and published revisions | R22.2, R24.15 | New |
+| HRT-378 | The visual editor: canvas, selection, inline text, inspector, undo, autosave | R22.2, R24.15 | New |
+| HRT-379 | The section library and its layout variants | R22.2, R24.15 | New |
+| HRT-380 | Six art-directed templates, and site styles a church changes once | R22.2, R24.6 | New |
+| HRT-381 | Pages, navigation, the shared header and the shared footer | R22.2, R17.1 | New |
+| HRT-382 | What the site reads from the church: service times, events, groups, forms, giving | R22.2, R1.5 | New |
+| HRT-383 | Publish, revisions, preview, search engines, and how fast the page is | R22.2, R24.15, R22.7 | New |
 
 
 
@@ -396,6 +403,58 @@ rebuild keeps both.
 
 This sits behind the Phase A vocabulary (HRT-307 to HRT-318), because a page
 builder wants the shared header, tabs and empty state rather than its own.
+
+
+## Website Builder 2.0, October 2026
+
+HRT-338 was one row describing what is wrong. The rebuild is too large for one
+row, so it becomes the umbrella over HRT-377 to HRT-383, built in that order.
+
+**What is there today.** One table, `church_websites`, keyed by tenant: a
+`published` boolean, one of three `layout` words, and a `sections` jsonb array
+of at most twenty rows. `packages/db/src/repo/website-rules.ts` validates the
+array and is the single guard on what a church can write. One React component,
+`apps/web/components/church-website.tsx`, renders those sections twice over: as
+the preview inside the editor and as the real page on the church's own address,
+which `apps/web/app/page.tsx` serves when `churchFromHost()` names a church.
+That single renderer is the best thing in the current design and the rebuild
+keeps the idea: the editor and the published page share one set of components.
+
+**What has to change, beyond the walk recorded above.**
+
+- **One page only.** There is no page table, no slug, no navigation. A church
+  gets a homepage and nothing else.
+- **No draft.** `saveChurchWebsite` writes straight over the live row, so a
+  church cannot work on its page without the congregation watching it happen.
+  There is no revision to go back to either.
+- **The section shape is one flat row for seven kinds.** `title`, `body`, one
+  image, one video, one link. A ministry grid, an events list or a leadership
+  row cannot be expressed in it, and widening that row for each new kind ends
+  with thirty nullable fields. Sections need per-type content, validated per
+  type, with a version on each so an old row can be migrated.
+- **The published page cannot be cached, and pays to render.** Uploaded media is
+  served through `createSignedUrls(keys, 3600)` on every request, so the page is
+  `force-dynamic` by necessity and an hour-old HTML copy would serve dead image
+  links. A church site wants a long-lived public URL for its own photographs.
+  This is the one piece of infrastructure the rebuild has to add rather than
+  reuse.
+- **The theme is a single hue.** `brand_hue` carries through, which is why the
+  current pages look related to the admin product rather than independent of
+  it. A site wants its own palette, its own two fonts and its own button shape.
+
+**Two things in the brief that the design system overrides.** The brief asks
+for ConnectApp purple on selected states: there is no purple in
+`packages/ui/tokens/color.json`, the product is ink and ember on warm stone, and
+the editor uses `--color-primary` like every other screen. The brief also asks
+for a stock image library; `docs/design-system.md` and the trust commitments
+leave a church's own photographs as the only imagery on its page, with drawn
+artwork where a photograph is missing.
+
+**What the rebuild reuses.** The single renderer, the brand hue on the public
+page, the public empty states, `storedFiles` and `/api/upload` with the
+`website_media` purpose and its quota, the `f`, `g` and `e` public pages for
+forms, groups and events, `withTenant` and RLS for every write, and
+`canManageWebsite`.
 
 ## The pass against the reference, October 2026
 
