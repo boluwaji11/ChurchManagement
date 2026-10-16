@@ -56,6 +56,13 @@ const LINE = "#e0ddda";
 const TEXT = "#231f19";
 const MUTED = "#6d6861";
 
+/*
+ * Where our own name goes. Not PLATFORM_HOST, which is localhost on a laptop
+ * and would put a link nobody can open into a message that leaves the
+ * building.
+ */
+const HOME = process.env["PLATFORM_SITE"] ?? "https://connectapp.church";
+
 /**
  * The mark, drawn rather than linked.
  *
@@ -121,7 +128,7 @@ export function inviteMessage(invitation: Invitation): Omit<Message, "from"> {
       "",
       t("invite.mail.until", { day }),
       "",
-      t("invite.mail.sentBy", { church: invitation.church }),
+      t("invite.mail.sentBy", { app: t("app.name"), church: invitation.church }),
       t("invite.mail.ignore"),
     ].join("\n"),
     html: markup({ ...invitation, opening, join, signIn, day }),
@@ -157,6 +164,15 @@ function markup(input: {
     MARKER,
     `<a href="${safe(input.signIn)}" style="color:${INK};font-weight:600">` +
       `${safe(t("invite.mail.signIn"))}</a>`,
+  );
+
+  /* The same again in the footer: our own name, linked to our own front door. */
+  const APP = "\u0000app\u0000";
+  const sentBy = safe(
+    t("invite.mail.sentBy", { app: APP, church: input.church }),
+  ).replace(
+    APP,
+    `<a href="${HOME}" style="color:${MUTED};font-weight:600">${safe(t("app.name"))}</a>`,
   );
 
   const row = (contents: string) => `<tr><td style="${pad}">${contents}</td></tr>`;
@@ -216,7 +232,7 @@ function markup(input: {
 
     `<tr><td style="padding:18px 32px 28px">` +
     `<p style="margin:0;font-size:13px;line-height:1.6;color:${MUTED}">` +
-    `${safe(t("invite.mail.sentBy", { church: input.church }))}<br>` +
+    `${sentBy}<br>` +
     `${safe(t("invite.mail.ignore"))}</p></td></tr>` +
 
     `</table></td></tr></table></div>`
