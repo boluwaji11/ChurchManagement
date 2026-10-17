@@ -62,6 +62,24 @@ async function ask(url: string, init: RequestInit = {}): Promise<Response> {
   return fetch(url, { ...init, signal: stop, cache: "no-store" });
 }
 
+/**
+ * A probe that cannot answer in time answers anyway.
+ *
+ * Every fetch here already carries its own AbortSignal, and that is not
+ * enough: a database connection is not a fetch, and postgres.js will wait on
+ * the connection pool for as long as the pool makes it wait. The health route
+ * on Vercel hung for five minutes and returned nothing at all, which is the
+ * one thing a status check must never do. A deadline that reports a service as
+ * not answering is information; a request that never returns is not.
+ */
+function within<T>(ms: number, work: Promise<T>, whenLate: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const late = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(whenLate), ms);
+  });
+  return Promise.race([work, late]).finally(() => clearTimeout(timer));
+}
+
 /** Time one probe and turn anything it throws into a state. */
 async function timed(
   service: string,
@@ -248,7 +266,28 @@ const queue = () =>
 
 /** Every probe, at once. */
 export async function probeEverything(): Promise<Probe[]> {
-  return Promise.all([database(), supabase(), stripe(), resend(), redis(), queue(), web()]);
+  const late = (service: string): Probe => ({
+    ...words(service),
+    state: "fail",
+    tookMs: BUDGET_MS,
+    said: `No answer inside ${BUDGET_MS / 1000}s`,
+  });
+
+  return Promise.all(
+    ([
+      ["database", database],
+      ["supabase", supabase],
+      ["stripe", stripe],
+      ["resend", resend],
+      ["redis", redis],
+      ["queue", queue],
+      ["web", web],
+    ] as const).map(([service, run]) =>
+      /* A second over the budget each probe already works to, so a probe that
+         is about to answer is not cut off by the net below it. */
+      within(BUDGET_MS + 1_000, run(), late(service)),
+    ),
+  );
 }
 
 /** What environment these answers belong to, for the row they are written as. */

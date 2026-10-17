@@ -5,6 +5,12 @@ import { probeEverything } from "@/lib/probes";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+/*
+ * Every probe answers inside its own deadline, so this is the net under the
+ * net. A route that can run until the platform kills it is a route whose
+ * failures are invisible.
+ */
+export const maxDuration = 30;
 
 /**
  * HRT-394, N3. The probes, on a clock.

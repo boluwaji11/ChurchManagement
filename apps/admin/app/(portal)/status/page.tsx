@@ -11,6 +11,7 @@ import { Since } from "@/components/since";
 import { CheckAgain } from "./check-again";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 export const metadata = { title: "Status - ConnectApp Admin" };
 
