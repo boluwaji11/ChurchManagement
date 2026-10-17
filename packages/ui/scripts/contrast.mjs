@@ -145,7 +145,32 @@ export function pairs() {
       const tint = theme === "dark" ? steps["900"] : steps["100"];
       const key = theme === "dark" ? steps["100"] : steps["700"];
       add(`${theme}: ${hue} key on ${hue} tint`, key, tint, 4.5);
+
+      /*
+       * R22.7. A hue's key colour is also used as text straight on a card,
+       * without its tint behind it: the follow-ups board colours each column
+       * heading by its stage. That pair was never audited, and axe found it
+       * failing on the board. Auditing it here is what stops the next screen
+       * doing the same.
+       */
+      add(`${theme}: ${hue} key on surface`, key, on("surface"), 4.5);
+
+      /*
+       * The follow-ups board puts a coloured heading on its own wash rather
+       * than on a card, which is darker than surface in light mode and lighter
+       * in dark mode. The darkest step is what has the room there.
+       */
+      const deepest = theme === "dark" ? steps["100"] : steps["900"];
+      add(`${theme}: ${hue} 900 on board`, deepest, sem(theme, "board"), 4.5);
     }
+
+    /*
+     * R22.7. Text colours against the board wash, for the same reason. The
+     * board carries ordinary words as well as coloured headings, and
+     * fg-subtle does not have the room on it that it has on a card.
+     */
+    add(`${theme}: fg on board`, sem(theme, "fg"), sem(theme, "board"), 4.5);
+    add(`${theme}: fg-muted on board`, sem(theme, "fg-muted"), sem(theme, "board"), 4.5);
   }
 
   return out;

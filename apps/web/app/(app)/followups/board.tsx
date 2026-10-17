@@ -130,9 +130,12 @@ export function Board({
             className="rounded-lg p-2"
             style={{ background: over === stage.id ? "var(--color-line)" : "var(--color-board)" }}
           >
+            {/* R22.7. The darkest step rather than the key one. A column sits
+                on the board wash rather than on a card, and the key step does
+                not reach 4.5:1 against it. The audit covers both pairs now. */}
             <div
               className="mb-2 flex items-center gap-2 border-b border-primary/15 px-1.5 pt-1 pb-2.5 text-[13px] font-medium"
-              style={{ color: `var(--hue-${stage.hue}-key)` }}
+              style={{ color: `var(--hue-${stage.hue}-900)` }}
             >
               <span
                 className="size-2 rounded-full"
@@ -290,7 +293,7 @@ function AddToStage({
           setOpen(true);
         }}
         disabled={pending}
-        className="flex min-h-8 cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-[12px] text-fg-subtle hover:bg-surface hover:text-fg"
+        className="flex min-h-8 cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-[12px] text-fg-muted hover:bg-surface hover:text-fg"
       >
         <Plus className="size-3.5" aria-hidden /> {t("board.add")}
       </button>

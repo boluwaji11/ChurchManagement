@@ -307,6 +307,12 @@ export function Sidebar({
                     openColumn();
                   }}
                   aria-current={here ? "page" : undefined}
+                  /* R22.7. The rail is an icon and, on the one being looked
+                     at, a vertical label. Every other link had no accessible
+                     name at all, so a screen reader announced five unnamed
+                     links on every staff screen. axe reports it as link-name,
+                     serious. */
+                  aria-label={t(group.label as never)}
                   className={cn(
                     "flex w-11 shrink-0 cursor-pointer flex-col items-center gap-2.5 rounded-2xl py-3 no-underline",
                     "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
@@ -336,7 +342,10 @@ export function Sidebar({
               <Tooltip key={entry.href} content={entry.label} side="right">
                 <NavLink
                   href={entry.href}
-                                    aria-current={on ? "page" : undefined}
+                  aria-current={on ? "page" : undefined}
+                  /* R22.7. Named for the same reason the area links are: the
+                     icon alone left this link with no accessible name. */
+                  aria-label={entry.label}
                   className={cn(
                     "flex w-11 shrink-0 flex-col items-center gap-2.5 rounded-2xl py-3 no-underline",
                     "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80",
@@ -358,11 +367,19 @@ export function Sidebar({
             );
           })}
 
-          {/* The role rode under the name in the old footer. The rail has room
-              for a face and nothing else, so it moves into the tooltip rather
-              than being dropped. */}
+          {/* The role sat under the name in the previous footer. The rail has
+              room for a face and nothing else, so it moves into the tooltip
+              rather than being dropped.
+
+              R22.7. The link carries the same words as its own accessible
+              name. The avatar is decorative, so without this the link had no
+              name and axe reported it on every staff screen. */}
           <Tooltip content={`${personName}, ${roleName}`} side="right">
-            <Link href={"/settings/profile"} className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80">
+            <Link
+              href={"/settings/profile"}
+              aria-label={`${personName}, ${roleName}`}
+              className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            >
               <Avatar name={personName} src={photoUrl} id={userId} size="sm" className="size-8 text-[12px] font-semibold" />
             </Link>
           </Tooltip>

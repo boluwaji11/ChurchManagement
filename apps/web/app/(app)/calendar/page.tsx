@@ -236,8 +236,17 @@ export default async function CalendarPage({
         </div>
       </div>
 
-      {/* R15.1. The fortnight, seven columns a week. */}
-      <div className="hidden overflow-auto rounded-lg border border-line lg:grid [grid-template-columns:repeat(7,minmax(120px,1fr))]">
+      {/* R15.1. The fortnight, seven columns a week.
+
+          R22.7. The grid scrolls sideways on a narrow desktop, so it carries a
+          tab stop and a name. Without them a keyboard user could not scroll it
+          at all, which axe reports as scrollable-region-focusable. */}
+      <div
+        tabIndex={0}
+        role="group"
+        aria-label={t("calendar.title")}
+        className="hidden overflow-auto rounded-lg border border-line focus-visible:ring-2 focus-visible:ring-focus focus-visible:outline-none lg:grid [grid-template-columns:repeat(7,minmax(120px,1fr))]"
+      >
         {days.map((day, at) => (
           <section
             key={day.date}
@@ -246,7 +255,7 @@ export default async function CalendarPage({
             } ${day.date === today ? "bg-sunken" : "bg-surface"}`}
           >
             <div className="flex items-baseline gap-1.5 border-b border-line px-1 pt-1 pb-2.5">
-              <span className="text-[12px] font-medium text-fg-subtle">{dayName(day.date)}</span>
+              <span className="text-[12px] font-medium text-fg-muted">{dayName(day.date)}</span>
               <span className="font-display text-[20px] text-fg">{dayNumber(day.date)}</span>
             </div>
 
