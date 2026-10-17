@@ -332,3 +332,17 @@ body[data-env-bar] .min-h-screen { min-height: calc(100vh - var(--env-bar)); }
 body[data-env-bar] .h-screen { height: calc(100vh - var(--env-bar)); }
 body[data-env-bar] .max-h-screen { max-height: calc(100vh - var(--env-bar)); }
 
+/*
+ * Anything pinned to the top of the window pins under the bar.
+ *
+ * `sticky top-0` means the top of the viewport, which the bar now covers, so
+ * the sidebar's own heading and a screen's title were sitting behind it. Only
+ * the full-height panes and the headers are moved: a table head inside its own
+ * scrolling box sticks to that box rather than to the window, and nudging it
+ * would leave a gap nobody asked for.
+ */
+body[data-env-bar] .sticky.top-0.h-screen,
+body[data-env-bar] .sticky.top-0.h-dvh,
+body[data-env-bar] .sticky.top-0.min-h-dvh,
+body[data-env-bar] header.sticky.top-0 { top: var(--env-bar); }
+
