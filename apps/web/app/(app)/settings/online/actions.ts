@@ -275,6 +275,11 @@ export async function connectStripe(): Promise<ConnectResult> {
 
     return { url: link.url };
   } catch (error) {
+    if (beyondUs(error)) return { error: "stripe.unreachable" };
+    if (stripeRefused(error)) {
+      console.error("[stripe] connect refused", error);
+      return { error: "stripe.refused" };
+    }
     return { error: explain(error) };
   }
 }
@@ -302,6 +307,21 @@ function beyondUs(error: unknown): boolean {
     || one.code === "account_invalid"
     || one.code === "resource_missing"
   );
+}
+
+/**
+ * R21.5. Stripe refusing a call is not a fault in this product.
+ *
+ * `explain` rethrows what it does not recognise, which is the right rule for
+ * the data layer: a bug hidden behind a sentence that reads like a rule is
+ * worse than a broken screen. A call to somebody else's API is the other case.
+ * It fails for reasons that are theirs, and a church pressing Connect should
+ * be told so rather than shown a screen that did not render.
+ */
+function stripeRefused(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  return typeof (error as { type?: unknown }).type === "string"
+    && (error as { type: string }).type.startsWith("Stripe");
 }
 
 export async function syncStripe(): Promise<ConnectResult> {

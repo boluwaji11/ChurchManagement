@@ -68,6 +68,22 @@ function Address({ value }: { value: string }) {
  * connect Stripe, hand out the address, put the code on the bulletin. The
  * thread down the left says so, and a step that is behind them wears green.
  */
+/**
+ * What the action came back with, as a sentence.
+ *
+ * An action answers either with a catalogue key, for the outcomes it knows
+ * about, or with a sentence `explain` already wrote. Anything unrecognised is
+ * the second kind and goes through as it is.
+ */
+const SAID = {
+  "stripe.unconfigured": true,
+  "stripe.unreachable": true,
+  "stripe.refused": true,
+} as const;
+
+const said = (error: string): string =>
+  error in SAID ? t(error as keyof typeof SAID) : error;
+
 export function OnlineGiving({
   church,
   account,
@@ -181,7 +197,7 @@ export function OnlineGiving({
       const result = await connectStripe();
       if (result.error) {
         tab?.close();
-        setError(result.error === "stripe.unconfigured" ? t("stripe.unconfigured") : result.error);
+        setError(said(result.error));
         return;
       }
       if (!result.url) {
