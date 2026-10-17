@@ -3,7 +3,7 @@ import { whereWeAre } from "@connectapp/env";
 /**
  * HRT-402. Which set of records is behind this screen, on every screen.
  *
- * The operator portal has worn one since it was built. The product needs it
+ * The admin portal has worn one since it was built. The product needs it
  * for the same reason and more sharply: the portal is one site a team member
  * opens on purpose, while this is a copy of the church-facing product, pixel
  * for pixel, sitting at an address one letter away from the real one. Without

@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
   try {
     await platform.claimInvite(token, { id: user.id, email: user.email });
   } catch (error) {
-    return away(error instanceof Error ? error.message : "That invitation did not work.");
+    return away(error instanceof Error ? error.message : "That invitation didn't work.");
   }
 
   return NextResponse.redirect(`${origin}/`);

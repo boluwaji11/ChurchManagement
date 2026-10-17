@@ -48,7 +48,7 @@ export function TeamMembers({
 
   return (
     <div className="flex flex-col gap-5" aria-busy={pending}>
-      {error ? <Banner tone="danger" title="That did not work">{error}</Banner> : null}
+      {error ? <Banner tone="danger" title="That didn't work">{error}</Banner> : null}
 
       <div className="flex justify-end">
         <Dialog open={open} onOpenChange={setOpen}>

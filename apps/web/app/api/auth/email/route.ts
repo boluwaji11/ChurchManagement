@@ -88,7 +88,7 @@ function confirmUrl(hook: Hook): string | null {
   const back = hook.email_data.redirect_to || `${site}/auth/callback`;
 
   /*
-   * HRT-401. A link into the operator portal is proved on the portal's own
+   * HRT-401. A link into the admin portal is proved on the portal's own
    * host rather than this one.
    *
    * Supabase sets the session at whichever of our addresses hands it the

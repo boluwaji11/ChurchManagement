@@ -17,7 +17,7 @@ export function SignInForm() {
     >
       <h1 className="font-display text-[22px] text-fg">Sign in</h1>
 
-      {state.error ? <Banner tone="danger" title="That did not work">{state.error}</Banner> : null}
+      {state.error ? <Banner tone="danger" title="That didn't work">{state.error}</Banner> : null}
 
       <Field label="Email address" required>
         <Input name="email" type="email" autoComplete="email" autoFocus />

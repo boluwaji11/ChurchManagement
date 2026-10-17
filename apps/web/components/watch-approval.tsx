@@ -7,7 +7,7 @@ import { stillWaiting } from "@/app/standing-actions";
 /**
  * R1.1. Clears the banner when the church is approved, without a press.
  *
- * Approval happens somewhere else: an operator presses a button in the admin
+ * Approval happens somewhere else: a team member presses a button in the admin
  * portal, and this browser has no way of hearing about it. Every screen here is
  * built fresh per request, so any navigation would pick it up, and somebody
  * sitting on one screen waiting for the hour to pass would not.

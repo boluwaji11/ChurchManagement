@@ -220,7 +220,7 @@ export async function restore(by: string, tenantId: string, note: string): Promi
   await record(actor, "restored", { tenantId, tenantName: target.name, note });
 }
 
-/** R21.x. What the operators have done, newest first. */
+/** R21.x. What the platform team has done, newest first. */
 export async function events(
   by: string,
   opts: { tenantId?: string; limit?: number } = {},

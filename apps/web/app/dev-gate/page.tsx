@@ -11,7 +11,7 @@ export const metadata = { title: "Development - ConnectApp" };
 /**
  * HRT-402, R21.x. The door in front of the development deployment.
  *
- * Written here rather than in the catalogue, like the operator portal's own
+ * Written here rather than in the catalogue, like the admin portal's own
  * screens: a church never sees this, and a string a church never sees does not
  * belong in the file that is translated for them.
  */

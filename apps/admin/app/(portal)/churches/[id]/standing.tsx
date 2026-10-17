@@ -33,7 +33,7 @@ export function Standing({
     <aside className="flex h-fit flex-col gap-3 rounded-[16px] border border-line bg-surface p-6">
       <h2 className="font-display text-[20px] text-fg">Standing</h2>
 
-      {error ? <Banner tone="danger" title="That did not work">{error}</Banner> : null}
+      {error ? <Banner tone="danger" title="That didn't work">{error}</Banner> : null}
 
       {archived ? (
         <Decision
@@ -41,8 +41,8 @@ export function Standing({
           act={restoreChurch}
           onError={setError}
           title={`Put ${name} back into service?`}
-          body="It counts again, and the people who could sign in to it can sign in to it."
-          confirm="Put it back"
+          body="It counts again, and everybody who could sign in to it can sign in again."
+          confirm="Put back into service"
           trigger={
             <Button variant="secondary">
               <RotateCcw /> Put back into service
@@ -58,7 +58,7 @@ export function Standing({
               onError={setError}
               title={`Put ${name} back behind the cap?`}
               body="It holds 25 members again, its invitations close and its sign-up address stops working."
-              confirm="Put it back"
+              confirm="Put back behind the cap"
               tone="danger"
               trigger={
                 <Button variant="secondary">

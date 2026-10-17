@@ -51,7 +51,7 @@ export function Gate({
               Welcome back
             </h1>
             <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">{email}</p>
-            {error ? <Banner tone="danger" title="That did not work">{error}</Banner> : null}
+            {error ? <Banner tone="danger" title="That didn't work">{error}</Banner> : null}
             <Button
               disabled={pending}
               loading={pending}

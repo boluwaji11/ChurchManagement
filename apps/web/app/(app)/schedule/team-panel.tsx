@@ -443,9 +443,8 @@ export function TeamPanel({
           <div className="flex flex-col gap-2">
             <span className="text-label text-fg">{t("serving.team.positions")}</span>
 
-            {/* R10.2. The same path the setup dock draws: a marker a row, the
-                line between them carrying its own dot. A position is one line
-                of a list, and a boxed card each made six of them read as six
+            {/* R10.2. A marker per row with the connecting line carrying its
+                own dot. Boxing each position made six of them read as six
                 separate things. */}
             <div>
               <ol className="m-0 flex list-none flex-col p-0">

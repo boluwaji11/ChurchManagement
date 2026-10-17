@@ -5,8 +5,8 @@ import { t } from "@connectapp/i18n";
  *
  * Supabase answers in its own vocabulary: "email rate limit exceeded", "User
  * already registered", "Password should be at least 6 characters". Those are
- * messages to an engineer about an API. Maria gets told what happened and what
- * to do next, and the original goes to the log.
+ * messages to an engineer about an API. The person signing in is told what
+ * happened and what to do next, and the original goes to the log.
  */
 const KNOWN: { match: RegExp; key: string; field?: string }[] = [
   { match: /rate limit|too many requests|429/i, key: "auth.error.rateLimit" },

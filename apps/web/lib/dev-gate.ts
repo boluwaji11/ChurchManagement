@@ -9,7 +9,7 @@
  * guesses.
  *
  * The check itself is a row in `platform_admins`, which is the same list the
- * operator portal runs on: one place to add somebody, one place to take them
+ * admin portal runs on: one place to add somebody, one place to take them
  * off. Middleware cannot read that list, because it runs where the database
  * connection does not belong, so the pass below carries the answer instead. It
  * is minted once, by a route that can reach the database, and checked on every

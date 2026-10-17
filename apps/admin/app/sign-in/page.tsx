@@ -36,7 +36,7 @@ export default async function SignInPage({
             <Brand size="md" />
           </div>
 
-          {said ? <Banner tone="danger" title="That link did not work">{said}</Banner> : null}
+          {said ? <Banner tone="danger" title="That link didn't work">{said}</Banner> : null}
 
           <SignInForm />
         </div>

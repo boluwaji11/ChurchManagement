@@ -1,13 +1,13 @@
 /**
  * @connectapp/songs
  *
- * The song model, shared by the web platform and Hearth Stage. See the package
- * README for what belongs here and what deliberately does not.
+ * The song model. Written when this repository was to own the shared song
+ * library; Hearth Stage now has its own, and nothing here imports this
+ * package. See docs/repository-inventory.md before changing or removing it.
  *
- * This package has no runtime dependencies, and it never will. It is called
- * from a Next.js server action, from an Electron main process, from a worker
- * thread reading a ProPresenter file, and from a test, so anything it imports
- * all four have to carry.
+ * No runtime dependencies, by design: the package was meant to be called from
+ * a Next.js server action, an Electron main process and a worker thread, so
+ * anything it imported all three would have had to carry.
  */
 
 export {

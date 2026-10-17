@@ -99,7 +99,7 @@ export default async function DeliveryPage() {
         </Block>
       )}
 
-      <Block title="What the machines said">
+      <Block title="What CI reported">
         {workflows.length === 0 ? (
           <EmptyState title="No workflow runs came back." />
         ) : (

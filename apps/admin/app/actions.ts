@@ -13,7 +13,7 @@ export interface Done {
 }
 
 const say = (error: unknown) =>
-  error instanceof Error ? error.message : "That did not work. Try again.";
+  error instanceof Error ? error.message : "Something went wrong. Try again.";
 
 /**
  * HRT-396, R21.1. Where the request came from.
@@ -47,7 +47,7 @@ async function from(): Promise<{ ip: string | null; agent: string | null }> {
 export async function signIn(_state: Done, data: FormData): Promise<Done> {
   const email = String(data.get("email") ?? "").trim().toLowerCase();
   const password = String(data.get("password") ?? "");
-  if (!email || !password) return { error: "Both an address and a password are needed." };
+  if (!email || !password) return { error: "Enter an email address and a password." };
 
   const where = await from();
 
@@ -59,7 +59,7 @@ export async function signIn(_state: Done, data: FormData): Promise<Done> {
     };
   }
 
-  const refused = "That address and password do not match a team member's account.";
+  const refused = "That email address and password don't match a team member's account.";
 
   const supabase = await supabaseServer();
   const result = await supabase.auth.signInWithPassword({ email, password });

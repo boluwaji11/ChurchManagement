@@ -29,7 +29,7 @@ const NEWCOMER = {
 };
 
 /**
- * R21.x. Somebody to sign in to the operator portal with.
+ * R21.x. Somebody to sign in to the admin portal with.
  *
  * The portal's two gates are a real session and a row in `platform_admins`, so
  * testing it needs an account holding both, and an account holding the first

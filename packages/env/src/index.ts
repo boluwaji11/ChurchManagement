@@ -94,7 +94,7 @@ export interface Finding {
  * Every way the keys in this process disagree with the environment it says it
  * is.
  *
- * Pure, so the operator portal can draw the same answer it would have thrown.
+ * Pure, so the admin portal can draw the same answer it would have thrown.
  */
 export function check(env: Environment = environment()): Finding[] {
   const found: Finding[] = [];
@@ -176,7 +176,7 @@ export function check(env: Environment = environment()): Finding[] {
  * start. The other direction is a product that does not work rather than one
  * that does damage, and a guard that can take the live site down over a
  * misread variable is a worse risk than the thing it guards against. That one
- * is written to the log and drawn on the operator portal's status screen.
+ * is written to the log and drawn on the admin portal's status screen.
  */
 export function assertEnvironment(): void {
   const env = environment();

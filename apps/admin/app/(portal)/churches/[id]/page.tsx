@@ -57,7 +57,7 @@ export default async function ChurchPage({ params }: { params: Promise<{ id: str
           ? `Out of service. ${found.archivedReason ?? ""}`.trim()
           : found.approvedAt
             ? `Approved by ${found.approvedBy ?? "somebody"}.`
-            : "Waiting on a person. Capped at 25 members, with no invitations and no sign-up address."
+            : "Waiting for review. Capped at 25 members, with no invitations and no sign-up address."
       }
       action={<Mark church={found} />}
     >
