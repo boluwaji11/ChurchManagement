@@ -81,6 +81,7 @@ export async function GiveScreen({ slug }: { slug: string }) {
           church={church.name}
           funds={church.funds}
           accountId={church.accountId}
+          nonprofitRate={church.nonprofitRate}
           giver={{
             name: [known?.firstName, known?.lastName].filter(Boolean).join(" ")
               || known?.fullName

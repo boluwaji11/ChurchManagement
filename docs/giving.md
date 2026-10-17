@@ -75,6 +75,21 @@ Settings → Money → Online giving says so beside the account, and drafts the 
 name and Stripe account already in it. Nothing is sent from this product: the church's own mail
 client opens and the church presses send.
 
+**HRT-386. The church tells us when Stripe says yes.** Stripe reports the rate through no API, so
+`stripe_accounts.nonprofit_rate_at` is the church's own answer, written when it presses "Stripe has
+granted it". The card then comes off the screen and the line under the account names the rate, with
+the way back beside it.
+
+It is a date rather than a flag because Stripe does not backdate the discount: gifts taken before
+that day were charged the full rate, and anything working a fee out after the fact has to be able
+to tell which side of the day a gift fell on.
+
+**It is what the covered fee is worked out from.** `withFee` used 2.2% for everybody, so a giver at
+a church that had not been granted the rate covered seven tenths of a percent less than Stripe took
+and the church absorbed the rest. The giver was never overcharged. The browser is told the rate so
+the figure on screen is right, and the server reads it again from the church's own record before it
+charges anything.
+
 ### Bank debits
 
 Stripe ships a new account with **ACH debits off**, and a card is 2.2% + 30¢ while a bank debit is

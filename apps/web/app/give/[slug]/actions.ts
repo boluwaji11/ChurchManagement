@@ -88,7 +88,7 @@ export async function startGift(input: {
   const splitTotal = split.reduce((sum, part) => sum + part.cents, 0);
   const shares = split.length > 1 && splitTotal === input.amountCents ? split : [];
 
-  const charged = input.coverFee ? withFee(input.amountCents) : input.amountCents;
+  const charged = input.coverFee ? withFee(input.amountCents, page.nonprofitRate) : input.amountCents;
   const back = await origin();
 
   /* R13.6, R17.1. Where Stripe sends them once the gift is made. The church's

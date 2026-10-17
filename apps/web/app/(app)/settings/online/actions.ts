@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { withTenant, getChurch, getStripeAccount, saveStripeAccount } from "@connectapp/db";
+import {
+  withTenant, getChurch, getStripeAccount, saveStripeAccount, markNonprofitRate,
+} from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
 import { requireSession } from "@/lib/session";
@@ -93,6 +95,26 @@ export async function connectStripe(): Promise<ConnectResult> {
   try {
     const existing = await withTenant(ctx, (tx) => getStripeAccount(tx));
     let accountId = existing?.accountId;
+
+    /*
+     * R13.1. An account Stripe no longer answers for is worth nothing to the
+     * church holding it.
+     *
+     * The id is real but the keys now point at the other side of test and
+     * live, or the account was closed at Stripe's end. Either way every call
+     * about it fails, and a church left holding one had no way past the
+     * screen: the only button creates a link on the account it already has.
+     * So it is let go of here and the church gets a new one, which is what
+     * the banner above the button has been telling it to do.
+     */
+    if (accountId) {
+      try {
+        await stripe().accounts.retrieve(accountId);
+      } catch (gone) {
+        if (!beyondUs(gone)) throw gone;
+        accountId = undefined;
+      }
+    }
 
     if (!accountId) {
       const profile = await withTenant(ctx, (tx) => getChurch(tx, session.tenantId));
@@ -421,5 +443,27 @@ async function allowBankDebits(accountId: string): Promise<void> {
     );
   } catch {
     // Nothing to tell the church: the card page works either way.
+  }
+}
+
+/**
+ * HRT-386, R13.5. The church telling us which rate Stripe charges it.
+ *
+ * Stripe grants the nonprofit rate by email and reports it through no API, so
+ * the church is the only one who can say. It decides what a giver offering to
+ * cover the fee is charged, which is why it is written down rather than
+ * guessed at: the product used to work every gift out at the nonprofit rate,
+ * and a church that had not been granted it absorbed the difference.
+ */
+export async function setNonprofitRate(granted: boolean): Promise<ConnectResult> {
+  const { actor, ctx } = await context();
+
+  try {
+    await withTenant(ctx, (tx) => markNonprofitRate(tx, actor, granted));
+    revalidatePath("/settings/online");
+    revalidatePath("/giving");
+    return {};
+  } catch (error) {
+    return { error: explain(error) };
   }
 }

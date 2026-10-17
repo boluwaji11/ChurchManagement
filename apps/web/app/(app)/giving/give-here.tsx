@@ -18,6 +18,7 @@ export function GiveHere({
   funds,
   accountId,
   publishableKey,
+  nonprofitRate,
   giver,
 }: {
   slug: string;
@@ -25,6 +26,8 @@ export function GiveHere({
   funds: { id: string; name: string; description: string | null }[];
   accountId: string;
   publishableKey: string;
+  /** HRT-386, R13.5. Whether Stripe charges this church 2.2% or 2.9%. */
+  nonprofitRate: boolean;
   giver: { name: string; email: string };
 }) {
   const [open, setOpen] = React.useState(false);
@@ -48,6 +51,7 @@ export function GiveHere({
             funds={funds}
             accountId={accountId}
             publishableKey={publishableKey}
+            nonprofitRate={nonprofitRate}
             giver={giver}
           />
         </SheetContent>

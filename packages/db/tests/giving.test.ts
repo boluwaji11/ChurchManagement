@@ -12,6 +12,9 @@ import {
   listGifts, givingTotals,
 } from "../src/repo/giving";
 import { createPerson } from "../src/repo/members";
+import {
+  saveStripeAccount, getStripeAccount, markNonprofitRate,
+} from "../src/repo/stripe-accounts";
 import { InvalidInputError } from "../src/errors";
 import { PermissionError } from "../src/roles";
 import type { TenantRole } from "../src/roles";
@@ -206,5 +209,57 @@ describe("a counting session", () => {
     // there, and the piano adds nothing.
     const totals = await run((tx) => givingTotals(tx, { from: "2030-01-01", to: "2030-12-31" }));
     expect(totals.cents).toBe(14_000);
+  });
+});
+
+/**
+ * HRT-386, R13.5. Which rate Stripe charges this church.
+ *
+ * Stripe grants the nonprofit rate by email and reports it through no API, so
+ * the church is the only one who can say. It decides what a giver offering to
+ * cover the processing fee is charged, which is why it is a record rather than
+ * a guess.
+ */
+describe("the nonprofit rate", () => {
+  const account = {
+    accountId: `acct_rate_${SLUG}`,
+    chargesEnabled: true,
+    payoutsEnabled: true,
+    detailsSubmitted: true,
+    livemode: true,
+  };
+
+  it("starts unset, because every account pays the full rate until it asks", async () => {
+    await run((tx) => saveStripeAccount(tx, as(), account));
+    const held = await run((tx) => getStripeAccount(tx));
+    expect(held?.nonprofitRateAt).toBeNull();
+  });
+
+  it("is written down with the day it was granted, and taken back off", async () => {
+    await run((tx) => markNonprofitRate(tx, as(), true));
+    const granted = await run((tx) => getStripeAccount(tx));
+    expect(granted?.nonprofitRateAt).toBeInstanceOf(Date);
+
+    await run((tx) => markNonprofitRate(tx, as(), false));
+    expect((await run((tx) => getStripeAccount(tx)))?.nonprofitRateAt).toBeNull();
+  });
+
+  it("survives Stripe telling us something new about the account", async () => {
+    await run((tx) => markNonprofitRate(tx, as(), true));
+    /* What the webhook and the refresh press write: everything Stripe knows,
+       which is everything except the rate, because Stripe does not know it. */
+    await run((tx) => saveStripeAccount(tx, as(), { ...account, payoutsEnabled: false }));
+
+    const held = await run((tx) => getStripeAccount(tx));
+    expect(held?.payoutsEnabled).toBe(false);
+    expect(held?.nonprofitRateAt).toBeInstanceOf(Date);
+  });
+
+  it("is refused to a role that cannot manage giving", async () => {
+    await expect(
+      withTenant({ tenantId: tenant, role: "member" }, (tx) =>
+        markNonprofitRate(tx, { tenantId: tenant, role: "member" }, true),
+      ),
+    ).rejects.toBeInstanceOf(PermissionError);
   });
 });
