@@ -42,6 +42,17 @@ export function stripe(): Stripe {
 export const stripeConfigured = (): boolean => Boolean(process.env.STRIPE_SECRET_KEY);
 
 /**
+ * R13.1. Whether this platform is talking to Stripe for real.
+ *
+ * Read off the key rather than the account, because a test key can only ever
+ * create a test account and the two can never disagree. The mode sits in the
+ * middle of the key rather than at the front: `sk_live_` is a standard secret
+ * key and `rk_live_` is a restricted one, which is what a platform scoped to
+ * the calls it makes is given.
+ */
+export const stripeLive = (): boolean => /^[a-z]+_live_/.test(process.env.STRIPE_SECRET_KEY ?? "");
+
+/**
  * R13.1. The options that make a request act on the church's own account.
  *
  * Passed to any call about a church's money. Without it the call acts on the
