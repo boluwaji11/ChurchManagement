@@ -54,8 +54,15 @@ async function context() {
  *
  * Read off the key rather than the account, because a test key can only ever
  * create a test account and the two can never disagree.
+ *
+ * The mode sits in the middle of the key, not at the front: `sk_live_` is a
+ * standard secret key and `rk_live_` is a restricted one, which is what a
+ * platform scoped to the calls it actually makes is given. Matching the front
+ * of the string marked every account a restricted key created as a test
+ * account, so the screens linked a church to the test dashboard for money it
+ * had really taken.
  */
-const liveKey = (): boolean => Boolean(process.env.STRIPE_SECRET_KEY?.startsWith("sk_live"));
+const liveKey = (): boolean => /^[a-z]+_live_/.test(process.env.STRIPE_SECRET_KEY ?? "");
 
 /**
  * Where Stripe sends the church back to.
