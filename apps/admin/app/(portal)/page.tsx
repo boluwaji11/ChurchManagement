@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ArrowRight, Building2, CircleUser, Clock, HeartPulse, Users } from "lucide-react";
 import { platform, platformHealth } from "@connectapp/db";
 import { environment } from "@connectapp/env";
-import { Button, EmptyState, StatTile } from "@connectapp/ui";
+import { EmptyState, StatTile } from "@connectapp/ui";
 import { requireOperator } from "@/lib/admin";
 import { Screen, Block } from "@/components/screen";
 import { Trail } from "@/components/trail";
-import { StateDot, worst } from "@/components/state-dot";
+import { StateDot } from "@/components/state-dot";
 
 export const dynamic = "force-dynamic";
 
@@ -103,9 +103,9 @@ export default async function OverviewPage() {
       <Block
         title="The platform itself"
         action={
-          <Button asChild variant="ghost">
-            <Link href="/status">Status</Link>
-          </Button>
+          <Link href="/status" prefetch={false} className="text-label font-medium text-primary">
+            Status
+          </Link>
         }
       >
         {checks.length === 0 ? (
@@ -128,10 +128,6 @@ export default async function OverviewPage() {
                 )}
               </li>
             ))}
-            <li className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2">
-              <StateDot state={worst(checks.map((one) => one.state))} />
-              <span className="text-[13px] font-medium text-fg">Everything</span>
-            </li>
           </ul>
         )}
       </Block>
@@ -167,9 +163,9 @@ export default async function OverviewPage() {
       <Block
         title="Lately"
         action={
-          <Button asChild variant="ghost">
-            <Link href="/log">The whole log</Link>
-          </Button>
+          <Link href="/log" className="text-label font-medium text-primary">
+            The whole log
+          </Link>
         }
       >
         {recent.length === 0 ? (

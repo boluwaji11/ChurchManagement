@@ -6,12 +6,16 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@connectapp/ui";
 
 /**
- * HRT-394, R24.6. Run the probes again.
+ * HRT-394, R24.6. Ask every service again, now.
  *
- * The screen probes on every render, so this is a refresh. It says so while
- * it is working, because a press that looks like nothing happened is a press
- * somebody makes again, and this one costs seven calls to other people's
- * APIs.
+ * The screen draws what is on record while it is less than a minute old,
+ * because the rail links here from everywhere and a prefetch must not fire
+ * seven calls to other people's APIs. This press says to go and look anyway,
+ * and it says so through the address rather than through state, so the
+ * answer it produces can be sent to somebody.
+ *
+ * It says it is working while it works: a press that looks like nothing
+ * happened is a press somebody makes again.
  */
 export function CheckAgain() {
   const router = useRouter();
@@ -21,9 +25,9 @@ export function CheckAgain() {
     <Button
       variant="secondary"
       disabled={checking}
-      onClick={() => start(() => router.refresh())}
+      onClick={() => start(() => router.push(`/status?now=${Date.now()}`))}
     >
-      <RefreshCw className={checking ? "animate-spin" : undefined} />
+      <RefreshCw className={checking ? "motion-safe:animate-spin" : undefined} />
       {checking ? "Checking" : "Check again"}
     </Button>
   );

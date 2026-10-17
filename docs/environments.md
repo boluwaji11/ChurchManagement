@@ -73,7 +73,7 @@ loads them from there.
 | File | Holds | Read when |
 |---|---|---|
 | `.env.local` | development | always, by default |
-| `.env.production.local` | the live credentials | only when `CONNECTAPP_ENV=production` is set in the shell |
+| `.env.production.local` | the production database, Stripe still on test keys | only when `CONNECTAPP_ENV=production` is set in the shell |
 
 A variable already set in the shell wins over the file, which is how one value is overridden for a
 single command. Production itself holds no file: Vercel passes the variables in and the loader finds
@@ -89,6 +89,11 @@ CONNECTAPP_ENV=production pnpm --filter @connectapp/db platform:admin list
 ```
 
 Nothing else reaches it.
+
+That file holds the production project and the production database with **Stripe still on test
+keys**, which is deliberate: reading a real church's records to answer a question is sometimes
+necessary and taking a real payment from a laptop never is. The guard says so and carries on, which
+is the warn direction working as intended. The live Stripe keys exist only in Vercel.
 
 ## The database
 

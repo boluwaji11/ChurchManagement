@@ -12,7 +12,7 @@ import "server-only";
  * bundle, and reading the file from `main` is the more useful answer anyway.
  */
 
-const REPO = process.env["GITHUB_REPO"] ?? "boluwaji11/Church-Management";
+const REPO = process.env["GITHUB_REPO"] ?? "boluwaji11/ConnectApp";
 const HOLD_MS = 5 * 60 * 1000;
 
 /**

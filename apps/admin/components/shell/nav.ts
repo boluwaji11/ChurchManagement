@@ -12,6 +12,16 @@ export interface Section {
   label: string;
   /** The routes this entry lights up for, beyond its own. */
   owns?: string[];
+  /**
+   * Whether the browser may fetch this screen before anybody presses it.
+   *
+   * Off for the two that go out to other people's APIs. The rail is on every
+   * screen, so Next fetching every link in it meant landing anywhere in the
+   * portal fired a probe of seven services and a handful of GitHub calls in
+   * the background, and the page never went quiet. A screen that costs a
+   * network round trip to somebody else is opened on purpose or not at all.
+   */
+  costly?: boolean;
 }
 
 export interface Group {
@@ -39,8 +49,8 @@ export const GROUPS: Group[] = [
   {
     label: "Platform",
     entries: [
-      { href: "/status", label: "Status" },
-      { href: "/delivery", label: "Delivery" },
+      { href: "/status", label: "Status", costly: true },
+      { href: "/delivery", label: "Delivery", costly: true },
     ],
   },
   {

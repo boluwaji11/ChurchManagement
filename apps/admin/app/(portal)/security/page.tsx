@@ -19,13 +19,24 @@ export const metadata = { title: "Security - ConnectApp Admin" };
  */
 export default async function SecurityPage() {
   const who = await requireOperator();
-  const attempts = await platformHealth.signIns(who.id, 50);
+  const [ready, attempts] = await Promise.all([
+    platformHealth.watching(),
+    platformHealth.signIns(who.id, 50),
+  ]);
 
   const refused = attempts.filter((one) => one.outcome === "refused");
   const wrong = attempts.filter((one) => one.outcome === "wrong");
 
   return (
     <Screen title="Security" lede="Who has been at the portal's door.">
+      {ready ? null : (
+        <Banner tone="warning" title="Migration 0163 has not been applied here">
+          Attempts are not being written down, so this list stays empty and the throttle lets every
+          try through. Apply it with{" "}
+          <code className="font-mono text-code">pnpm --filter @connectapp/db migrate</code>.
+        </Banner>
+      )}
+
       {refused.length > 0 ? (
         <Banner tone="warning" title={`${refused.length} ${refused.length === 1 ? "attempt" : "attempts"} by an account that is not an operator`}>
           The password was right and the account does not operate the platform. That is somebody

@@ -15,6 +15,44 @@ async function requireAdmin(userId: string): Promise<void> {
   if (!who) throw new Error("This account does not operate the platform.");
 }
 
+/**
+ * HRT-394. Whether the two tables this file adds are there yet.
+ *
+ * The portal can be deployed before migration 0163 has been applied, and a
+ * screen that cannot be opened at all is a worse answer than one that says
+ * which migration is owed.
+ *
+ * Asked once rather than caught per query, and that is not a style
+ * preference. The first version let each read fail and swallowed the
+ * "undefined table" error. It worked, and then the whole app stopped
+ * answering: the status screen writes seven readings and a prune at once, and
+ * eight concurrent failing queries against an owner pool of four leaves the
+ * pool deadlocked, permanently, for every later request. Unauthenticated
+ * screens stayed instant while every other one hung on nothing, which is a
+ * horrible thing to debug and a worse thing to deploy.
+ *
+ * So nothing is issued that is known to fail. The answer is held for a minute,
+ * because the only thing that changes it is somebody running a migration.
+ */
+const TABLES_HELD_MS = 60_000;
+let tablesAt = 0;
+let tablesThere = false;
+
+export async function watching(): Promise<boolean> {
+  const now = Date.now();
+  if (tablesThere && now - tablesAt < TABLES_HELD_MS) return true;
+  if (!tablesThere && now - tablesAt < TABLES_HELD_MS && tablesAt > 0) return false;
+
+  const rows = await owner()<{ there: boolean }[]>`
+    select count(*) = 2 as there
+      from information_schema.tables
+     where table_schema = 'public'
+       and table_name in ('platform_checks', 'platform_sign_ins')`;
+  tablesThere = rows[0]?.there ?? false;
+  tablesAt = now;
+  return tablesThere;
+}
+
 /** What a probe concluded. `off` is a service this environment has no key for. */
 export type Health = "pass" | "warn" | "fail" | "off";
 
@@ -37,6 +75,7 @@ export async function recordCheck(
   one: { service: string; state: Health; tookMs?: number | null; said?: string | null },
   environment: string,
 ): Promise<void> {
+  if (!(await watching())) return;
   await owner()`
     insert into platform_checks (service, state, took_ms, said, environment)
     values (${one.service}, ${one.state}, ${one.tookMs ?? null},
@@ -50,12 +89,14 @@ export async function recordCheck(
  * schedule is a second thing to notice has stopped.
  */
 export async function pruneChecks(): Promise<void> {
+  if (!(await watching())) return;
   await owner()`delete from platform_checks where at < now() - interval '30 days'`;
 }
 
 /** HRT-394. The last thing each service said, newest first. */
 export async function latestChecks(by: string, environment: string): Promise<Check[]> {
   await requireAdmin(by);
+  if (!(await watching())) return [];
   return owner()<Check[]>`
     select distinct on (service)
            service, state, at, took_ms as "tookMs", said
@@ -76,6 +117,7 @@ export async function checkHistory(
   limit = 48,
 ): Promise<Check[]> {
   await requireAdmin(by);
+  if (!(await watching())) return [];
   const rows = await owner()<Check[]>`
     select service, state, at, took_ms as "tookMs", said
       from platform_checks
@@ -92,6 +134,7 @@ export async function recentChecks(
   perService = 48,
 ): Promise<Map<string, Check[]>> {
   await requireAdmin(by);
+  if (!(await watching())) return new Map();
   const rows = await owner()<(Check & { rank: number })[]>`
     select service, state, at, took_ms as "tookMs", said, rank from (
       select service, state, at, took_ms, said,
@@ -280,6 +323,7 @@ export interface SignIn {
 /** HRT-396. Who has tried the portal's door, newest first. */
 export async function signIns(by: string, limit = 50): Promise<SignIn[]> {
   await requireAdmin(by);
+  if (!(await watching())) return [];
   return owner()<SignIn[]>`
     select at, email, outcome, ip
       from platform_sign_ins
@@ -299,6 +343,7 @@ export async function recordSignIn(one: {
   ip?: string | null;
   agent?: string | null;
 }): Promise<void> {
+  if (!(await watching())) return;
   await owner()`
     insert into platform_sign_ins (email, outcome, ip, agent)
     values (${one.email.slice(0, 320).toLowerCase()}, ${one.outcome},
@@ -322,6 +367,7 @@ export const LOCKOUT_MINUTES = 15;
  * number.
  */
 export async function waitingOut(email: string): Promise<number> {
+  if (!(await watching())) return 0;
   const rows = await owner()<{ failures: number }[]>`
     select count(*)::int as failures
       from platform_sign_ins

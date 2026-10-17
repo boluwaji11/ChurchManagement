@@ -21,16 +21,40 @@ const BUDGET_MS = 6_000;
 /** Over this and it is working, slowly, which is worth saying. */
 const SLOW_MS = 1_500;
 
-export interface Probe {
+export interface Shape {
   service: string;
   /** What it is, in the words the screen uses. */
   label: string;
   /** One line on what breaks when this is down. */
   matters: string;
+}
+
+export interface Probe extends Shape {
   state: Health;
   tookMs: number | null;
   said: string | null;
 }
+
+/**
+ * What each service is called and why it matters, apart from the probing.
+ *
+ * The status screen draws recorded readings when they are fresh enough, and a
+ * recorded reading is a service name and a state. The words belong to the
+ * service rather than to the reading, so they are kept here and read from both
+ * directions.
+ */
+export const SHAPE: Shape[] = [
+  { service: "database", label: "Database", matters: "Everything. No screen renders without it." },
+  { service: "supabase", label: "Supabase Auth", matters: "Signing in, for a church and for us." },
+  { service: "stripe", label: "Stripe", matters: "Every gift a church receives." },
+  { service: "resend", label: "Resend", matters: "The welcome, the approval and every confirmation." },
+  { service: "redis", label: "Upstash Redis", matters: "The rate limits in front of the public forms." },
+  { service: "queue", label: "The send queue", matters: "Every message a church sends to its people." },
+  { service: "web", label: "The product", matters: "What a church actually opens." },
+];
+
+const words = (service: string): Shape =>
+  SHAPE.find((one) => one.service === service) ?? { service, label: service, matters: "" };
 
 /** A fetch that gives up rather than hanging the screen. */
 async function ask(url: string, init: RequestInit = {}): Promise<Response> {
@@ -41,8 +65,6 @@ async function ask(url: string, init: RequestInit = {}): Promise<Response> {
 /** Time one probe and turn anything it throws into a state. */
 async function timed(
   service: string,
-  label: string,
-  matters: string,
   work: () => Promise<{ state: Health; said?: string | null }>,
 ): Promise<Probe> {
   const started = Date.now();
@@ -54,9 +76,7 @@ async function timed(
     const state: Health =
       answer.state === "pass" && tookMs > SLOW_MS ? "warn" : answer.state;
     return {
-      service,
-      label,
-      matters,
+      ...words(service),
       state,
       tookMs,
       said: answer.said ?? (state === "warn" && answer.state === "pass" ? `Took ${tookMs}ms` : null),
@@ -64,9 +84,7 @@ async function timed(
   } catch (error) {
     const said = error instanceof Error ? error.message : String(error);
     return {
-      service,
-      label,
-      matters,
+      ...words(service),
       state: "fail",
       tookMs: Date.now() - started,
       /* A timeout says "The operation was aborted", which names nothing. */
@@ -77,13 +95,13 @@ async function timed(
   }
 }
 
-const off = (service: string, label: string, matters: string, said: string): Probe => ({
-  service, label, matters, state: "off", tookMs: null, said,
+const off = (service: string, said: string): Probe => ({
+  ...words(service), state: "off", tookMs: null, said,
 });
 
 /** The database the whole product is. */
 const database = () =>
-  timed("database", "Database", "Everything. No screen renders without it.", async () => {
+  timed("database", async () => {
     const rows = await owner()<{ ok: number }[]>`select 1 as ok`;
     return { state: rows[0]?.ok === 1 ? "pass" : "fail" };
   });
@@ -91,10 +109,23 @@ const database = () =>
 /** Supabase Auth, which is the only way anybody signs in. */
 const supabase = () => {
   const url = process.env["SUPABASE_URL"] ?? process.env["NEXT_PUBLIC_SUPABASE_URL"];
-  if (!url) return Promise.resolve(off("supabase", "Supabase Auth", "Signing in, for a church and for us.", "No SUPABASE_URL"));
+  const key =
+    process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"];
+  if (!url || !key) {
+    return Promise.resolve(
+      off("supabase", "No Supabase URL or key"),
+    );
+  }
 
-  return timed("supabase", "Supabase Auth", "Signing in, for a church and for us.", async () => {
-    const answer = await ask(`${url.replace(/\/$/, "")}/auth/v1/health`);
+  return timed("supabase", async () => {
+    /*
+     * The health endpoint wants the key like every other call to the auth API.
+     * Without it the answer is 401, which reads as Supabase being down when it
+     * is Supabase working correctly and being asked wrongly.
+     */
+    const answer = await ask(`${url.replace(/\/$/, "")}/auth/v1/health`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
     if (answer.ok) return { state: "pass" };
     return { state: "fail", said: `${answer.status} ${answer.statusText}` };
   });
@@ -106,9 +137,9 @@ const supabase = () => {
  */
 const stripe = () => {
   const key = process.env["STRIPE_SECRET_KEY"];
-  if (!key) return Promise.resolve(off("stripe", "Stripe", "Every gift a church receives.", "No STRIPE_SECRET_KEY"));
+  if (!key) return Promise.resolve(off("stripe", "No STRIPE_SECRET_KEY"));
 
-  return timed("stripe", "Stripe", "Every gift a church receives.", async () => {
+  return timed("stripe", async () => {
     const answer = await ask("https://api.stripe.com/v1/balance", {
       headers: { Authorization: `Bearer ${key}` },
     });
@@ -129,11 +160,11 @@ const resend = () => {
   const key = process.env["RESEND_API_KEY"];
   if (!key) {
     return Promise.resolve(
-      off("resend", "Resend", "The welcome, the approval and every confirmation.", "No RESEND_API_KEY"),
+      off("resend", "No RESEND_API_KEY"),
     );
   }
 
-  return timed("resend", "Resend", "The welcome, the approval and every confirmation.", async () => {
+  return timed("resend", async () => {
     const answer = await ask("https://api.resend.com/domains", {
       headers: { Authorization: `Bearer ${key}` },
     });
@@ -149,11 +180,11 @@ const redis = () => {
   const token = process.env["UPSTASH_REDIS_REST_TOKEN"];
   if (!url || !token) {
     return Promise.resolve(
-      off("redis", "Upstash Redis", "The rate limits in front of the public forms.", "No Upstash credentials"),
+      off("redis", "No Upstash credentials"),
     );
   }
 
-  return timed("redis", "Upstash Redis", "The rate limits in front of the public forms.", async () => {
+  return timed("redis", async () => {
     const answer = await ask(`${url.replace(/\/$/, "")}/ping`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -172,11 +203,11 @@ const web = () => {
   const host = process.env["PLATFORM_HOST"];
   if (!host || host === "localhost") {
     return Promise.resolve(
-      off("web", "The product", "What a church actually opens.", "Nothing to reach in development"),
+      off("web", "Nothing to reach in development"),
     );
   }
 
-  return timed("web", "The product", "What a church actually opens.", async () => {
+  return timed("web", async () => {
     const answer = await ask(`https://${host}/`, { redirect: "manual" });
     /* A redirect to the sign-in screen is the product answering. */
     if (answer.ok || (answer.status >= 300 && answer.status < 400)) return { state: "pass" };
@@ -194,7 +225,7 @@ const web = () => {
  * nothing moving means the schedule has stopped.
  */
 const queue = () =>
-  timed("queue", "The send queue", "Every message a church sends to its people.", async () => {
+  timed("queue", async () => {
     const rows = await owner()<{ waiting: number; stuck: number; old: number }[]>`
       select
         (select count(*)::int from email_recipients where state = 'queued') as waiting,

@@ -68,6 +68,7 @@ export function TopBar({
                 <DropdownMenuItem key={entry.href} asChild>
                   <Link
                     href={entry.href}
+                    prefetch={entry.costly ? false : undefined}
                     className={cn("no-underline", active === entry.href && "font-semibold text-fg")}
                   >
                     {entry.label}

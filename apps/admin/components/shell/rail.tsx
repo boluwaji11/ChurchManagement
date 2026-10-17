@@ -161,6 +161,7 @@ export function Rail({
               const row = (
                 <Link
                   href={entry.href}
+                  prefetch={entry.costly ? false : undefined}
                   onClick={onNavigate}
                   aria-current={on ? "page" : undefined}
                   className={cn(

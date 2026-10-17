@@ -12,7 +12,7 @@ import "server-only";
  * thousand. Nothing here needs one.
  */
 
-const REPO = process.env["GITHUB_REPO"] ?? "boluwaji11/Church-Management";
+const REPO = process.env["GITHUB_REPO"] ?? "boluwaji11/ConnectApp";
 const API = "https://api.github.com";
 const HOLD_MS = 5 * 60 * 1000;
 const BUDGET_MS = 6_000;
