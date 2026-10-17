@@ -18,9 +18,9 @@ export default async function SignInPage({
 }) {
   if (await teamMember()) redirect("/");
   const here = whereWeAre();
-  /* HRT-401. An invitation link that did not work sends them here saying why,
-     and a door that drops the reason leaves somebody pressing a dead link
-     again. Trimmed, because it arrives in an address bar. */
+  /* HRT-401. An invitation link that failed sends the reason here. Dropping it
+     would leave somebody pressing the same dead link again. Trimmed, because it
+     arrives in the address bar. */
   const { error } = await searchParams;
   const said = error?.slice(0, 200);
 

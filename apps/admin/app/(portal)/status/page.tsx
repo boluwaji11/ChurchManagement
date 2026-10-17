@@ -105,7 +105,7 @@ export default async function StatusPage({
   return (
     <Screen
       title="Status"
-      lede="What each thing the platform depends on said just now."
+      lede="What each service the platform depends on reported just now."
       action={<CheckAgain />}
     >
       {ready ? null : (
@@ -117,7 +117,7 @@ export default async function StatusPage({
       )}
 
       {findings.length > 0 ? (
-        <Banner tone={findings.some((one) => one.severity === "stop") ? "danger" : "warning"} title="The keys do not match the environment">
+        <Banner tone={findings.some((one) => one.severity === "stop") ? "danger" : "warning"} title="The keys don't match this environment">
           <ul className="m-0 flex list-none flex-col gap-1 p-0">
             {findings.map((one) => (
               <li key={one.name}>
@@ -186,23 +186,23 @@ export default async function StatusPage({
         </ul>
       </Block>
 
-      <Block title="How far the integrations have reached">
+      <Block title="Integrations in use">
         <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(210px,1fr))]">
           <StatTile
-            label="Stripe started"
+            label="Stripe setup started"
             value={`${spread.stripeAccounts} of ${spread.churches}`}
             hue="jade"
             icon={<CreditCard className="size-4" />}
             caption="have an account"
           />
           <StatTile
-            label="Stripe charging"
+            label="Stripe can charge"
             value={String(spread.stripeCharging)}
             hue="fern"
-            caption="Stripe will take a payment"
+            caption="Stripe can take a payment"
           />
           <StatTile
-            label="On live Stripe"
+            label="On live Stripe keys"
             value={String(spread.stripeLive)}
             hue="teal"
             caption="rather than a test account"
@@ -215,7 +215,7 @@ export default async function StatusPage({
             caption="own account connected"
           />
           <StatTile
-            label="Grants running out"
+            label="Grants expiring"
             value={String(spread.grantsExpiring)}
             hue="amber"
             emphasis={spread.grantsExpiring > 0 ? "tint" : "quiet"}
@@ -223,7 +223,7 @@ export default async function StatusPage({
             caption="inside a fortnight"
           />
           <StatTile
-            label="Providers refusing"
+            label="Providers failing"
             value={String(spread.providerErrors)}
             hue="coral"
             emphasis={spread.providerErrors > 0 ? "tint" : "quiet"}

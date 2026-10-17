@@ -98,12 +98,12 @@ export default async function DashboardPage({
   /*
    * R24.11. The frame goes to the browser now and the board arrives after it.
    *
-   * Everything below used to be awaited before a single byte left, so a church
-   * on a slow connection looked at nothing at all until the last query
-   * returned. The shell is rendered by the screen rather than by a layout, so
-   * a loading.tsx here would take the frame away with it and read as the
-   * product blinking; a boundary inside the frame keeps the navigation and the
-   * church's name put and draws only the board as it comes.
+   * Everything below was previously awaited before any output was sent, so a
+   * church on a slow connection saw nothing until the last query returned. The
+   * shell is rendered by the screen rather than by a layout, so a loading.tsx
+   * here would replace the frame as well and the whole page would flash. A
+   * boundary inside the frame keeps the navigation and the church's name on
+   * screen and streams only the board.
    */
   return (
     <Screen wide>
@@ -154,8 +154,8 @@ async function Board({ session }: { session: Session }) {
     const brand = profile?.brandHue ?? "indigo";
 
     /*
-     * Six reads that have nothing to say to each other used to wait on each
-     * other, one round trip at a time. They go down the one connection together.
+     * Six independent reads previously ran in sequence, one round trip each.
+     * They are issued together on the one connection.
      */
     const [occurrences, groups, published, counts, byService, followUps] =
       await Promise.all([

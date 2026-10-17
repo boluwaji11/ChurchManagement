@@ -124,7 +124,7 @@ export function TeamMembers({
       <Dialog open={losing !== undefined} onOpenChange={(to) => { if (!to) setLosing(undefined); }}>
         <DialogContent alert title={`Revoke ${losing?.name ?? ""}'s access?`}>
           <p className="text-[length:var(--d-text-body)] text-fg-muted">
-            Their ConnectApp account stays. Every church on the platform goes out of reach.
+            Their ConnectApp account is kept. They lose access to every church on the platform.
           </p>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setLosing(undefined)}>

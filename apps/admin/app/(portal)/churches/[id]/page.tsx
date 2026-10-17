@@ -39,12 +39,12 @@ export default async function ChurchPage({ params }: { params: Promise<{ id: str
   const facts = [
     { label: "Address", value: `/${found.slug}` },
     { label: "Timezone", value: found.timezone },
-    { label: "Made", value: <On at={found.createdAt} /> },
+    { label: "Created", value: <On at={found.createdAt} /> },
     { label: "Last seen", value: <Since at={found.lastActivity} /> },
     { label: "Members", value: found.members },
     { label: "Accounts", value: found.accounts },
     { label: "Owner", value: found.ownerName ?? <Blank /> },
-    { label: "Owner's address", value: found.ownerEmail ?? <Blank /> },
+    { label: "Owner's email", value: found.ownerEmail ?? <Blank /> },
     { label: "Storage", value: megabytes(wiring.storageBytes) },
   ];
 
@@ -63,7 +63,7 @@ export default async function ChurchPage({ params }: { params: Promise<{ id: str
     >
       <div className="grid gap-5 lg:[grid-template-columns:minmax(0,1fr)_320px]">
         <div className="flex min-w-0 flex-col gap-5">
-          <Block title="What it is">
+          <Block title="Church details">
             <Panel>
               <dl className="m-0 grid gap-x-6 gap-y-4 [grid-template-columns:repeat(auto-fill,minmax(170px,1fr))]">
                 {facts.map((fact) => (
@@ -76,7 +76,7 @@ export default async function ChurchPage({ params }: { params: Promise<{ id: str
             </Panel>
           </Block>
 
-          <Block title="How it is wired">
+          <Block title="Integrations">
             <div className="grid gap-3 sm:grid-cols-2">
               <Wire
                 icon={<CreditCard className="size-4" />}
@@ -86,9 +86,9 @@ export default async function ChurchPage({ params }: { params: Promise<{ id: str
                     ? [
                         { label: "Account", value: wiring.stripeAccountId, mono: true },
                         { label: "Mode", value: wiring.stripeLive ? "Live" : "Test" },
-                        { label: "Takes payments", value: wiring.stripeCharges ? "Yes" : "No" },
+                        { label: "Accepting payments", value: wiring.stripeCharges ? "Yes" : "No" },
                         { label: "Payouts", value: wiring.stripePayouts ? "Yes" : "No" },
-                        { label: "Details given", value: wiring.stripeDetails ? "Yes" : "No" },
+                        { label: "Details submitted", value: wiring.stripeDetails ? "Yes" : "No" },
                         {
                           label: "Rate",
                           value: wiring.nonprofitRateAt ? "Nonprofit, 2.2%" : "Standard, 2.9%",
@@ -108,14 +108,14 @@ export default async function ChurchPage({ params }: { params: Promise<{ id: str
                 lines={
                   wiring.emailVendor
                     ? [
-                        { label: "Through", value: wiring.emailVendor },
+                        { label: "Provider", value: wiring.emailVendor },
                         { label: "State", value: wiring.emailState ?? "unknown" },
-                        { label: "Sends as", value: wiring.emailFrom ?? "not set" },
+                        { label: "Sends from", value: wiring.emailFrom ?? "Not set" },
                         ...(wiring.emailExpires
-                          ? [{ label: "Grant lapses", value: <On at={wiring.emailExpires} /> }]
+                          ? [{ label: "Access expires", value: <On at={wiring.emailExpires} /> }]
                           : []),
                         ...(wiring.emailError
-                          ? [{ label: "Last refusal", value: wiring.emailError }]
+                          ? [{ label: "Last failure", value: wiring.emailError }]
                           : []),
                       ]
                     : null
@@ -132,9 +132,9 @@ export default async function ChurchPage({ params }: { params: Promise<{ id: str
             </div>
           </Block>
 
-          <Block title="What has been done to it">
+          <Block title="Activity">
             {log.length === 0 ? (
-              <EmptyState title="Nothing yet." />
+              <EmptyState title="No activity yet" />
             ) : (
               <Trail events={log} withoutChurch />
             )}
@@ -175,7 +175,7 @@ function Wire({
           {tone === "good" ? (
             <Badge tone="success">Working</Badge>
           ) : tone === "waiting" ? (
-            <Badge tone="warning">Part way</Badge>
+            <Badge tone="warning">Partly set up</Badge>
           ) : (
             <Badge tone="neutral">Not connected</Badge>
           )}

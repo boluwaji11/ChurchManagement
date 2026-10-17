@@ -60,7 +60,7 @@ export function Gate({
                   const result = await letMeIn(next);
                   setError(
                     result?.error === "not-on-the-team"
-                      ? "That account is not on the team."
+                      ? "That account isn't on the ConnectApp team."
                       : result?.error,
                   );
                 });

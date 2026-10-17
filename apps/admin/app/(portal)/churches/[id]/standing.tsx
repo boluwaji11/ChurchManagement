@@ -73,7 +73,7 @@ export function Standing({
               onError={setError}
               title={`Approve ${name}?`}
               body="The cap comes off, invitations open and its own sign-up address starts working."
-              confirm="Approve it"
+              confirm="Approve church"
               trigger={
                 <Button>
                   <Check /> Approve this church
@@ -88,7 +88,7 @@ export function Standing({
             onError={setError}
             required
             title={`Take ${name} out of service?`}
-            body="Every record it holds stays. Nobody can sign in to it, and it stops counting towards anything."
+            body="Every record it holds is kept. Nobody can sign in to it, and it stops counting towards platform totals."
             confirm="Take it out of service"
             tone="danger"
             trigger={

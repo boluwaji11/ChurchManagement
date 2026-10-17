@@ -1108,6 +1108,7 @@ of money and after everything else.
 | HRT-369 | A check-in dry run before the first service day | R8.x, R22.1 | New |
 | HRT-404 | A volunteer's serving frequency has no writer | R10.x | New |
 | HRT-405 | The portal's session cookie collides with the product's | R21.1, R1.7 | Resolved |
+| HRT-406 | The quarterly restore drill has never been run | R21.6 | New |
 | HRT-370 | The invitation reaches the person it names | R1.7, R16.4, R22.1 | Resolved |
 | HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | Resolved |
 | HRT-372 | An invitation is ConnectApp's own mail, so it sends on day one | R16.4, R22.1 | Resolved |
@@ -4364,6 +4365,28 @@ first service, and the step should settle.
 **What to take from it.** A function with no callers is not the same as a capability with no
 screen. The check that would have caught it is the one that was eventually run: open the screen and
 do the thing.
+
+### HRT-406, the restore drill has never been run
+
+Found during the October 2026 repository audit.
+
+HRT-121 is Closed and `docs/backup-and-restore.md` describes the runbook, the
+census tool and a drill to be run and written down every quarter. `drills/`
+holds its README and no census files, so no drill has been recorded. The README
+itself says that keeping the files there "is what makes docs/backup-and-restore.md
+a record rather than a plan", and today it is a plan.
+
+R21.6 is marked shipped on the board on the strength of the tooling existing.
+What is missing is the evidence that a restore works.
+
+**What this story is:** run one drill end to end against the development
+project, take the census before and after, compare it row for row, commit the
+files to `drills/`, and write the date in the drill log. Then decide whether the
+quarterly cadence is enforced by a calendar entry or by a check in CI.
+
+This matters before a pilot church, not after. An untested backup is the one
+failure a church cannot recover from, and it is the only R21 requirement whose
+acceptance cannot be demonstrated from the code.
 
 ### HRT-405, the portal signed people out on a tab press
 

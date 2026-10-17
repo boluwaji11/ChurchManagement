@@ -390,14 +390,80 @@ is the member portal's address and has nothing to do with the website builder. `
 now "Choose your web address" and `portal.title` is "Your church's web address". This is the reason
 copy gets read in the interface rather than in the file: both strings were defensible on their own.
 
+## Second pass, 17 October 2026
+
+The first pass fixed the faults it could name and left the rest. Two things it
+missed, both found by the owner rather than by me.
+
+### The admin portal was barely touched
+
+The portal's strings are inline rather than in the catalogue, so a pass driven by
+`packages/i18n` never reached them. The first pass changed 14 of them, almost all
+"did not work" to "didn't work". **65 more have now been rewritten**, across 18
+files.
+
+| Was | Now |
+|---|---|
+| Waiting on a person | Awaiting approval |
+| Members held | Members |
+| Active in 12 weeks | Active in the last 12 weeks |
+| The platform itself | Platform services |
+| How far the integrations have reached | Integrations in use |
+| Lately | Recent activity |
+| The whole log | View the full log |
+| What it is / How it is wired / What has been done to it | Church details / Integrations / Activity |
+| Made / Through / Sends as / Grant lapses / Last refusal | Created / Provider / Sends from / Access expires / Last failure |
+| Who has been at the portal's door. | Every attempt to sign in to the portal, newest first. |
+| Two gates | Two checks on every sign-in |
+| Made to wait | Rate limited |
+| 5 refusals and the address waits | 5 failed attempts locks an address |
+| 14 got in, 0 wrong password | 14 signed in, 0 wrong password |
+| Reading the repository | Loading |
+| No workflow runs came back. | No workflow runs found |
+| e.g. Living Waters | Search by name |
+
+**Two of those were only visible in a browser.** `platform_admins`, a database
+table name, was printed on the Security screen in a sentence explaining the two
+checks. And the status screen reported "No credential in this environment" for
+the product itself, where the reason is a missing host rather than a missing
+credential; it now says "Not set up here", matching the header beside it.
+
+### The catalogue kept the formal register
+
+127 further strings changed.
+
+**124 contractions.** The standard asks for them where a person would use one,
+and the catalogue was almost entirely formal: "is not", "does not", "cannot",
+"could not". Left alone deliberately: the safety-critical check-in strings, where
+"Do not let them go" is stark on purpose; the legal wording on a giving
+statement; and the trust page, where the full form reads as the commitment it is.
+
+**45 passive not-found errors made active.** "That church could not be found" is
+now "We couldn't find that church". It was the single most repeated error shape
+in the product.
+
+**One test updated**, because it asserted the old wording of
+`error.permission` word for word.
+
+## Settled since
+
+1. **`members.add` stays "Add a member".** Settled 17 October 2026. The design specifies "Add
+   person" for that screen, and the rest of the product says member everywhere: the nav item, the
+   screen title, "Archived members", "No members yet". One screen saying person would be the
+   outlier. Recorded against the design's own words table in
+   [redesign/README.md](redesign/README.md).
+2. **The two church-name specimens are gone.** `email.from.namePlaceholder` is now
+   "e.g. your church's name" and `site.giving.card.title` is "Give to your church". Neither names a
+   church that could be somebody's.
+3. **`website.unpublish` was an orphan**, not a wording problem. Nothing referenced it, literally or
+   dynamically; the live control is `website.settings.takeDown`, "Take the website down", which is
+   accurate. The key has been removed.
+4. **`mail.welcome.checking` was restored to its original wording.** This pass changed "This usually
+   takes less than an hour" on the grounds that it promised a review time we had not committed to.
+   That was wrong: the owner wrote the email, approval is handled by a person for each pilot church,
+   and the commitment is real. The original sentence stands.
+
 ## Still open
 
-1. **`members.add` against the design's "Add person".** Needs one decision, then both change
-   together.
-2. **Two church names used as specimens** (`email.from.namePlaceholder`,
-   `site.giving.card.title`). The writing guide asks for no real church's name anywhere.
-3. **`website.unpublish` ("Keep as draft").** The action takes a published site off the internet,
-   and "keep as draft" describes a site that was never published. Needs the implementation checked
-   before the wording changes.
-4. **Error punctuation** is now consistent within every string this pass touched. A handful of
+1. **Error punctuation** is now consistent within every string this pass touched. A handful of
    non-error strings still end without a full stop where a sentence would take one. Low priority.

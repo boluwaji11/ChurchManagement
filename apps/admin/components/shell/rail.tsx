@@ -30,9 +30,9 @@ const MARKS: Record<string, React.ComponentType<{ className?: string }>> = {
 /**
  * HRT-393, R24.6, R24.14. The navigation down the left of the team portal.
  *
- * 240px open, 64px shut, remembered in a cookie so it comes back the way it
- * was left. Collapsed, every row keeps its words in a tooltip, which is what
- * makes an icon rail usable rather than a quiz.
+ * 240px open, 64px collapsed, remembered in a cookie so it returns the way it
+ * was left. Collapsed, every row keeps its label in a tooltip, without which an
+ * icon-only rail cannot be read.
  *
  * Opaque. The rail this replaces carried `backdrop-blur-[8px]`, and
  * glassmorphism is on the refused list in docs/design-system.md twice over:

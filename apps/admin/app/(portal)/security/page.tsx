@@ -28,7 +28,7 @@ export default async function SecurityPage() {
   const wrong = attempts.filter((one) => one.outcome === "wrong");
 
   return (
-    <Screen title="Security" lede="Who has been at the portal's door.">
+    <Screen title="Security" lede="Every attempt to sign in to the portal, newest first.">
       {ready ? null : (
         <Banner tone="warning" title="Migration 0163 has not been applied here">
           Attempts are not being written down, so this list stays empty and the throttle lets every
@@ -44,7 +44,7 @@ export default async function SecurityPage() {
         </Banner>
       ) : null}
 
-      <Block title="This account">
+      <Block title="Your account">
         <Panel className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <ShieldCheck className="size-5 shrink-0 text-success-text" aria-hidden />
@@ -58,13 +58,13 @@ export default async function SecurityPage() {
           <dl className="m-0 flex flex-col gap-2 border-t border-line pt-3">
             <Rule
               icon={<KeyRound className="size-4" />}
-              title="Two gates"
-              body="Supabase has to accept the password, and platform_admins has to name this account. A church's own owner clears the first gate and stops at the second."
+              title="Two checks on every sign-in"
+              body="Supabase has to accept the password, and the account has to be on the platform team. A church's own owner passes the first check and fails the second."
             />
             <Rule
               icon={<ShieldAlert className="size-4" />}
-              title={`${platformHealth.ATTEMPTS} refusals and the address waits`}
-              body={`Counted over ${platformHealth.LOCKOUT_MINUTES} minutes, and cleared by getting in. Every attempt is written down, whether it worked or not.`}
+              title={`${platformHealth.ATTEMPTS} failed attempts locks an address`}
+              body={`Counted over ${platformHealth.LOCKOUT_MINUTES} minutes, and cleared by a successful sign-in. Every attempt is recorded, whether it worked or not.`}
             />
           </dl>
         </Panel>
@@ -72,11 +72,11 @@ export default async function SecurityPage() {
 
       <Block title="Attempts">
         {attempts.length === 0 ? (
-          <EmptyState title="Nobody has signed in yet." />
+          <EmptyState title="No sign-ins recorded yet" />
         ) : (
           <>
             <p className="text-caption text-fg-muted">
-              {attempts.filter((one) => one.outcome === "in").length} got in, {wrong.length} wrong
+              {attempts.filter((one) => one.outcome === "in").length} signed in, {wrong.length} wrong
               password, {refused.length} not on the team.
             </p>
             <Table>
@@ -109,7 +109,7 @@ export default async function SecurityPage() {
 function Outcome({ outcome }: { outcome: string }) {
   if (outcome === "in") return <Badge tone="success">Signed in</Badge>;
   if (outcome === "refused") return <Badge tone="warning">Not on the team</Badge>;
-  if (outcome === "throttled") return <Badge tone="neutral">Made to wait</Badge>;
+  if (outcome === "throttled") return <Badge tone="neutral">Rate limited</Badge>;
   return <Badge tone="danger">Wrong password</Badge>;
 }
 

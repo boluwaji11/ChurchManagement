@@ -27,7 +27,7 @@ describe("lookup", () => {
 
   it("composes a permission message from its two halves", () => {
     expect(t("error.permission", { role: "staff", action: t("error.permission.archivePerson") })).toBe(
-      "The staff role cannot archive a member.",
+      "The staff role can't archive a member.",
     );
   });
 });

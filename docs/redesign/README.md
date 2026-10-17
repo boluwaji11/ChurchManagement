@@ -152,7 +152,7 @@ catalogue was aligned to them in HRT-201, so a key's value is the design's strin
 |---|---|---|---|
 | Dashboard | Dashboard | none | HRT-203 |
 | Pastor home | Home | Add care note | Needs the pastor persona (HRT-202) |
-| People | People | Add person | Built |
+| People | People | Add person | Built, and the product says **Add a member**. Settled 17 October 2026: the rest of the product says member everywhere (the nav item, the screen title, "Archived members", "No members yet"), so one screen saying person would be the outlier. The design's wording is superseded here |
 | Person | Person | Add note | Built. The bar carries no name: the page names itself with the face and the name under it |
 | Edit person | Edit person | none | Built |
 | Follow-ups | Follow-ups | Start follow-up | Built. The press at the head of a column stays: that one says somebody is already at that stage, and this one begins |

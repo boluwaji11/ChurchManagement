@@ -12,9 +12,9 @@ export type Health = "pass" | "warn" | "fail" | "off";
  */
 const LOOK: Record<Health, { tone: string; icon: typeof Check; word: string }> = {
   pass: { tone: "bg-success-soft text-success-text", icon: Check, word: "Working" },
-  warn: { tone: "bg-warning-soft text-warning-text", icon: AlertTriangle, word: "Slow or partly working" },
+  warn: { tone: "bg-warning-soft text-warning-text", icon: AlertTriangle, word: "Slow or degraded" },
   fail: { tone: "bg-danger-soft text-danger-text", icon: X, word: "Not working" },
-  off: { tone: "bg-sunken text-fg-subtle", icon: CircleSlash, word: "No credential in this environment" },
+  off: { tone: "bg-sunken text-fg-subtle", icon: CircleSlash, word: "Not set up here" },
 };
 
 export function StateDot({ state, className }: { state: Health; className?: string }) {

@@ -8,14 +8,14 @@ import { Screen, Block } from "@/components/screen";
  */
 export default function DeliveryLoading() {
   return (
-    <Screen title="Delivery" lede="What is built, what is live, and what the board says.">
+    <Screen title="Delivery" lede="What is built, what is deployed, and where the board stands.">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-[104px] rounded-[16px]" />
         ))}
       </div>
 
-      <Block title="Reading the repository">
+      <Block title="Loading">
         <div className="flex flex-col gap-2">
           {[0, 1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-[56px] rounded-[16px]" />

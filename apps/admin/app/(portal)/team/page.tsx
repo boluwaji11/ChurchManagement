@@ -26,7 +26,7 @@ export default async function TeamPage() {
   ]);
 
   return (
-    <Screen title="Team" lede="The people who can approve and archive a church.">
+    <Screen title="Team" lede="The people who can approve and archive churches.">
       <TeamMembers
         me={who.id}
         waiting={waiting.map((one) => ({

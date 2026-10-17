@@ -24,8 +24,8 @@ export const maxDuration = 30;
  * reason the send queue's worker lives there: Vercel's Hobby plan runs a cron
  * once a day, and a service checked once a day is not a service being watched.
  *
- * Held shut by CRON_SECRET. It writes rows and makes seven calls to other
- * people's APIs, so it is not left open.
+ * Protected by CRON_SECRET. It writes rows and makes seven outbound API calls,
+ * so it is not left unauthenticated.
  */
 export async function GET(request: Request) {
   const secret = process.env["CRON_SECRET"];

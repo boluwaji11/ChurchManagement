@@ -13,14 +13,14 @@ import { SHAPE } from "@/lib/probes";
  */
 export default function StatusLoading() {
   return (
-    <Screen title="Status" lede="Every integration and every API, asked just now.">
+    <Screen title="Status" lede="Every integration and API, checked just now.">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-[104px] rounded-[16px]" />
         ))}
       </div>
 
-      <Block title="Asking">
+      <Block title="Checking">
         <div className="flex flex-col gap-2">
           {SHAPE.map((one) => (
             <Skeleton key={one.service} className="h-[68px] rounded-[16px]" />

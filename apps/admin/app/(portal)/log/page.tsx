@@ -21,7 +21,7 @@ export default async function LogPage() {
   return (
     <Screen title="Log" lede="What the team has done, newest first.">
       {log.length === 0 ? (
-        <EmptyState title="Nothing has been done here yet." />
+        <EmptyState title="No activity yet" />
       ) : (
         <Trail events={log} />
       )}

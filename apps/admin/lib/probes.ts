@@ -44,12 +44,12 @@ export interface Probe extends Shape {
  */
 export const SHAPE: Shape[] = [
   { service: "database", label: "Database", matters: "Everything. No screen renders without it." },
-  { service: "supabase", label: "Supabase Auth", matters: "Signing in, for a church and for us." },
+  { service: "supabase", label: "Supabase Auth", matters: "Signing in, for churches and for us." },
   { service: "stripe", label: "Stripe", matters: "Every gift a church receives." },
   { service: "resend", label: "Resend", matters: "The welcome, the approval and every confirmation." },
   { service: "redis", label: "Upstash Redis", matters: "The rate limits in front of the public forms." },
   { service: "queue", label: "The send queue", matters: "Every message a church sends to its people." },
-  { service: "web", label: "The product", matters: "What a church actually opens." },
+  { service: "web", label: "The product", matters: "The site a church opens." },
 ];
 
 const words = (service: string): Shape =>

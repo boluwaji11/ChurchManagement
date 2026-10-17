@@ -11,11 +11,10 @@ const TONE: Record<Health, string> = {
 /**
  * HRT-394. One service's recent answers, oldest on the left.
  *
- * The shape every status page settles on, for a good reason: a column of
- * green dots answers "is it up" and this answers "has it been up", which is
- * the question somebody opening this screen at nine in the morning actually
- * has. A single failure three hours ago and a service that has been failing
- * for three hours look completely different here and identical on a light.
+ * A single indicator answers "is it up". This answers "has it been up", which
+ * is the question somebody opening the screen after an incident has. One
+ * failure three hours ago and a service that has been failing for three hours
+ * are indistinguishable on a single indicator and obvious here.
  */
 export function Bars({
   checks,
@@ -26,7 +25,7 @@ export function Bars({
 }) {
   if (checks.length === 0) {
     return (
-      <p className="text-caption text-fg-subtle">No checks recorded yet.</p>
+      <p className="text-caption text-fg-subtle">No checks recorded yet</p>
     );
   }
 

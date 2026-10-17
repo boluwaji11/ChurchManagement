@@ -48,7 +48,7 @@ export default async function OverviewPage() {
             <b className="font-semibold">
               {waiting === 1 ? "One church is" : `${waiting} churches are`}
             </b>{" "}
-            {waiting === 1 ? "waiting on a person." : "waiting on a person."} Capped at 25 members
+            {"awaiting approval."} Capped at 25 members
             until somebody looks.
           </span>
           <ArrowRight className="size-4 shrink-0 text-ember-800" aria-hidden />
@@ -64,7 +64,7 @@ export default async function OverviewPage() {
           caption="live on the platform"
         />
         <StatTile
-          label="Waiting on a person"
+          label="Awaiting approval"
           value={String(waiting)}
           hue="amber"
           emphasis={waiting > 0 ? "tint" : "quiet"}
@@ -72,14 +72,14 @@ export default async function OverviewPage() {
           caption="provisional, capped at 25"
         />
         <StatTile
-          label="Active in 12 weeks"
+          label="Active in the last 12 weeks"
           value={String(signals.active)}
           hue="fern"
           icon={<HeartPulse className="size-4" />}
           caption="recorded something"
         />
         <StatTile
-          label="Members held"
+          label="Members"
           value={signals.members.toLocaleString("en-US")}
           hue="teal"
           icon={<Users className="size-4" />}
@@ -94,7 +94,7 @@ export default async function OverviewPage() {
       </div>
 
       <Block
-        title="The platform itself"
+        title="Platform services"
         action={
           <Link href="/status" prefetch={false} className="text-label font-medium text-primary">
             Status
@@ -126,23 +126,23 @@ export default async function OverviewPage() {
       </Block>
 
       {spread.stripeAccounts > 0 || spread.emailConnected > 0 ? (
-        <Block title="How far the integrations have reached">
+        <Block title="Integrations in use">
           <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(210px,1fr))]">
             <StatTile
-              label="Taking gifts"
+              label="Online giving"
               value={`${spread.stripeCharging} of ${spread.churches}`}
               hue="jade"
-              caption="Stripe will take a payment"
+              caption="Stripe can take a payment"
             />
             <StatTile
-              label="Sending email"
+              label="Email connected"
               value={`${spread.emailConnected} of ${spread.churches}`}
               hue="sky"
               caption="own mail account connected"
             />
             {spread.grantsExpiring > 0 ? (
               <StatTile
-                label="Grants running out"
+                label="Grants expiring"
                 value={String(spread.grantsExpiring)}
                 hue="coral"
                 emphasis="tint"
@@ -154,15 +154,15 @@ export default async function OverviewPage() {
       ) : null}
 
       <Block
-        title="Lately"
+        title="Recent activity"
         action={
           <Link href="/log" className="text-label font-medium text-primary">
-            The whole log
+            View the full log
           </Link>
         }
       >
         {recent.length === 0 ? (
-          <EmptyState title="Nothing has been done here yet." />
+          <EmptyState title="No activity yet" />
         ) : (
           <Trail events={recent} />
         )}

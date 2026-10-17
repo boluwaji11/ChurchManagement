@@ -49,7 +49,7 @@ export default async function DeliveryPage() {
   return (
     <Screen
       title="Delivery"
-      lede="What is written, what is live, and where the board stands."
+      lede="What is built, what is deployed, and where the board stands."
       action={
         <a
           href={repoUrl()}
@@ -62,8 +62,8 @@ export default async function DeliveryPage() {
       }
     >
       {ship === null ? (
-        <Banner tone="warning" title="GitHub did not answer">
-          The calls are unauthenticated and allowed sixty an hour. Set GITHUB_TOKEN to raise it.
+        <Banner tone="warning" title="GitHub didn't answer">
+          These calls are unauthenticated and limited to sixty an hour. Set GITHUB_TOKEN to raise the limit.
         </Banner>
       ) : ship.ahead === 0 ? (
         <Panel className="flex items-center gap-3">
@@ -101,7 +101,7 @@ export default async function DeliveryPage() {
 
       <Block title="What CI reported">
         {workflows.length === 0 ? (
-          <EmptyState title="No workflow runs came back." />
+          <EmptyState title="No workflow runs found" />
         ) : (
           <>
             {drain ? (
@@ -144,7 +144,7 @@ export default async function DeliveryPage() {
 
       <Block title="The board">
         {plan === null ? (
-          <EmptyState title="BACKLOG.md could not be read from the repository." />
+          <EmptyState title="Couldn't read BACKLOG.md from the repository" />
         ) : (
           <>
             <div className="mb-4 grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
@@ -209,7 +209,7 @@ export default async function DeliveryPage() {
 
       <Block title="Commits on main">
         {recent.length === 0 ? (
-          <EmptyState title="GitHub did not answer." />
+          <EmptyState title="GitHub didn't answer." />
         ) : (
           <ul className="m-0 flex list-none flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface p-0">
             {recent.map((one) => (
@@ -233,9 +233,9 @@ export default async function DeliveryPage() {
         )}
       </Block>
 
-      <Block title="What the churches did, by week">
+      <Block title="Church activity, by week">
         {weeks.length === 0 ? (
-          <EmptyState title="Nothing has been recorded yet." />
+          <EmptyState title="Nothing recorded yet" />
         ) : (
           <Panel>
             <div className="flex h-32 items-end gap-2">

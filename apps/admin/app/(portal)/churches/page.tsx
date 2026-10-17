@@ -14,7 +14,7 @@ export const metadata = { title: "Churches - ConnectApp Admin" };
 
 const STANDINGS = [
   { key: "all", label: "All" },
-  { key: "provisional", label: "Waiting" },
+  { key: "provisional", label: "Awaiting approval" },
   { key: "approved", label: "Approved" },
   { key: "archived", label: "Archived" },
 ] as const;
@@ -47,7 +47,7 @@ export default async function ChurchesPage({
           <input
             name="q"
             defaultValue={query}
-            placeholder="e.g. Living Waters"
+            placeholder="Search by name"
             aria-label="Search churches"
             className="min-w-0 flex-1 bg-transparent py-2.5 text-body text-fg outline-none"
           />
