@@ -231,15 +231,25 @@ export function Point({
         above: roomAbove > tall,
       };
 
-      const side: Side = asked && room[asked]
-        ? asked
-        : box.width > 420
-          ? room.below ? "below"
-            : room.above ? "above"
-            : room.right ? "right" : "left"
-          : room.left ? "left"
-            : room.right ? "right"
-            : room.below ? "below" : "above";
+      /*
+       * A control that fills the window has no side with room: the canvas in
+       * the website builder is nearly the whole screen, and every side was
+       * picked anyway, which put the card half off the left edge. When nothing
+       * has room the card goes in the middle of the window, over the thing it
+       * is ringing, which is the honest answer for "all of this is your page".
+       */
+      const anywhere = room.left || room.right || room.above || room.below;
+      const side: Side = !anywhere
+        ? "centre"
+        : asked && room[asked]
+          ? asked
+          : box.width > 420
+            ? room.below ? "below"
+              : room.above ? "above"
+              : room.right ? "right" : "left"
+            : room.left ? "left"
+              : room.right ? "right"
+              : room.below ? "below" : "above";
 
       /*
        * The beak points at the middle of the control, and the card is kept
@@ -454,7 +464,9 @@ export function Point({
      * the card itself does.
      */
     <div className="pointer-events-none fixed inset-0 z-[60]">
-      {spot.side === "centre" ? null : (
+      {/* A stop that names no control has nothing to ring. One that names a
+          control keeps its ring even when the card sits in the middle. */}
+      {spot.width === 0 && spot.height === 0 ? null : (
         <span aria-hidden data-guide-ring className="absolute rounded-[12px]" style={ring} />
       )}
 
