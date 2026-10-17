@@ -1109,6 +1109,7 @@ of money and after everything else.
 | HRT-404 | A volunteer's serving frequency has no writer | R10.x | New |
 | HRT-405 | The portal's session cookie collides with the product's | R21.1, R1.7 | Resolved |
 | HRT-406 | The quarterly restore drill has never been run | R21.6 | New |
+| HRT-407 | HRT-283's domain reading was never wired to a screen | R22.2 | New |
 | HRT-370 | The invitation reaches the person it names | R1.7, R16.4, R22.1 | Resolved |
 | HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | Resolved |
 | HRT-372 | An invitation is ConnectApp's own mail, so it sends on day one | R16.4, R22.1 | Resolved |
@@ -4365,6 +4366,34 @@ first service, and the step should settle.
 **What to take from it.** A function with no callers is not the same as a capability with no
 screen. The check that would have caught it is the one that was eventually run: open the screen and
 do the thing.
+
+### HRT-407, the domain reading was built and never wired up
+
+Found during the October 2026 repository audit, and confirmed by the deletion
+that followed it.
+
+HRT-283 is marked Closed: "what we can tell a church about its own domain before
+it changes anything". The work was built. `DomainReading` rendered the findings
+and `DomainHelp` explained SPF and DMARC in a church's own words, with around
+twenty-five catalogue keys behind it, including the paragraph explaining why
+domain settings matter at all.
+
+Neither component was ever imported by a screen. `settings/church/page.tsx`
+renders `ChurchSections`, which does not use them, so nothing a church can open
+reaches either one. Both files were removed in the approved cleanup, because
+code nothing can reach is not a feature.
+
+The catalogue keys are still there, and so is `packages/db/src/domain/preflight.ts`,
+which does the actual DNS reading and is used by the email setup screen.
+
+**What this story is:** decide whether a church should be shown its domain's
+current state before it changes anything, as HRT-283 intended. If yes, wire the
+reading into the church profile screen, rebuilding the two components from git
+history. If no, close HRT-283 honestly and remove the orphaned `domain.help.*`
+and `domain.reading` keys.
+
+**What it says about the board:** a story can be marked Closed on the strength
+of the code existing. Nothing checked that a person could reach it.
 
 ### HRT-406, the restore drill has never been run
 
