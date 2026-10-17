@@ -29,6 +29,13 @@ const KNOWN: { match: RegExp; key: string; field?: string }[] = [
   { match: /invalid login credentials/i, key: "signIn.error.noMatch" },
   { match: /expired|no longer valid/i, key: "auth.error.expiredLink" },
   { match: /signups? not allowed|disabled/i, key: "auth.error.closed" },
+  /* The send hook refused or could not be reached, so Supabase made the
+     account and could not tell anybody about it. Saying "that did not
+     work" over a thing that half worked sends somebody round again. */
+  {
+    match: /sending (the )?(confirmation|recovery|magic ?link|invite)? ?email|email.*(hook|not sent)|error sending/i,
+    key: "auth.error.noMail",
+  },
 ];
 
 /**
