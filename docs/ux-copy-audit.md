@@ -373,6 +373,9 @@ Checked against a production build, signed in as a seeded account.
 | `/settings/rooms` | The room wording, the ratio label |
 | `/settings/email` | Provider choice, the connection errors |
 | `/giving` | Redirected to the dashboard: the seeded administrator does not hold `canManageGiving`. Not reviewed on screen |
+| `/home`, `/settings/household`, `/settings/profile` | The member portal, at phone width, signed in as a member |
+| `/`, `/trust`, `/g/<church>`, `/sign-up` | The public pages, signed out |
+| The admin portal | Overview, Churches, Status, Security, Delivery |
 | `/website` | The builder's panels and its save states |
 | `/checkin` | The desk, the room board |
 | `/` (marketing) | The trust section |
@@ -384,7 +387,14 @@ real Resend authorization failure and a genuine DNS warning, was read in the cat
 on screen, and is listed here rather than claimed as reviewed. `/giving` redirected to the dashboard
 under the seeded administrator account, so the giving screens were read in the catalogue too.
 
-**The review found one fault the catalogue reading had missed.** The setup guide listed "Set up your
+**The review found three faults the catalogue reading had missed.** The landing page's browser tab
+read "ConnectApp - Church management, made simple," with a trailing comma, because the hero headline
+is split across three spans and the first was being reused as the page title. It now has its own
+key. The Security screen in the admin portal printed `platform_admins`, a database table name, in a
+sentence explaining the sign-in checks. And the Status screen reported "No credential in this
+environment" for the product itself, where the reason is a missing host.
+
+**The first of those was found on the first pass.** The setup guide listed "Set up your
 ConnectApp website" and "Build your church website" as two separate steps, four rows apart. The first
 is the member portal's address and has nothing to do with the website builder. `setup.step.portal` is
 now "Choose your web address" and `portal.title` is "Your church's web address". This is the reason

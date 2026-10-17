@@ -50,7 +50,7 @@ export async function generateMetadata() {
     const own = await churchSiteMetadata(church, "");
     if (own) return own;
   }
-  return { title: `${t("app.name")} - ${t("site.hero.title")}` };
+  return { title: `${t("app.name")} - ${t("site.tabTitle")}` };
 }
 
 /**

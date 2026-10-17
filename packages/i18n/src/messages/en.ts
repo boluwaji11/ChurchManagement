@@ -110,6 +110,7 @@ export const en = {
   "site.nav.pricing": "Pricing",
   "site.start": "Get started free",
   "site.hero.title": "Church management, made simple,",
+  "site.tabTitle": "Church management, made simple, for free",
   "site.hero.free": "for free",
   "site.hero.always": "always",
   "site.pilot.banner": "We are building ConnectApp now. Interested in being part of the pilot?",
