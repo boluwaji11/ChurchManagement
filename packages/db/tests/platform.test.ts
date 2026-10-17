@@ -16,7 +16,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, closeConnections } from "../src/client";
 import {
   platformAdmin, admins, grant, revoke, events, PlatformError,
-  inviteTeamMember, teamInvites, revokeInvite, claimInvite,
+  inviteTeamMember, teamInvites, revokeInvite, claimInvite, approve,
 } from "../src/repo/platform";
 
 /* Three accounts: the one that already operates the platform, the one being
@@ -31,8 +31,12 @@ const ADDRESS = {
   outsider: "platform-test-outsider@connectapp.example.org",
 };
 
+const CHURCH = "11111111-2222-4333-8444-bbbb00000001";
+
 async function clear(): Promise<void> {
   const ids = [FIRST, SECOND, OUTSIDER, "11111111-2222-4333-8444-aaaa00000004"];
+  await owner()`delete from platform_events where tenant_id = ${CHURCH}`;
+  await owner()`delete from tenants where id = ${CHURCH}`;
   await owner()`delete from platform_invites where email like 'platform-test-%'`;
   await owner()`delete from platform_events where actor_id in ${owner()(ids)}`;
   await owner()`delete from platform_admins where user_id in ${owner()(ids)}`;
@@ -228,5 +232,44 @@ describe("asking somebody on who has no account yet", () => {
   it("refuses the whole thing to an account that is not on the team", async () => {
     await expect(inviteTeamMember(OUTSIDER, NEWCOMER, "A Newcomer")).rejects.toThrow(PlatformError);
     await expect(teamInvites(OUTSIDER)).rejects.toThrow(PlatformError);
+  });
+});
+
+/*
+ * HRT-403. Approving twice used to send the owner a second email.
+ *
+ * `approve` set approved_at = now() with no guard, so a second press reset the
+ * original approval time, wrote a second entry to the log, and told the caller
+ * nothing, which is what the caller used to decide whether to send the email.
+ */
+describe("approving a church", () => {
+  it("approves once, and says so", async () => {
+    await owner()`
+      insert into tenants (id, slug, name, timezone)
+      values (${CHURCH}, 'platform-test-church', 'Platform Test Church', 'America/Chicago')
+      on conflict (id) do update set approved_at = null, approved_by = null`;
+
+    expect(await approve(FIRST, CHURCH, "looks like a church")).toBe(true);
+
+    const [row] = await owner()<{ approvedAt: Date }[]>`
+      select approved_at as "approvedAt" from tenants where id = ${CHURCH}`;
+    expect(row?.approvedAt).toBeTruthy();
+  });
+
+  it("does nothing on a second press, so no second email goes out", async () => {
+    const [before] = await owner()<{ approvedAt: Date }[]>`
+      select approved_at as "approvedAt" from tenants where id = ${CHURCH}`;
+
+    expect(await approve(FIRST, CHURCH, "pressed again")).toBe(false);
+
+    const [after] = await owner()<{ approvedAt: Date }[]>`
+      select approved_at as "approvedAt" from tenants where id = ${CHURCH}`;
+    /* The first approval's own time survives, rather than moving to now. */
+    expect(after?.approvedAt?.toISOString()).toBe(before?.approvedAt?.toISOString());
+
+    const logged = await owner()<{ n: number }[]>`
+      select count(*)::int as n from platform_events
+       where tenant_id = ${CHURCH} and action = 'approved'`;
+    expect(logged[0]?.n).toBe(1);
   });
 });

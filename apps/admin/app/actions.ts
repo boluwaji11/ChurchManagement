@@ -95,8 +95,9 @@ export async function approveChurch(data: FormData): Promise<Done> {
   const who = await requireTeamMember();
   const id = String(data.get("id"));
 
+  let approvedNow = false;
   try {
-    await platform.approve(who.id, id, String(data.get("note") ?? ""));
+    approvedNow = await platform.approve(who.id, id, String(data.get("note") ?? ""));
     revalidatePath("/churches");
   } catch (error) {
     return { error: say(error) };
@@ -106,11 +107,14 @@ export async function approveChurch(data: FormData): Promise<Done> {
    * HRT-388, R1.1, R22.1. The church is told, by the thing that happened.
    *
    * After the write rather than inside it, and outside the try above, because
-   * the church is approved either way: a team member who pressed Approve and saw
-   * a mail provider's refusal would reasonably press it again, and the
-   * approval is already done.
+   * the church is approved either way: a team member who pressed Approve and
+   * saw a mail provider's refusal would reasonably press it again.
+   *
+   * Only on the press that actually approved it. A second press on a church
+   * that is already approved sent the owner a second "your church is approved"
+   * email, which `approve` now reports so this can skip it.
    */
-  await tellThemApproved(id);
+  if (approvedNow) await tellThemApproved(id);
   return {};
 }
 

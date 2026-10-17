@@ -168,14 +168,25 @@ async function named(id: string): Promise<{ id: string; name: string }> {
 }
 
 /** R1.1. A human has looked at this church and says it is a church. */
-export async function approve(by: string, tenantId: string, note: string): Promise<void> {
+/**
+ * R1.1. Approves a church, once.
+ *
+ * Returns whether this call is what approved it. Approving an already-approved
+ * church used to reset approved_at to now, write a second entry to the log, and
+ * send the owner a second "your church is approved" email. The guard on
+ * approved_at makes the write a no-op on the second press, the original
+ * approval time survives, and the caller has something to decide the email on.
+ */
+export async function approve(by: string, tenantId: string, note: string): Promise<boolean> {
   const actor = await requireAdmin(by);
   const target = await named(tenantId);
-  await owner()`
+  const changed = await owner()`
     update tenants
        set approved_at = now(), approved_by = ${actor.name}, updated_at = now()
-     where id = ${tenantId}`;
+     where id = ${tenantId} and approved_at is null`;
+  if (changed.count === 0) return false;
   await record(actor, "approved", { tenantId, tenantName: target.name, note });
+  return true;
 }
 
 /** R1.1. Putting a church back behind the cap, when it should not have passed. */

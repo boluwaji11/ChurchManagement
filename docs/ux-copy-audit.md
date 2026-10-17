@@ -455,6 +455,37 @@ in the product.
 **One test updated**, because it asserted the old wording of
 `error.permission` word for word.
 
+## The onboarding emails, read rather than reasoned about
+
+Phase 4.9 asked for the transactional sequence to be audited and for duplicate
+emails to be prevented. The first pass read the catalogue and the trigger code
+and stopped there, which is not the same thing.
+
+All three were rendered and read:
+
+| | Subject | Reads |
+|---|---|---|
+| 1. Verification | Confirm your email address \| ConnectApp | "Thanks for signing up for ConnectApp! Please confirm your email address to get started setting up your church." |
+| 2. Welcome, approval pending | Welcome to ConnectApp, {church} | Names the review, the 25-member cap, what opens on approval, and promises an email when it lands |
+| 3. Approved | {church} is approved on ConnectApp | Names what is now available, points at the setup guide, invites a reply |
+
+The sequence is correct and each one is sent from a distinct trigger. The
+welcome keeps its original wording, including the review time, which the owner
+wrote and stands behind.
+
+**One real defect, which is what the instruction was for.** `platform.approve`
+set `approved_at = now()` with no guard on the current value, so approving a
+church that was already approved reset its original approval time, wrote a
+second entry to the platform log, and **sent the owner a second "your church is
+approved" email**. The caller had no way to tell a real approval from a repeat,
+because the function returned nothing.
+
+`approve` now only writes when `approved_at` is null and returns whether this
+call is what approved it. The admin action sends the email only on that
+transition. Two tests in `packages/db/tests/platform.test.ts` hold it: the
+first approval reports true and sets the time, the second reports false, leaves
+the original time alone and writes no second log entry.
+
 ## Settled since
 
 1. **`members.add` stays "Add a member".** Settled 17 October 2026. The design specifies "Add
