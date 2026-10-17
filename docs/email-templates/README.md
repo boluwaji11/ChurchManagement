@@ -34,11 +34,17 @@ The HTML beside this file is generated from the same brand shell as the
 invitation, the welcome and the approval, so all six messages a church sees are
 one product. Paste each into Authentication, Email Templates:
 
-| File | Template |
-|---|---|
-| `confirm-signup.html` | Confirm signup |
-| `reset-password.html` | Reset password |
-| `magic-link.html` | Magic link |
+| File | Template | Subject |
+|---|---|---|
+| `confirm-signup.html` | Confirm signup | Confirm your email address \| ConnectApp |
+| `reset-password.html` | Reset password | Set a new password \| ConnectApp |
+| `magic-link.html` | Magic link | Sign in to ConnectApp |
+
+The subject is its own box above the markup, so it is set there rather than in
+the file. Our own name goes on the end of it, because an inbox shows the
+sender's name beside the subject and a church reading "Confirm your email
+address" wants to know which of the four things it signed up for this week is
+asking.
 
 `{{ .ConfirmationURL }}` is Supabase's own placeholder for the link it mints
 and reaches the template unescaped. Leave it exactly as it is.
