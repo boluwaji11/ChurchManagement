@@ -86,13 +86,46 @@ function confirmUrl(hook: Hook): string | null {
   if (!site) return null;
 
   const back = hook.email_data.redirect_to || `${site}/auth/callback`;
+
+  /*
+   * HRT-401. A link into the operator portal is proved on the portal's own
+   * host rather than this one.
+   *
+   * Supabase sets the session at whichever of our addresses hands it the
+   * token, and a session set on connectapp.church is not a session
+   * admin.connectapp.church can read: the cookie is host-only there. So an
+   * invitation sent through here arrived signed in to the church product and
+   * signed out of the portal it was an invitation to.
+   */
+  const where = atHost(back) ?? site;
   const query = new URLSearchParams({
     token: hook.email_data.token_hash,
     type: hook.email_data.email_action_type,
     redirect_to: back,
   });
 
-  return `${site}/auth/verify?${query.toString()}`;
+  return `${where}/auth/verify?${query.toString()}`;
+}
+
+/**
+ * HRT-401. The origin of an address we are willing to send somebody to.
+ *
+ * Only our own: a `redirect_to` is attacker-reachable through the auth API, so
+ * an unchecked one turns this into an open redirect that carries a live token.
+ * Anything else falls back to this site.
+ */
+function atHost(back: string): string | null {
+  const allowed = [HOME, process.env["PLATFORM_ADMIN_SITE"]]
+    .filter((one): one is string => Boolean(one))
+    .map((one) => one.replace(/\/$/, ""));
+
+  try {
+    const asked = new URL(back);
+    const origin = `${asked.protocol}//${asked.host}`;
+    return allowed.includes(origin) ? origin : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -141,7 +174,15 @@ export async function POST(request: Request) {
   /* A kind we do not draw is refused rather than swallowed. */
   if (!DRAWN.has(action)) return answer(400, "Not handled");
 
-  const sent = await sendAsPlatform({ to, ...authMessage(action as Action, link) });
+  /* HRT-401. A magic link whose landing is the portal's own /join is an
+     invitation onto the platform team, and reads as one. */
+  const invite =
+    action === "magiclink" && (hook.email_data.redirect_to ?? "").includes("/join?t=");
+
+  const sent = await sendAsPlatform({
+    to,
+    ...authMessage(invite ? "teaminvite" : (action as Action), link),
+  });
   if (!sent.ok) {
     console.error("[auth mail] not sent", sent.said);
     /* Supabase retries a failure and tells the person it could not send,

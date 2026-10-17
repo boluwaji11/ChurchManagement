@@ -402,6 +402,9 @@ export const RESERVED_SLUGS: readonly string[] = [
   "public", "register", "reset", "root", "security", "settings", "setup", "sign-in",
   "sign-out", "sign-up", "start", "static", "status", "stage", "support", "system", "tags",
   "terms", "test", "user", "users", "www",
+  /* HRT-401. The environments. A church that claimed "dev" would be sitting on
+     the address the development deployment answers at. */
+  "dev", "development", "preview", "sandbox", "staging",
 ];
 
 /** "St. Mark's Riverside" becomes "st-marks-riverside". */

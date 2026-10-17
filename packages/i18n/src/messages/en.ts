@@ -5666,6 +5666,14 @@ export const en = {
   "mail.magic.opening": "Use the button below to sign in. It works once, and only for an hour.",
   "mail.magic.button": "Sign in to ConnectApp",
   "mail.magic.ignore": "If you didn't ask to sign in, you can safely ignore this email.",
+
+  // HRT-401. Asking somebody onto the platform team. The same link as a magic
+  // link, with the words a person who was expecting an invitation needs.
+  "mail.teamInvite.subject": "You have been invited to the ConnectApp team",
+  "mail.teamInvite.headline": "You have been invited to the ConnectApp team",
+  "mail.teamInvite.opening": "Opening this signs you in to the admin portal and puts you on the team. It works once, and only for an hour.",
+  "mail.teamInvite.button": "Open the admin portal",
+  "mail.teamInvite.ignore": "If you weren't expecting this, you can safely ignore this email.",
   "mail.sentBy": "Sent by {app}.",
   "mail.greetingPlain": "Hello,",
   "mail.welcome.subject": "Welcome to ConnectApp, {church}",

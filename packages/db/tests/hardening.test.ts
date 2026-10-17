@@ -147,12 +147,29 @@ describe("the audit log covers every table that holds church data", () => {
       having n.nspname = 'public' and c.relkind = 'r'
        order by c.relname`;
 
-    const unaudited = rows.filter((r) => r.relname !== "audit_entries" && r.triggers === 0);
+    /*
+     * HRT-400. The platform's own tables are the one exception, and it is a
+     * correction rather than a convenience. `platform_events.tenant_id` names
+     * the church an operator acted on, so it is null for every action that is
+     * not about one church: granting somebody the portal, for instance. An
+     * audit row with no tenant is refused, so auditing that table meant nobody
+     * could be let into the portal at all. Those tables sit outside the
+     * tenancy and keep their own append-only log.
+     */
+    const exempt = (name: string) => name === "audit_entries" || name.startsWith("platform_");
+
+    const unaudited = rows.filter((r) => !exempt(r.relname) && r.triggers === 0);
     expect(unaudited.map((r) => r.relname), "tables with no audit trigger").toEqual([]);
 
     // Auditing the audit log would recurse on every write.
     const log = rows.find((r) => r.relname === "audit_entries");
     expect(log?.triggers).toBe(0);
+
+    const platform = rows.filter((r) => r.relname.startsWith("platform_"));
+    expect(
+      platform.filter((r) => r.triggers > 0).map((r) => r.relname),
+      "platform tables that should carry no audit trigger",
+    ).toEqual([]);
   });
 });
 

@@ -16,6 +16,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, closeConnections } from "../src/client";
 import {
   platformAdmin, admins, grant, revoke, events, PlatformError,
+  inviteTeamMember, teamInvites, revokeInvite, claimInvite,
 } from "../src/repo/platform";
 
 /* Three accounts: the one that already operates the platform, the one being
@@ -31,7 +32,8 @@ const ADDRESS = {
 };
 
 async function clear(): Promise<void> {
-  const ids = [FIRST, SECOND, OUTSIDER];
+  const ids = [FIRST, SECOND, OUTSIDER, "11111111-2222-4333-8444-aaaa00000004"];
+  await owner()`delete from platform_invites where email like 'platform-test-%'`;
   await owner()`delete from platform_events where actor_id in ${owner()(ids)}`;
   await owner()`delete from platform_admins where user_id in ${owner()(ids)}`;
   await owner()`delete from app_users where id in ${owner()(ids)}`;
@@ -118,16 +120,113 @@ describe("taking it away", () => {
   });
 
   it("will not lock the last person out of their own portal", async () => {
-    await expect(revoke(FIRST, FIRST)).rejects.toThrow("locked out");
+    await expect(revoke(FIRST, FIRST)).rejects.toThrow("lock you out");
     expect(await platformAdmin(FIRST)).not.toBeNull();
   });
 
-  it("refuses an account that was not an operator in the first place", async () => {
-    await expect(revoke(FIRST, OUTSIDER)).rejects.toThrow("does not operate the platform");
+  it("refuses an account that was not on the team in the first place", async () => {
+    await expect(revoke(FIRST, OUTSIDER)).rejects.toThrow("is not on the platform team");
   });
 
   it("lets a revoked operator back in, carrying a fresh grant", async () => {
     await grant(FIRST, ADDRESS.second, "Second Operator");
     expect(await platformAdmin(SECOND)).not.toBeNull();
+  });
+});
+
+describe("asking somebody on who has no account yet", () => {
+  const NEWCOMER = "platform-test-newcomer@connectapp.example.org";
+  const NEWCOMER_ID = "11111111-2222-4333-8444-aaaa00000004";
+
+  it("refuses an address that is not an address", async () => {
+    await expect(inviteTeamMember(FIRST, "not-an-address", "Someone")).rejects.toThrow(
+      "does not look like an email address",
+    );
+  });
+
+  it("refuses somebody who is already on the team", async () => {
+    await expect(inviteTeamMember(FIRST, ADDRESS.second, "Second Operator")).rejects.toThrow(
+      "already on the team",
+    );
+  });
+
+  it("asks an address nobody has used, and lists the ask", async () => {
+    const asked = await inviteTeamMember(FIRST, NEWCOMER, "A Newcomer");
+    expect(asked.token).toHaveLength(43);
+    expect(asked.expiresAt.getTime()).toBeGreaterThan(Date.now());
+
+    const waiting = await teamInvites(FIRST);
+    expect(waiting.find((one) => one.email === NEWCOMER)).toMatchObject({
+      name: "A Newcomer",
+      invitedByName: "First Operator",
+    });
+  });
+
+  it("keeps the token out of the table, so reading it is not a way in", async () => {
+    const asked = await inviteTeamMember(FIRST, NEWCOMER, "A Newcomer");
+    const rows = await owner()<{ token_hash: string }[]>`
+      select token_hash from platform_invites where lower(email) = ${NEWCOMER}
+         and accepted_at is null and revoked_at is null`;
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.token_hash).not.toContain(asked.token);
+  });
+
+  it("leaves one live ask an address, so an older link stops working", async () => {
+    const first = await inviteTeamMember(FIRST, NEWCOMER, "A Newcomer");
+    const second = await inviteTeamMember(FIRST, NEWCOMER, "A Newcomer");
+
+    await owner()`
+      insert into app_users (id, email, full_name)
+      values (${NEWCOMER_ID}, ${NEWCOMER}, 'A Newcomer')
+      on conflict (id) do nothing`;
+
+    await expect(
+      claimInvite(first.token, { id: NEWCOMER_ID, email: NEWCOMER }),
+    ).rejects.toThrow("expired or has already been used");
+
+    await expect(
+      claimInvite(second.token, { id: NEWCOMER_ID, email: NEWCOMER }),
+    ).resolves.toMatchObject({ name: "A Newcomer" });
+
+    expect(await platformAdmin(NEWCOMER_ID)).toMatchObject({ name: "A Newcomer" });
+  });
+
+  /* The test above let them in, and somebody on the team cannot be asked
+     again. Taking the row away puts them back where these two start. */
+  const offTeam = () =>
+    owner()`delete from platform_admins where user_id = ${NEWCOMER_ID}::uuid`;
+
+  it("will not let a forwarded link grant somebody else", async () => {
+    await offTeam();
+    const asked = await inviteTeamMember(FIRST, NEWCOMER, "A Newcomer");
+    await expect(
+      claimInvite(asked.token, { id: OUTSIDER, email: ADDRESS.outsider }),
+    ).rejects.toThrow(`was sent to ${NEWCOMER}`);
+    /* And the ask is still standing, so the real person can still use it. */
+    expect((await teamInvites(FIRST)).some((one) => one.email === NEWCOMER)).toBe(true);
+  });
+
+  it("refuses a token that was never issued", async () => {
+    await expect(
+      claimInvite("not-a-real-token", { id: OUTSIDER, email: ADDRESS.outsider }),
+    ).rejects.toThrow("expired or has already been used");
+  });
+
+  it("withdraws an ask, and the link stops working", async () => {
+    await offTeam();
+    const asked = await inviteTeamMember(FIRST, NEWCOMER, "A Newcomer");
+    const waiting = await teamInvites(FIRST);
+    const mine = waiting.find((one) => one.email === NEWCOMER)!;
+
+    await revokeInvite(FIRST, mine.id);
+    await expect(revokeInvite(FIRST, mine.id)).rejects.toThrow("already been used or withdrawn");
+    await expect(
+      claimInvite(asked.token, { id: NEWCOMER_ID, email: NEWCOMER }),
+    ).rejects.toThrow("expired or has already been used");
+  });
+
+  it("refuses the whole thing to an account that is not on the team", async () => {
+    await expect(inviteTeamMember(OUTSIDER, NEWCOMER, "A Newcomer")).rejects.toThrow(PlatformError);
+    await expect(teamInvites(OUTSIDER)).rejects.toThrow(PlatformError);
   });
 });

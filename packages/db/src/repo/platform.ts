@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from "node:crypto";
 import { owner } from "../client";
 
 /**
@@ -303,38 +304,145 @@ export async function signals(by: string): Promise<Signals> {
   return rows[0]!;
 }
 
-export interface AccountHit {
-  userId: string;
+
+/* ---------------------------------------------------------------------------
+ * HRT-401. Asking somebody on before they have an account
+ * ------------------------------------------------------------------------ */
+
+/** How long a link is worth anything. */
+export const INVITE_DAYS = 7;
+
+export interface TeamInvite {
+  id: string;
   email: string;
-  churches: { name: string; slug: string; role: string }[];
+  name: string;
+  invitedByName: string;
+  createdAt: Date;
+  expiresAt: Date;
 }
 
 /**
- * R21.x. Finding an account, for the support question that starts "I cannot
- * sign in". Which churches it belongs to and with what role, and nothing else:
- * a church's records are the church's.
+ * The token is mailed and never stored, so this table being read hands nobody
+ * a way in. The same reasoning as a password.
  */
-export async function findAccount(by: string, query: string): Promise<AccountHit[]> {
-  await requireAdmin(by);
-  const like = `%${query.trim().toLowerCase()}%`;
-  if (like === "%%") return [];
+const fingerprint = (token: string): string =>
+  createHash("sha256").update(token).digest("hex");
 
-  const rows = await owner()<
-    { userId: string; email: string; name: string; slug: string; role: string }[]
-  >`
-    select u.id as "userId", u.email, t.name, t.slug, tm.role
-      from app_users u
-      left join tenant_members tm on tm.user_id = u.id
-      left join tenants t on t.id = tm.tenant_id
-     where lower(u.email) like ${like}
-     order by u.email asc, t.name asc
-     limit 100`;
-
-  const out = new Map<string, AccountHit>();
-  for (const row of rows) {
-    const hit = out.get(row.userId) ?? { userId: row.userId, email: row.email, churches: [] };
-    if (row.slug) hit.churches.push({ name: row.name, slug: row.slug, role: row.role });
-    out.set(row.userId, hit);
+/**
+ * R21.x. Ask an address onto the team.
+ *
+ * Returns the token, which is the only time it exists in readable form: the
+ * caller puts it in a link and forgets it. A second ask for the same address
+ * replaces the first, so there is never a spare token in somebody's inbox that
+ * still works.
+ */
+export async function inviteTeamMember(
+  by: string,
+  email: string,
+  name: string,
+): Promise<{ token: string; email: string; name: string; expiresAt: Date }> {
+  const actor = await requireAdmin(by);
+  const address = email.trim().toLowerCase();
+  const who = name.trim();
+  if (!address || !who) throw new PlatformError("An address and a name are both needed.");
+  if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(address)) {
+    throw new PlatformError("That does not look like an email address.");
   }
-  return [...out.values()];
+
+  /* Already on the team, already has an account: there is nothing to invite
+     them to, and a link that grants what they hold is a link worth phishing. */
+  const held = await owner()<{ revoked: boolean }[]>`
+    select (a.revoked_at is not null) as revoked
+      from platform_admins a
+      join app_users u on u.id = a.user_id
+     where lower(u.email) = ${address}
+     limit 1`;
+  if (held[0] && !held[0].revoked) {
+    throw new PlatformError("That account is already on the team.");
+  }
+
+  const token = randomBytes(32).toString("base64url");
+  const expiresAt = new Date(Date.now() + INVITE_DAYS * 24 * 60 * 60 * 1000);
+
+  await owner()`
+    update platform_invites set revoked_at = now()
+     where lower(email) = ${address} and accepted_at is null and revoked_at is null`;
+
+  await owner()`
+    insert into platform_invites (email, name, token_hash, invited_by, invited_by_name, expires_at)
+    values (${address}, ${who}, ${fingerprint(token)}, ${actor.id}, ${actor.name}, ${expiresAt})`;
+
+  await record(actor, "invited", { note: `${who} (${address})` });
+  return { token, email: address, name: who, expiresAt };
+}
+
+/** R21.x. The asks nobody has answered yet. */
+export async function teamInvites(by: string): Promise<TeamInvite[]> {
+  await requireAdmin(by);
+  return owner()<TeamInvite[]>`
+    select id, email, name, invited_by_name as "invitedByName",
+           created_at as "createdAt", expires_at as "expiresAt"
+      from platform_invites
+     where accepted_at is null and revoked_at is null and expires_at > now()
+     order by created_at desc`;
+}
+
+/** R21.x. Changing your mind before they arrive. */
+export async function revokeInvite(by: string, id: string): Promise<void> {
+  const actor = await requireAdmin(by);
+  const rows = await owner()<{ name: string; email: string }[]>`
+    update platform_invites set revoked_at = now()
+     where id = ${id}::uuid and accepted_at is null and revoked_at is null
+     returning name, email`;
+  const gone = rows[0];
+  if (!gone) throw new PlatformError("That invitation has already been used or withdrawn.");
+  await record(actor, "invite withdrawn", { note: `${gone.name} (${gone.email})` });
+}
+
+/**
+ * R21.x. They arrived carrying the link.
+ *
+ * The address Supabase proved has to be the address that was asked. Without
+ * that test the link is a grant to whoever opens it, which is the whole of the
+ * thing an invitation must never be: tokens get forwarded, and a colleague
+ * reading somebody else's mail is a likelier accident than an attacker.
+ *
+ * Takes no `by`, on purpose. The caller is the person being let in, so there
+ * is nobody to check against the team except the token itself.
+ */
+export async function claimInvite(
+  token: string,
+  user: { id: string; email: string },
+): Promise<{ name: string }> {
+  const address = user.email.trim().toLowerCase();
+  if (!token || !address) throw new PlatformError("That link is not complete.");
+
+  const rows = await owner()<{ id: string; email: string; name: string; invitedBy: string | null }[]>`
+    select id, email, name, invited_by as "invitedBy"
+      from platform_invites
+     where token_hash = ${fingerprint(token)}
+       and accepted_at is null and revoked_at is null and expires_at > now()
+     limit 1`;
+  const invite = rows[0];
+  if (!invite) throw new PlatformError("That link has expired or has already been used.");
+
+  if (invite.email !== address) {
+    throw new PlatformError(`That invitation was sent to ${invite.email}.`);
+  }
+
+  await owner()`
+    insert into platform_admins (user_id, name, granted_by)
+    values (${user.id}, ${invite.name}, ${invite.invitedBy})
+    on conflict (user_id) do update
+      set name = excluded.name, granted_by = excluded.granted_by,
+          granted_at = now(), revoked_at = null`;
+
+  await owner()`
+    update platform_invites set accepted_at = now() where id = ${invite.id}::uuid`;
+
+  await owner()`
+    insert into platform_events (actor_id, actor_name, action, note)
+    values (${user.id}, ${invite.name}, 'joined', ${`${invite.name} (${address})`})`;
+
+  return { name: invite.name };
 }

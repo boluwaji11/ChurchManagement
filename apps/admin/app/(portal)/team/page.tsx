@@ -9,20 +9,33 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Team - ConnectApp Admin" };
 
 /**
- * R21.x. Who operates the platform.
+ * R21.x, HRT-401. Who runs the platform, and who has been asked to.
  *
- * Granted by the address somebody already signs in with, so there is no second
- * account to make and no password to send. Revoking leaves the row, because the
- * log names them and a name that cannot be looked up is a worse record.
+ * Somebody who already signs in to ConnectApp is granted outright: there is no
+ * second account to make and no password to send. Somebody who has never used
+ * it is sent a link instead, and the grant is made when they open it.
+ *
+ * Revoking leaves the row, because the log names them and a name that cannot
+ * be looked up is a worse record.
  */
 export default async function TeamPage() {
   const who = await requireTeamMember();
-  const rows = await platform.admins(who.id);
+  const [rows, waiting] = await Promise.all([
+    platform.admins(who.id),
+    platform.teamInvites(who.id),
+  ]);
 
   return (
     <Screen title="Team" lede="The people who can approve and archive a church.">
       <TeamMembers
         me={who.id}
+        waiting={waiting.map((one) => ({
+          id: one.id,
+          email: one.email,
+          name: one.name,
+          invitedBy: one.invitedByName,
+          expires: <On at={one.expiresAt} />,
+        }))}
         rows={rows.map((one) => ({
           userId: one.userId,
           name: one.name,

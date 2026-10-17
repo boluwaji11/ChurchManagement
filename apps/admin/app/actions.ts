@@ -175,11 +175,10 @@ export async function restoreChurch(data: FormData): Promise<Done> {
   }
 }
 
-/** R21.x. Another team member, by the address they sign in with. */
-export async function grantAdmin(data: FormData): Promise<Done> {
+export async function revokeAdmin(userId: string): Promise<Done> {
   const who = await requireTeamMember();
   try {
-    await platform.grant(who.id, String(data.get("email") ?? ""), String(data.get("name") ?? ""));
+    await platform.revoke(who.id, userId);
     revalidatePath("/team");
     return {};
   } catch (error) {
@@ -187,10 +186,57 @@ export async function grantAdmin(data: FormData): Promise<Done> {
   }
 }
 
-export async function revokeAdmin(userId: string): Promise<Done> {
+/**
+ * HRT-401, R21.x. Asking somebody onto the team who has no account yet.
+ *
+ * One email and one press. The invitation row is written first, then Supabase
+ * is asked to send a sign-in link to that address with our `/join` as the
+ * place it lands. Supabase owns the token in that link and will not hand it to
+ * anything without the service role key, which never appears in a request
+ * path; its send hook draws the message in our brand on the way out.
+ *
+ * So there is one message rather than two, and the person is signed in and on
+ * the team by the time they have pressed it once.
+ */
+export async function inviteTeamMember(data: FormData): Promise<Done> {
+  const who = await requireTeamMember();
+  const email = String(data.get("email") ?? "");
+  const name = String(data.get("name") ?? "");
+
+  try {
+    const asked = await platform.inviteTeamMember(who.id, email, name);
+
+    const head = await headers();
+    const host = head.get("x-forwarded-host") ?? head.get("host") ?? "localhost:4489";
+    const proto = head.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+    const link = `${proto}://${host}/join?t=${asked.token}`;
+
+    const supabase = await supabaseServer();
+    const { error } = await supabase.auth.signInWithOtp({
+      email: asked.email,
+      options: { shouldCreateUser: true, emailRedirectTo: link },
+    });
+
+    if (error) {
+      /* The row would otherwise sit there promising a link nobody has. */
+      const waiting = await platform.teamInvites(who.id);
+      const mine = waiting.find((one) => one.email === asked.email);
+      if (mine) await platform.revokeInvite(who.id, mine.id);
+      return { error: `The invitation could not be sent: ${error.message}` };
+    }
+
+    revalidatePath("/team");
+    return {};
+  } catch (error) {
+    return { error: say(error) };
+  }
+}
+
+/** R21.x. Changing your mind before they open it. */
+export async function withdrawInvite(id: string): Promise<Done> {
   const who = await requireTeamMember();
   try {
-    await platform.revoke(who.id, userId);
+    await platform.revokeInvite(who.id, id);
     revalidatePath("/team");
     return {};
   } catch (error) {

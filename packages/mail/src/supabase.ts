@@ -61,6 +61,17 @@ export const resetMarkup = (link: string = SUPABASE_LINK): string =>
     ignore: t("mail.reset.ignore"),
   });
 
+/** HRT-401. An invitation onto the platform team, which is a magic link with
+    the words somebody expecting an invitation needs. */
+export const teamInviteMarkup = (link: string = SUPABASE_LINK): string =>
+  message({
+    link,
+    headline: t("mail.teamInvite.headline"),
+    says: [t("mail.teamInvite.opening")],
+    press: t("mail.teamInvite.button"),
+    ignore: t("mail.teamInvite.ignore"),
+  });
+
 /** "Magic link". */
 export const magicMarkup = (link: string = SUPABASE_LINK): string =>
   message({
@@ -80,7 +91,7 @@ export const magicMarkup = (link: string = SUPABASE_LINK): string =>
  * of reaching an inbox.
  */
 export function authMessage(
-  action: "signup" | "email_change" | "recovery" | "magiclink",
+  action: "signup" | "email_change" | "recovery" | "magiclink" | "teaminvite",
   link: string,
 ): { subject: string; text: string; html: string } {
   const plain = (headline: string, says: string[], press: string, ignore: string) =>
@@ -96,6 +107,19 @@ export function authMessage(
         t("mail.reset.ignore"),
       ),
       html: resetMarkup(link),
+    };
+  }
+
+  if (action === "teaminvite") {
+    return {
+      subject: t("mail.teamInvite.subject"),
+      text: plain(
+        t("mail.teamInvite.headline"),
+        [t("mail.teamInvite.opening")],
+        t("mail.teamInvite.button"),
+        t("mail.teamInvite.ignore"),
+      ),
+      html: teamInviteMarkup(link),
     };
   }
 

@@ -2,12 +2,20 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, UserMinus } from "lucide-react";
+import { MailPlus, UserMinus, X } from "lucide-react";
 import {
   Badge, Banner, Button, Dialog, DialogContent, DialogFooter, DialogTrigger,
   Field, IconButton, Input,
 } from "@connectapp/ui";
-import { grantAdmin, revokeAdmin } from "@/app/actions";
+import { inviteTeamMember, revokeAdmin, withdrawInvite } from "@/app/actions";
+
+export interface WaitingRow {
+  id: string;
+  email: string;
+  name: string;
+  invitedBy: string;
+  expires: React.ReactNode;
+}
 
 export interface TeamMemberRow {
   userId: string;
@@ -18,14 +26,21 @@ export interface TeamMemberRow {
   revoked: boolean;
 }
 
-/** R21.x. The list, and the two things that change it. */
-export function TeamMembers({ me, rows }: { me: string; rows: TeamMemberRow[] }) {
+/** R21.x, HRT-401. The team, the asks nobody has answered, and what changes them. */
+export function TeamMembers({
+  me, rows, waiting,
+}: {
+  me: string;
+  rows: TeamMemberRow[];
+  waiting: WaitingRow[];
+}) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [open, setOpen] = React.useState(false);
   /* The row whose access is about to go, which is what the confirmation is
      asking about. One box driven by state rather than one per row. */
   const [losing, setLosing] = React.useState<TeamMemberRow>();
+  const [dropping, setDropping] = React.useState<WaitingRow>();
   const [pending, startTransition] = React.useTransition();
 
   const live = rows.filter((one) => !one.revoked);
@@ -38,15 +53,15 @@ export function TeamMembers({ me, rows }: { me: string; rows: TeamMemberRow[] })
       <div className="flex justify-end">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button><Plus /> Add a team member</Button>
+            <Button><MailPlus /> Invite a team member</Button>
           </DialogTrigger>
-          <DialogContent title="Add a team member" closeLabel="Close">
+          <DialogContent title="Invite a team member" closeLabel="Close">
             <form
               noValidate
               className="flex flex-col gap-4"
               action={(data) => {
                 startTransition(async () => {
-                  const result = await grantAdmin(data);
+                  const result = await inviteTeamMember(data);
                   setError(result.error);
                   if (!result.error) setOpen(false);
                   /* Refreshed either way. A refusal is often the list being
@@ -64,13 +79,13 @@ export function TeamMembers({ me, rows }: { me: string; rows: TeamMemberRow[] })
                 <Input name="name" autoComplete="off" />
               </Field>
               <p className="text-[13px] text-fg-muted">
-                They sign in with the account they already have.
+                They get one email. Opening it signs them in and puts them on the team.
               </p>
               <DialogFooter>
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={pending}>Add them</Button>
+                <Button type="submit" disabled={pending}>Send the invitation</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -130,6 +145,67 @@ export function TeamMembers({ me, rows }: { me: string; rows: TeamMemberRow[] })
               }}
             >
               Revoke
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {waiting.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-label text-fg-muted">Invited, waiting</h2>
+          <ul className="m-0 flex list-none flex-col divide-y divide-line overflow-hidden rounded-[16px] border border-dashed border-line bg-surface p-0">
+            {waiting.map((one) => (
+              <li key={one.id} className="flex flex-wrap items-center gap-4 px-5 py-4">
+                <span className="flex min-w-[220px] flex-1 flex-col gap-0.5">
+                  <span className="font-semibold text-fg">{one.name}</span>
+                  <span className="text-[12px] text-fg-subtle">{one.email}</span>
+                </span>
+                <span className="text-[13px] text-fg-muted">
+                  by {one.invitedBy}, until {one.expires}
+                </span>
+                <IconButton
+                  label={`Withdraw the invitation to ${one.name}`}
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() => setDropping(one)}
+                >
+                  <X />
+                </IconButton>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {/* An invitation is a live way into every church on the platform, so
+          withdrawing one is asked about the same way revoking is. */}
+      <Dialog
+        open={dropping !== undefined}
+        onOpenChange={(to) => { if (!to) setDropping(undefined); }}
+      >
+        <DialogContent alert title={`Withdraw the invitation to ${dropping?.name ?? ""}?`}>
+          <p className="text-[length:var(--d-text-body)] text-fg-muted">
+            The link already sent to {dropping?.email} stops working.
+          </p>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setDropping(undefined)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending}
+              onClick={() => {
+                const one = dropping;
+                if (!one) return;
+                startTransition(async () => {
+                  const result = await withdrawInvite(one.id);
+                  setError(result.error);
+                  setDropping(undefined);
+                  router.refresh();
+                });
+              }}
+            >
+              Withdraw
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -35,9 +35,17 @@ export async function middleware(request: NextRequest) {
   const { data } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  /* The door itself, and the route the cron calls, which carries its own
-     secret and has no session to carry. */
-  const open = path === "/sign-in" || path.startsWith("/api/");
+  /*
+   * The door itself, the route the cron calls, which carries its own secret
+   * and has no session to carry, and the two halves of an invitation link,
+   * which are walked by somebody who has no session yet and is about to get
+   * one (HRT-401).
+   */
+  const open =
+    path === "/sign-in" ||
+    path === "/join" ||
+    path.startsWith("/auth/") ||
+    path.startsWith("/api/");
 
   if (!data.user && !open) {
     const away = request.nextUrl.clone();

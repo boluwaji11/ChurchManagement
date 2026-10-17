@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Banner } from "@connectapp/ui";
 import { environment } from "@connectapp/env";
 import { teamMember } from "@/lib/admin";
 import { Brand } from "@/components/brand";
@@ -9,9 +10,18 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Sign in - ConnectApp Admin" };
 
 /** R21.x. The one door into the portal. */
-export default async function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   if (await teamMember()) redirect("/");
   const env = environment();
+  /* HRT-401. An invitation link that did not work sends them here saying why,
+     and a door that drops the reason leaves somebody pressing a dead link
+     again. Trimmed, because it arrives in an address bar. */
+  const { error } = await searchParams;
+  const said = error?.slice(0, 200);
 
   return (
     <main className="site-wash grid min-h-dvh place-items-center px-6 py-10">
@@ -21,6 +31,8 @@ export default async function SignInPage() {
         <div className="flex items-center justify-center gap-2.5">
           <Brand size="md" />
         </div>
+
+        {said ? <Banner tone="danger" title="That link did not work">{said}</Banner> : null}
 
         <SignInForm />
 

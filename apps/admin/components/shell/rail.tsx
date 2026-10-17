@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity, Building2, Gauge, GitBranch, LogOut, PanelLeftClose, PanelLeftOpen,
-  ScrollText, ShieldCheck, UserSearch,
+  ScrollText, ShieldCheck,
 } from "lucide-react";
 import { Avatar, Tooltip, cn } from "@connectapp/ui";
 import { Brand, Mark } from "../brand";
@@ -21,7 +21,6 @@ import type { TeamMember } from "@/lib/admin";
 const MARKS: Record<string, React.ComponentType<{ className?: string }>> = {
   "/": Gauge,
   "/churches": Building2,
-  "/accounts": UserSearch,
   "/status": Activity,
   "/delivery": GitBranch,
   "/log": ScrollText,
