@@ -1,5 +1,13 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "CONNECTAPP_ENV",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "NODE_ENV",
+    "NEXT_DIST_DIR",
+    "OBSERVE_EVERY_QUERY"
+  ],
   "tasks": {
     "build": {
       "dependsOn": [
@@ -9,6 +17,28 @@
         ".next/**",
         "!.next/cache/**",
         "dist/**"
+      ],
+      "env": [
+        "NEXT_PUBLIC_*",
+        "SUPABASE_*",
+        "DATABASE_URL",
+        "APP_DATABASE_URL",
+        "CONNECTAPP_APP_PASSWORD",
+        "HEARTH_APP_PASSWORD",
+        "STRIPE_*",
+        "RESEND_*",
+        "UPSTASH_*",
+        "VAPID_*",
+        "SUPPORT_*",
+        "PLATFORM_*",
+        "GITHUB_*",
+        "AUTH_COOKIE_DOMAIN",
+        "CRON_SECRET",
+        "NOTE_ENCRYPTION_KEY",
+        "PROVIDER_CREDENTIAL_KEY",
+        "DOMAIN_CONNECT_PRIVATE_KEY",
+        "SEND_EMAIL_HOOK_SECRET",
+        "SEED_USER_PASSWORD"
       ]
     },
     "dev": {
