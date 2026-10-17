@@ -4,7 +4,7 @@ import { requireTeamMember } from "@/lib/admin";
 import { Rail } from "@/components/shell/rail";
 import { TopBar } from "@/components/shell/top-bar";
 import { RAIL_COOKIE } from "@/components/shell/rail-cookie";
-import { SandboxBar } from "@/components/sandbox-bar";
+import { EnvironmentBar } from "@/components/environment-bar";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +27,7 @@ export default async function PortalLayout({ children }: { children: React.React
 
   return (
     <div className="site-wash flex min-h-dvh flex-col">
-      <SandboxBar environment={here.environment} productionData={here.productionData} />
+      <EnvironmentBar environment={here.environment} productionData={here.productionData} />
 
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <div className="hidden md:flex">

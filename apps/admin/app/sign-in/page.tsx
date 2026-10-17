@@ -3,7 +3,7 @@ import { Banner } from "@connectapp/ui";
 import { whereWeAre } from "@connectapp/env";
 import { teamMember } from "@/lib/admin";
 import { Brand } from "@/components/brand";
-import { SandboxBar } from "@/components/sandbox-bar";
+import { EnvironmentBar } from "@/components/environment-bar";
 import { SignInForm } from "./form";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ export default async function SignInPage({
 
   return (
     <main className="site-wash flex min-h-dvh flex-col">
-      <SandboxBar environment={here.environment} productionData={here.productionData} />
+      <EnvironmentBar environment={here.environment} productionData={here.productionData} />
 
       <div className="grid flex-1 place-items-center px-6 py-10">
         <div className="flex w-full max-w-[380px] flex-col gap-6">

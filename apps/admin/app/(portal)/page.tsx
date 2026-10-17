@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Building2, CircleUser, Clock, HeartPulse, Users } from "lucide-react";
+import { ArrowRight, Building2, Clock, HeartPulse, Users } from "lucide-react";
 import { platform, platformHealth } from "@connectapp/db";
 import { environment } from "@connectapp/env";
 import { EmptyState, StatTile } from "@connectapp/ui";
@@ -84,13 +84,6 @@ export default async function OverviewPage() {
           hue="teal"
           icon={<Users className="size-4" />}
           caption="across every church"
-        />
-        <StatTile
-          label="Accounts"
-          value={signals.accounts.toLocaleString("en-US")}
-          hue="sky"
-          icon={<CircleUser className="size-4" />}
-          caption="that can sign in"
         />
         <StatTile
           label="New this month"

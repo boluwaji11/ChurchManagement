@@ -71,7 +71,6 @@ export interface Signals {
   archived: number;
   newThisMonth: number;
   members: number;
-  accounts: number;
   /** R22.x. Churches that have recorded attendance or a check-in in 12 weeks. */
   active: number;
 }
@@ -298,7 +297,6 @@ export async function signals(by: string): Promise<Signals> {
       (select count(*)::int from tenants
         where created_at > now() - interval '30 days') as "newThisMonth",
       (select count(*)::int from members where archived_at is null) as members,
-      (select count(*)::int from app_users) as accounts,
       (select count(distinct a.tenant_id)::int from audit_entries a
         where a.at > now() - interval '84 days') as active`;
   return rows[0]!;
