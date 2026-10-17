@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { ADMIN_AUTH_COOKIE } from "@/lib/supabase/cookie-name";
 
 /**
  * HRT-396, R21.1. Refreshes the session, and turns away anybody without one.
@@ -21,6 +22,9 @@ export async function middleware(request: NextRequest) {
     process.env["NEXT_PUBLIC_SUPABASE_URL"]!,
     process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]!,
     {
+      // HRT-405. The same name the server client uses, so the refresh here and
+      // the read there are the same session. See lib/supabase/cookie-name.ts.
+      cookieOptions: { name: ADMIN_AUTH_COOKIE },
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (list) => {

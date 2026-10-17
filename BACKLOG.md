@@ -1107,6 +1107,7 @@ of money and after everything else.
 | HRT-368 | A church writes down the times it meets | R22.1, R3.1 | Resolved. The premise was wrong: it already can |
 | HRT-369 | A check-in dry run before the first service day | R8.x, R22.1 | New |
 | HRT-404 | A volunteer's serving frequency has no writer | R10.x | New |
+| HRT-405 | The portal's session cookie collides with the product's | R21.1, R1.7 | Resolved |
 | HRT-370 | The invitation reaches the person it names | R1.7, R16.4, R22.1 | Resolved |
 | HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | Resolved |
 | HRT-372 | An invitation is ConnectApp's own mail, so it sends on day one | R16.4, R22.1 | Resolved |
@@ -4363,6 +4364,37 @@ first service, and the step should settle.
 **What to take from it.** A function with no callers is not the same as a capability with no
 screen. The check that would have caught it is the one that was eventually run: open the screen and
 do the thing.
+
+### HRT-405, the portal signed people out on a tab press
+
+Reported in production on 17 October 2026: signing in to the portal worked, and
+pressing any tab other than Overview returned to the sign-in screen.
+
+**Cause.** The portal and the product run on the same Supabase project in each
+environment, so `@supabase/ssr` names both sessions `sb-<project-ref>-auth-token`
+by default. The product writes its cookie on the parent domain on purpose, because
+every church reaches the product at a name underneath it, and the portal is a
+subdomain of that same parent. So on `admin.connectapp.church` the browser holds
+two different cookies under one name: the portal's own, host-only, and the
+product's, domain-wide. Both are sent on every request and which one is read is
+undefined. Reading the product's returns an account that is not on the platform
+team, or a token the other app has already rotated, and the gate sends them to the
+door.
+
+It needs somebody signed in to both, which is why it appeared in production and
+never in development.
+
+**Fix.** The portal's session cookie is named `connectapp-admin-auth`, in
+`apps/admin/lib/supabase/cookie-name.ts`, used by both the server client and the
+middleware. The product keeps its domain-wide cookie unchanged.
+
+**Proved both ways**, locally, by injecting a cookie under the default Supabase
+name alongside the portal's own. Without the fix the first tab press returns to
+the sign-in screen. With it, Churches, Status, Delivery, Log, Team and Overview
+all hold the session.
+
+**Everybody on the team signs in to the portal once more** after this ships,
+because the old cookie is no longer the one it reads.
 
 ### HRT-404, serving frequency has no writer
 
