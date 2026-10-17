@@ -58,6 +58,16 @@ export const churchProviders = pgTable(
     accessToken: text("access_token"),
     accessExpires: timestamp("access_expires", { withTimezone: true }),
     /**
+     * HRT-387, R16.1. The day the credential above stops working.
+     *
+     * Resend's refresh token lasts sixty days and every refresh resets them,
+     * so a church that sends nothing for two months loses its grant without
+     * anybody doing anything wrong. The worker reads this to refresh a quiet
+     * church's grant before that happens. Null where the vendor has no
+     * expiry, which is a church's own mail server.
+     */
+    credentialExpiresAt: timestamp("credential_expires_at", { withTimezone: true }),
+    /**
      * R16.1. The name and address mail goes out as.
      *
      * What a member reads in their inbox, which is the church rather than us,

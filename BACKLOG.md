@@ -144,6 +144,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-251 | Stripe Accounts v2: account creation, onboarding links, account sessions and the v2 event destination | R13.1 | Resolved |
 | HRT-252 | A bank gift shows the day it is authorised and counts the day it arrives, with what the bank said where it did not | R13.2 | Closed |
 | HRT-386 | The church says whether Stripe granted it the nonprofit rate, and the covered fee is worked out from it | R13.5 | Resolved |
+| HRT-387 | One refresh of a church's Resend grant at a time, and a quiet church's grant renewed before it lapses | R16.1 | Resolved |
 
 The pass against the reference screens, October 2026. Phase A builds the vocabulary once,
 B puts it in the shell, C applies it a screen at a time, D adds what the reference has and
