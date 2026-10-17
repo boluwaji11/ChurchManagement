@@ -8,7 +8,7 @@
  * A section writes `data-edit="title"`, and whether that becomes a cursor, a
  * ring or nothing at all is the canvas's business.
  *
- * That is the whole reason the canvas looks like the page. It is the page.
+ * The canvas therefore renders the same components the published page does.
  */
 
 import * as React from "react";
@@ -150,9 +150,9 @@ const FACE: Record<NonNullable<TextStyle["face"]>, string> = {
 /**
  * A step either side of whatever size the design gives the slot.
  *
- * Relative rather than absolute, so a heading set larger is still a heading in
- * every design and at every width. A church cannot type a pixel value, which is
- * the whole point: that is how a site stops holding together.
+ * Relative rather than absolute, so a heading set larger remains a heading in
+ * every design and at every width. No pixel value is accepted from the church,
+ * because absolute sizes are what break a design's internal consistency.
  */
 const SIZE: Record<NonNullable<TextStyle["size"]>, string> = {
   smaller: "text-[0.78em]",

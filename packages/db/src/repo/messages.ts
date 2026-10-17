@@ -902,8 +902,8 @@ async function inIt(
   reader: Reader,
   whose: { group?: string; team?: string },
 ): Promise<boolean> {
-  /* The office speaks for the church, so it can reach any group. A member
-     reaches the ones they are in. */
+  /* The office acts for the church, so it can reach any group. Everybody else
+     can reach only the groups they are in. */
   if (reader.office) return true;
   return memberOf(db, reader, whose);
 }
@@ -1258,8 +1258,8 @@ export async function peopleNamed(
 /**
  * R16.9. The groups this reader may write to.
  *
- * The office reaches any of them, because it speaks for the church. Everybody
- * else reaches the ones they are in.
+ * The office can reach any group, because it acts for the church. Everybody
+ * else can reach only the groups they are in.
  */
 export async function writableGroups(db: Tx, reader: Reader): Promise<Recipient[]> {
   const rows = reader.office

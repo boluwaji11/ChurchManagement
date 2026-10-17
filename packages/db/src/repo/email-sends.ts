@@ -99,9 +99,10 @@ export async function emailRecipientsFor(
     out.map((one) => one.address?.trim().toLowerCase()).filter(Boolean),
   );
 
-  /* R16.7. Addresses a provider has already said nobody is at. Read once, the
-     same way the withdrawals are, because a church that keeps writing to a
-     dead address is a church whose other mail starts landing in spam. */
+  /* R16.7. Addresses the provider has reported as nonexistent. Read once, the
+     same way the withdrawals are: continuing to send to dead addresses damages
+     the sending domain's reputation and pushes the church's other mail into
+     spam. */
   const dead = await db
     .select({ value: contactMethods.value })
     .from(contactMethods)
@@ -307,7 +308,7 @@ export function wayOutKey(who: { memberId: string | null; address: string }): st
 export interface WayOut {
   tenantId: string;
   churchName: string;
-  /** R17.1. The church's own mark, so the screen is plainly theirs. */
+  /** R17.1. The church's logo, so the screen is identifiably theirs. */
   logoKey: string | null;
   /** Who was taken off, said back to them, because a link carries no name. */
   address: string | null;

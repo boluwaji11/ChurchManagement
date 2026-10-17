@@ -18,7 +18,7 @@ export interface SubmissionRow {
   answers: Record<string, FormAnswer>;
   /** The date already written the way this church reads dates. */
   when: string;
-  /** R4.4. Who this turned out to be, where anybody is sure. */
+  /** R4.4. The member this response was matched to, where the match is certain. */
   memberId: string | null;
   personSlug: string | null;
   personName: string | null;

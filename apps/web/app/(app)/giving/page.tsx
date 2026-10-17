@@ -176,8 +176,8 @@ export default async function GivingPage({
      to somebody who narrowed to "failed bank gifts" reads as data loss. */
   const nothing =
     narrowingCount(narrowing) === 0 && read.allCounts === 0 && read.allGifts === 0;
-  /* The pager keeps whatever the filter is set to, so paging a narrowed
-     list does not quietly hand back the whole of it. */
+  /* The pager carries the current filter, so moving to the next page of a
+     narrowed list does not silently return the unfiltered list. */
   const page = (name: "counts" | "gifts" | "repeats", to: number) => {
     const at = new URLSearchParams({ church: session.tenantSlug });
     if (asked.period) at.set("period", asked.period);

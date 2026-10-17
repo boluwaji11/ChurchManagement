@@ -19,19 +19,19 @@ import { Cut } from "./cut";
 /**
  * R22.1, R22.2, R22.3. The setup guide, beside whichever screen is open.
  *
- * Each step of setting up happens on the screen that really does that job,
- * which is the right place for it and the wrong place to lose the thread: the
- * old setup page vanished the moment somebody pressed a step, and the dock that
- * replaced it carried five words and no idea what to do on arrival.
+ * Each setup step happens on the screen that performs that job, which is the
+ * right place for the work and the easiest place to lose the thread. The
+ * previous standalone setup page disappeared as soon as a step was pressed, and
+ * the dock that replaced it carried five words and no instruction on arrival.
  *
- * So the guide comes along, and it knows where it has sent you. Open the screen
- * a step points at and that step rises in its phase and names the control to
- * press, and the card it means is ringed. Everywhere else the rail carries the
- * phase and what is next.
+ * The rail therefore travels with the reader and knows which screen it sent
+ * them to. On a step's own screen, that step rises within its phase, names the
+ * control to press, and rings the card it means. On any other screen the rail
+ * shows the phase and the next step.
  *
- * It is a column beside the screen rather than a box floating over it, because
- * the corner it used to float in is the corner a panel's footer lands in, and
- * because the blur it used to carry is refused by the design pass.
+ * It is a column beside the screen rather than a floating box: the corner it
+ * floated in is where a panel's footer lands, and the backdrop blur it carried
+ * is refused by the design system.
  *
  * Nothing is stored about progress. Every step is answered by reading the
  * church's own records, so undoing the work opens the step again.

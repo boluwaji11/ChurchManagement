@@ -19,17 +19,12 @@ export async function GiveScreen({ slug }: { slug: string }) {
   if (!church) notFound();
 
   /*
-   * R13.6, R17.4. A member who is already signed in is not a stranger.
+   * R13.6, R17.4. A signed-in member of this church gets their name and address
+   * filled in, and the way back goes to their own screens.
    *
-   * Their name and address fill themselves in, which is the whole benefit of
-   * being known here. Nobody is asked to sign in: this page works for a
-   * visitor who has never heard of us, and that is the point of it.
-   */
-  /*
-   * R13.6, R17.4. A member of this church is not a stranger: their name and
-   * address fill themselves in and the way back is to their own screens.
-   * Somebody signed in to a different church is a stranger here, because
-   * this church's screens would refuse them.
+   * Nobody is required to sign in: the page has to work for a visitor who has
+   * no account. Somebody signed in to a different church is treated as a
+   * visitor here, because this church's screens would refuse them.
    */
   const reader = await currentUser();
   const known = reader && (await belongsTo(reader.id, slug)) ? reader : null;

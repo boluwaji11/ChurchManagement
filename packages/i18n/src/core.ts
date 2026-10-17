@@ -84,11 +84,11 @@ function interpolate(template: string, params?: Params): string {
 }
 
 /**
- * R22.8. The reader for one catalogue: the whole of it on the server, the
- * screens' own words in the browser.
+ * R22.8. Builds the reader for one catalogue: the full set on the server, the
+ * screens' own subset in the browser.
  *
- * Written as a pair built around the words in hand, because the two sides load
- * different ones and everything else about reading a message is the same.
+ * Written as a factory over the catalogue in hand, because the two sides load
+ * different sets and everything else about reading a message is identical.
  */
 export function readerFor(words: Catalogue): {
   t: (key: MessageKey, params?: Params, locale?: Locale) => string;

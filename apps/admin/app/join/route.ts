@@ -15,9 +15,9 @@ export const runtime = "nodejs";
  * which is checked in `claimInvite`: without it the link grants whoever opens
  * it, and a forwarded email is a likelier accident than an attacker.
  *
- * The account may not exist in `app_users` at all until this runs, which is
- * the whole reason the invitation exists. `syncUserAndAcceptInvitations`
- * writes it, from the verified user and nothing else.
+ * The account may not exist in `app_users` until this runs, which is the case
+ * the invitation is designed for. `syncUserAndAcceptInvitations` writes it,
+ * from the verified user and nothing else.
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);

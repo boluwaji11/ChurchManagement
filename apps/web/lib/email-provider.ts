@@ -14,14 +14,13 @@ import type { PlannedRecord, Resolver, SmtpSettings } from "@connectapp/db";
  * two fields to look at. "Could not connect" tells them nothing.
  */
 
-/** Whether the thing answered, and what it said if it did not. */
 /**
- * R16.1, R16.7. What a provider said about one attempt.
+ * R16.1, R16.7. The outcome of one send attempt, as the provider reported it.
  *
- * `again` is the difference between a bad minute and a dead address: a rate
- * limit or a provider's own fault comes round again, and a refusal naming the
- * address does not. `ref` is what the provider called the message, which is
- * how its later verdict is matched back to the person it was for.
+ * `again` separates a temporary failure from a permanent one: a rate limit or a
+ * provider-side fault is worth retrying, a refusal naming the address is not.
+ * `ref` is the provider's own identifier for the message, which is how a later
+ * delivery verdict is matched back to the recipient.
  */
 export type Proof =
   | { ok: true; ref?: string | null }
@@ -36,10 +35,10 @@ const PATIENCE = 10_000;
  * R16.1. Whether a church's own mail server will take a message from us.
  *
  * `verify` opens the session and authenticates without sending anything, which
- * is the whole question: a church on Google Workspace needs an app password
- * rather than the one it signs in with, and a church on Microsoft 365 needs
- * SMTP AUTH turned on for the mailbox. Both refuse here, by name, rather than
- * silently failing on the first real send weeks later.
+ * is the only question worth asking at setup time: Google Workspace needs an
+ * app password rather than the sign-in password, and Microsoft 365 needs SMTP
+ * AUTH enabled for the mailbox. Both fail here, named, rather than silently on
+ * the first real send.
  */
 export async function proveSmtp(
   settings: SmtpSettings & { password: string },

@@ -203,9 +203,9 @@ export function warningsFor(findings: {
   if (findings.dkimTaken) out.push({ code: "dkimTaken" });
 
   /*
-   * A strict DMARC policy used to be listed here. It is good news, and a
-   * warning that reports good news teaches a reader to skim warnings. What
-   * the policy is already has a row of its own in the reading.
+   * A strict DMARC policy was previously reported here. It is not a problem,
+   * and a warning list that includes non-problems trains the reader to skim it.
+   * The policy already has its own row in the reading.
    */
 
   return out;
@@ -333,18 +333,6 @@ export async function readDomain(
 }
 
 /**
- * R22.2. Where a church goes to add the record, by name.
- *
- * We already read their nameservers to name the provider, and naming it
- * without taking them there is the half of the job that helps nobody. A
- * volunteer who has been told "add a CNAME at your domain provider" is a
- * volunteer looking at a search engine.
- *
- * The deep link is to the provider's own domain list rather than to one
- * domain's records, because the path to a single domain carries an account id
- * we do not have.
- */
-/**
  * R9.5. The site builders a church's nameservers give away.
  *
  * Only some do. A church on Wix or Squarespace usually points the whole name
@@ -393,6 +381,15 @@ export const SITE_BUILDERS = [
 
 export type SiteBuilder = (typeof SITE_BUILDERS)[number];
 
+/**
+ * R22.2. A deep link to each provider's own domain list.
+ *
+ * The nameservers already tell us who the provider is, and naming one without
+ * linking to it leaves a volunteer searching for where "your domain provider"
+ * is. The link goes to the provider's domain list rather than to a single
+ * domain's records, because the path to one domain contains an account id we
+ * do not have.
+ */
 export const DNS_CONSOLE: Record<string, string> = {
   "GoDaddy": "https://dcc.godaddy.com/control/portfolio",
   "Cloudflare": "https://dash.cloudflare.com/",
@@ -417,7 +414,6 @@ export const DNS_CONSOLE: Record<string, string> = {
   "NS1": "https://my.nsone.net/#/zones",
 };
 
-/** The console for whoever answers for this domain, where we know it. */
 /**
  * HRT-289, R22.2. Where the records go, at the company that answers for the domain.
  *

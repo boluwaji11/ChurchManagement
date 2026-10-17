@@ -45,9 +45,9 @@ export const pushPublicKey = (): string | null =>
 /**
  * Sends to every target, and reports the ones whose browser has gone.
  *
- * A 404 or a 410 is the push service saying this subscription is dead, which is
- * the only honest moment to delete the row: a browser that has been uninstalled
- * never tells us.
+ * A 404 or 410 from the push service means the subscription no longer exists,
+ * and that response is the only signal we get: an uninstalled browser never
+ * notifies us, so the row is deleted here or never.
  */
 export async function sendPush(
   targets: PushTarget[],

@@ -265,9 +265,9 @@ function yearsOld(dob: string, today: string): number {
 /**
  * R8.14. The children who are here and are not in a class yet.
  *
- * A desk takes a family's name and prints their labels, and on a busy morning
- * the class a child goes to is decided by whoever is walking them down the
- * corridor. Those children sit here until somebody puts them in a room.
+ * A desk can check a family in and print labels before the room is decided,
+ * which is common when a volunteer walks the children down. Those check-ins
+ * stay in this state until somebody assigns a room.
  */
 export async function arriving(
   db: Tx,

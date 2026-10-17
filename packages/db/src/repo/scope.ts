@@ -9,7 +9,7 @@ import type { TenantRole } from "../roles";
  * R9.3, R1.5. What a role may see of the directory.
  *
  * Most roles see the whole church. A group leader sees the members in the groups
- * they lead, and nobody else, which is the whole point of giving somebody that
+ * they lead, and nobody else, which is the reason for giving somebody that
  * role: a church can let the leader of the Tuesday group keep their own roster
  * without handing them four hundred phone numbers.
  *

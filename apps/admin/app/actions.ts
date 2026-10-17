@@ -232,7 +232,7 @@ export async function inviteTeamMember(data: FormData): Promise<Done> {
   }
 }
 
-/** R21.x. Changing your mind before they open it. */
+/** R21.x. Withdraws an invitation before it has been opened. */
 export async function withdrawInvite(id: string): Promise<Done> {
   const who = await requireTeamMember();
   try {

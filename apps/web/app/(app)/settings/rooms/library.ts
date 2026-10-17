@@ -10,11 +10,11 @@ import type { LibraryItem } from "@/components/library-picker";
  * them, so a volunteer meeting the panel had to invent both the name and the
  * ages a nursery takes.
  *
- * The ages are the point. A church knows what it calls its rooms; what it
- * hesitates over is whether the toddlers' room starts at eighteen months or
- * two years, and getting that wrong is a child shown the wrong door on a
- * Sunday morning. These are the usual bands, and every one of them is still
- * typed over in the form that opens next.
+ * The age bands are the reason this exists. A church knows what it calls its
+ * rooms; what it hesitates over is whether the toddlers' room starts at
+ * eighteen months or two years, and getting that wrong sends a child to the
+ * wrong room on a service day. These are the usual bands, and every one of
+ * them can still be overwritten in the form that opens next.
  */
 export interface RoomPreset extends LibraryItem {
   hue: string;

@@ -27,7 +27,7 @@ const as = (role: TenantRole) => ({ tenantId: tenant, role, userId: who });
 const run = <T>(work: (tx: Tx) => Promise<T>, role: TenantRole = "owner") =>
   withTenant({ tenantId: tenant, role, userId: who }, work);
 
-/** The one permission an Admin does not hold, which is the whole point. */
+/** The one permission an Admin does not hold, which is what this suite checks. */
 const MONEY = "giving.amounts";
 /** One an Admin does hold, for the roles that are meant to be allowed. */
 const PLAIN = "members.edit";

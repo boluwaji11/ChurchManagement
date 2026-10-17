@@ -140,9 +140,9 @@ function check(input: EventInput) {
   if (endsOn && endsOn < startsOn) throw new InvalidInputError("event.error.order");
 
   /*
-   * No ceiling on when registration closes. A church taking names for next
-   * year's camp right up to the morning of it, or past it for a waiting list,
-   * is its own business, and a rule that refused it was us guessing.
+   * No upper bound on the registration close date. Taking names up to the day
+   * of an event, or past it for a waiting list, are both legitimate, so there
+   * is nothing to validate against.
    */
   const closes = date(input.registrationClosesOn, "event.error.date");
 

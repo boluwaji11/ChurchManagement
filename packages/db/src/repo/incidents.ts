@@ -13,17 +13,16 @@ import { canCheckIn } from "./checkin";
 /**
  * R8.13. Incident reports.
  *
- * Something happened to a child: a bump on the head, a bite, a child who could
- * not be settled, a near miss at a door. Writing it down at the time is what
- * turns a vague memory three weeks later into a record, and it is the one
- * thing a church is asked for when a parent, an insurer or a safeguarding
- * officer comes back to it.
+ * A record of something that happened to a child: an injury, a bite, a child
+ * who could not be settled, a near miss at a door. Recording it at the time is
+ * what makes it evidence rather than recollection, and it is what a church is
+ * asked for when a parent, an insurer or a safeguarding officer follows up.
  *
  * Two rules hold this file together.
  *
  * **It is written by whoever saw it.** The volunteer in the room files it from
- * the station. A report that only a pastor can write is a report that gets
- * written on Tuesday, from memory, by somebody who was not there.
+ * the station. Restricting filing to a pastor would mean reports written days
+ * later, from memory, by somebody who was not present.
  *
  * **It is read by almost nobody.** A child's incident is sensitive about the
  * child and about every volunteer named in it, so reading is the safeguarding
@@ -131,8 +130,8 @@ export async function fileIncident(
   // shape the reader does not.
   const [filed] = await incidentsWhere(db, eq(incidentReports.id, row!.id));
 
-  // R8.13, R24.6. Safeguarding is the one thing nobody should have to go
-  // looking for, so the roles that handle it are told as it is written.
+  // R8.13, R24.6. The safeguarding roles are notified as the report is written
+  // rather than having to check for new reports.
   await notifyRoles(db, actor.tenantId, ["owner", "admin", "pastoral"], {
     kind: "incident",
     messageKey: "bell.incident",

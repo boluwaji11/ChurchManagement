@@ -51,9 +51,9 @@ describe("which environment this is", () => {
   });
 
   /*
-   * The whole reason NODE_ENV is not consulted. Every screen in this
-   * repository is checked by building it and serving it from a laptop, which
-   * sets NODE_ENV=production, and none of those runs is production.
+   * Why NODE_ENV is not consulted. Every screen in this repository is checked
+   * by building it and serving it locally, which sets NODE_ENV=production, and
+   * none of those runs is production.
    */
   it("is not production just because the build is", () => {
     process.env["NODE_ENV"] = "production";

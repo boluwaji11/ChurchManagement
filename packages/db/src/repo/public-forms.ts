@@ -12,10 +12,10 @@ import { notifyRolesRaw } from "./notifications";
 /**
  * R4.3. A form as somebody with no account meets it.
  *
- * A church pastes the link into its own website, or drops the snippet into a
- * page, and whoever follows it answers the questions without signing in. That
- * is the whole point of a connection card: the person filling it in is the one
- * the church does not have a record of yet.
+ * A church pastes the link into its own website, or embeds the snippet, and
+ * whoever follows it answers without signing in. That is what a connection card
+ * is for: the person filling it in is usually somebody the church holds no
+ * record of yet.
  *
  * Runs on the owner connection for the same reason `public-groups` does: there
  * is no session to set a tenant from, so every query here carries its own
@@ -333,14 +333,12 @@ function nameFrom(
 /**
  * R14.2, R14.4. Turns a submission into a place at an event.
  *
- * The event row is locked first, so the last place cannot go to two members who
- * sent the form at the same moment. A full event takes the name for its waiting
- * list, which is what every event does now.
+ * The event row is locked first, so the last place cannot be given to two
+ * members who submit at the same moment. A full event adds the name to its
+ * waiting list.
  *
- * A form reached from an event that is not taking registrations still records
- * the response. The church asked a question and somebody answered it, and
- * throwing that away because a date passed would lose the one thing worth
- * keeping.
+ * A form reached from an event that has closed registration still records the
+ * response. The answers are worth keeping even when no place can be given.
  */
 async function takePlace(
   tx: TransactionSql,

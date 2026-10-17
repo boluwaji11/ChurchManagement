@@ -991,12 +991,13 @@ export async function groupsLedBy(db: Tx, memberId: string): Promise<string[]> {
   return rows.map((r) => r.groupId);
 }
 
-/** R9.1. A type's own words, shown at the top of its section in the finder. */
 /**
- * R9.1. Changing a kind of group: what it is called, what it is for, and the
- * colour it wears everywhere.
+ * R9.1. Updates a group type: its name, its description and its colour.
  *
- * The name is unique within the church, because two kinds called "Class" make
+ * The description is shown at the top of that type's section in the finder, and
+ * the colour is used for the type everywhere it appears.
+ *
+ * The name is unique within the church, because two types called "Class" make
  * every list ambiguous and no filter can tell them apart.
  */
 export async function updateGroupType(

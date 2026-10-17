@@ -107,7 +107,7 @@ export async function approveChurch(
     .where(eq(tenants.id, tenantId));
 }
 
-/** R1.1. Takes approval away again, for a church that turned out not to be one. */
+/** R1.1. Returns an approved church to the provisional state. */
 export async function unapproveChurch(db: Tx, tenantId: string): Promise<void> {
   await db
     .update(tenants)

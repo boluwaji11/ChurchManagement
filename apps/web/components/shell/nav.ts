@@ -51,27 +51,22 @@ export function navFor(role: Who): NavEntry[] {
   const out: NavEntry[] = [];
 
   /*
-   * R3.1. Somebody who is not staff has one screen, and it is the one that is
-   * theirs. Without this they would open the app onto a groups list.
-   */
-  /*
-   * R17.1. A member's screens are not in here. They use the portal's own
-   * frame, which is a row of tabs across the top rather than this list, and
-   * the two would have drifted the moment one of them changed.
-   */
-  /*
-   * HRT-202. Everybody who is not staff has their own screen, including the
-   * volunteers. A team leader and a check-in volunteer used to be given the
-   * directory as their first row, which told them, wrongly, that four hundred
-   * households were their errand.
+   * R3.1, R17.1, HRT-202. Anybody who is not staff opens on their own screen,
+   * volunteers included. Without this, a team leader or a check-in volunteer
+   * landed on the directory, which implied the whole congregation was their
+   * responsibility.
+   *
+   * A member's own screens are not in this list at all. The portal uses its own
+   * frame, a row of tabs across the top, and keeping both in one list would
+   * have let them drift apart.
    */
   if (!staff) {
     out.push({ label: t("nav.home"), href: "/home", icon: Home });
   }
 
   /*
-   * R18.1. The screen staff open the week on, first in the list because it is
-   * the one that says what needs doing before anybody has gone looking.
+   * R18.1. The screen staff start from, first in the list because it reports
+   * what needs doing without anybody having to go looking for it.
    */
   if (staff) {
     out.push({ label: t("dashboard.title"), href: "/dashboard", icon: LayoutDashboard });
@@ -100,7 +95,7 @@ export function navFor(role: Who): NavEntry[] {
     out.push({ label: t("inbox.title"), href: "/messages", icon: MessageSquare });
   }
 
-  // R5.5. The Monday morning screen, for the roles that work it.
+  // R5.5. The follow-up screen, for the roles that work it.
   if (canFollowUp(role)) {
     out.push({ label: t("nav.followups"), href: "/followups", icon: UserPlus });
   }

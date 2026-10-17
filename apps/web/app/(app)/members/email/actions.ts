@@ -196,8 +196,8 @@ export async function sendEmail(data: FormData): Promise<SendResult> {
   const memberIds = field(data, "memberIds").split(",").filter(Boolean);
   const addresses = field(data, "addresses").split(",").filter(Boolean);
 
-  /* R16.6. When it should go. A church writing on Tuesday for Friday morning
-     is asking for a field, rather than for a reminder to come back. */
+  /* R16.6. The scheduled send time. A church composing in advance needs to set
+     the time here rather than return to send it manually. */
   const when = field(data, "sendAt");
   const sendAt = when ? new Date(when) : null;
   if (sendAt && Number.isNaN(sendAt.getTime())) return { error: t("send.error.when") };

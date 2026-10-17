@@ -29,7 +29,7 @@ const isLabelled = (status: string): status is LabelledStatus =>
 /**
  * The label for a status that arrived as a plain string from the database.
  * An unknown value renders itself rather than a blank, so a new enum member
- * shows up as a slightly ugly word instead of an empty cell.
+ * appears as its raw name instead of an empty cell.
  */
 export const lifecycleLabel = (status: string): string =>
   isLabelled(status) ? t(`lifecycle.${status}`) : status;

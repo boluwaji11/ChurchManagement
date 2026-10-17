@@ -1,10 +1,10 @@
 /**
  * HRT-29. Undoing an import (R19.4).
  *
- * The case: a spreadsheet imported at 9pm on a Saturday with the columns shifted
- * by one, noticed on Sunday morning. What matters is that undoing it is one
- * operation, that it puts updated members back exactly, and that it does not
- * throw away work somebody has done since.
+ * The case: a spreadsheet imported late in the evening with the columns shifted
+ * by one, noticed the next day. What matters is that undoing it is one
+ * operation, that it restores updated members exactly, and that it does not
+ * discard work somebody has done since.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { owner, withTenant, closeConnections, type Tx } from "../src/client";

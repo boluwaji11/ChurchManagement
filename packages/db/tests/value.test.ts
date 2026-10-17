@@ -80,7 +80,7 @@ describe("members entered one at a time (R22.3)", () => {
     expect(row.how).toBe("by_hand");
     expect(row.members).toBe(USABLE_PEOPLE);
     // Signed up two hours ago, usable a hundred minutes later. Over the target,
-    // which is the point of measuring it.
+    // which is what this measurement is for.
     expect(row.minutes).toBeGreaterThan(60);
   });
 

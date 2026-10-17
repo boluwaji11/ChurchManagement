@@ -65,10 +65,10 @@ export async function GroupsListScreen({
    * signed for an hour. Signed here rather than in the card, because a client
    * component cannot hold the key.
    *
-   * The comment here used to say one pass was one round trip, and underneath it
-   * was a loop calling storage once a group: a church with sixty groups made
-   * sixty calls, in turn, on the screen a stranger follows from its website.
-   * They go up together now, and `photoUrls` holds what it signs.
+   * The keys are signed in one batch. This was previously a loop calling
+   * storage once per group, so a church with sixty groups made sixty sequential
+   * calls on the screen a visitor reaches from its website. `photoUrls` signs
+   * them together and caches the result.
    */
   const withPhotos = groups.filter((group) => group.photoKey);
   const signed = await photoUrls(withPhotos.map((group) => group.photoKey));

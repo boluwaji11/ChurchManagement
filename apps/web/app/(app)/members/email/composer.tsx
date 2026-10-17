@@ -152,8 +152,8 @@ export function Composer({
   const [done, setDone] = React.useState<string | null>(null);
   /* R16.6. The one being read back, which is a send rather than a draft. */
   const [reading, setReading] = React.useState<Awaited<ReturnType<typeof openSend>>>(null);
-  /* R16.6. Calling off a send that has not gone, which is the one thing on
-     this panel that changes anything. */
+  /* R16.6. Cancelling a scheduled send that has not left yet. It is the only
+     control on this panel that changes state. */
   const [callingOff, setCallingOff] = React.useState(false);
   /* R16.6. A send that waits for its hour. Off until somebody asks for it. */
   /* HRT-291. Choosing a written-once message to put in, and the ask before it
@@ -202,10 +202,9 @@ export function Composer({
   }, [moving, doing, page]);
 
   /*
-   * R16.6. Today's earliest hour, so a send cannot be scheduled for one that
-   * has gone. The date picker already refuses yesterday; a time list still
-   * offering nine in the morning at half past twelve is the same mistake an
-   * hour at a time.
+   * R16.6. The earliest selectable hour today, so a send cannot be scheduled
+   * for a time that has passed. The date picker already refuses past dates;
+   * without this the time list would still offer 09:00 at half past twelve.
    */
   const today = new Date().toISOString().slice(0, 10);
   const soonest = React.useMemo(() => {

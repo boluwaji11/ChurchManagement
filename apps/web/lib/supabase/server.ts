@@ -40,7 +40,7 @@ export async function supabaseServer() {
           }
         } catch {
           // Called from a Server Component, where cookies are read-only.
-          // The middleware refreshes the session instead, which is the point of it.
+          // The middleware refreshes the session instead, which is why it runs.
         }
       },
     },

@@ -15,10 +15,9 @@ export const dynamic = "force-dynamic";
  * R24.6. Everything a church administers, behind one menu.
  *
  * Built to docs/redesign/design: the sections across the top, each carrying its
- * own list. Tags and custom fields used to sit in the main
- * navigation beside the directory, which put the two things a volunteer touches
- * every day next to two they touch twice a year. The directory is the product.
- * This is the drawer.
+ * own list. Tags and custom fields previously sat in the main navigation beside
+ * the directory, which placed screens a volunteer opens twice a year next to
+ * the ones they use daily.
  */
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   const session = await requireScreen();

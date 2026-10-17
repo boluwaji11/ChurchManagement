@@ -380,7 +380,7 @@ function TemplatePanel({
  *
  * The thread down the left is the same one the blackout dates and the library
  * carry, so a shape reads as a sequence rather than four stacked form rows. The
- * handle reorders it, because the order is the whole point of the record.
+ * handle reorders it, because the order is what the record stores.
  */
 function Lines({
   lines,

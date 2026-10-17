@@ -20,7 +20,7 @@ const updated = () => timestamp("updated_at", { withTimezone: true }).defaultNow
  * to draw them.
  *
  * Each is seeded with the church and can be renamed or switched off. What
- * cannot be done is inventing a seventh, which is the whole point.
+ * cannot be done is inventing a seventh, which is the constraint this enforces.
  */
 export const pipelines = pgTable(
   "pipelines",

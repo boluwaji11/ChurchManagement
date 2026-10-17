@@ -97,9 +97,9 @@ export function useSectionMemory(entries: NavTarget[]) {
 /**
  * Forgets where one section was left.
  *
- * Pressing the section you are already in means "take me to the top of this",
- * so the memory has to go with it. Without this the press would navigate to the
- * root and the next press would bounce straight back to the record you were
+ * Pressing the section that is already open means "go to the top of this", so
+ * the remembered position has to be cleared with it. Without this the press
+ * navigates to the root and the next press returns to the record the reader was
  * trying to leave.
  */
 export function forgetSection(href: string): void {

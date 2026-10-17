@@ -1,14 +1,14 @@
 /**
  * A CSV reader, written rather than installed.
  *
- * CSV is small enough to do correctly and the details are the whole job: quoted
- * fields containing commas and newlines, doubled quotes inside quoted fields, a
- * byte order mark that Excel puts on every file it exports, and CRLF. A parser
- * that splits on commas works on the demo file and fails on a real church's
- * directory, where somebody has an address with a comma in it.
+ * CSV is small enough to implement correctly, and the edge cases are the whole
+ * of the work: quoted fields containing commas and newlines, doubled quotes
+ * inside quoted fields, the byte order mark Excel writes on every export, and
+ * CRLF line endings. A parser that splits on commas handles the sample file and
+ * fails on a real directory, where an address contains a comma.
  *
- * Tab separated files are the same grammar with a different delimiter, and they
- * are what you get when a spreadsheet is pasted, so they are read too.
+ * Tab separated files are the same grammar with a different delimiter, and are
+ * what a pasted spreadsheet produces, so they are read here too.
  */
 
 export interface Sheet {

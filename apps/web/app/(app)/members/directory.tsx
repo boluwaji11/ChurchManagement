@@ -100,8 +100,8 @@ const LIVE_FILTER = "directory:live-filter";
  * button does what a back button should, and a filtered export exports what the
  * filter says because the server ran the same query.
  *
- * The selection does not live in the URL. It is a thing you are holding, not a
- * place you are at.
+ * The selection is not in the URL. It is transient state for the current
+ * interaction rather than a location worth sharing or returning to.
  */
 export function Directory({
   putAway = false,

@@ -13,9 +13,10 @@ import { Panel } from "./panel";
 /**
  * R5.5, R18.1. The few follow-ups that are open, answerable from here.
  *
- * Marking one done is the whole point of the panel: a church that has to open
- * the board to tick off a phone call it made this morning will not tick it off.
- * The board is still where the work is sorted, and the heading links there.
+ * Marking one done from here is what the panel is for. Requiring somebody to
+ * open the board to tick off a call they have just made means it does not get
+ * ticked off. The board remains where the work is sorted, and the heading
+ * links to it.
  */
 export function FollowUp({
   today,

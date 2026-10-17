@@ -10,12 +10,12 @@ import { GRANT_DAYS } from "./providers";
 /**
  * HRT-141, R16.6. The queue behind a send.
  *
- * Everything here runs in the worker, as the owner, with no session: a church
- * presses send and closes the laptop, and the copies still have to go. That is
- * the whole reason the queue exists, so there is nobody to be signed in as.
+ * Everything here runs in the worker, as the owner, with no session. The queue
+ * exists so that a send completes after the church has closed the browser, so
+ * there is no signed-in user to act as.
  *
  * The rules that decide who may be written to are not here. They were applied
- * when the rows were written, which is the point at which a church could still
+ * when the rows were written, which is the moment a church could still
  * see what it was about to do.
  */
 
@@ -203,10 +203,10 @@ const STUCK_MINUTES = 10;
  *   queue and keeps its attempt count, so a copy that has already been refused
  *   three times does not get a fresh four.
  *
- * One window stays open: a message accepted by the provider in the moment
- * before its reference could be written looks like a row that never sent, and
- * is sent again. That is one statement wide, and a church would rather somebody
- * got two copies than have half a message never arrive.
+ * One window remains: a message accepted by the provider in the moment before
+ * its reference is written looks like a row that never sent, and is sent again.
+ * The window is one statement wide, and duplicate delivery is the better
+ * failure here than a send that silently loses its remainder.
  */
 export async function reclaimStuck(): Promise<{ requeued: number; finished: number }> {
   const db = drizzle(owner());

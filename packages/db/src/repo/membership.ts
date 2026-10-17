@@ -227,12 +227,12 @@ export async function linkOrCreatePerson(input: {
   }
 
   /*
-   * A record carrying this address that somebody else's account already holds.
-   * Writing a second one would hand the church two Sarah Bennetts to merge, so
-   * this stops instead and leaves the two for a person to look at. An
-   * administrator sent this invitation and can sort it out; nobody is locked
-   * out of anything while they do. Everything that asks "who is this account"
-   * handles null, and a duplicate created quietly would be found weeks later.
+   * The address is already held by another account's member record. Creating a
+   * second record would leave the church a duplicate to merge, so this returns
+   * null and leaves the conflict for an administrator to resolve. Nobody loses
+   * access while it is unresolved: every caller that asks which member an
+   * account belongs to handles null, whereas a duplicate written silently here
+   * would not surface until somebody noticed it.
    */
   if (await addressAlreadyClaimed(sql, input.tenantId, email)) return null;
 
@@ -809,15 +809,15 @@ export async function anotherOwns(tenantId: string, userId: string): Promise<boo
 }
 
 /**
- * R1.4. Walking out of a church of your own accord.
+ * R1.4. A member removing their own access to a church.
  *
- * The same write an administrator makes when they take somebody's access
- * away, with the same guard on the last owner, and the record the church
- * holds is left where it is. They come off every list. Their record stays.
+ * The same write an administrator makes when revoking access, with the same
+ * guard on the last owner. The member record the church holds is untouched:
+ * they come off every list and their record stays.
  *
- * The actor is set on the transaction because this connection is the owner
- * one, which never sets it, and a membership that ends with a null actor in
- * the log is the one question the log exists to answer.
+ * The actor is set explicitly on the transaction because this runs on the owner
+ * connection, which never sets one. Without it the audit entry for a membership
+ * ending would name nobody, which is the question that entry exists to answer.
  */
 export async function leaveChurch(tenantId: string, userId: string): Promise<void> {
   const sql = owner();

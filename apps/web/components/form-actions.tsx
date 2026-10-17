@@ -199,10 +199,9 @@ function snapshot(form: HTMLFormElement): string {
 /**
  * Whether this form says anything different from what it opened with.
  *
- * Compared against the values it started with rather than flagged on the first
- * keystroke, so typing a space and taking it out again leaves Save dead. That
- * is the honest answer to "do I have unsaved work", and it is the one an undo
- * gives too.
+ * Compared against the values it opened with rather than set on the first
+ * keystroke, so typing a space and removing it again leaves Save disabled.
+ * That is also the correct answer after an undo.
  */
 export function useDirty(form: string): boolean {
   const [dirty, setDirty] = React.useState(false);

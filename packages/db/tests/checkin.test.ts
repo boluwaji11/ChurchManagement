@@ -286,7 +286,7 @@ describe("the bag label (R8.12)", () => {
 
     const [label] = await run((tx) => labelsFor(tx, { role: "admin" }, service, [bagKid], "Check-in Test Church"));
     expect(label!.bag).toBe(true);
-    // It carries the same code as the pair, which is the whole point of it.
+    // The bag label carries the same code as the pair, which is what matches it.
     expect(looksLikeCode(label!.code ?? "")).toBe(true);
   });
 

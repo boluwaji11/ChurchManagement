@@ -119,8 +119,8 @@ describe("putting right what a dead worker left", () => {
     expect(await reclaimStuck()).toEqual({ requeued: 0, finished: 0 });
   });
 
-  /* A requeued copy is claimable again, which is the whole point: the send
-     resumes instead of sitting at ninety per cent for ever. */
+  /* A requeued copy has to be claimable again, so the send resumes rather than
+     stopping part way through. */
   it("lets the next pass claim what it put back", async () => {
     await copy("sending", { claimedMinutesAgo: 30 });
 
@@ -144,10 +144,10 @@ describe("putting right what a dead worker left", () => {
 });
 
 /*
- * The claim used to read the person's name and their way out with a query each,
- * per recipient. They are joined into the claim now, and these are the two
- * things that go wrong when a join condition is subtly wrong: a message
- * greeting the wrong person, and a message carrying somebody else's way out.
+ * The claim previously read the recipient's name and unsubscribe link with one
+ * query each. Both are joined into the claim now, and these cover the two
+ * failures a wrong join condition produces: a message greeting the wrong
+ * person, and a message carrying somebody else's unsubscribe link.
  */
 describe("what the claim brings back with each copy", () => {
   const run = <T>(work: (tx: Tx) => Promise<T>) =>

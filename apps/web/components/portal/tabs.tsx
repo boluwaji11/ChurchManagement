@@ -24,11 +24,11 @@ export interface PortalTab {
 /**
  * R17.1. The member's own navigation: a row of tabs across the top.
  *
- * The design gives a member a different frame from the one staff work in, and
- * that is the point of it. Staff live in the product all week and want a
- * sidebar they can scan. A member opens it two or three times a year, on a
- * phone, usually because the church asked them something, and four words
- * across the top is the whole of what they need to find.
+ * The design gives a member a different frame from the one staff work in,
+ * deliberately. Staff are in the product all week and want a sidebar they can
+ * scan. A member opens it a few times a year, on a phone, usually because the
+ * church asked them something, so four tabs across the top covers what they
+ * need to find.
  *
  * 64px tall so the underline sits on the header's own edge, which is what
  * marks the tab rather than a pill or a fill.

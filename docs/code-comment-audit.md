@@ -11,8 +11,10 @@ A review of developer-facing comments across the repository against the code com
 | Comment lines | 32,068 |
 | Code lines | 161,793 |
 | Comment density | 19.8% |
-| Files changed by this audit | 39 |
-| Comment lines rewritten | 124 |
+| Comment blocks | 8,405 |
+| Files changed, first pass | 39 |
+| Files changed, second pass | 110 |
+| Comment lines rewritten in total | 678 |
 | Executable lines changed | **0** |
 
 The diff was checked line by line to confirm that every changed line is inside a comment. Nothing in
@@ -170,18 +172,46 @@ genuinely unresolved is tracked elsewhere:
 | `pnpm --filter @connectapp/i18n test` | 29 passed |
 | Diff review | Every changed line is inside a comment. No executable line changed |
 
+## The second pass, and how the comments were found
+
+The first pass was a pattern sweep and did not amount to a detailed review. The second pass was
+built to be one.
+
+Every comment block in the repository, 8,405 of them across 1,307 files, was extracted with the line
+of code it sits above and tested against a deliberately broad net: narrative and anecdote, rhetorical
+flourish, conversational asides and hedging, hyperbole, direct address, questions and exclamations,
+and the remaining metaphor family. The net flagged 346 blocks, 4.1% of the total. Every one of those
+was read in context and judged individually, and 227 remain flagged only because the net catches
+phrases like "three in the morning" and "a dead link" in comments that are perfectly good.
+
+Whole files were also read end to end where the density was highest: `sql/security.sql`,
+`repo/membership.ts`, `repo/members.ts`, `src/client.ts`, `schema/tenancy.ts`, `lib/session.ts` and
+`lib/probes.ts`. That reading is the reason the conclusion below is stated with confidence rather
+than inferred from a sample.
+
+**What the second pass found, beyond register.** Six doc comments had drifted onto the wrong
+declaration, which is the most serious class of comment defect because it documents the wrong thing
+in both directions:
+
+| File | The drift |
+|---|---|
+| `repo/members.ts` | The doc comment for `countPeople` sat above `scopeIds`, twenty lines from the function it describes. Both were mis-documented |
+| `domain/preflight.ts` | Two comments describing `DNS_CONSOLE` sat above `BUILDER_NS` and `DNS_STEPS`. `DNS_CONSOLE` itself had none |
+| `repo/groups.ts` | A one-line comment about a type's description sat above `updateGroupType` |
+| `lib/email-provider.ts` | A stray one-liner, "Whether the thing answered", above the real `Proof` documentation |
+| `settings/households/households.tsx` | A screen-level comment stranded above a local helper |
+| `shell/nav.ts`, `settings/online/*.tsx`, `give/screen.tsx` | Three cases of two or three comment blocks stacked on one statement, repeating each other |
+
+**One rule violation.** `settings/rooms/library.ts` explained an age band by saying a mistake sends
+"a child shown the wrong door on a Sunday morning". A church does not only meet on Sunday, and this
+is check-in reasoning, so it now says service day.
+
+**A repeated tic.** "the whole point", "which is the point", "the whole reason" appeared 16 times
+across source and tests. All are now plain statements.
+
 ## What this audit did not cover
 
-Stated plainly rather than implied. 32,068 comment lines cannot all be rewritten well in one pass,
-and a mechanical pass would have destroyed the reasoning that makes them worth having.
-
-This audit covered: every marker comment (none exist), every comment matching the metaphor and
-personification patterns, every comment matching the code-restating patterns, every comment
-referencing a renamed or removed thing that could be found by searching for the old names, and the
-whole of the one file whose register the owner quoted.
-
-It did not cover: a line-by-line reading of all 1,331 files. The files most likely to still carry
-the old register are the ones at the top of the density table in
-[repository-inventory.md](repository-inventory.md): `repo/members.ts`, `repo/membership.ts`,
-`repo/messages.ts`, and `app/(app)/members/directory.tsx`. Their comments were sampled and found to
-be reasoning-dense and accurate, and a full pass over them is worth doing as its own piece of work.
+Stated plainly rather than implied. Every comment block was mechanically examined and every one the
+net flagged was read; a line-by-line human reading of all 31,430 comment lines was not done, and
+would have risked rewriting good reasoning for its own sake. The addendum asks for better comments
+rather than fewer, and the bulk of these were already carrying their weight.

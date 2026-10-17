@@ -59,7 +59,7 @@ describe("the rule, with nothing behind it (R2.10)", () => {
   it("warns before it runs out rather than after", () => {
     const soon = { status: "clear", completedOn: "2024-01-01", expiresOn: "2026-11-01" };
     expect(standing([soon], TODAY)).toBe("expiring");
-    // And the volunteer keeps serving through the warning, which is the point.
+    // A warning does not block serving. The volunteer stays eligible.
     expect(mayServeWithChildren([soon], TODAY)).toBe(true);
     expect(EXPIRY_WARNING_DAYS).toBe(60);
   });

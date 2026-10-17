@@ -14,8 +14,8 @@ describe("the code", () => {
   });
 
   it("leaves out every character read wrong at a glance", () => {
-    // Ten thousand of them, so a stray character would have to be very shy to
-    // hide. No O beside 0, no I or L beside 1, no S beside 5.
+    // Ten thousand codes, enough that a single excluded character appearing
+    // once would be caught. No O against 0, no I or L against 1, no S against 5.
     const forbidden = /[01ILOS]/;
     for (let i = 0; i < 10_000; i += 1) {
       expect(newCode(), "run " + i).not.toMatch(forbidden);

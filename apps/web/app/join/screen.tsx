@@ -22,13 +22,13 @@ const ART: Piece[] = [
 /**
  * R1.7, R22.1. The church's own door.
  *
- * This used to need a code. It does not: the address says which church, which
- * is the whole of what the code was for, and a church that does not want a
- * public door turns it off rather than rotating a secret.
+ * This previously required a code. The address already identifies the church,
+ * which is all the code did, and a church that does not want a public entry
+ * point turns it off rather than rotating a secret.
  *
  * Signing up here is a claim on a record the church already holds, so the email
- * address is the whole of the question. Everything that decides the answer is
- * in the repo layer. This screen says which church, and gets out of the way.
+ * address is the only question. Every decision about that claim is made in the
+ * repository layer; this screen only establishes which church.
  */
 export async function JoinScreen({
   slug,

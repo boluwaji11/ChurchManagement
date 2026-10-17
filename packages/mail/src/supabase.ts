@@ -10,10 +10,10 @@ import { button, line, safe, sentBy, shell } from "./brand";
  * a line of unstyled text that arrives between an invitation and a welcome
  * drawn like a product.
  *
- * So the markup is written here, out of the same shell as the rest, and
- * pasted into the project's email templates. The one thing that is not ours
- * is the address: `{{ .ConfirmationURL }}` is Supabase's own placeholder and
- * has to reach the template untouched, which is why it is not escaped.
+ * The markup is therefore written here, from the same shell as the rest, and
+ * pasted into the project's email templates. The only part that is not ours is
+ * the link: `{{ .ConfirmationURL }}` is Supabase's own placeholder and has to
+ * reach the template untouched, which is why it is not escaped.
  */
 
 /**

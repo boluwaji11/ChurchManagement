@@ -77,7 +77,7 @@ export interface SheetTable {
   rows: string[][];
 }
 
-/** A run of values over time, which is the one thing worth a real chart. */
+/** A series of values over time, which is what the chart is drawn from. */
 export interface SheetSeries {
   kind: "series";
   title: string;

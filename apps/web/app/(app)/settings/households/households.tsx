@@ -33,14 +33,7 @@ export interface HouseholdItem {
 }
 
 /**
- * R2.1. Every household, and what a church can do with one.
- *
- * A household used to exist only as a side effect of editing a person, which
- * left a church with no way to see a family, rename it, or put two halves of
- * the same one back together.
- */
-/**
- * R24.6. A part of the panel that folds away.
+ * R24.6. A collapsible part of the household panel.
  *
  * A household panel carries three things that have nothing to say to each
  * other: what it is called, who is in it, and where it is. A church changing

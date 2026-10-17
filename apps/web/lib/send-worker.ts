@@ -180,15 +180,14 @@ export async function drain(passes = 8): Promise<{ attempted: number }> {
   /*
    * R16.6, R24.11. The churches with something waiting, taken a few at a time.
    *
-   * One tick used to work through them in turn, and a church sending to four
-   * hundred people held the whole queue while it did: at a tenth of a second a
-   * copy, forty seconds in which a church of sixty waiting behind it sent
-   * nothing. With a thousand churches on one deployment that is a Saturday
-   * where the last church's message goes out on Sunday.
+   * A tick previously processed churches in sequence, so one church sending to
+   * four hundred people blocked the queue for the rest: at 100ms per copy, that
+   * is forty seconds during which a church of sixty behind it sent nothing.
+   * Across a thousand churches on one deployment the tail becomes days.
    *
-   * The pace stays where it is, because it belongs to one church's own account
-   * and its provider's limit. What runs alongside is another church, through
-   * another account, which no limit anywhere is counting together.
+   * The per-church pace is unchanged, because it is bounded by that church's
+   * own provider account and its rate limit. What runs alongside is a different
+   * church through a different account, which no limit counts together.
    */
   const waiting = await dueSends();
   let attempted = 0;
@@ -252,13 +251,13 @@ async function drainOne(send: DueSend, passes: number, until: number): Promise<n
 /**
  * HRT-142, R16.7. What became of the copies a provider accepted.
  *
- * Accepting a message is not delivering it. The provider tries the other side
- * minutes later, finds there is nobody at that address, and says so only if
- * asked. A church that is never told keeps writing to a dead address for
- * years, which is how its other mail starts landing in spam folders.
+ * Acceptance is not delivery. The provider attempts the remote server minutes
+ * later, finds no mailbox at the address, and reports it only when asked. A
+ * church that is never told keeps sending to a dead address, which damages its
+ * sending reputation and pushes its other mail into spam.
  *
- * A bounce marks the address on the person's own record, so the office sees
- * it beside their name rather than wondering why they never hear back.
+ * A bounce marks the address on the member's own record, so the office sees it
+ * beside their name rather than wondering why they get no reply.
  */
 export async function checkVerdicts(limit = 60): Promise<{ looked: number; asked: number }> {
   const waiting = await awaitingVerdict(limit);
@@ -349,9 +348,9 @@ export async function keepGrantsAlive(): Promise<{ renewed: number }> {
   let renewed = 0;
   for (const tenantId of await grantsRunningOut(14)) {
     /*
-     * A grant whose access token is still good is skipped by `renewGrant`,
-     * which would leave it to lapse, so the refresh token is the thing asked
-     * for here. Forcing it is the whole point of this pass.
+     * `renewGrant` skips a grant whose access token is still valid, which
+     * would let the refresh token lapse. This pass forces the refresh
+     * explicitly for that reason.
      */
     const done = await underGrantLock(tenantId, async () => {
       const held = await accountFor(tenantId);

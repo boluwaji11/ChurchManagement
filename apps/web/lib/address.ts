@@ -74,9 +74,9 @@ export const mappable = (a: AddressValues): boolean =>
 /**
  * A link to directions, or null where the address cannot be resolved.
  *
- * The address alone, without the venue's name in front of it. A name Google
- * recognises wins over the street that follows it, and "Lake Tamarack Camp"
- * sent a reader to a lake rather than to the road the camp is on.
+ * The address alone, without the venue name in front of it. Google resolves a
+ * recognised place name in preference to the street that follows it, so a venue
+ * named after a landmark resolves to the landmark rather than to the address.
  */
 export function directionsLink(a: AddressValues): string | null {
   if (!mappable(a)) return null;

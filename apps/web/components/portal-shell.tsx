@@ -68,9 +68,9 @@ export async function PortalShell({
   ];
 
   /*
-   * R1.1. The mark opens the church's own website where it has given one.
-   * Somebody pressing a church's name is reaching for the church, and the
-   * portal is one of its doors rather than the whole of it.
+   * R1.1. The logo links to the church's own website where it has one.
+   * Pressing a church's name is a request for the church itself, and the portal
+   * is only one way in to it.
    */
   const site = church?.website?.trim();
   const homepage = site

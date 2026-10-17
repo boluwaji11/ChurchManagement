@@ -9,8 +9,9 @@ import type { Tx } from "../client";
  * every row, and a second history kept by application code is a history that
  * disagrees with the first one the day somebody forgets to write to it.
  *
- * Worship leaders change plans the night before a service, and the question
- * on a service morning is which of the eight members with the password did it.
+ * The question this answers is which account made a given change, which
+ * matters when several people share responsibility for a plan and it changes
+ * shortly before the service.
  */
 
 export type PlanChangeAction = "insert" | "update" | "delete";

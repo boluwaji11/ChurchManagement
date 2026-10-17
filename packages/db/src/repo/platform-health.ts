@@ -26,10 +26,9 @@ async function requireAdmin(userId: string): Promise<void> {
  * preference. The first version let each read fail and swallowed the
  * "undefined table" error. It worked, and then the whole app stopped
  * answering: the status screen writes seven readings and a prune at once, and
- * eight concurrent failing queries against an owner pool of four leaves the
- * pool deadlocked, permanently, for every later request. Unauthenticated
- * screens stayed instant while every other one hung on nothing, which is a
- * horrible thing to debug and a worse thing to deploy.
+ * eight concurrent failing queries against an owner pool of four left the pool
+ * permanently deadlocked for every later request. Unauthenticated screens
+ * stayed fast while every other one hung indefinitely.
  *
  * So nothing is issued that is known to fail. The answer is held for a minute,
  * because the only thing that changes it is somebody running a migration.

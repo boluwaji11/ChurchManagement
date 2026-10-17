@@ -1,7 +1,7 @@
 /**
  * HRT-80. The schedule: who is doing what, at which gathering (R10.3 to R10.5).
  *
- * The conflict check is the whole reason the schedule is one system rather than
+ * The conflict check is why the schedule is one system rather than
  * one per ministry, so most of this is about what the scheduler is warned
  * about: already serving at that hour on somebody else's team, away, or due a
  * break. And about the warning being a warning: a church that cannot write

@@ -1,21 +1,21 @@
 /**
  * R8.6. The security code on a label pair.
  *
- * The code is the thing standing between a child and the wrong adult, so the
- * rules it has to meet are worth stating plainly.
+ * This code is what prevents a child being released to the wrong adult, so its
+ * three properties are invariants rather than preferences.
  *
- * It does not count up. A code that is one more than the family before it tells
- * anybody standing in the queue what the next one will be, and somebody who
- * knows the next one can collect a child who is not theirs.
+ * **Not sequential.** A code derived from the previous one lets anybody in the
+ * queue predict the next, and a predictable code can be used to collect
+ * somebody else's child.
  *
- * The alphabet leaves out every character a tired volunteer reads wrong at
- * 09:58: no O beside 0, no I or L beside 1, no S beside 5. What is on the label
- * is what gets typed.
+ * **No ambiguous characters.** The alphabet excludes O against 0, I and L
+ * against 1, and S against 5, so a misread label cannot produce a valid code
+ * for a different check-in.
  *
- * Five characters from twenty-eight is about seventeen million codes, which a
- * church of five hundred would take a thousand years to exhaust. They are
- * unique for a church and are never handed out twice, which is stronger than
- * the twelve months the requirement asks for and simpler to be sure of.
+ * **Unique per church, never reissued.** Five characters from an alphabet of
+ * 28 is roughly 17 million codes. A church of 500 would not exhaust that, and
+ * never reusing a code is stronger than the twelve-month window R8.6 requires
+ * and easier to verify.
  */
 
 /** No 0, O, 1, I, L, 5 or S. What is printed is what gets typed. */

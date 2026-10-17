@@ -10,8 +10,8 @@ import { InvalidInputError } from "../errors";
  * proved. The decisions differ, which is why the two callers keep their own
  * policy, but the questions do not, so the SQL that asks them lives once.
  *
- * It used to live twice, in membership.ts and joining.ts, and the two copies
- * had already drifted apart in two ways nobody had decided.
+ * These queries were previously duplicated in membership.ts and joining.ts,
+ * and the two copies had drifted apart.
  *
  * Takes the connection rather than opening one, so a caller inside a
  * transaction gets its own view and a caller without one does not pay for a
@@ -156,8 +156,8 @@ export function nameForRecord(
  * app_users.id is the Supabase auth user's id and the email is unique, so an
  * auth user deleted out from under us leaves a row holding an address its owner
  * can never use again: signing up issues a new id, and the insert collides on
- * the email rather than on the id. That used to be an unhandled constraint
- * violation on the screen where somebody creates their church.
+ * the email rather than on the id. Before this, that surfaced as an unhandled
+ * constraint violation on the create-church screen.
  *
  * The leftover is released only when nothing is behind it: no auth user, no
  * membership, no person record. tenant_members cascades from here, so deleting

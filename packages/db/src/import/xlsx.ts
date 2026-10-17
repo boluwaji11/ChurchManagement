@@ -5,10 +5,10 @@ import type { Sheet } from "./csv";
  * R19.1. Reading a real .xlsx workbook.
  *
  * Unlike CSV, this is not written by hand. An xlsx file is a zip of XML where a
- * date is stored as a number and the only way to know it is a date is to follow
- * the cell's style to a number format. Get that wrong and every birthday in a
- * church directory lands in 1900. That is not a detail worth being clever about,
- * so the parsing is delegated and only the interpretation lives here.
+ * date is stored as a number, and the only way to know it is a date is to
+ * follow the cell's style to a number format. Getting that wrong puts every
+ * birthday in a church directory in 1900, so the parsing is delegated to a
+ * library and only the interpretation lives here.
  */
 
 /** A cell, as the text the rest of the import pipeline expects. */

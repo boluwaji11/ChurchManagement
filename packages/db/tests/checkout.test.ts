@@ -231,7 +231,7 @@ describe("an override (R8.7)", () => {
     expect(result.block?.kind).toBe("pickup");
   });
 
-  it("refuses an empty reason, because why is the whole point of the row", async () => {
+  it("refuses an empty reason, because the reason is what the row records", async () => {
     const visit = await freshVisit();
     await expect(
       run((tx) => checkOut(tx, as(), {

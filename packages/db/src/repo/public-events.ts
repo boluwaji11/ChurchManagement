@@ -20,7 +20,7 @@ import { placeSubmission } from "./form-matching";
  */
 
 export type PublicEventState =
-  /** An announcement. Nobody signs up, and the page is the whole of it. */
+  /** Information only. There is no registration, just the public page. */
   | "none"
   /** Taking registrations. */
   | "open"

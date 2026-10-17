@@ -350,7 +350,7 @@ export function EventEditor({
       </Dialog>
 
       {/*
-        * The colour and the chosen picture ride hidden fields.
+        * The colour and the chosen picture are carried in hidden fields.
         *
         * Save watches the form's own values to decide whether anything has
         * changed, so a choice held only in React state is a change it cannot

@@ -11,11 +11,11 @@ import { unask } from "../actions";
 /**
  * R9.5. A request that has been made, and the way back out of it.
  *
- * It read as a badge, which is a thing that is told to you rather than a
- * thing you can do anything about: somebody who pressed Join on the wrong
- * group could only wait for a leader to answer a question they no longer
- * wanted asked. Hovering turns it into the press that takes it back, and it
- * asks first, the way everything else that undoes something does.
+ * This previously rendered as a badge, which reads as a status rather than a
+ * control: somebody who pressed Join on the wrong group could only wait for a
+ * leader to answer a request they no longer wanted to make. On hover it becomes
+ * the control that withdraws the request, and it confirms first, like every
+ * other reversal in the product.
  */
 export function AskedButton({ groupId }: { groupId: string }) {
   const router = useRouter();

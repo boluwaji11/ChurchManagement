@@ -91,11 +91,11 @@ export interface SiteImage {
   focus?: { x: number; y: number };
   fit?: "cover" | "contain";
   /**
-   * How far in the picture is cropped, 1 being the whole of it.
+   * Zoom factor, where 1 shows the whole picture.
    *
-   * A crop box in the editor is this and the focus together: dragging moves the
-   * middle, the slider moves this, and the frame the section drew stays the
-   * shape the design asks for. A church never meets a pixel measurement.
+   * The editor's crop box is this plus the focus point: dragging moves the
+   * focus, the slider changes this, and the section's frame keeps the aspect
+   * ratio the design specifies. No pixel measurement is exposed to the church.
    */
   zoom?: number;
 }
@@ -281,8 +281,8 @@ const MEDIA_KEY = /^[a-z0-9-]+\/website_media\/[a-f0-9-]+\.(?:png|jpg|webp|mp4|w
 /**
  * Addresses a page may not take, because the platform already answers them.
  *
- * A church that names a page "give" would otherwise write a page nobody can
- * reach, and spend an afternoon finding out why.
+ * A church that names a page "give" would otherwise create a page that is
+ * unreachable, with nothing on screen explaining why.
  */
 export const RESERVED_SLUGS = new Set([
   "api", "auth", "sign-in", "sign-up", "join", "reset", "forgot", "give",

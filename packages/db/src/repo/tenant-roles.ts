@@ -86,9 +86,9 @@ function onlyWhatTheyHold(
 /**
  * Writes the nine built-ins for a church that has none.
  *
- * Called on the way into every read, so a church created before R1.6 and a
- * church created this morning both have a complete list without a backfill
- * migration that has to be remembered.
+ * Called on the way into every read, so a church created before R1.6 and one
+ * created today both end up with a complete list, without a backfill migration
+ * that somebody has to remember to run.
  *
  * They are the set every church starts with. A church that has since changed
  * one keeps its change, so nothing written here is applied twice.

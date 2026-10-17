@@ -15,10 +15,10 @@ import { readerFor } from "./core";
  * job worker, a script, a test. Only a bundle built for a browser resolves to
  * `client.ts`, through the `browser` condition.
  *
- * It was the other way round for an afternoon, keyed on `react-server`, and CI
- * found what that misses: the data layer builds its error messages here and
- * runs under plain Node, where no such condition is set, so two of them came
- * back as `merge.error.tooOld` rather than as the sentence a church reads.
+ * This was previously keyed on `react-server` instead, which misses the data
+ * layer: it builds its error messages here and runs under plain Node, where
+ * that condition is not set, so messages came back as raw keys such as
+ * `merge.error.tooOld` rather than as the sentence a church reads.
  */
 const reader = readerFor(en);
 

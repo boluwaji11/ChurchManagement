@@ -125,7 +125,7 @@ export const asideHtml = (inner: string): string =>
 export const lineHtml = (inner: string): string =>
   `<p style="margin:18px 0 0;font-size:16px;line-height:1.6">${inner}</p>`;
 
-/** The one thing to press. A message has one or it has none. */
+/** The message's single call to action. A message has one or none. */
 export const button = (label: string, href: string): string =>
   `<table role="presentation" cellpadding="0" cellspacing="0" border="0"`
   + ` style="margin:26px 0 0"><tr><td style="border-radius:10px;background:${INK}">`

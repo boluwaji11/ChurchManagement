@@ -14,7 +14,7 @@
  *
  *   pnpm --filter @connectapp/db dev:account
  *
- * It refuses to run against production, which is the whole point of it.
+ * It refuses to run against production, which is the reason it exists.
  */
 import { randomBytes } from "node:crypto";
 import { owner, closeConnections } from "../src/client";

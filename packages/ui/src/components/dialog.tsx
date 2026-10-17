@@ -39,8 +39,8 @@ export const DialogContent = React.forwardRef<
     hideTitle?: boolean;
     description?: string;
     /**
-     * R24.6. What this box offers beside its title, before the close square:
-     * the one thing a reader may want that is not in the list below.
+     * R24.6. An optional control beside the title, before the close button,
+     * for an action that does not belong in the dialog's footer.
      */
     actions?: React.ReactNode;
     /** Draws the X in the corner. Left out, there is no X. */

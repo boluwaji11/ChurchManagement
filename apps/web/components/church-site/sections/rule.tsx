@@ -1,11 +1,10 @@
 /**
- * HRT-379, R22.2. Air, a hairline, or a small mark.
+ * HRT-379, R22.2. A separator: blank space, a hairline, or a small ornament.
  *
- * A church building a long page needs a way to say "that subject is finished"
- * without writing a heading for it, and the alternative is a church putting an
- * empty text section in and typing spaces into it. It holds no words, so there
- * is nothing here to read: the whole of it is hidden from a screen reader and
- * the page reads straight through it.
+ * A church building a long page needs a way to mark the end of a subject
+ * without adding a heading. Without this they add an empty text section and
+ * type spaces into it. The section carries no words, so it is hidden from
+ * screen readers entirely and the page reads straight through it.
  *
  * Its own padding starts at none, because the height below is the point of the
  * section rather than something to add the theme's rhythm on top of.

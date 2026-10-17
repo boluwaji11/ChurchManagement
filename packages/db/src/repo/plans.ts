@@ -40,7 +40,7 @@ export interface PlanItem {
   startsAt: string;
   /** R11.6. Instructions on this item, and who each one is for. */
   notes: ItemNote[];
-  /** R11.7. Charts, PDFs, audio and images hanging off it. */
+  /** R11.7. Charts, PDFs, audio and images attached to this item. */
   files: ItemFile[];
 }
 

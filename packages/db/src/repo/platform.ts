@@ -385,7 +385,7 @@ export async function teamInvites(by: string): Promise<TeamInvite[]> {
      order by created_at desc`;
 }
 
-/** R21.x. Changing your mind before they arrive. */
+/** R21.x. Withdraws an invitation that has not been accepted. */
 export async function revokeInvite(by: string, id: string): Promise<void> {
   const actor = await requireAdmin(by);
   const rows = await owner()<{ name: string; email: string }[]>`

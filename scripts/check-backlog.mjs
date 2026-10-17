@@ -1,10 +1,10 @@
 /**
  * Every shipped requirement has a story, and the board says which.
  *
- * This exists because one wildcard hid four of them. HRT-40 was tagged `R2.x`,
- * which matched everything in domain 2, so R2.9, R2.11, R2.14 and R2.15 looked
- * covered and none of them had been built. A board that quietly stops being
- * complete is worse than no board, because people stop reading it.
+ * This exists because one wildcard hid four requirements. HRT-40 was tagged
+ * `R2.x`, which matched everything in domain 2, so R2.9, R2.11, R2.14 and
+ * R2.15 appeared covered while none had been built. A board that silently
+ * stops being complete stops being read.
  *
  * So a wildcard no longer counts. A requirement in a release we have shipped or
  * are shipping has to be named, on its own or inside a range.

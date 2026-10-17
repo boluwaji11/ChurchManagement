@@ -201,11 +201,11 @@ export function ImportWizard({
 }
 
 /**
- * R19.1. Where you are in the import, as the design draws it.
+ * R19.1. Progress through the import, as the design draws it.
  *
- * A numbered dot per step joined by a rule, the done ones ticked in jade, the
- * one you are on filled in ink. Four steps, so somebody who stops halfway knows
- * what is left.
+ * A numbered dot per step joined by a rule: completed steps ticked in jade, the
+ * current one filled in ink. Four steps, so somebody who stops halfway can see
+ * what remains.
  */
 function Steps({ current }: { current: Step }) {
   const order = ["file", "map", "preview", "done"] as const;

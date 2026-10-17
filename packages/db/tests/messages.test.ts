@@ -311,7 +311,7 @@ describe("a draft", () => {
 /**
  * HRT-270. A group's own thread (R9.7).
  *
- * Who is in it is whoever is in the group now, which is the whole point of
+ * Membership resolves to whoever is in the group now, which is the reason for
  * not copying the roster: a leader who adds somebody on Tuesday has added
  * them to the conversation too.
  */

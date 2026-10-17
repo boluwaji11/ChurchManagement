@@ -804,9 +804,10 @@ function ResendPath({
   const open = (where: string) => {
     /*
      * `noopener` in the features string makes the browser ignore the name and
-     * build a new context every time, and cutting the opener afterwards takes
-     * the window out of this one's family, where the name is looked up. So
-     * neither: the name is the whole point, and what it opens is Resend.
+     * create a new context every time, and clearing the opener afterwards
+     * removes the window from the browsing context group the name is looked up
+     * in. Neither is used, because reusing the named tab is the point here and
+     * the target is Resend.
      */
     window.open(where, "connectapp-resend");
   };
@@ -814,12 +815,11 @@ function ResendPath({
   /*
    * R22.2. Connecting is one errand with two parts, in one card.
    *
-   * Getting signed in at Resend has to happen first, because its consent
-   * screen handles a sign-in and does not handle a sign-up, and a church
-   * taken through one is left on a dashboard with the permission never
-   * asked for. Two stages for that read as twice the work; one card that
-   * opens the second part when the first is answered reads as the one thing
-   * it is.
+   * Signing in at Resend has to happen first: its consent screen handles a
+   * sign-in but not a sign-up, so a church sent straight there lands on a
+   * dashboard with the permission never requested. Splitting that into two
+   * stages reads as twice the work, so one card reveals the second part once
+   * the first is answered.
    *
    * Nothing here can tell whether they really signed in. Resend is somewhere
    * else and we cannot see their session. What answers that question is the

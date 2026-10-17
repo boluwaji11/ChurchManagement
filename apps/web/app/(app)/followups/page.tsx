@@ -30,9 +30,9 @@ export async function generateMetadata({
  * thinks in: who has been contacted, who has a visit booked, who is connected.
  * Dragging a card forward marks the step it was waiting on as done.
  *
- * The PRD makes this the landing page for the pastoral role, which is the right
- * test of it: if it is not worth opening on a Monday morning, the whole of F5 is
- * a filing cabinet.
+ * The PRD makes this the landing screen for the pastoral role, which sets the
+ * bar for it: it has to be worth opening unprompted, or the follow-up feature
+ * is just a store of records.
  */
 export default async function FollowUpsPage({
   searchParams,

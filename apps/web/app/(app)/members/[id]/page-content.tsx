@@ -460,11 +460,11 @@ export async function PersonPanelPage({
             * R2.6, R2.7. Three things, each named: the dates a church is asked
             * for years later, what it has marked, and what has happened.
             *
-            * They used to sit as four loose blocks of the same weight, two of
-            * them usually empty, with a note box open under them and a rule
-            * below that separated nothing. On a record with no dates and no
-            * milestones that is four lines of apology before the one thing
-            * there is to read.
+            * These were previously four loose blocks of equal weight, two of
+            * them usually empty, with a note box open underneath and a rule
+            * below separating nothing. On a record with no dates and no
+            * milestones, that put four empty sections above the only content
+            * there was to read.
             */}
           <RecordSection id="timeline" title={t("person.churchHistory")} action={editMark("status")}>
             <div className="grid gap-x-10 gap-y-5 sm:grid-cols-2">

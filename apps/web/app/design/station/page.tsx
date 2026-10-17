@@ -10,9 +10,9 @@ import { PageTitle, Section } from "@/components/section";
 
 
 /**
- * The station is a kiosk, not a page. Everything below is drawn at station
- * density regardless of the header setting, because that is the only way to
- * review it honestly.
+ * The station renders as a kiosk. Everything below is drawn at station density
+ * regardless of the header setting, because reviewing it at any other density
+ * would not reflect what a volunteer sees.
  */
 function Station({ children }: { children: React.ReactNode }) {
   return (

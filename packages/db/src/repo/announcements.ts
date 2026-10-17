@@ -40,7 +40,7 @@ export interface AnnouncementInput {
   publish?: boolean;
 }
 
-/** Only somebody who speaks for the church writes what the church says. */
+/** Writing an announcement needs a role that can act for the church. */
 function guard(actor: WriteActor): void {
   if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
 }

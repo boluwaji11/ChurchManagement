@@ -25,8 +25,8 @@ export interface SaveResult {
  * The actor for a write.
  *
  * userId and ip are passed so the audit trigger records who made the change and
- * from where. Reads can skip them. A write that cannot be attributed is a write
- * nobody can answer for six months later, which is the whole point of R1.11.
+ * from where. Reads can omit them. R1.11 requires every write to be
+ * attributable, and an unattributed write cannot be accounted for later.
  */
 async function writeContext(slug: string | undefined) {
   const session = await requireSession(slug);

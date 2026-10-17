@@ -18,10 +18,10 @@ import { buildMatchIndex, findMatches, indexNewPerson, type Match, type MatchInd
 /**
  * R19.2 and R19.3. The dry run and the commit are the same code path.
  *
- * That is the point. A preview that is produced by different logic from the
- * write is a preview that can be wrong, and a preview nobody can trust is worse
- * than no preview, because members stop reading it. `plan()` decides what every
- * row would do, and `commit()` carries out exactly the plan it was given.
+ * This is deliberate. A preview produced by different logic from the write can
+ * disagree with it, and a preview that cannot be trusted stops being read.
+ * `plan()` decides what every row would do, and `commit()` carries out exactly
+ * the plan it was given.
  */
 
 export type DuplicateStrategy = "skip" | "update" | "create";

@@ -11,7 +11,7 @@
  * The rail is the product's own interface, so it is drawn with the product's
  * tokens and components. The one exception is a miniature of the church's own
  * look, which is drawn with the site's custom properties because showing the
- * church what it is choosing is the whole point of it.
+ * church what it is choosing is what the panel exists to do.
  */
 
 import * as React from "react";

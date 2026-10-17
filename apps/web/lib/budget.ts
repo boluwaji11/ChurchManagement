@@ -3,11 +3,10 @@ import "server-only";
 /**
  * R21.5, R24.11. How long this product waits on somebody else's server.
  *
- * Every call that leaves the building is a call that can hang, and a request
- * hanging on a provider holds a connection, a worker and a church's screen with
- * it. Each one is given a number here rather than taking whichever default the
- * library it belongs to happens to ship, which for Stripe's own client is 80
- * seconds.
+ * Any outbound call can hang, and one hanging on a provider holds a
+ * connection, a worker and the church's screen with it. Each is given an
+ * explicit deadline here rather than inheriting whichever default its client
+ * library ships, which for Stripe's is 80 seconds.
  *
  * The numbers are what the work is worth waiting for: a screen's own request
  * gives up first, a send has longer because it is already behind a queue that

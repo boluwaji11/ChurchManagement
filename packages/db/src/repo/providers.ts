@@ -175,12 +175,12 @@ export async function connectEmailProvider(
 /**
  * R16.1, R21.15. Taking the connection off, and handing the grant back.
  *
- * The credential comes out of the column and is handed to the caller in the
- * same breath, because the one thing left to do with it is give it back: a
- * church that disconnected Resend has withdrawn its consent, and forgetting
- * our copy while a live grant sits on its account is not the same as
- * withdrawing it. There is no function here that reads a credential and
- * leaves it in place, so a screen cannot ask for one.
+ * The credential is cleared from the column and returned to the caller in one
+ * operation, because the only remaining use for it is revoking the grant at the
+ * provider. A church that disconnected Resend has withdrawn its consent, and
+ * dropping our copy while a live grant remains on its account is not the same
+ * as revoking it. No function here reads a credential and leaves it in place,
+ * so no screen can obtain one.
  *
  * The row is kept, because a church reconnecting the same account should not
  * read as a new one.
@@ -223,13 +223,12 @@ export async function withdrawEmailProvider(
 }
 
 /**
- * HRT-290, R16.1, R21.15. The credential, for the one thing it is for.
+ * HRT-290, R16.1, R21.15. The credential, exposed only to the send path.
  *
- * Named for sending rather than for reading, because reading is not a thing
- * anybody should be able to ask for. A screen that wants to show a church its
- * own password has no business doing so, and there is no function here that
- * would let it: this one is for the code that is about to send, and the only
- * caller is the send itself.
+ * Named for sending rather than for reading, so that no caller can treat it as
+ * a general accessor. Nothing in the product should display a church's stored
+ * credential back to it, and there is no function here that would allow it: the
+ * only caller is the send itself.
  */
 export interface SendingAccount {
   providerId: string;

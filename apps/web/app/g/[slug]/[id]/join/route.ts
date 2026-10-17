@@ -11,15 +11,15 @@ export const dynamic = "force-dynamic";
 /**
  * R9.5, R9.6. Following a published group all the way in.
  *
- * A stranger reading a group on the church's website presses Join and should
- * end up in the group, not at a sign-in screen wondering what happened. So this
- * is one address that does the whole of it: sends them to create an account if
- * they have none, puts them in the church through the church's own door, and
- * asks the group's leader.
+ * A visitor reading a group on the church's website presses Join and should
+ * end up in the group rather than on a sign-in screen with no explanation. One
+ * address handles the whole sequence: create an account if they have none, join
+ * the church through its own entry point, and raise a request with the group's
+ * leader.
  *
- * It asks rather than adds. R9.6 gives a leader the say over who is in their
- * group, and a published group is an invitation to ask rather than a door
- * standing open.
+ * It raises a request rather than adding them. R9.6 gives the leader the
+ * decision over who is in their group, so publishing a group invites a request
+ * rather than granting entry.
  *
  * POST, because it writes. It used to be a GET, which meant opening the address
  * was the whole transaction and anything that followed a link performed it.

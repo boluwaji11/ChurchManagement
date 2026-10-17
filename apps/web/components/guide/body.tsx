@@ -104,14 +104,14 @@ export function GuideBody({
   const [byHand, setByHand] = React.useState<Partial<Record<SetupPhase, boolean>>>({});
 
   /*
-   * R22.1. The one step that is now, which is the next one still open.
+   * R22.1. The current step, meaning the next one still open.
    *
-   * It used to be whichever step's screen was in front of them, and that made
-   * the guide move whenever anybody went anywhere: opening Teams to look at a
-   * rota shut the section they were reading, opened the one three above it,
-   * and put Here on a step finished a week ago. The guide is left alone now,
-   * and the coachmark, which is asked for by pressing Show me, is what
-   * follows somebody onto a screen.
+   * This was previously derived from whichever screen was open, which made the
+   * guide move on every navigation: opening Teams for an unrelated reason
+   * closed the section being read, opened a different one, and marked a step
+   * that had been finished days earlier as current. The rail is now stable,
+   * and the coachmark, requested by pressing Show me, is what follows somebody
+   * onto a screen.
    */
   const now = next?.step ?? null;
 

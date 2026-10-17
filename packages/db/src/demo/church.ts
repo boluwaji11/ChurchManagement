@@ -5,13 +5,12 @@ import { loadDemoData } from "./load";
 /**
  * R19.7 and R22.1. A demo church, belonging to nobody.
  *
- * The sample members used to be loadable into a real church, which put invented
- * records one press from a giving statement. They live in a church of their own
- * now: created on the way in, filled, and thrown away a day later. Nobody can
- * mistake it for their own directory because it is not their directory.
+ * The sample members were previously loadable into a real church, which put
+ * invented records one press away from a giving statement. They now live in a
+ * church of their own: created on arrival, filled, and removed a day later.
  *
- * Every visitor gets their own, so pressing everything is safe, including the
- * destructive things a demo is for trying.
+ * Every visitor gets their own copy, so any action in it is safe, including the
+ * destructive ones a demo exists to let somebody try.
  */
 
 /** Long enough to look around twice, short enough that nobody settles in. */
@@ -38,23 +37,15 @@ export interface DemoChurch {
 
 const suffix = () => Math.random().toString(36).slice(2, 8);
 
-/**
- * Builds a demo church for one visitor and fills it.
- *
- * Runs as the owner connection rather than through createChurch, because the
- * visitor has no verified email address and never will: an anonymous sign-in is
- * the whole point. The Owner role they get is over a church that holds nothing
- * but invented members and disappears tomorrow.
- */
 const DEMO_NAME = "Fairview Church";
 
 /**
  * Builds one demo church and leaves it unclaimed.
  *
- * Runs as the owner connection rather than through createChurch, because a demo
- * visitor has no verified email address and never will: an anonymous sign-in is
- * the whole point. The Owner role they are given is over a church that holds
- * invented members and disappears tomorrow.
+ * Runs on the owner connection rather than through createChurch, because a demo
+ * visitor has no verified email address and never will: the sign-in is
+ * anonymous by design. The Owner role granted here is over a church that holds
+ * only invented members and is removed the next day.
  */
 async function buildDemoChurch(): Promise<{ tenantId: string; slug: string }> {
   const slug = `demo-${suffix()}`;

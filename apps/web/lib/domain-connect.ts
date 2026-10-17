@@ -156,9 +156,9 @@ export function variablesFrom(records: readonly PlannedRecord[]): Record<string,
  * R22.2. Where to send the church, signed so the company can tell it is us.
  *
  * The query is signed with the private half of a key whose public half sits on
- * our own domain at `_dck1`, so a DNS company can check that the request to
- * change somebody's records came from the service the template belongs to.
- * Unsigned, it is refused, which is the whole point of signing it.
+ * our own domain at `_dck1`, so a DNS company can verify that a request to
+ * change somebody's records came from the service the template belongs to. An
+ * unsigned request is refused.
  */
 export function applyUrl(input: {
   urlSyncUX: string;

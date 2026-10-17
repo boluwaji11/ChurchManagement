@@ -23,11 +23,10 @@ const ICONS: Record<View, React.ComponentType<{ className?: string }>> = {
 /**
  * R18.12. Every way the answer can be drawn, as a gallery.
  *
- * All six are always on screen, including the ones this report cannot use yet.
- * A gallery that hides what does not fit teaches nobody what the tool can do,
- * and the one thing somebody wants to know is what it would take to draw the
- * chart they are looking at. So a chart that needs a grouping says so, and
- * choosing it is what tells them.
+ * All six are always shown, including the ones this report cannot use yet. A
+ * gallery that hides unavailable charts never teaches what the tool can do, and
+ * the question somebody has is what it would take to draw the chart they are
+ * looking at. A chart that needs a grouping says so when it is chosen.
  */
 export function Gallery({
   view,

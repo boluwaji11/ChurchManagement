@@ -36,7 +36,7 @@ export interface Story {
   title: string;
   requirements: string;
   state: State;
-  /** The word the row actually carries, which for Other is the whole point. */
+  /** The state word as written on the row, which matters for Other. */
   word: string;
   /** Anything written after the state, which is usually what it waits on. */
   note: string | null;
@@ -177,7 +177,7 @@ async function lastChanged(): Promise<Date | null> {
  * HRT-395. How much of a release is finished.
  *
  * Closed only. Resolved means built and waiting to be tested by a person,
- * which is not the same as done and is the whole reason the two states are
+ * which is not the same as done, and is why the two states are
  * separate.
  */
 export const doneness = (counts: Record<State, number>, total: number): number =>

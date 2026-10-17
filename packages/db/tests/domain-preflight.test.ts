@@ -100,9 +100,9 @@ describe("what we would add", () => {
   });
 
   /*
-   * The whole reason a church's inbox survives this. The SPF record and the
-   * return path go on a subdomain of their own, so the root MX pointing at
-   * Google is never in the picture.
+   * This is what keeps a church's existing email working. The SPF record and
+   * the return path go on a subdomain of their own, so the root MX record
+   * pointing at the church's provider is never touched.
    */
   it("puts SPF and the return path on a subdomain, never at the root", () => {
     const plan = plannedRecords("fairviewchurch.org");

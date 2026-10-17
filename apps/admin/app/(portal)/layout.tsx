@@ -11,13 +11,14 @@ export const dynamic = "force-dynamic";
 /**
  * HRT-396, R21.x. One gate, in front of every screen in the portal.
  *
- * Every page used to call `requireTeamMember()` itself, which works until
- * somebody adds a page and forgets. Authorization that depends on remembering
- * is not authorization. Every portal screen now lives under this layout and
- * the check runs once, here, before any of them renders.
+ * Every page previously called `requireTeamMember()` itself, which holds only
+ * until somebody adds a page and omits the call. An authorization check that
+ * each new screen has to repeat will eventually be missed. Every portal screen
+ * now sits under this layout and the check runs once, here, before any of them
+ * renders.
  *
- * The sign-in screen is deliberately outside it, which is the only reason
- * there is a group at all.
+ * The sign-in screen sits outside the group deliberately, which is the only
+ * reason the route group exists.
  */
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const who = await requireTeamMember();

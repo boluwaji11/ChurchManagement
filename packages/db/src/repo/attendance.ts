@@ -305,8 +305,8 @@ export interface Visitor {
 /**
  * R7.5. Everyone whose first or second visit falls in a window.
  *
- * This is the list somebody works through on a Monday morning, and the one the
- * first-visit and second-visit pipelines in R5.3 will read.
+ * This is the follow-up list after a service day, and the source the
+ * first-visit and second-visit pipelines in R5.3 read.
  */
 export async function visitorsBetween(
   db: Tx,

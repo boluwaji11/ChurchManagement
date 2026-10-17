@@ -358,9 +358,9 @@ export function DatePicker({
           value={shown}
           /*
            * R24.x. Pressing the field opens the calendar. A date box that
-           * answers a press with a cursor asks somebody to know the order
-           * their church writes a date in, and the whole point of drawing a
-           * calendar is that nobody has to. Typing still works on top of it.
+           * answers a press with a text cursor requires the reader to know
+           * their church's date order, which is what the calendar exists to
+           * avoid. Typing still works alongside it.
            */
           onPointerDown={() => setOpen(true)}
           onFocus={() => setOpen(true)}

@@ -9,8 +9,8 @@ export interface Crumb {
 }
 
 /**
- * R24.6, R24.15. The head of a screen: where you are, what this is, what it is
- * for, and the one thing to do with it.
+ * R24.6, R24.15. The head of a screen: the trail, the title, the optional
+ * line saying what the screen is for, and its primary action.
  *
  * Written once because there were three ways of doing it. `TopBar` drew an h1
  * in the chrome, `PageTitle` drew another on the page, and a screen that used

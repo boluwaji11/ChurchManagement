@@ -118,8 +118,9 @@ export function SaveView({
 /**
  * R1.14. The lists a church keeps, and the one being opened.
  *
- * A plain control on the row rather than a drawer: a church has a handful of
- * these and the whole point is reaching one in a press.
+ * A plain control on the row rather than a drawer: a church keeps only a
+ * handful of lists, and the point of saving one is reaching it in a single
+ * press.
  */
 export function OpenList({
   lists,

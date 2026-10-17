@@ -371,9 +371,9 @@ export async function labelsFor(
     .where(eq(checkinVisits.occurrenceId, occurrenceId))
     .orderBy(asc(members.firstName));
 
-  // Everybody checked in has something to wear. A child gets the pair, matched
-  // on a code; an adult gets a name badge, which the sheet prints as one label
-  // with no code on it. (R8.5, R8.6)
+  // R8.5, R8.6. Every check-in produces at least one label. A child gets the
+  // matched pair carrying the security code; an adult gets a single name badge
+  // with no code on it.
   return rows
     .filter((r) => personIds.includes(r.memberId))
     .map((r) => ({

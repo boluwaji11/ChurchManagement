@@ -163,7 +163,7 @@ describe("who may record it (R9.3, R9.7)", () => {
     }
   });
 
-  it("is the leader of that group, which is the point of the role", async () => {
+  it("is the leader of that group, which is what the role grants", async () => {
     const allowed = await run(
       (tx) => canRecordFor(tx, { role: "group_leader", userId: leaderUser }, group),
       "group_leader",

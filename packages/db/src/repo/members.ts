@@ -959,17 +959,10 @@ export async function bulkSetStatus(
 }
 
 /**
- * How many members match, ignoring the page.
- *
- * A separate count rather than a window function on the page query, because the
- * page query joins households to sort by them and a count over that join would
- * have to be made distinct. Two simple queries beat one clever one here.
- */
-/**
- * R9.3. The ids a viewer may see, crossed with the ids they asked for.
+ * R9.3. The ids a viewer may see, intersected with the ids they asked for.
  *
  * Null means no restriction. An empty array means nobody, which is what a group
- * leader who leads nothing gets, and the caller returns an empty page rather
+ * leader who leads no group gets, and the caller returns an empty page rather
  * than every person in the church.
  */
 async function scopeIds(db: Tx, opts: DirectoryQuery): Promise<string[] | null> {
@@ -981,6 +974,13 @@ async function scopeIds(db: Tx, opts: DirectoryQuery): Promise<string[] | null> 
   return opts.ids.filter((id) => allowed.includes(id));
 }
 
+/**
+ * How many members match, ignoring the page.
+ *
+ * A separate count rather than a window function on the page query: the page
+ * query joins households to sort by them, so a count over that join would have
+ * to be made distinct. Two simple queries are cheaper than one combined one.
+ */
 export async function countPeople(db: Tx, opts: DirectoryQuery = {}): Promise<number> {
   const scoped = await scopeIds(db, opts);
   if (scoped !== null && scoped.length === 0) return 0;
@@ -1373,8 +1373,8 @@ export async function anniversaryOf(db: Tx, memberId: string): Promise<string | 
  * R17.1. Your own photograph.
  *
  * Takes a user id for the same reason updateOwnProfile does: the record is the
- * one the account owns, so nobody sets a face on somebody else's card. Returns
- * the key it replaced, which the caller takes out of the bucket.
+ * one the account owns, so a photo cannot be set on another member's record.
+ * Returns the key it replaced, which the caller deletes from the bucket.
  */
 export async function setOwnPhoto(
   db: Tx,

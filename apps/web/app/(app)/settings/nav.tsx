@@ -156,9 +156,9 @@ export function SettingsNav({ groups }: { groups: SettingsGroup[] }) {
  * hover, which is what the bar below opens its sections with, so the row was
  * the only thing a phone had.
  *
- * One control instead, saying where you are, opening the whole menu with its
- * headings intact. Everything is on screen at once and nothing is dragged
- * past anything.
+ * One control instead, naming the current screen and opening the whole menu
+ * with its headings intact. Everything is visible at once, with nothing to
+ * scroll past.
  */
 function Pocket({
   groups,

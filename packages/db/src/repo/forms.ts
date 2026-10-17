@@ -20,14 +20,13 @@ export * from "./form-rules";
 /**
  * R4.1, R4.2, R4.9. Building a form.
  *
- * A church writes the questions once and the answers land on members's records,
- * which is the whole point of R4.4. This story is the writing: the kinds of
- * question, the headings between them, what is required, and what stops a
- * half-built form being put in front of anybody.
+ * A church writes the questions once and the answers land on members' records,
+ * which is what R4.4 requires. This file covers authoring: question kinds, the
+ * headings between them, what is required, and the checks that stop a
+ * half-built form being published.
  *
- * Who may build one is Owner and Admin. A form is a thing the public can reach
- * and a question the church is seen to be asking, which is not a decision for
- * whoever is nearest the keyboard.
+ * Authoring is restricted to Owner and Admin, because a form is publicly
+ * reachable and speaks for the church.
  */
 
 export interface Form {
@@ -574,7 +573,7 @@ export interface FormSubmission {
   receivedAt: string;
   /** Question id to what was given, the shape `FormAnswer` describes. */
   answers: Record<string, FormAnswer>;
-  /** R4.4. Who it turned out to be, where anybody is sure. */
+  /** R4.4. The member this response was matched to, where the match is certain. */
   memberId: string | null;
   /** R24.6. Their readable address, where the response matched somebody. */
   personSlug: string | null;
@@ -666,11 +665,11 @@ export async function setFormCover(
 }
 
 /**
- * R24.4. The colour a form wears.
+ * R24.4. Sets a form's colour.
  *
- * Its own function rather than part of `updateForm`, because changing a colour
- * is one press on a swatch and should not require the screen to hand back every
- * other field to avoid clearing one.
+ * Separate from `updateForm` because changing a colour is a single press on a
+ * swatch, and routing it through the full update would require the screen to
+ * resend every other field to avoid clearing them.
  */
 export async function setFormHue(
   db: Tx,

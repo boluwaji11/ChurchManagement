@@ -38,7 +38,7 @@ type FieldTypeValue = (typeof TYPES)[number]["value"];
 const isKnownType = (type: string): type is FieldTypeValue =>
   TYPES.some((x) => x.value === type);
 
-/** An unknown type renders itself, so a new one is ugly rather than blank. */
+/** An unknown type renders its raw name rather than an empty cell. */
 const typeLabel = (type: string): string => (isKnownType(type) ? t(`fieldType.${type}`) : type);
 const hasChoices = (type: string) => type === "select" || type === "multi_select";
 

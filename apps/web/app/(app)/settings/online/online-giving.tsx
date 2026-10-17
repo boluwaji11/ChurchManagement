@@ -129,13 +129,10 @@ export function OnlineGiving({
   const settling = Boolean(account && !account.chargesEnabled && account.detailsSubmitted);
 
   /*
-   * R13.1. Stripe makes its mind up a moment after the church finishes its
-   * form, so the screen waits with them rather than leaving a button.
-   */
-  /*
-   * R13.1. Stripe usually makes its mind up in seconds, and sometimes it
-   * takes a person. The watching stops after half a minute, and when it does
-   * the screen says so rather than spinning at somebody for an hour.
+   * R13.1. Stripe usually decides within seconds of the church finishing its
+   * form, and occasionally the review needs a person. The screen polls rather
+   * than leaving a button, and stops after thirty seconds, saying so instead
+   * of spinning indefinitely.
    */
   const [watched, setWatched] = React.useState(false);
   React.useEffect(() => setWatched(false), [settling]);

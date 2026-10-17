@@ -26,7 +26,7 @@ export function Panel({
   /** What is in it, read before opening anything. */
   count?: string;
   action?: React.ReactNode;
-  /** Left out where the head is the whole of it. */
+  /** Omitted where the panel is a heading with no body. */
   children?: React.ReactNode;
   className?: string;
 }) {

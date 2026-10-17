@@ -31,11 +31,11 @@ const greeting = (name: string | null): string =>
 /**
  * HRT-388, R22.1. The welcome, sent when a church is created.
  *
- * It says the one thing a church wants to know at that moment, which is
- * whether it can get on with it. It can: a provisional church works for the
- * person who made it, up to the cap, which is why this carries a button rather
- * than asking somebody to sit and wait. What it cannot do yet is reach
- * anybody, so that is said plainly here rather than discovered on a screen.
+ * It answers the question a church has at that moment: whether it can start
+ * work. It can. A provisional church works for the person who created it, up
+ * to the member cap, so this carries a button rather than asking them to wait.
+ * What it cannot do yet is invite anybody, which is stated here rather than
+ * left to be discovered on a screen.
  */
 export function welcomeMessage(input: {
   to: string;
@@ -52,8 +52,8 @@ export function welcomeMessage(input: {
 
   const glad = t("mail.welcome.glad", { church: input.church });
   const opening = t("mail.welcome.opening");
-  /* The line about the review is the one picked out of its paragraph, so the
-     catalogue holds the sentence and the whole of it separately. */
+  /* The review sentence is emphasised within its paragraph, so the catalogue
+     holds that sentence and the surrounding paragraph as separate keys. */
   const review = t("mail.welcome.underReview");
   const checking = t("mail.welcome.checking", { underReview: CHURCH });
   const checkingPlain = t("mail.welcome.checking", { underReview: review });

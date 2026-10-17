@@ -30,7 +30,7 @@ export interface JoinTarget {
   tenantId: string;
   slug: string;
   name: string;
-  /** R1.1. The church's own mark, so its door wears it. */
+  /** R1.1. The church's logo, shown on its own sign-in page. */
   logoKey: string | null;
 }
 

@@ -92,8 +92,9 @@ export function Point({
   /** What the last Next says, where it finishes rather than continues. */
   lastLabel?: string;
   /**
-   * How many stops there are altogether, and which this is, where the walk
-   * runs across two screens and the card should count the whole of it.
+   * The position in the walk and its total length, used where a walk spans two
+   * screens and the card should count every stop rather than the current
+   * screen's.
    */
   count?: { at: number; of: number };
   /**
@@ -232,11 +233,10 @@ export function Point({
       };
 
       /*
-       * A control that fills the window has no side with room: the canvas in
-       * the website builder is nearly the whole screen, and every side was
-       * picked anyway, which put the card half off the left edge. When nothing
-       * has room the card goes in the middle of the window, over the thing it
-       * is ringing, which is the honest answer for "all of this is your page".
+       * A control that fills the window leaves no side with room: the website
+       * builder's canvas is nearly the whole screen, and a side was chosen
+       * anyway, which put the card half off the left edge. When no side has
+       * room the card is centred over the target instead.
        */
       const anywhere = room.left || room.right || room.above || room.below;
       const side: Side = !anywhere
