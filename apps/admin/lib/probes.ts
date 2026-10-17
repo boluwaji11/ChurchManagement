@@ -192,7 +192,14 @@ const resend = () => {
   });
 };
 
-/** Upstash, which is what stops one address trying a thousand passwords. */
+/**
+ * Upstash, which rate-limits the public support form.
+ *
+ * Not this portal's door: the sign-in throttle here counts rows in
+ * platform_sign_ins and needs nothing outside the database. This is probed
+ * because the portal watches the platform rather than itself, and a support
+ * form with no limiter in front of it is a mailbox anybody can fill.
+ */
 const redis = () => {
   const url = process.env["UPSTASH_REDIS_REST_URL"];
   const token = process.env["UPSTASH_REDIS_REST_TOKEN"];
