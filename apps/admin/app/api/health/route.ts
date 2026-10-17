@@ -52,6 +52,8 @@ export async function GET(request: Request) {
    * nothing at all for five minutes: a health check that cannot report that
    * the database is unreachable because it is waiting on the database.
    */
+  const recording = await within(8_000, platformHealth.watching().catch(() => false), false);
+
   const kept = await within(
     8_000,
     (async () => {
@@ -82,7 +84,11 @@ export async function GET(request: Request) {
     {
       environment: env,
       checked: probes.length,
-      kept,
+      /* Whether the readings are being kept. False where migration 0163 has
+         not been applied, which is a fact worth returning rather than a
+         silence: the bars on the status screen stay empty until it is. */
+      recording,
+      kept: recording && kept,
       services: probes.map((one) => ({ service: one.service, state: one.state, tookMs: one.tookMs })),
       failing: bad.map((one) => ({ service: one.service, said: one.said })),
     },
