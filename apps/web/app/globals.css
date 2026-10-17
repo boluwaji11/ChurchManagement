@@ -307,3 +307,28 @@ select:-webkit-autofill {
 @media (prefers-reduced-motion: reduce) {
   [data-guide-card] { animation: none; }
 }
+
+/*
+ * HRT-402. The sandbox bar takes its height out of the viewport.
+ *
+ * Every shell in this product is sized against the viewport, so a bar added
+ * above one of them makes the page 100dvh plus the bar and the whole screen
+ * scrolls by exactly the height of the bar. That is worse than no bar: a
+ * window that will not sit still is a window somebody fights all day.
+ *
+ * So rather than editing a dozen shells, the bar declares its height here and
+ * the viewport-height utilities give it back. Scoped to the attribute the
+ * layout sets outside production, so a church's screens are untouched by any
+ * of it, and more specific than the utility it overrides, so order does not
+ * matter.
+ */
+body[data-env-bar] { --env-bar: 2rem; }
+body[data-env-bar] .min-h-dvh { min-height: calc(100dvh - var(--env-bar)); }
+body[data-env-bar] .h-dvh { height: calc(100dvh - var(--env-bar)); }
+body[data-env-bar] .max-h-dvh { max-height: calc(100dvh - var(--env-bar)); }
+/* The older viewport unit as well. A sticky sidebar still uses it, and one
+   utility left out is the whole page scrolling again. */
+body[data-env-bar] .min-h-screen { min-height: calc(100vh - var(--env-bar)); }
+body[data-env-bar] .h-screen { height: calc(100vh - var(--env-bar)); }
+body[data-env-bar] .max-h-screen { max-height: calc(100vh - var(--env-bar)); }
+

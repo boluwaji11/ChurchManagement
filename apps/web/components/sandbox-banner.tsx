@@ -14,11 +14,17 @@ import { whereWeAre } from "@connectapp/env";
  * permanent stripe across a product that is theirs, and there is no second
  * production to confuse it with.
  */
+/** Whether this deployment draws the bar at all. */
+export function sandbox(): boolean {
+  const here = whereWeAre();
+  return !(here.environment === "production" && here.productionData);
+}
+
 export function SandboxBanner() {
   const here = whereWeAre();
   const live = here.environment === "production";
 
-  if (live && here.productionData) return null;
+  if (!sandbox()) return null;
 
   /* Production serving records that are not production's own is a
      misconfiguration rather than a place, and says so in red. */
@@ -28,7 +34,7 @@ export function SandboxBanner() {
     <div
       role="status"
       className={
-        "flex h-8 w-full shrink-0 items-center justify-center gap-2 px-4 " +
+        "flex h-[var(--env-bar,2rem)] w-full shrink-0 items-center justify-center gap-2 px-4 " +
         "text-[12px] font-semibold tracking-[0.14em] uppercase print:hidden " +
         (wrong ? "bg-danger text-white" : "bg-accent text-accent-fg")
       }

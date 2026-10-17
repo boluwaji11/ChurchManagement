@@ -22,10 +22,6 @@ export function Gate({
   return (
     <main className="site-wash grid min-h-dvh place-items-center px-6 py-10">
       <div className="flex w-full max-w-[420px] flex-col gap-5 rounded-[16px] border border-line bg-surface p-7">
-        <p className="m-0 text-caption font-semibold tracking-[0.14em] text-ember-800 uppercase">
-          ● Sandbox
-        </p>
-
         {!email ? (
           <>
             <h1 className="m-0 text-[22px] font-semibold text-fg">
@@ -45,9 +41,9 @@ export function Gate({
             <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">
               {email} is not on it.
             </p>
-            <Button asChild variant="secondary">
-              <Link href="/auth/sign-out">Sign out</Link>
-            </Button>
+            <form action="/auth/sign-out" method="post">
+              <Button type="submit" variant="secondary" full>Sign out</Button>
+            </form>
           </>
         ) : (
           <>
