@@ -4,6 +4,14 @@ October 2026. A full design pass over the product arrived as a set of HTML proto
 Claude Design. This file is the reconciliation: what the design settles, what the repo keeps, what we
 are leaving out, and where the two disagree about how somebody gets in.
 
+**How to read this folder.** It is two things at once. The prototypes, the token table and the
+measurements are a **live reference**: colours, type, spacing and the shell's dimensions are still
+authoritative, and "Where the design is the authority" below says exactly where. The scope notes,
+the exclusions and the story breakdown are a **historical record** of what was decided in October
+2026, and the product has moved since. Where a scope note here disagrees with
+[CLAUDE.md](../../CLAUDE.md) or [BACKLOG.md](../../BACKLOG.md), those two are current and this file
+is the archive.
+
 `handoff.md` is the designer's own brief, unedited. `tokens.md` is the colour table it shipped with.
 `screen-map.md` maps each design screen to the routes it was drawn from. `design/` holds the
 prototypes themselves. `plan.md` is how the work was broken up, and the argument behind the thirty
@@ -87,15 +95,20 @@ The density modes we already have line up with what the prototypes call `chrome`
 ## What we are not taking
 
 The design covers the whole product, including the parts this repo has deliberately set down.
-CLAUDE.md is the authority and it does not move for a design file.
+[CLAUDE.md](../../CLAUDE.md) is the authority on what is built and what is deferred, and it does not
+move for a design file.
 
-| In the design | Why it is not being built |
+**This table has been corrected since the design pass landed.** Four of the five areas it originally
+excluded have since been built, so the rows below say where each one now stands rather than leaving a
+stale exclusion in place.
+
+| In the design | Where it stands now |
 |---|---|
-| Giving: the nav entry, Record gift, fund totals, the member checkout and its processing-fee toggle | Money is the last thing this product grows. Deferred until asked for by name. |
-| Songs: the library and the sequence builder | Hearth Stage is being built elsewhere with its own library. |
-| The email mockups in States and Messages: invitation, serving request, receipt, follow-up digest | Messaging is deferred. There is no send path to draw these for. |
-| Network Admin: the five-church overview and the comparison bars | Multi-site is a settled non-goal for v1. `/choose-church` serves the different case of one person who belongs to more than one church. |
-| Calendar and Reports as nav entries | Both are 1.0 features with stories already on the board, behind the work in front of them. |
+| Giving: the nav entry, Record gift, fund totals, the member checkout and its processing-fee toggle | **Built.** The giving deferral was lifted on 12 October 2026 and release 0.3 shipped giving, funds and campaigns. The design's giving screens are a live reference. |
+| The email mockups in States and Messages: invitation, serving request, receipt, follow-up digest | **Built.** Messaging came back on 12 October 2026 and there is a send path. The mockups are a live reference for the templates in `packages/mail`. |
+| Calendar and Reports as nav entries | **Built.** Both are nav entries today. |
+| Songs: the library and the sequence builder | **Not being built here.** Hearth Stage is a separate repository with its own library and importers. |
+| Network Admin: the five-church overview and the comparison bars | **Not being built.** Multi-site is a settled non-goal for v1. `/choose-church` serves the different case of one person who belongs to more than one church. |
 
 The rest of States and Messages, the empty states, first-run states, errors and loading, is in scope
 and is its own story.
@@ -109,8 +122,8 @@ screen looks.
 
 | Journey | Where it stands |
 |---|---|
-| Maria starts the church | Matches `/`, `/sign-up`, `/create-church`, `/sign-in`, `/setup`. The design's app home omits that a new church is **provisional** until a person has looked at it (HRT-115). The gate stays, and the setup checklist sits under the banner that says so. |
-| Pastor Mike is invited | Matches invitations (HRT-108). The design opens on an invitation email we cannot send while messaging is deferred, so today an administrator passes the link on by hand. The screens either side are right. |
+| Maria starts the church | Matches `/`, `/sign-up`, `/create-church`, `/sign-in`. The design's app home omits that a new church is **provisional** until a person has looked at it (HRT-115). The gate stays. The standalone `/setup` screen the design drew is gone: HRT-367 replaced it with a guide rail that travels with the church across every screen, and the provisional banner sits above it. |
+| Pastor Mike is invited | Matches invitations (HRT-108). The invitation email in the design is now real: messaging came back on 12 October 2026 and the invitation sends. The screens either side are right. |
 | Samuel gets his group | Matches. Two nav entries and nothing else in the church is exactly the role-scoped sidebar. |
 | Ruth opens the station | Sign-in offers "Open a check-in station", a six-digit code from Settings, Stations pairs the tablet, and it stays in station mode. Worth checking the sign-in entry point exists. |
 | Hannah signs up on the church's site | The design shows an embedded "My account" panel on the church's own domain, with no approval step. Our door is the church's join link, and the approval queue was built and taken out already, so the two agree. The panel is the join link embedded. |
