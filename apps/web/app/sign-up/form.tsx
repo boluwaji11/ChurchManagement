@@ -3,14 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
-import { Button, Field, Input } from "@connectapp/ui";
+import { Banner, Button, Field, Input } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 import { check, email as validEmail, minLength, requiredValue } from "@/lib/validate";
 import { useValidatedForm, type Errors } from "@/lib/use-validated-form";
+import { PASSWORD_LENGTH } from "@/lib/password";
 import { signUp } from "./actions";
 import { AUTH_INPUT, AUTH_BUTTON } from "../auth-chrome";
 
-export const PASSWORD_LENGTH = 10;
+export { PASSWORD_LENGTH } from "@/lib/password";
 
 /** R22.1. The first screen of the first hour. */
 export function SignUpForm({ next, email }: { next?: string; email?: string }) {
@@ -21,12 +22,15 @@ export function SignUpForm({ next, email }: { next?: string; email?: string }) {
       lastName: check(String(data.get("lastName") ?? ""), requiredValue(t("signUp.lastName").toLowerCase())),
       password: check(
         String(data.get("password") ?? ""),
-        minLength(PASSWORD_LENGTH, t("signUp.password").toLowerCase()),
+        /* Not lowered: this message opens with the field's name, so it is
+           the first word of the sentence. "Enter {what}" below is not. */
+        minLength(PASSWORD_LENGTH, t("signUp.password")),
       ),
     }),
     [],
   );
-  const { formRef, errors, pending, ready, action, revalidate } = useValidatedForm(validate, signUp);
+  const { formRef, errors, failed, pending, ready, action, revalidate, touch } =
+    useValidatedForm(validate, signUp);
 
   return (
     <form
@@ -34,9 +38,14 @@ export function SignUpForm({ next, email }: { next?: string; email?: string }) {
       action={action}
       noValidate
       onInput={revalidate}
+      onBlur={touch}
       className="flex flex-col gap-5"
     >
       <input type="hidden" name="next" value={next ?? ""} />
+
+      {/* R1.7. What the server refused, above the boxes it refused, with every
+          box still holding what was typed into it. */}
+      {failed ? <Banner tone="danger">{failed}</Banner> : null}
 
       {/* Two boxes rather than one. These are not a label on an account: they
           are the first and last name of the founder's own record in the church,

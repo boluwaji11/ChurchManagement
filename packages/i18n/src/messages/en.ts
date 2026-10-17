@@ -256,7 +256,7 @@ export const en = {
   "signUp.sent.other": "Use a different email address",
   "signUp.error.name": "Give both names. They become your own record in the church.",
   "signUp.error.email": "Enter an email address.",
-  "signUp.error.password": "Use at least ten characters.",
+  "signUp.error.password": "Your password needs at least ten characters.",
   "reset.title": "Choose a password",
   "reset.submit": "Save my password",
   "import.source": "Where it came from",

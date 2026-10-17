@@ -85,10 +85,17 @@ function MagicLinkForm({ next, email }: { next?: string; email?: string }) {
     (data: FormData): Errors => ({ email: check(String(data.get("email") ?? ""), validEmail) }),
     [],
   );
-  const { formRef, errors, pending, ready, action, revalidate } = useValidatedForm(validate, sendMagicLink);
+  const { formRef, errors, pending, ready, action, revalidate, touch } = useValidatedForm(validate, sendMagicLink);
 
   return (
-    <form ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      action={action}
+      noValidate
+      onInput={revalidate}
+      onBlur={touch}
+      className="flex flex-col gap-4"
+    >
       <input type="hidden" name="next" value={next ?? ""} />
       <Field label={t("signIn.email")} htmlFor="email-link" error={errors["email"]} required>
         <Input
@@ -114,10 +121,18 @@ function PasswordForm({ next, email }: { next?: string; email?: string }) {
     }),
     [],
   );
-  const { formRef, errors, pending, ready, action, revalidate } = useValidatedForm(validate, signInWithPassword);
+  const { formRef, errors, pending, ready, action, revalidate, touch } =
+    useValidatedForm(validate, signInWithPassword);
 
   return (
-    <form ref={formRef} action={action} noValidate onInput={revalidate} className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      action={action}
+      noValidate
+      onInput={revalidate}
+      onBlur={touch}
+      className="flex flex-col gap-4"
+    >
       <input type="hidden" name="next" value={next ?? ""} />
       <Field label={t("signIn.email")} htmlFor="email-pw" error={errors["email"]} required>
         <Input
