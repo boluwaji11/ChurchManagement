@@ -263,7 +263,7 @@ function Row({
   step: RailStep;
   last: boolean;
   nextUp: boolean;
-  /** The step somebody is on, whose marker breathes. */
+  /** The step currently in progress, whose marker is animated. */
   now: boolean;
   telling: boolean;
   busy: boolean;

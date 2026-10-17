@@ -777,7 +777,7 @@ export function Directory({
 }
 
 /** A 34px secondary control. The row of them above the list is all this shape. */
-/** The shape every mark on the tool row wears, link or button. */
+/** Shared styling for every control on the tool row, link or button. */
 /*
  * R24.6. A tool on this row is a mark, not a worded button.
  *

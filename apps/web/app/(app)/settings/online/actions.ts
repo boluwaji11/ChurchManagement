@@ -233,7 +233,7 @@ export async function connectStripe(): Promise<ConnectResult> {
       /*
        * What Stripe will let the account do reads off the v1 view of it, which
        * accepts a v2 id and answers in the shape the rest of this product and
-       * the webhook already speak.
+       * the webhook already use.
        */
       const state = await stripe().accounts.retrieve(accountId);
       const id = accountId;

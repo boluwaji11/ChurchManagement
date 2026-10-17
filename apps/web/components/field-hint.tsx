@@ -12,7 +12,7 @@ import { t } from "@connectapp/i18n";
  *
  * A mark on the label's line that opens the panel from the right. The words go
  * there rather than under the box, because a sentence under every field is a
- * form that shouts at the ninety-nine volunteers who already knew what their
+ * form that lectures the ninety-nine volunteers who already knew what their
  * church's EIN is, and the hundredth has nowhere to look.
  *
  * The screen's own Help is a different thing: it explains the screen. This

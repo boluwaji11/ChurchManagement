@@ -79,7 +79,7 @@ export function GroupDetail({
   /** R9.7. Whether this reader may record who came. */
   canRecord: boolean;
   openToJoin: boolean;
-  /** The group kind's colour, which its dates wear. */
+  /** The group kind's colour, used for its dates. */
   hue: string;
   /** R9.5. Asking to come, where this reader may. */
   join?: React.ReactNode;
@@ -466,7 +466,7 @@ function Facts({ label, children }: { label: string; children: React.ReactNode }
 /**
  * A date tile, the day it falls on, and the register where it has happened.
  *
- * The tiles wear the group's own colour and are joined by a thread down their
+ * The tiles carry the group's own colour and are joined by a thread down their
  * centres, so three dates read as one series rather than three cards that
  * happen to be stacked.
  */

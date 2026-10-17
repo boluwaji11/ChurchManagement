@@ -8,7 +8,7 @@ import { t, plural } from "@connectapp/i18n";
  * does not decide what the message says.
  *
  * Messages say what is wrong and what to do about it. They never blame the
- * person, never shout, and never say "invalid".
+ * person, never lecture, and never say "invalid".
  */
 export type Validator = (value: string) => string | undefined;
 

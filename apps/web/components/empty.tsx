@@ -10,7 +10,7 @@ import { EmptyState } from "@connectapp/ui";
 import { useChurchMark } from "./church-mark";
 
 /**
- * The icons an empty state can wear, by name.
+ * The icons an empty state can show, by name.
  *
  * A name rather than the component itself, because most of these screens are
  * server components and a lucide icon is an object with methods, which cannot

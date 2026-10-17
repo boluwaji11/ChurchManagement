@@ -9,7 +9,7 @@ import { cn } from "@connectapp/ui";
  * and that was the wrong trade for this product: a portal that says nothing is
  * a portal where the only way to know which records you are about to archive
  * is to remember which address you typed. So the bar is always there and the
- * question is never open. Production wears the chrome's own colour rather than
+ * question is never open. Production uses the chrome's own colour rather than
  * the accent, so it reads as a label rather than a warning.
  *
  * The sandbox is always called "Sandbox", whatever the deployment calls

@@ -1,5 +1,5 @@
 /**
- * R24.6. The shape a field and a button wear on the way in.
+ * R24.6. Shared field and button styling for the sign-in and sign-up screens.
  *
  * Plain constants in a module of their own, because the forms that use them
  * are client components and the shell they used to live in reads the cookie

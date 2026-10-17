@@ -5,7 +5,7 @@ import { t, type MessageKey, type Params } from "@connectapp/i18n";
  *
  * A duplicate name and a missing choice are things a person did, and the right
  * response is a sentence next to the field. Everything else is a bug, and a bug
- * dressed up as a validation message is a bug nobody ever finds. Only these
+ * reported as a validation message is a bug nobody ever finds. Only these
  * types are turned into user-facing text; anything else is rethrown.
  *
  * Each carries the catalogue key and its values rather than a finished sentence,

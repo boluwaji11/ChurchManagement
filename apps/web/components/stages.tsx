@@ -4,9 +4,9 @@ import { cn } from "@connectapp/ui";
  * R24.6. A short run of stages across the top of something, and which one this is.
  *
  * The shape sign-up uses for starting a church, lifted out of it so anything
- * with two or three stages wears the same one. Somebody part way through wants
+ * with two or three stages uses the same one. Somebody part way through wants
  * to know how many more there are: what is behind them is filled, what is ahead
- * is a hairline, and where they are wears a ring.
+ * is a hairline, and the current stage carries a ring.
  *
  * The thread runs between the dots rather than under them, so the first stage
  * has nothing to its left and the last has nothing to its right, and the run

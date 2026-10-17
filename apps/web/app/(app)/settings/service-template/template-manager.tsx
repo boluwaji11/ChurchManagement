@@ -379,7 +379,7 @@ function TemplatePanel({
  * R11.8. The order of service, as a run of lines down the panel.
  *
  * The thread down the left is the same one the blackout dates and the library
- * wear, so a shape reads as a sequence rather than four stacked form rows. The
+ * carry, so a shape reads as a sequence rather than four stacked form rows. The
  * handle reorders it, because the order is the whole point of the record.
  */
 function Lines({

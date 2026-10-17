@@ -52,7 +52,7 @@ export async function appTheme() {
 }
 
 /**
- * R24.x. What the document itself wears, which is the only place it can go.
+ * R24.x. Applied to the document element, which is the only place it can go.
  *
  * A dialog, a tooltip and a dropdown are drawn at the end of the body rather
  * than inside the screen that opened them, so a theme held on a div leaves

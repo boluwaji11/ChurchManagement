@@ -27,7 +27,7 @@ export async function generateMetadata({
   return tabMetadata(t("reports.title"));
 }
 
-/** The hue each band wears, nought parts to four. */
+/** The hue per band, from zero of four to four of four. */
 const BAND_HUE = ["rose", "clay", "amber", "sky", "fern"] as const;
 
 /**

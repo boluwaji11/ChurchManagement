@@ -1,5 +1,5 @@
 /**
- * HRT-206, R24.17. An empty screen wears the church's mark.
+ * HRT-206, R24.17. An empty screen shows the church's mark.
  *
  * `Empty` reads the church's logo out of the shell and falls back to an icon
  * naming what is missing. A screen that draws its own mark instead gets the

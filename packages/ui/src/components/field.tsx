@@ -72,7 +72,7 @@ export function Field({
    * R22.2. What explains this one field, beside its label.
    *
    * For the mark that opens the words rather than for the words themselves. A
-   * sentence under every box is a form that shouts at everybody who already
+   * sentence under every box is a form that lectures everybody who already
    * knew, and `hint` is the place for one on the rare field that earns it.
    */
   mark?: React.ReactNode;

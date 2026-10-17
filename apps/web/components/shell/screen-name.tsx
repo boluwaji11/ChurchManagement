@@ -15,7 +15,7 @@ import { activeHref, type NavTarget } from "./nav-active";
  *
  * Resolved against the same navigation the sidebar draws, so the lit row and
  * the word in the bar can never disagree. A screen with no entry of its own
- * wears its area's name, which is why every settings screen says Settings.
+ * takes its area's name, which is why every settings screen says Settings.
  */
 export function ScreenName({
   entries,

@@ -20,7 +20,7 @@ import { saveFund, archiveFund } from "./actions";
  * R13.9. The funds a church keeps.
  *
  * A tile each, the way the group types and the service types are drawn. A
- * restricted fund wears the word, because that is the distinction a treasurer
+ * restricted fund is labelled as such, because that is the distinction a treasurer
  * is answerable for.
  */
 /**

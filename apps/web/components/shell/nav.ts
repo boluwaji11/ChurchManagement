@@ -55,7 +55,7 @@ export function navFor(role: Who): NavEntry[] {
    * theirs. Without this they would open the app onto a groups list.
    */
   /*
-   * R17.1. A member's screens are not in here. They wear the portal's own
+   * R17.1. A member's screens are not in here. They use the portal's own
    * frame, which is a row of tabs across the top rather than this list, and
    * the two would have drifted the moment one of them changed.
    */

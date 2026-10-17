@@ -27,7 +27,7 @@ export async function generateMetadata({
  *
  * Configurable rather than a fixed list, because a church that calls its small
  * groups "life groups" and runs a "prayer chain" should not have to answer to
- * our vocabulary. The colour is the one its groups wear on every card, every
+ * our vocabulary. The colour is the one its groups carry on every card, every
  * filter and every date tile.
  *
  * A kind that has been archived comes off this grid and sits behind the one

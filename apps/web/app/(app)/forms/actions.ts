@@ -212,7 +212,7 @@ export async function clearFormCover(formId: string): Promise<FormResult> {
   }
 }
 
-/** R24.4. The colour a form wears, changed on one press of a swatch. */
+/** R24.4. A form's colour, changed by pressing a swatch. */
 export async function recolourForm(
   formId: string,
   hue: string,

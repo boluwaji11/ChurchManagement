@@ -12,7 +12,7 @@ const prune = (errors: Errors): Errors =>
 /**
  * Validation is ours, not the browser's.
  *
- * The native bubble is unstyled, unlocalised, vanishes on its own, speaks in
+ * The native bubble is unstyled, unlocalised, vanishes on its own, is worded in
  * character counts, and looks like a different product. Every form in ConnectApp
  * sets `noValidate` and renders its messages through Field, which wires
  * aria-invalid and aria-describedby, and the first invalid control takes focus

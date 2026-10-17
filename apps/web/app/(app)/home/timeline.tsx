@@ -11,13 +11,13 @@ import * as React from "react";
  * their church is one sequence, and the eye follows a line down it faster
  * than it reads six boxes.
  *
- * The colour on the thread belongs to the thing. A Worship date wears the
- * Worship team's hue and the harvest supper wears the event's own, so two
+ * The colour on the thread belongs to the record. A Worship date is drawn in
+ * the Worship team's hue and an event in its own, so two
  * services and a supper are told apart before a word is read. Nothing here
  * is coloured for decoration.
  */
 
-/** One block of the screen: a mark, a name, and its own way through. */
+/** One timeline entry: an icon, a label, and its own link. */
 export function Block({
   icon,
   title,

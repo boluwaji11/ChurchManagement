@@ -23,7 +23,7 @@ export interface SettingsGroup {
  *
  * Twelve names down the left outgrew the column. Each section carries its own
  * list, which opens under the pointer, and the section holding the open screen
- * wears a line in the church's purple. The heading is a link to the first
+ * is marked with a line in the church's purple. The heading is a link to the first
  * screen in the section, so a press always lands somewhere and the keyboard
  * reaches the list through focus rather than through a press.
  */

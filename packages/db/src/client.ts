@@ -33,9 +33,8 @@ function isLoopback(url: string): boolean {
 
 /**
  * Supabase's direct database host, db.<ref>.supabase.co, publishes an AAAA
- * record and no A record. On a network without IPv6 it fails as ENOTFOUND, which
- * reads like a typo in the hostname and sent a whole afternoon in the wrong
- * direction once already.
+ * record and no A record. On a network without IPv6 it fails as ENOTFOUND,
+ * which is indistinguishable from a typo in the hostname.
  *
  * Warned rather than refused, because the direct host is correct on a network
  * that has IPv6, and on Supabase's own infrastructure. The pooler is the answer

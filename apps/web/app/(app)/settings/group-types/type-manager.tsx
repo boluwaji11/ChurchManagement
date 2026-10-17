@@ -30,7 +30,7 @@ export interface TypeRow {
  * R9.1. The kinds of group a church runs.
  *
  * A tile each, the way the rooms are drawn, and the whole tile opens it. The
- * colour a kind wears runs down the left of every group filed under it, so a
+ * colour of a kind runs down the left of every group filed under it, so a
  * church reading its groups tells a life group from a ministry team before it
  * has read a word. A new kind is given the next hue in the spectrum, and the
  * church changes it in the panel where it changes the name.

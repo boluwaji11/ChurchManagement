@@ -147,7 +147,7 @@ describe("a Sunday with the wifi down (R8.21, R8.23)", () => {
     const codes = visits.map((v) => v.code);
     expect(new Set(codes).size, "a code was issued twice").toBe(codes.length);
 
-    // Each child wears the code their label was printed with at the station.
+    // Each child keeps the code their label was printed with at the station.
     for (const [i, memberId] of offline.entries()) {
       const visit = visits.find((v) => v.memberId === memberId)!;
       expect(visit.code, `child ${i}`).toBe(block.codes[i]);

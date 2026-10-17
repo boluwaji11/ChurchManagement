@@ -4,28 +4,28 @@ import { environment } from "@connectapp/env";
 import type { Health } from "@/components/state-dot";
 
 /**
- * HRT-394, N3. Asking each thing the platform depends on whether it is there.
+ * HRT-394, N3. Liveness probes for every external service the platform depends
+ * on.
  *
- * Read from the far end rather than reasoned about from this one. A key that
- * parses is not a key that works, and the only way to know Stripe will answer
- * is to ask it.
+ * Each probe calls the service rather than inspecting local configuration: a
+ * credential that parses is not a credential that works.
  *
- * Every probe is the cheapest call the provider offers, every probe has its
- * own deadline, and they all go at once: seven services asked one after
- * another is seven timeouts' worth of waiting on the morning everything is
- * down, which is the morning somebody is actually reading this screen.
+ * Each probe uses the cheapest call the provider offers and carries its own
+ * deadline, and all seven run concurrently. Run in sequence, a full outage
+ * would cost seven timeouts of wall-clock time on the one morning the screen
+ * is being read.
  */
 
-/** How long any one service gets to answer. */
+/** Per-probe deadline. */
 const BUDGET_MS = 6_000;
-/** Over this and it is working, slowly, which is worth saying. */
+/** Above this a passing probe is reported as slow rather than healthy. */
 const SLOW_MS = 1_500;
 
 export interface Shape {
   service: string;
-  /** What it is, in the words the screen uses. */
+  /** Display name, as the status screen shows it. */
   label: string;
-  /** One line on what breaks when this is down. */
+  /** What stops working when this service is down. */
   matters: string;
 }
 
@@ -36,12 +36,11 @@ export interface Probe extends Shape {
 }
 
 /**
- * What each service is called and why it matters, apart from the probing.
+ * Display text per service, held separately from the probe results.
  *
- * The status screen draws recorded readings when they are fresh enough, and a
- * recorded reading is a service name and a state. The words belong to the
- * service rather than to the reading, so they are kept here and read from both
- * directions.
+ * A stored reading is only a service name and a state, and the status screen
+ * draws stored readings while they are fresh. Keeping the text here lets both
+ * live and stored readings resolve it.
  */
 export const SHAPE: Shape[] = [
   { service: "database", label: "Database", matters: "Everything. No screen renders without it." },
@@ -56,21 +55,20 @@ export const SHAPE: Shape[] = [
 const words = (service: string): Shape =>
   SHAPE.find((one) => one.service === service) ?? { service, label: service, matters: "" };
 
-/** A fetch that gives up rather than hanging the screen. */
+/** fetch with the probe deadline applied. */
 async function ask(url: string, init: RequestInit = {}): Promise<Response> {
   const stop = AbortSignal.timeout(BUDGET_MS);
   return fetch(url, { ...init, signal: stop, cache: "no-store" });
 }
 
 /**
- * A probe that cannot answer in time answers anyway.
+ * Resolve with `whenLate` if `work` has not settled within `ms`.
  *
- * Every fetch here already carries its own AbortSignal, and that is not
- * enough: a database connection is not a fetch, and postgres.js will wait on
- * the connection pool for as long as the pool makes it wait. The health route
- * on Vercel hung for five minutes and returned nothing at all, which is the
- * one thing a status check must never do. A deadline that reports a service as
- * not answering is information; a request that never returns is not.
+ * The AbortSignal on each fetch is not sufficient. A database connection is
+ * not a fetch, and postgres.js waits on the connection pool without a deadline
+ * of its own. Without this wrapper the health route hung for five minutes on
+ * Vercel and returned nothing: a status check that never returns reports less
+ * than one that reports a service as unreachable.
  */
 export function within<T>(ms: number, work: Promise<T>, whenLate: T): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
@@ -80,7 +78,7 @@ export function within<T>(ms: number, work: Promise<T>, whenLate: T): Promise<T>
   return Promise.race([work, late]).finally(() => clearTimeout(timer));
 }
 
-/** Time one probe and turn anything it throws into a state. */
+/** Run one probe, time it, and map anything it throws to a failed state. */
 async function timed(
   service: string,
   work: () => Promise<{ state: Health; said?: string | null }>,
@@ -89,8 +87,8 @@ async function timed(
   try {
     const answer = await work();
     const tookMs = Date.now() - started;
-    /* Working and slow is its own answer. A probe that takes four seconds is
-       telling you something a green light would hide. */
+    /* Report a slow pass as a warning. A four-second response is a signal
+       that a green light would hide. */
     const state: Health =
       answer.state === "pass" && tookMs > SLOW_MS ? "warn" : answer.state;
     return {
@@ -105,7 +103,8 @@ async function timed(
       ...words(service),
       state: "fail",
       tookMs: Date.now() - started,
-      /* A timeout says "The operation was aborted", which names nothing. */
+      /* An abort reads as "The operation was aborted", which names no
+         service and no deadline. Replace it with both. */
       said: said.includes("abort") || said.includes("timeout")
         ? `No answer inside ${BUDGET_MS / 1000}s`
         : said,
@@ -117,14 +116,14 @@ const off = (service: string, said: string): Probe => ({
   ...words(service), state: "off", tookMs: null, said,
 });
 
-/** The database the whole product is. */
+/** Check database availability. */
 const database = () =>
   timed("database", async () => {
     const rows = await owner()<{ ok: number }[]>`select 1 as ok`;
     return { state: rows[0]?.ok === 1 ? "pass" : "fail" };
   });
 
-/** Supabase Auth, which is the only way anybody signs in. */
+/** Check Supabase Auth, which every sign-in depends on. */
 const supabase = () => {
   const url = process.env["SUPABASE_URL"] ?? process.env["NEXT_PUBLIC_SUPABASE_URL"];
   const key =
@@ -195,10 +194,10 @@ const resend = () => {
 /**
  * Upstash, which rate-limits the public support form.
  *
- * Not this portal's door: the sign-in throttle here counts rows in
- * platform_sign_ins and needs nothing outside the database. This is probed
- * because the portal watches the platform rather than itself, and a support
- * form with no limiter in front of it is a mailbox anybody can fill.
+ * This portal's own sign-in throttle does not use it: that counts rows in
+ * platform_sign_ins and needs nothing outside the database. Upstash is probed
+ * because the portal watches the platform rather than itself, and the public
+ * support form accepts unlimited submissions without a limiter in front.
  */
 const redis = () => {
   const url = process.env["UPSTASH_REDIS_REST_URL"];
@@ -219,10 +218,11 @@ const redis = () => {
 };
 
 /**
- * The product itself, from the outside.
+ * End-to-end check of the product over the public internet.
  *
- * The one probe that proves the whole path rather than one dependency: DNS,
- * the certificate, Vercel, the app, and a render that reaches the database.
+ * The only probe that covers the whole path rather than a single dependency:
+ * DNS, the certificate, Vercel, the application, and a render that reaches the
+ * database.
  */
 const web = () => {
   const host = process.env["PLATFORM_HOST"];
@@ -241,13 +241,13 @@ const web = () => {
 };
 
 /**
- * HRT-394, R16.6. The send queue's worker, which is the one piece of this
- * product that can be dead while every screen looks fine.
+ * HRT-394, R16.6. The send queue worker, which can be dead while every screen
+ * still renders correctly.
  *
- * Nothing to call: the worker is a GitHub Actions schedule, and what it leaves
- * behind is the evidence. Rows claimed over an hour ago and never finished
- * mean a worker was killed part way through; a queue with something in it and
- * nothing moving means the schedule has stopped.
+ * The worker is a GitHub Actions schedule, so there is no endpoint to call.
+ * Its state is inferred from the rows it leaves behind: rows claimed over an
+ * hour ago and never finished mean a worker was killed part way through, and a
+ * non-empty queue with nothing moving means the schedule has stopped.
  */
 const queue = () =>
   timed("queue", async () => {

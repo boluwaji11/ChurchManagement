@@ -50,7 +50,7 @@ function read(body: string, signature: string, secret: string) {
  * Every type here means the same thing to this product: the account is not
  * what we last wrote down. Rather than mapping each v2 shape, the account is
  * read back through the v1 view, which is the shape the rest of the product
- * and the gift webhook already speak, and which `syncStripe` uses too.
+ * and the gift webhook already use, and which `syncStripe` uses too.
  */
 const ABOUT_THE_ACCOUNT = new Set([
   "v2.core.account.updated",

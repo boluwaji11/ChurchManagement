@@ -22,7 +22,7 @@ export async function generateMetadata() {
  * HRT-291, R16.4. The messages a church writes once.
  *
  * Beside the service templates in spirit, in the church's own section here
- * because it belongs with how the church speaks for itself. The composer
+ * because it belongs with the church's own outbound messages. The composer
  * starts from one; nothing on this screen sends anything.
  */
 export default async function EmailTemplatesPage({

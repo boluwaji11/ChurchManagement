@@ -66,7 +66,7 @@ function Address({ value }: { value: string }) {
  *
  * One card read top to bottom, because that is the order a church does it in:
  * connect Stripe, hand out the address, put the code on the bulletin. The
- * thread down the left says so, and a step that is behind them wears green.
+ * thread down the left says so, and a completed step is drawn in green.
  */
 /**
  * What the action came back with, as a sentence.

@@ -77,7 +77,7 @@ describe("the sidebar", () => {
 
   /*
    * R3.1. The church's records are staff work. Everybody else reads what the
-   * church chose to publish, in the portal, which wears its own row of tabs:
+   * church chose to publish, in the portal, which has its own row of tabs:
    * this list never offers them a directory of their own.
    */
   it("offers the records to staff and a directory to nobody else", () => {

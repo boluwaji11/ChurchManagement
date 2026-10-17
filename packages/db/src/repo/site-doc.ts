@@ -77,7 +77,7 @@ export type LinkTarget =
 export interface SiteLink {
   label: string;
   to: LinkTarget;
-  /** Which of the theme's two button languages it speaks. */
+  /** Button appearance: the theme's primary or secondary style. */
   tone?: "primary" | "secondary" | "quiet";
 }
 
