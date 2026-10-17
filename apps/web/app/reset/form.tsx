@@ -16,13 +16,15 @@ export function ResetForm() {
     (data: FormData): Errors => ({
       password: check(
         String(data.get("password") ?? ""),
-        minLength(PASSWORD_LENGTH, t("signUp.password").toLowerCase()),
+        /* Not lowered: this message opens with the field's name, so it is
+           the first word of the sentence. "Enter {what}" below is not. */
+        minLength(PASSWORD_LENGTH, t("signUp.password")),
       ),
     }),
     [],
   );
 
-  const { formRef, errors, pending, ready, action, revalidate } = useValidatedForm(
+  const { formRef, errors, pending, ready, action, revalidate, touch } = useValidatedForm(
     validate,
     async (data) => {
       const result = await setPassword(data);
@@ -36,6 +38,7 @@ export function ResetForm() {
       action={action}
       noValidate
       onInput={revalidate}
+      onBlur={touch}
       className="flex flex-col gap-4"
     >
       {failed ? <Banner tone="danger">{failed}</Banner> : null}

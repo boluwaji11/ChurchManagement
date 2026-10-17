@@ -7,6 +7,7 @@ import { syncUserAndAcceptInvitations } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
 import { explainAuth } from "@/lib/auth-errors";
+import { PASSWORD_LENGTH } from "@/lib/password";
 
 async function origin() {
   const h = await headers();
@@ -21,10 +22,17 @@ const taken = (email: string, next: string): never =>
     `/sign-in?taken=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`,
   );
 
-const fail = (message: string, next?: string): never =>
-  redirect(
-    `/sign-up?error=${encodeURIComponent(message)}${next ? `&next=${encodeURIComponent(next)}` : ""}`,
-  );
+/**
+ * R1.7, R22.1. A form that was refused comes back as a message, not a
+ * redirect.
+ *
+ * Sending the browser back to /sign-up with the reason in the query reloads
+ * the screen, which empties every box on it: somebody who typed ten characters
+ * where the password wanted more retyped their name, their surname and their
+ * address as well. The message goes back to the form instead, and the form is
+ * still standing.
+ */
+const fail = (message: string): { error: string } => ({ error: message });
 
 /**
  * R1.7, R22.1. Making an account.
@@ -33,7 +41,7 @@ const fail = (message: string, next?: string): never =>
  * matched to a verified address, and a church's first owner is granted to one.
  * So this sends a confirmation and nothing happens until they open it.
  */
-export async function signUp(data: FormData) {
+export async function signUp(data: FormData): Promise<{ error?: string } | void> {
   const email = String(data.get("email") ?? "").trim().toLowerCase();
   const password = String(data.get("password") ?? "");
   const firstName = String(data.get("firstName") ?? "").trim().replace(/\s+/g, " ");
@@ -41,9 +49,9 @@ export async function signUp(data: FormData) {
   const fullName = [firstName, lastName].filter(Boolean).join(" ");
   const next = String(data.get("next") ?? "") || "/choose-church";
 
-  if (!firstName || !lastName) return fail(t("signUp.error.name"), next);
-  if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email)) return fail(t("signUp.error.email"), next);
-  if (password.length < 10) return fail(t("signUp.error.password"), next);
+  if (!firstName || !lastName) return fail(t("signUp.error.name"));
+  if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email)) return fail(t("signUp.error.email"));
+  if (password.length < PASSWORD_LENGTH) return fail(t("signUp.error.password"));
 
   const supabase = await supabaseServer();
   const { data: created, error } = await supabase.auth.signUp({
@@ -59,7 +67,7 @@ export async function signUp(data: FormData) {
     if (/already registered|already exists|user_already_exists/i.test(error.message)) {
       return taken(email, next);
     }
-    return fail(explainAuth(error), next);
+    return fail(explainAuth(error));
   }
 
   // With confirmations on, Supabase answers an address that already has an
