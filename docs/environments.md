@@ -129,6 +129,26 @@ gates are both exercised by accounts that exist.
 **A migration is written once and applied to both.** Development first, because that is where it is
 allowed to be wrong.
 
+## Signing in to the sandbox
+
+The two environments hold separate Supabase projects, so an address that signs in to production
+does not exist in development at all. It reads as though it might, though, and a password typed
+into the wrong one of two identical doors is a mistake worth designing out.
+
+So the sandbox has an address of its own, with no counterpart in production:
+
+```
+pnpm --filter @connectapp/db dev:account          # prints a password
+pnpm --filter @connectapp/db dev:account <chosen> # or set one
+```
+
+`dev@connectapp.church` opens `dev.connectapp.church` and `dev-admin.connectapp.church`. The script
+refuses to run against production.
+
+Every screen outside production carries a **Sandbox** bar across the top of the window. The word is
+the same whatever the deployment calls itself: Vercel says preview, this repository says
+development, and three names for one thing is how somebody ends up unsure which they are looking at.
+
 ## What production is owed
 
 One command, run from a desk holding the production database URL:

@@ -23,18 +23,9 @@ import type { TeamMember } from "@/lib/admin";
  * scrolling sideways means the four past the edge are found by dragging, and
  * a reader cannot see how many there are.
  */
-export function TopBar({
-  who,
-  environment,
-  productionData,
-}: {
-  who: TeamMember;
-  environment: string;
-  productionData: boolean;
-}) {
+export function TopBar({ who }: { who: TeamMember }) {
   const pathname = usePathname();
   const active = activeHref(pathname);
-  const live = environment === "production" && productionData;
 
   return (
     <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-shell-line bg-shell px-3 py-2 text-shell-fg md:hidden">
@@ -45,12 +36,6 @@ export function TopBar({
       <span className="min-w-0 flex-1 truncate text-right text-[13px] font-medium text-shell-muted">
         {screenName(pathname)}
       </span>
-
-      {live ? null : (
-        <span className="shrink-0 rounded-md bg-accent px-2 py-0.5 text-[11px] font-semibold tracking-[0.06em] text-accent-fg uppercase">
-          {environment}
-        </span>
-      )}
 
       <DropdownMenu>
         <DropdownMenuTrigger

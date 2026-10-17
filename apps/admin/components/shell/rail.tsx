@@ -45,16 +45,12 @@ const MARKS: Record<string, React.ComponentType<{ className?: string }>> = {
 export function Rail({
   who,
   collapsed: initial,
-  environment,
-  productionData,
   onNavigate,
   floating,
 }: {
   who: TeamMember;
   collapsed: boolean;
-  environment: string;
   /** Whether this portal is pointed at the churches' own records. */
-  productionData: boolean;
   /** Closes the sheet the rail is inside, on a phone. */
   onNavigate?: () => void;
   /** Drawn inside a sheet rather than as the page's own column. */
@@ -127,7 +123,6 @@ export function Rail({
         The portal runs against development as readily as production, and an
         A team member archiving a church needs to know which one they are archiving.
       */}
-      <Here environment={environment} productionData={productionData} shut={shut} />
 
       {shut ? (
         <Tooltip content={toggleLabel} side="right">
@@ -231,50 +226,3 @@ export function Rail({
   );
 }
 
-/**
- * HRT-397. Which environment's records are behind this screen.
- *
- * Production says so quietly, because it is the ordinary case and a warning
- * that fires every time is a warning nobody reads. Anything else is marked in
- * the accent, because a team member who thinks they are in development and is
- * not would archive a real church.
- */
-function Here({
-  environment,
-  productionData,
-  shut,
-}: {
-  environment: string;
-  productionData: boolean;
-  shut: boolean;
-}) {
-  const live = environment === "production" && productionData;
-  const word = live ? "Production" : environment === "production" ? "Production, other data" : environment;
-
-  if (shut) {
-    return (
-      <Tooltip content={word} side="right">
-        <span
-          className={cn(
-            "mx-auto size-2.5 shrink-0 rounded-full",
-            live ? "bg-shell-muted" : "bg-accent",
-          )}
-        >
-          <span className="sr-only">{word}</span>
-        </span>
-      </Tooltip>
-    );
-  }
-
-  return (
-    <span
-      className={cn(
-        "flex h-7 shrink-0 items-center gap-2 rounded-md px-2.5 text-[12px] font-semibold tracking-[0.06em] uppercase",
-        live ? "bg-shell-line text-shell-muted" : "bg-accent text-accent-fg",
-      )}
-    >
-      <span aria-hidden className="size-1.5 rounded-full bg-current" />
-      {word}
-    </span>
-  );
-}

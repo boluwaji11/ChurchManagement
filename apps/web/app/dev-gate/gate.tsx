@@ -22,14 +22,14 @@ export function Gate({
   return (
     <main className="site-wash grid min-h-dvh place-items-center px-6 py-10">
       <div className="flex w-full max-w-[420px] flex-col gap-5 rounded-[16px] border border-line bg-surface p-7">
-        <p className="m-0 text-caption font-semibold tracking-[0.08em] text-ember-800 uppercase">
-          ● Development
+        <p className="m-0 text-caption font-semibold tracking-[0.14em] text-ember-800 uppercase">
+          ● Sandbox
         </p>
 
         {!email ? (
           <>
             <h1 className="m-0 text-[22px] font-semibold text-fg">
-              This site is for the ConnectApp team
+              This is a managed site
             </h1>
             <Button asChild>
               <Link href={`/sign-in?next=${encodeURIComponent(`/dev-gate?next=${next}`)}`}>
@@ -40,7 +40,7 @@ export function Gate({
         ) : !onTheTeam ? (
           <>
             <h1 className="m-0 text-[22px] font-semibold text-fg">
-              This site is for the ConnectApp team
+              This is a managed site
             </h1>
             <p className="m-0 text-[length:var(--d-text-body)] text-fg-muted">
               {email} is not on it.
