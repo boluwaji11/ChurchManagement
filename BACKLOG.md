@@ -146,7 +146,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-386 | The church says whether Stripe granted it the nonprofit rate, and the covered fee is worked out from it | R13.5 | Resolved |
 | HRT-387 | One refresh of a church's Resend grant at a time, and a quiet church's grant renewed before it lapses | R16.1 | Resolved |
 | HRT-388 | A church is welcomed when it is created and told when it is approved | R1.1, R22.1 | Resolved |
-| HRT-389 | The invitation email draws itself from the shared brand shell | R16.4 | New |
+| HRT-389 | The invitation email draws itself from the shared brand shell | R16.4 | Resolved |
 
 The pass against the reference screens, October 2026. Phase A builds the vocabulary once,
 B puts it in the shell, C applies it a screen at a time, D adds what the reference has and
