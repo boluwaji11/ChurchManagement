@@ -40,7 +40,6 @@ Packages:
 | `packages/i18n` | The message catalogue, `t`, `plural`, spelling and region resolution |
 | `packages/mail` | Transactional email markup and the send path |
 | `packages/env` | Environment declaration and the credential guard |
-| `packages/songs` | The song domain from the earlier Stage plan. Nothing imports it. See [repository-inventory.md](repository-inventory.md) |
 
 ## Data access
 

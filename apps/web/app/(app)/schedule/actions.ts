@@ -5,9 +5,9 @@ import {
   addPosition, updatePosition, setPositionArchived,
   addToTeam, removeFromTeam, setTeamMemberRole, setTeamMemberPositions,
   lookupPeople, listPeople, getChurch,
-  assign, unassign, candidatesFor, addBlockout, removeBlockout, setServingPreference,
+  assign, unassign, candidatesFor,
   userForPerson,
-  type TeamRole, type TagHue, type PlanCandidate, type ServingFrequency,
+  type TeamRole, type TagHue, type PlanCandidate,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { explain } from "@/lib/explain";
@@ -264,46 +264,4 @@ export async function whoCouldFill(
   }
 }
 
-export interface AvailabilityResult {
-  error?: string;
-}
 
-export async function saveBlockout(data: FormData): Promise<AvailabilityResult> {
-  const { actor, ctx } = await context();
-  try {
-    await withTenant(ctx, (tx) =>
-      addBlockout(tx, actor, {
-        memberId: field(data, "memberId"),
-        startsOn: field(data, "startsOn"),
-        endsOn: field(data, "endsOn"),
-        reason: optional(data, "reason"),
-      }),
-    );
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-export async function dropBlockout(id: string): Promise<AvailabilityResult> {
-  const { actor, ctx } = await context();
-  try {
-    await withTenant(ctx, (tx) => removeBlockout(tx, actor, id));
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}
-
-export async function saveFrequency(
-  memberId: string,
-  frequency: ServingFrequency | null,
-  ): Promise<AvailabilityResult> {
-  const { actor, ctx } = await context();
-  try {
-    await withTenant(ctx, (tx) => setServingPreference(tx, actor, { memberId, frequency }));
-    return {};
-  } catch (error) {
-    return { error: explain(error) };
-  }
-}

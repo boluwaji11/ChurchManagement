@@ -32,7 +32,6 @@ packages/ui       Design tokens, the token generator, shared components, contras
 packages/i18n     The message catalogue, t, plural, spelling, region resolution
 packages/mail     Transactional email markup and the send path
 packages/env      Environment declaration and the credential guard
-packages/songs    The song domain. Nothing imports it
 docs              43 tracked files, including the October 2026 design prototypes
 scripts           7 files: 4 wired into CI or package scripts, 2 documented, 1 orphan
 drills            Quarterly restore drill census records
@@ -84,15 +83,15 @@ name rather than by filename. Seven files survived both passes.
 
 | Path | Purpose | Status | References | Action | Risk | Evidence |
 |---|---|---|---|---|---|---|
-| `apps/web/app/(bare)/checkin/rooms/incident.tsx` | `IncidentDialog`, filing an incident from the room board | Obsolete | None | DELETE | Low | `IncidentDialog` appears nowhere else. Its directory has no `page.tsx`, so the screen it belonged to is gone. Incidents are filed from `app/(app)/incidents/file-report.tsx` today |
-| `apps/web/app/(bare)/checkin/rooms/actions.ts` | `board()` and `report()` for that screen | Obsolete | `incident.tsx` only | DELETE | Low | `board()` has no caller at all. `report()` has one, the file above. The live supervisor board is `app/(app)/checkin/floor.tsx` |
-| `apps/web/app/(app)/settings/church/domain-reading.tsx` | `DomainReading`, the DNS findings panel | Obsolete | None | DELETE | Low | `DomainReading` appears nowhere else. `settings/church/page.tsx` renders `ChurchSections`, which does not use it |
-| `apps/web/app/(app)/settings/church/domain-help.tsx` | `DomainHelp`, the explanation under those findings | Obsolete | `domain-reading.tsx` only | DELETE | Low | Its only importer is the file above |
-| `apps/web/app/(app)/members/availability.tsx` | `Availability`, blockout dates and serving frequency | Obsolete | None | DELETE | Medium | `Availability` appears nowhere else. It is the only caller of `saveBlockout`, `dropBlockout` and `saveFrequency` in `app/(app)/schedule/actions.ts`, so those three exported server actions die with it. Removing them is a code change beyond this audit and is listed under "Decisions needed" |
-| `apps/web/components/sort-th.tsx` | A wrapper passing `next/link` to the UI `SortTh` | Obsolete | None | DELETE | Low | Screens import `SortTh` from `@connectapp/ui` directly. The only other mention is the `/design` gallery, which also uses the UI component |
-| `apps/web/lib/panel-reset.ts` | `useResetOnClose`, clearing a panel's fields when it shuts | Obsolete | None | DELETE | Low | `useResetOnClose` appears nowhere else |
-| `apps/web/lib/supabase/browser.ts` | `supabaseBrowser()` for sign-in and sign-out | Uncertain | None | DELETE | Medium | `supabaseBrowser` has no caller. Auth happens through server routes (`app/auth/`, `app/api/auth/email/`). Keep if a browser client is wanted for a future client-side sign-in |
-| `apps/admin/lib/supabase/browser.ts` | The same, in the admin portal | Uncertain | None | DELETE | Medium | Same evidence. The portal signs in through `app/auth/verify/route.ts` and `app/join/route.ts` |
+| `apps/web/app/(bare)/checkin/rooms/incident.tsx` | `IncidentDialog`, filing an incident from the room board | Obsolete | None | **DONE.** Deleted | Low | `IncidentDialog` appears nowhere else. Its directory has no `page.tsx`, so the screen it belonged to is gone. Incidents are filed from `app/(app)/incidents/file-report.tsx` today |
+| `apps/web/app/(bare)/checkin/rooms/actions.ts` | `board()` and `report()` for that screen | **Partly wrong. `report()` is live** | `app/(app)/incidents/file-report.tsx` | **DONE.** `board()` and `BoardResult` deleted, `report()` kept | Low | This row originally said the whole file was dead, and it was wrong: `file-report.tsx` imports `report` through the `@/app/...` alias, which the relative-path scan did not match. Typecheck caught it. `board()` genuinely had no caller |
+| `apps/web/app/(app)/settings/church/domain-reading.tsx` | `DomainReading`, the DNS findings panel | Obsolete | None | **DONE.** Deleted | Low | `DomainReading` appears nowhere else. `settings/church/page.tsx` renders `ChurchSections`, which does not use it |
+| `apps/web/app/(app)/settings/church/domain-help.tsx` | `DomainHelp`, the explanation under those findings | Obsolete | `domain-reading.tsx` only | **DONE.** Deleted | Low | Its only importer is the file above |
+| `apps/web/app/(app)/members/availability.tsx` | `Availability`, blockout dates and serving frequency | Obsolete | None | **DONE.** Deleted, with its three server actions and ten catalogue keys | Medium | `Availability` appears nowhere else. It is the only caller of `saveBlockout`, `dropBlockout` and `saveFrequency` in `app/(app)/schedule/actions.ts`, so those three exported server actions die with it. Removing them is a code change beyond this audit and is listed under "Decisions needed" |
+| `apps/web/components/sort-th.tsx` | A wrapper passing `next/link` to the UI `SortTh` | Obsolete | None | **DONE.** Deleted | Low | Screens import `SortTh` from `@connectapp/ui` directly. The only other mention is the `/design` gallery, which also uses the UI component |
+| `apps/web/lib/panel-reset.ts` | `useResetOnClose`, clearing a panel's fields when it shuts | Obsolete | None | **DONE.** Deleted | Low | `useResetOnClose` appears nowhere else |
+| `apps/web/lib/supabase/browser.ts` | `supabaseBrowser()` for sign-in and sign-out | Uncertain | None | **DONE.** Deleted | Medium | `supabaseBrowser` has no caller. Auth happens through server routes (`app/auth/`, `app/api/auth/email/`). Keep if a browser client is wanted for a future client-side sign-in |
+| `apps/admin/lib/supabase/browser.ts` | The same, in the admin portal | Uncertain | None | **DONE.** Deleted | Medium | Same evidence. The portal signs in through `app/auth/verify/route.ts` and `app/join/route.ts` |
 
 ### Operational scripts
 
@@ -200,13 +199,15 @@ not a reason to remove them.
 | Path | Finding | Action | Risk |
 |---|---|---|---|
 | `.nvmrc` | Said `24` while CI pins `NODE_VERSION: "22"` | **DONE.** Now 22 | Low |
-| `packages/songs` | 19 files, full test suite, nothing in this repository imports it | ARCHIVE or DELETE, needs a decision | Medium |
+| `packages/songs` | 19 files, full test suite, nothing imported it | **DONE.** Deleted. Stage's own package is a strict superset | Medium |
 | `.github` | No issue template, though four discussion templates exist | Optional | Low |
 
-`packages/songs` is the one genuinely open question. It is the song domain from the plan where this
-repository owed Stage a shared library. Stage now has its own, so nothing here imports the package,
-but it is complete, tested, and the specification in PRD section 9.4 still describes its shape. It is
-in the workspace, so it typechecks and tests on every CI run. Listed under "Decisions needed".
+`packages/songs` was the one genuinely open question and is now closed. It was the song domain from
+the plan where this repository owed Stage a shared library. Stage has its own, at
+https://github.com/boluwaji11/HearthStage, and that one is a strict superset: 4,117 lines against
+1,876, with every file we had plus CCLI export, chords, hymns, OpenLyrics, paste, presentation and
+setlist. Deleting ours removed a duplicate rather than a capability, and took one task off every CI
+run. The shape in PRD section 9.4 still stands as the specification if songs ever come back here.
 
 ## Preserved without question
 
@@ -225,20 +226,27 @@ Not touched by this overhaul, and not candidates for anything:
 
 ## Decisions needed
 
-**Nothing in this section has been acted on. Each one needs your approval.**
+**All three were approved on 17 October 2026 and are done.** What follows is the record of each
+decision and what it cost.
 
-1. **Delete the nine dead application files** listed under "Dead application code". Each was
-   confirmed twice: once by a scan for modules with no importer, once by searching for the exported
-   symbol by name. The two Supabase browser clients are the only ones with a plausible future use,
-   so they could be kept while the other seven go.
-2. **Remove `saveBlockout`, `dropBlockout` and `saveFrequency`** from
-   `apps/web/app/(app)/schedule/actions.ts` if `members/availability.tsx` goes. They have no other
-   caller. The alternative is to keep both and give `Availability` a screen again, since blockout
-   dates are a real R10.x requirement with no other UI. That is a product decision rather than a
-   cleanup one.
-3. **`packages/songs`:** archive it, delete it, or keep it as the specification's reference
-   implementation. Nothing imports it, Stage has its own library, and it costs a typecheck and a
-   test run per CI build. Its header now says all of this, so leaving it costs nothing but noise.
+1. **The nine dead application files: eight deleted, one corrected.** `rooms/actions.ts` was not
+   dead. `app/(app)/incidents/file-report.tsx` imports its `report` function through the `@/app/...`
+   alias, and the scan that produced this inventory matched relative paths only. Typecheck caught
+   it within a minute of the deletion. The file is restored with `report` intact, and only the
+   genuinely unreferenced `board()` and `BoardResult` were removed from it. **The lesson is the one
+   this document already recorded for the SVGs: a missing static import is evidence, not proof.**
+2. **The three server actions: deleted, and one gap recorded.** Blockout dates were confirmed
+   working on the member's own side first: `/home/schedule` renders `away.tsx`, which calls
+   `addAway` and `removeAway` in `app/(app)/home/actions.ts`. Those are untouched. Serving
+   frequency is the part that had no other home, and `tenant_members.serving_frequency` is still
+   read by the scheduler to raise `plan.warning.tooSoon`. The field was already unsettable, because
+   the only screen that wrote it had no route, so the deletion changes nothing that worked. It is
+   now **HRT-404** on the board.
+3. **`packages/songs`: resolved, deleted.** The Stage repository already holds a `packages/songs`
+   that is a strict superset: 4,117 lines against 1,876, every one of our nine files present plus
+   eleven more (CCLI export, chords, hymns, OpenLyrics, paste, presentation, setlist). The only
+   export Stage appeared to lack, `sundayService`, is there as `sampleService`. Moving it would
+   have created a duplicate, so it was removed here.
 
 Done since this file was written, and recorded in place above: the four finished repair scripts
 moved to `packages/db/scripts/historical/`, the nine design prototypes renamed, five development

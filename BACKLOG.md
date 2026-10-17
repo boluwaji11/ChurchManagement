@@ -1106,6 +1106,7 @@ of money and after everything else.
 | HRT-367 | The setup guide walks beside the church, on every screen, and says what to press | R22.1, R22.2, R22.3 | Resolved |
 | HRT-368 | A church writes down the times it meets | R22.1, R3.1 | Resolved. The premise was wrong: it already can |
 | HRT-369 | A check-in dry run before the first service day | R8.x, R22.1 | New |
+| HRT-404 | A volunteer's serving frequency has no writer | R10.x | New |
 | HRT-370 | The invitation reaches the person it names | R1.7, R16.4, R22.1 | Resolved |
 | HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | Resolved |
 | HRT-372 | An invitation is ConnectApp's own mail, so it sends on day one | R16.4, R22.1 | Resolved |
@@ -4362,6 +4363,26 @@ first service, and the step should settle.
 **What to take from it.** A function with no callers is not the same as a capability with no
 screen. The check that would have caught it is the one that was eventually run: open the screen and
 do the thing.
+
+### HRT-404, serving frequency has no writer
+
+Found while deleting dead code in October 2026, and the same shape as HRT-368.
+
+`tenant_members.serving_frequency` is read by the scheduler: `plan.warning.tooSoon` warns
+"Served {day}, asked for {frequency}" when somebody is put on a service sooner than their
+preference allows. Nothing in the product can set it. The only writer was `setServingPreference`,
+reached through `saveFrequency` in `app/(app)/schedule/actions.ts`, which was called only from
+`app/(app)/members/availability.tsx`, and that screen had no route and no importer.
+
+So the field is always null, the warning can never fire, and the deletion of the dead screen does
+not cause that: it was already true, because the screen was unreachable.
+
+Blockout dates are fine and are not part of this. Members set their own at `/home/schedule`
+through `away.tsx`, using `addAway` and `removeAway`, which are live and working.
+
+What this story is: decide where a serving frequency is set. The candidates are the member's own
+schedule screen beside their blackout dates, or the team roster where a leader manages the people
+on a team. Then wire it, or drop `serving_frequency` and `plan.warning.tooSoon` with it.
 
 ### HRT-369, what it is for
 
