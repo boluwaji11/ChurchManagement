@@ -95,6 +95,15 @@ export interface ConnectEmail {
 }
 
 /**
+ * HRT-387, R16.1. How long Resend gives a refresh token, in days.
+ *
+ * Every exchange resets it. The worker refreshes a quiet church's grant
+ * before the end rather than letting it lapse, because a lapsed grant cannot
+ * be recovered from this side: the church has to connect Resend again.
+ */
+export const GRANT_DAYS = 60;
+
+/**
  * R16.1, R21.15. Writing down a connection that has already been proved.
  *
  * Proved first, written second. The caller talks to the mail server or to
@@ -122,6 +131,15 @@ export async function connectEmailProvider(
     fromName: input.fromName,
     fromAddress: input.fromAddress,
     settings: input.settings ?? {},
+    /*
+     * HRT-387, R16.1. Resend's refresh token lasts sixty days and every
+     * exchange resets them, so the clock starts here. A church's own mail
+     * server has no expiry, and its password is good until it changes it.
+     */
+    credentialExpiresAt:
+      input.vendor === "resend"
+        ? new Date(now.getTime() + GRANT_DAYS * 86_400_000)
+        : null,
     connectedAt: now,
     connectedBy: actor.userId ?? null,
     lastVerifiedAt: now,

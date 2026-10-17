@@ -1,7 +1,7 @@
 import "server-only";
 import {
   withTenant,
-  emailCredentialForSend, storeTokens, markEmailTrouble,
+  emailCredentialForSend, storeTokens, markEmailTrouble, underGrantLock, accountFor,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { sendBySmtp, sendByResend, sender, type Message } from "@/lib/email-provider";
@@ -75,22 +75,37 @@ export async function sendAsChurch(
      * this path did not.
      */
     let token = held.access;
+    let said = "";
 
     if (!token) {
-      const fresh = await refreshTokens(clientId, held.credential);
-      if (!fresh.ok) return fresh;
+      /* HRT-387. One refresh at a time across the deployment, because the
+         slower of two is the one that replays a spent token. */
+      token = await underGrantLock(session.tenantId, async () => {
+        /* Whoever we waited for has usually just refreshed, and what they
+           wrote is the token to use rather than a reason to refresh again. */
+        const now = await accountFor(session.tenantId);
+        if (now?.access) return now.access;
 
-      /* Both halves of the exchange in one statement: a rotated refresh token
-         written without its access token would be refreshed again next time
-         for no reason, and an access token written without it would leave the
-         spent one in the column. */
-      await storeTokens(session.tenantId, {
-        refresh: fresh.tokens.refreshToken,
-        access: fresh.tokens.accessToken,
-        seconds: fresh.tokens.expiresIn,
+        const fresh = await refreshTokens(clientId, now?.credential ?? held.credential);
+        if (!fresh.ok) {
+          said = fresh.said;
+          return null;
+        }
+
+        /* Both halves of the exchange in one statement: a rotated refresh
+           token written without its access token would be refreshed again
+           next time for no reason, and an access token written without it
+           would leave the spent one in the column. */
+        await storeTokens(session.tenantId, {
+          refresh: fresh.tokens.refreshToken,
+          access: fresh.tokens.accessToken,
+          seconds: fresh.tokens.expiresIn,
+        });
+        return fresh.tokens.accessToken;
       });
-      token = fresh.tokens.accessToken;
     }
+
+    if (!token) return { ok: false as const, said: said || t("email.said.busy") };
 
     return sendByResend(token, whole);
   })();

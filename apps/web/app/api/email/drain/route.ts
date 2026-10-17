@@ -1,4 +1,4 @@
-import { drain, checkVerdicts } from "@/lib/send-worker";
+import { drain, checkVerdicts, keepGrantsAlive } from "@/lib/send-worker";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -20,5 +20,11 @@ export async function GET(request: Request): Promise<Response> {
      is cheap and only asks about copies sent in the last day and a half. */
   const sent = await drain();
   const checked = await checkVerdicts();
-  return Response.json({ ...sent, ...checked });
+
+  /* HRT-387, R16.1. A church that has sent nothing for two months would lose
+     its Resend grant, and nothing on this side can get it back. This renews
+     the ones near the end, which is usually none of them. */
+  const grants = await keepGrantsAlive();
+
+  return Response.json({ ...sent, ...checked, ...grants });
 }

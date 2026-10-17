@@ -5633,6 +5633,7 @@ export const en = {
   "email.said.refused": "Resend was not given permission, so nothing changed",
   "email.said.expired": "That took too long. Press Connect Resend and go through it again",
   "email.said.exchange": "Resend would not finish the connection. Try again",
+  "email.said.busy": "Another send is renewing the connection to Resend. Try again in a moment",
   "email.said.domain": "Resend would not take that domain",
   "email.said.domainNamed": "Resend would not take {domain}. It said: {why}",
   "email.said.domainTaken": "This domain is already registered with Resend. Check your existing connection before trying again.",

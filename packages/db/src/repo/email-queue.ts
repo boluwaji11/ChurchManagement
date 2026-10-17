@@ -5,6 +5,7 @@ import { emailSends, emailRecipients, contactConsent, churchProviders } from "..
 import { contactMethods } from "../schema/members";
 import { tenants } from "../schema/tenancy";
 import { openCredential, sealCredential, CREDENTIAL_KEY_ID } from "../crypto";
+import { GRANT_DAYS } from "./providers";
 
 /**
  * HRT-141, R16.6. The queue behind a send.
@@ -428,6 +429,9 @@ export async function storeTokens(
       credentialKeyId: CREDENTIAL_KEY_ID,
       accessToken: sealCredential(tokens.access),
       accessExpires: new Date(Date.now() + tokens.seconds * 1000),
+      /* HRT-387, R16.1. Resend gives the new refresh token sixty days and
+         resets them on every exchange, so the clock starts again here. */
+      credentialExpiresAt: new Date(Date.now() + GRANT_DAYS * 86_400_000),
       updatedAt: new Date(),
     })
     .where(
@@ -588,4 +592,77 @@ export async function recordVerdict(
     .update(contactConsent)
     .set({ state: "withdrawn", source: "portal", withdrawnAt: new Date(), updatedAt: new Date() })
     .where(and(mine, eq(contactConsent.channel, "email")));
+}
+
+
+/** Churches whose grant runs out within `days`, soonest first. */
+export async function grantsRunningOut(days: number): Promise<string[]> {
+  const rows = await owner()<{ tenantId: string }[]>`
+    select tenant_id as "tenantId"
+      from church_providers
+     where channel = 'email'
+       and vendor = 'resend'
+       and state = 'connected'
+       and credential is not null
+       and credential_expires_at is not null
+       and credential_expires_at < now() + make_interval(days => ${days})
+     order by credential_expires_at asc
+     limit 50`;
+  return rows.map((one) => one.tenantId);
+}
+
+/**
+ * HRT-387, R16.1. One refresh of a church's grant at a time, across the
+ * whole deployment.
+ *
+ * Resend issues a new refresh token on every exchange, refuses a spent one
+ * and revokes the grant when one is replayed. Two things refreshing the same
+ * church at the same moment is therefore not a race that loses a message, it
+ * is a race that disconnects the church: the slower of them presents a token
+ * the faster one has already spent.
+ *
+ * A Postgres advisory lock is what makes it one at a time, and it has to be
+ * taken and released on the same connection, so one is reserved for the
+ * length of it rather than borrowed from the pool per statement.
+ *
+ * `work` is expected to re-read the credential once it holds the lock: the
+ * process it waited for has usually just refreshed, and the token it wrote is
+ * the one to use rather than a reason to refresh again.
+ */
+export async function underGrantLock<T>(
+  tenantId: string,
+  work: () => Promise<T>,
+): Promise<T | null> {
+  const sql = owner();
+  const held = await sql.reserve();
+
+  try {
+    /*
+     * Asked for rather than waited on, so a connection is never held behind
+     * a refresh that has stalled against Resend. The caller's own retry is
+     * the next message or the next pass of the worker.
+     */
+    const deadline = Date.now() + 15_000;
+    for (;;) {
+      const [got] = await held<{ ok: boolean }[]>`
+        select pg_try_advisory_lock(
+          hashtext('connectapp.email-grant'), hashtext(${tenantId})
+        ) as ok`;
+
+      if (got?.ok) break;
+      if (Date.now() >= deadline) return null;
+      await new Promise((rest) => setTimeout(rest, 250));
+    }
+
+    try {
+      return await work();
+    } finally {
+      await held`
+        select pg_advisory_unlock(
+          hashtext('connectapp.email-grant'), hashtext(${tenantId})
+        )`;
+    }
+  } finally {
+    held.release();
+  }
 }

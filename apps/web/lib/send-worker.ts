@@ -1,6 +1,7 @@
 import "server-only";
 import {
   dueSends, claimBatch, settle, noteRef, closeIfDone, reclaimStuck, accountFor, storeTokens,
+  underGrantLock, grantsRunningOut,
   awaitingVerdict, recordVerdict,
   type DueSend, type Waiting,
 } from "@connectapp/db";
@@ -139,18 +140,11 @@ async function readyAccount(send: DueSend) {
     const clientId = resendClientId();
     if (!clientId) return null;
 
-    const fresh = await refreshTokens(clientId, held.credential);
-    if (!fresh.ok) {
-      console.error("[send] the account could not be refreshed", fresh.said);
-      return null;
-    }
-
-    await storeTokens(send.tenantId, {
-      refresh: fresh.tokens.refreshToken,
-      access: fresh.tokens.accessToken,
-      seconds: fresh.tokens.expiresIn,
-    });
-    token = fresh.tokens.accessToken;
+    /* HRT-387. One refresh at a time across the deployment: the slower of two
+       is the one that replays a spent token, and Resend answers a replay by
+       revoking the whole grant. */
+    token = await renewGrant(send.tenantId, clientId);
+    if (!token) return null;
   }
 
   return {
@@ -303,4 +297,82 @@ export async function checkVerdicts(limit = 60): Promise<{ looked: number; asked
   }
 
   return { looked: waiting.length, asked };
+}
+
+
+/**
+ * HRT-387, R16.1. A fresh access token for one church, taken once.
+ *
+ * Under the lock, because Resend issues a new refresh token on every exchange
+ * and revokes the whole grant when a spent one is presented. Whatever this
+ * waited for has usually just refreshed, so the credential is read again
+ * rather than assumed stale.
+ */
+async function renewGrant(tenantId: string, clientId: string): Promise<string | null> {
+  return underGrantLock(tenantId, async () => {
+    const now = await accountFor(tenantId);
+    if (!now?.credential) return null;
+    if (now.access) return now.access;
+
+    const fresh = await refreshTokens(clientId, now.credential);
+    if (!fresh.ok) {
+      console.error("[send] the account could not be refreshed", fresh.said);
+      return null;
+    }
+
+    await storeTokens(tenantId, {
+      refresh: fresh.tokens.refreshToken,
+      access: fresh.tokens.accessToken,
+      seconds: fresh.tokens.expiresIn,
+    });
+    return fresh.tokens.accessToken;
+  });
+}
+
+/**
+ * HRT-387, R16.1. Keeping a quiet church's connection to Resend alive.
+ *
+ * A refresh token lasts sixty days and every exchange resets them, so a
+ * church that sends nothing over a summer loses its grant without anybody
+ * doing anything wrong, and the first send in September fails with no way
+ * back except connecting Resend again. Nothing on our side can recover it.
+ *
+ * So the grant is refreshed before it runs out rather than when it is needed.
+ * A fortnight's margin means a deployment that is down for a few days still
+ * catches every grant, and refreshing is cheap: one exchange a church every
+ * forty-six days.
+ */
+export async function keepGrantsAlive(): Promise<{ renewed: number }> {
+  const clientId = resendClientId();
+  if (!clientId) return { renewed: 0 };
+
+  let renewed = 0;
+  for (const tenantId of await grantsRunningOut(14)) {
+    /*
+     * A grant whose access token is still good is skipped by `renewGrant`,
+     * which would leave it to lapse, so the refresh token is the thing asked
+     * for here. Forcing it is the whole point of this pass.
+     */
+    const done = await underGrantLock(tenantId, async () => {
+      const held = await accountFor(tenantId);
+      if (!held?.credential) return false;
+
+      const fresh = await refreshTokens(clientId, held.credential);
+      if (!fresh.ok) {
+        console.error("[send] a grant could not be renewed", fresh.said);
+        return false;
+      }
+
+      await storeTokens(tenantId, {
+        refresh: fresh.tokens.refreshToken,
+        access: fresh.tokens.accessToken,
+        seconds: fresh.tokens.expiresIn,
+      });
+      return true;
+    });
+
+    if (done) renewed += 1;
+  }
+
+  return { renewed };
 }
