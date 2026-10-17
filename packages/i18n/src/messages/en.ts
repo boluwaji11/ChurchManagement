@@ -239,6 +239,7 @@ export const en = {
   "auth.error.shortPassword": "Your password needs at least ten characters.",
   "auth.error.email": "Check the email address.",
   "auth.error.unconfirmed": "Open the link we emailed you first.",
+  "auth.error.partialLink": "That link arrived incomplete, which some mail programs do to a long one. Ask for a new one.",
   "auth.error.expiredLink": "That link has run out. Ask for a new one.",
   "auth.error.closed": "This church is not taking new accounts.",
   "auth.error.noMail": "We could not send the confirmation email. Try again in a moment, and tell us if it keeps happening.",

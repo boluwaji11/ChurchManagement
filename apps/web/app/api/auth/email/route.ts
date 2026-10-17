@@ -60,21 +60,32 @@ function signed(body: string, headers: Headers, secret: string): boolean {
   });
 }
 
-/** The address that proves the token, which Supabase answers on. */
+/**
+ * HRT-392, R1.7, R17.1. The address the button goes to.
+ *
+ * Our own name, not the project's: a link reading
+ * `nvdovjuqcnxacvhxfrmi.supabase.co` in the one message asking a church to
+ * trust us is the shape a phishing mail takes. `/auth/verify` hands the token
+ * straight on to Supabase, which proves it and sends them back.
+ *
+ * Back to **our callback**, which is the thing that knows what to do with
+ * what comes back. Supabase drops a `redirect_to` it has not been told to
+ * allow and falls back to the site's root, where nothing exchanges the code
+ * and the token is spent for nothing: that is the expired link a church then
+ * meets. So the fallback written here is the callback rather than the root.
+ */
 function confirmUrl(hook: Hook): string | null {
-  const project = process.env["SUPABASE_URL"] ?? process.env["NEXT_PUBLIC_SUPABASE_URL"];
-  if (!project) return null;
+  const site = (hook.email_data.site_url || process.env["PLATFORM_SITE"] || "").replace(/\/$/, "");
+  if (!site) return null;
 
+  const back = hook.email_data.redirect_to || `${site}/auth/callback`;
   const query = new URLSearchParams({
     token: hook.email_data.token_hash,
     type: hook.email_data.email_action_type,
+    redirect_to: back,
   });
-  /* Where they land afterwards, which is the church's own address when the
-     journey started on one. */
-  const back = hook.email_data.redirect_to || hook.email_data.site_url;
-  if (back) query.set("redirect_to", back);
 
-  return `${project.replace(/\/$/, "")}/auth/v1/verify?${query.toString()}`;
+  return `${site}/auth/verify?${query.toString()}`;
 }
 
 /**
