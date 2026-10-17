@@ -8,16 +8,43 @@ import { t } from "@connectapp/i18n";
  * messages to an engineer about an API. Maria gets told what happened and what
  * to do next, and the original goes to the log.
  */
-const KNOWN: { match: RegExp; key: string }[] = [
+const KNOWN: { match: RegExp; key: string; field?: string }[] = [
   { match: /rate limit|too many requests|429/i, key: "auth.error.rateLimit" },
-  { match: /already registered|already exists|user_already_exists/i, key: "auth.error.taken" },
-  { match: /password.*(at least|short|weak)/i, key: "auth.error.weakPassword" },
-  { match: /invalid.*email|email.*invalid/i, key: "auth.error.email" },
+  {
+    match: /already registered|already exists|user_already_exists/i,
+    key: "auth.error.taken",
+    field: "email",
+  },
+  /* Two different complaints about a password, and only one is about its
+     length. Telling somebody with a long guessable password to make it
+     longer is advice that cannot work. */
+  {
+    match: /password.*(known|weak|easy to guess|compromised|breach)/i,
+    key: "auth.error.weakPassword",
+    field: "password",
+  },
+  { match: /password.*(at least|short|length)/i, key: "auth.error.shortPassword", field: "password" },
+  { match: /invalid.*email|email.*invalid/i, key: "auth.error.email", field: "email" },
   { match: /email not confirmed/i, key: "auth.error.unconfirmed" },
   { match: /invalid login credentials/i, key: "signIn.error.noMatch" },
   { match: /expired|no longer valid/i, key: "auth.error.expiredLink" },
   { match: /signups? not allowed|disabled/i, key: "auth.error.closed" },
 ];
+
+/**
+ * R1.7. The box the provider was talking about, where it was talking about one.
+ *
+ * "Use at least ten characters" in a banner over four boxes names none of
+ * them, and the reader has to guess which one it means. A message about a
+ * field belongs under that field, where the red outline says the same thing a
+ * second time.
+ */
+export function authField(
+  error: { message?: string } | string | null | undefined,
+): string | null {
+  const message = typeof error === "string" ? error : (error?.message ?? "");
+  return KNOWN.find((row) => row.match.test(message))?.field ?? null;
+}
 
 export function explainAuth(error: { message?: string } | string | null | undefined): string {
   const message = typeof error === "string" ? error : (error?.message ?? "");

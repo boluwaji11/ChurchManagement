@@ -1,8 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 
 export type Errors = Record<string, string | undefined>;
+
+/** Only the entries that actually say something, so none of them blanks another. */
+const prune = (errors: Errors): Errors =>
+  Object.fromEntries(Object.entries(errors).filter(([, message]) => Boolean(message)));
 
 /**
  * Validation is ours, not the browser's.
@@ -28,10 +33,40 @@ export type Errors = Record<string, string | undefined>;
  */
 export function useValidatedForm(
   validate: (data: FormData) => Errors,
-  submit: (data: FormData) => Promise<void | { error?: string }>,
+  submit: (
+    data: FormData,
+  ) => Promise<void | { error?: string; field?: string; go?: string }>,
+  /** What the boxes hold before anybody types, where a screen prefills one. */
+  defaults: Record<string, string> = {},
 ) {
+  const router = useRouter();
   const formRef = React.useRef<HTMLFormElement>(null);
+  /*
+   * R1.7. Every box's contents live here rather than in the box.
+   *
+   * React empties a form once a function given to `action` has run, and it has
+   * to be given one: a server action that finishes by redirecting throws the
+   * redirect for Next to catch, and Next only catches it on that path. Calling
+   * the action by hand swallowed the throw, so a finished sign-up went
+   * nowhere.
+   *
+   * So the reset is left alone and made harmless. It clears what the browser
+   * is holding, and the browser is holding nothing: a controlled value comes
+   * back from here on the next render exactly as it was typed.
+   */
+  const [values, setValues] = React.useState<Record<string, string>>(defaults);
   const [errors, setErrors] = React.useState<Errors>({});
+  /*
+   * R1.7. What the server said about a box, kept apart from what the boxes
+   * say about themselves.
+   *
+   * The two disagree on purpose. "That address already has an account" is
+   * true of a perfectly well-formed address, so client validation finds
+   * nothing wrong and, sharing one bag of errors, immediately wiped the only
+   * message there was. It stands until that box is changed, which is the one
+   * thing that could make it untrue.
+   */
+  const [fromServer, setFromServer] = React.useState<Errors>({});
   /*
    * What the server said, as opposed to what the fields say.
    *
@@ -42,8 +77,8 @@ export function useValidatedForm(
    */
   const [failed, setFailed] = React.useState<string>();
   const [submitted, setSubmitted] = React.useState(false);
-  const [pending, setPending] = React.useState(false);
   const [ready, setReady] = React.useState(false);
+  const [pending, setPending] = React.useState(false);
   /** The fields somebody has already finished with. */
   const [touched, setTouched] = React.useState<Set<string>>(() => new Set());
 
@@ -90,12 +125,26 @@ export function useValidatedForm(
      first answer is read before anybody types. */
   React.useEffect(revalidate, [revalidate]);
 
+  /** One box, wired to the value above so a reset cannot take it away. */
+  const field = React.useCallback(
+    (name: string) => ({
+      name,
+      value: values[name] ?? "",
+      onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+        setValues((was) => ({ ...was, [name]: event.target.value }));
+        /* Changing the box answers whatever the server said about it. */
+        setFromServer((was) => (was[name] ? { ...was, [name]: undefined } : was));
+      },
+    }),
+    [values],
+  );
+
   const action = async (data: FormData) => {
     setSubmitted(true);
     setFailed(undefined);
+    setFromServer({});
     const found = validate(data);
     setErrors(found);
-
 
     const firstInvalid = Object.keys(found).find((key) => found[key]);
     if (firstInvalid) {
@@ -107,11 +156,45 @@ export function useValidatedForm(
     setPending(true);
     try {
       const answer = await submit(data);
-      if (answer?.error) setFailed(answer.error);
+
+      /*
+       * R1.7. Where to go next comes back as an address rather than as a
+       * redirect thrown inside the action.
+       *
+       * `redirect()` works by throwing, and Next catches that only on the
+       * path where it dispatches the action itself. Called from a handler of
+       * ours, the throw went nowhere: the account was made, the answer was
+       * 200, and the screen sat exactly where it was. Saying where to go and
+       * going there is the same journey with nothing to swallow.
+       */
+      if (answer?.go) {
+        router.push(answer.go);
+        return;
+      }
+
+      if (!answer?.error) return;
+
+      /* A refusal about one box is said under that box, where the red outline
+         says the same thing again. Anything about the form as a whole, or
+         about the provider, goes above it. */
+      if (answer.field) {
+        const named = answer.field;
+        setTouched((seen) => new Set(seen).add(named));
+        setFromServer({ [named]: answer.error });
+        const el = formRef.current?.elements.namedItem(named);
+        if (el instanceof HTMLElement) el.focus();
+        return;
+      }
+      setFailed(answer.error);
     } finally {
       setPending(false);
     }
   };
 
-  return { formRef, errors, failed, pending, ready, action, revalidate, touch };
+  /* What a box says about itself, and what the server said about it, as one. */
+  const shownErrors: Errors = { ...errors, ...prune(fromServer) };
+
+  return {
+    formRef, errors: shownErrors, failed, pending, ready, action, revalidate, touch, field,
+  };
 }
