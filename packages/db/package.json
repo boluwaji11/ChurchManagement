@@ -20,7 +20,12 @@
     "census": "tsx scripts/census.ts",
     "platform:admin": "tsx scripts/platform-admin.ts",
     "dev:account": "tsx scripts/dev-account.ts",
-    "seed:dev": "tsx scripts/seed-dev-churches.ts"
+    "seed:dev": "tsx scripts/seed-dev-churches.ts",
+    "seed:giving": "tsx scripts/seed-giving.ts",
+    "seed:member": "tsx scripts/seed-member.ts",
+    "seed:staff": "tsx scripts/seed-staff.ts",
+    "seed:notifications": "tsx scripts/seed-notifications.ts",
+    "seed:report": "tsx scripts/seed-report.ts"
   },
   "dependencies": {
     "@connectapp/env": "workspace:*",

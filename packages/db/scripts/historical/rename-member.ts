@@ -1,4 +1,4 @@
-import { owner, closeConnections } from "../src/client";
+import { owner, closeConnections } from "../../src/client";
 
 /**
  * Renames one member, for a development database only.
@@ -8,7 +8,7 @@ import { owner, closeConnections } from "../src/client";
  * on the record, the addresses above all, is untouched, so whoever was testing
  * with it carries on testing with it.
  *
- *   pnpm --filter @connectapp/db exec tsx scripts/rename-member.ts "Old Name" "New Name"
+ *   pnpm --filter @connectapp/db exec tsx scripts/historical/rename-member.ts "Old Name" "New Name"
  */
 async function main() {
   const [was, now] = process.argv.slice(2);

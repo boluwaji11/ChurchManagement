@@ -2,8 +2,11 @@
 
 What is in this repository, what each questionable file is for, and what should happen to it.
 
-Taken 17 October 2026 against commit `1a8c6327`. Every finding below carries the evidence it came
-from. Nothing in the DELETE column has been acted on; those need a decision first.
+Taken 17 October 2026 against commit `1a8c6327`, and updated after the safe organization work was
+done. Every finding below carries the evidence it came from.
+
+**Nothing in the DELETE column has been acted on.** Those need a decision first, and they are
+collected under "Decisions needed" at the end. What has been done is marked **DONE** in place.
 
 ## How to read the recommendations
 
@@ -102,23 +105,24 @@ by knowing they exist.
 
 | Path | Purpose | Status | Action | Risk | Evidence |
 |---|---|---|---|---|---|
-| `scripts/seed-giving.ts` | A year of gifts on the seeded church | Active | UPDATE: wire as `seed:giving` | Low | Marked "LOCAL DEVELOPMENT ONLY" in its header. Still the only way to get giving screens populated |
-| `scripts/seed-member.ts` | A household, group and serving for the member account | Active | UPDATE: wire as `seed:member` | Low | Same. The portal renders empty states without it |
-| `scripts/seed-staff.ts` | Accounts for a few seeded members | Active | UPDATE: wire as `seed:staff` | Low | Same, and it is idempotent by name |
-| `scripts/seed-notifications.ts` | One notification per kind, to view the bell | Active | UPDATE: wire as `seed:notifications` | Low | Same |
-| `scripts/seed-report.ts` | A built report, through the screen's own path | Active | UPDATE: wire as `seed:report` | Low | Carries its own usage line. Exercises R18.12 |
+| `scripts/seed-giving.ts` | A year of gifts on the seeded church | Active | **DONE.** Wired as `seed:giving` | Low | Marked "LOCAL DEVELOPMENT ONLY" in its header. Still the only way to get giving screens populated |
+| `scripts/seed-member.ts` | A household, group and serving for the member account | Active | **DONE.** Wired as `seed:member` | Low | Same. The portal renders empty states without it |
+| `scripts/seed-staff.ts` | Accounts for a few seeded members | Active | **DONE.** Wired as `seed:staff` | Low | Same, and it is idempotent by name |
+| `scripts/seed-notifications.ts` | One notification per kind, to view the bell | Active | **DONE.** Wired as `seed:notifications` | Low | Same |
+| `scripts/seed-report.ts` | A built report, through the screen's own path | Active | **DONE.** Wired as `seed:report` | Low | Carries its own usage line. Exercises R18.12 |
 | `scripts/forget-stripe.ts` | Drops a church's stored Connect account | Active | KEEP | Low | An operational tool for a support case, not a one-off. Document it in environments.md |
 | `scripts/drop-template.ts` | Removes an email template by name | Active | KEEP | Low | Same. Repairs a template written by a broken build |
 | `scripts/sync-account-emails.ts` | Aligns a record's address with the sign-in address | Uncertain | KEEP | Low | The drift it fixes was closed by the profile screen, but it is a repair tool a support case could need again |
 | `scripts/link-accounts.ts` | Gives every account a member record | Uncertain | KEEP | Low | Same shape: the gap is closed for new accounts, the repair stays useful |
 | `scripts/defuse-emails.ts` | Rewrites seeded addresses so they cannot reach a person | Historical | KEEP | Low | A safety tool. The seed no longer writes real-looking addresses, and running this again costs nothing |
-| `scripts/fold-households.ts` | Folds one-per-person households into one per surname | Historical | ARCHIVE | Low | Repaired a specific seeded-data shape that the seed no longer produces |
-| `scripts/drop-empty-households.ts` | Removes archived households nobody is in | Historical | ARCHIVE | Low | The cleanup pass after `fold-households` |
-| `scripts/name-auth-users.ts` | Copies a member's name into auth metadata | Historical | ARCHIVE | Low | Header says local development only, and names the specific seeded mismatch it fixed |
-| `scripts/rename-member.ts` | Renames one seeded member | Historical | ARCHIVE | Low | Written to keep a real person's name out of a marketing screenshot. The screenshots are taken |
+| `scripts/historical/fold-households.ts` | Folds one-per-person households into one per surname | Historical | **DONE.** Moved to `scripts/historical/` | Low | Repaired a specific seeded-data shape that the seed no longer produces |
+| `scripts/historical/drop-empty-households.ts` | Removes archived households nobody is in | Historical | **DONE.** Moved to `scripts/historical/` | Low | The cleanup pass after `fold-households` |
+| `scripts/historical/name-auth-users.ts` | Copies a member's name into auth metadata | Historical | **DONE.** Moved to `scripts/historical/` | Low | Header says local development only, and names the specific seeded mismatch it fixed |
+| `scripts/historical/rename-member.ts` | Renames one seeded member | Historical | **DONE.** Moved to `scripts/historical/` | Low | Written to keep a real person's name out of a marketing screenshot. The screenshots are taken |
 
-"ARCHIVE" here means moving them to `packages/db/scripts/historical/` with a README saying what each
-one repaired, so a future reader can tell a live tool from a finished repair.
+**Done.** The four finished repairs were moved to `packages/db/scripts/historical/`, with a README
+saying what each one repaired, so a future reader can tell a live tool from a finished repair. Their
+relative imports were corrected for the extra directory level and the package typechecks.
 
 ### Root scripts
 
@@ -130,10 +134,13 @@ one repaired, so a future reader can tell a live tool from a finished repair.
 | `scripts/check-member-routes.mjs` | Fails CI when a screen under `/members` is unnamed | Active | CI | KEEP | Low |
 | `scripts/set-dev-stripe.sh` | Writes development Stripe keys to `.env.local` and Vercel Preview | Active | `docs/environments.md` | KEEP | Low |
 | `scripts/set-dev-resend.sh` | The same for Resend | Active | `docs/environments.md` | KEEP | Low |
-| `scripts/vercel-env.sh` | Unknown | Uncertain | None found | UPDATE: document it or delete it | Low |
+| `scripts/vercel-env.sh` | Copies the production environment from `.env.local` into the linked Vercel project | Active | `docs/environments.md` | **DONE.** Documented, KEEP | Low |
 
-`scripts/vercel-env.sh` is referenced by no package script, no workflow and no document. It is the
-one root script with nothing pointing at it.
+`scripts/vercel-env.sh` was referenced by no package script, no workflow and no document, which is
+why it read as an orphan. It is not one: it is how production environment variables are set, and it
+carries the record of the time its own list went stale and every church's sealed credential failed
+to open in production. It is now documented in `docs/environments.md` under "The scripts beside this
+document".
 
 ### Assets
 
@@ -171,7 +178,7 @@ deliberately.
 | `docs/checkin-acceptance.md` | Check-in acceptance criteria | Active | KEEP | Low | Safety-critical area. The acceptance record for R8.x |
 | `docs/onboarding-integrations.md` | Integration work during onboarding | Active | KEEP | Low | Referenced by the onboarding stories |
 | `drills/README.md` | What the drill census files are | Active | KEEP | Low | Explains why the directory is committed. The directory holds no census files yet, which is itself worth noting against R21.6 |
-| `AGENTS.md` | Turborepo's managed agent guidance | Active, generated | KEEP | Low | Written and re-added by `turbo`. Untracked today, and it should be committed so it does not reappear as a dirty file on every agent run |
+| `AGENTS.md` | Turborepo's managed agent guidance | Active, generated | **DONE.** Committed | Low | Written and re-added by `turbo`, which asks for the block to be committed so it does not reappear as an uncommitted change on every run |
 
 ### The design prototypes
 
@@ -179,7 +186,7 @@ deliberately.
 
 | Path | Status | Action | Evidence |
 |---|---|---|---|
-| `docs/redesign/design/*.dc.html` (10 files) | Historical and still a live reference | KEEP, rename | Colours, type, spacing and the shell measurements are authoritative per `docs/redesign/README.md`. **Every reference to them in the docs is broken:** the files are named `Hearth A - Warm Office.dc.html` while `README.md`, `handoff.md` and `screen-map.md` all cite `ConnectApp A - Warm Office.dc.html`. The product rename touched the prose and missed the filenames |
+| `docs/redesign/design/*.dc.html` (10 files) | Historical and still a live reference | **DONE.** Renamed | Colours, type, spacing and the shell measurements are authoritative per `docs/redesign/README.md`. **Every reference to them in the docs is broken:** the files are named `Hearth A - Warm Office.dc.html` while `README.md`, `handoff.md` and `screen-map.md` all cite `ConnectApp A - Warm Office.dc.html`. The product rename touched the prose and missed the filenames |
 | `docs/redesign/design/support.js` | Prototype runtime | KEEP | Needed for the prototypes to run. Explicitly not for `apps/web` |
 | `docs/redesign/design/data.js` | Prototype sample data | KEEP | Sample people, households, gifts and funds. Stays in this folder; fake data must never be loadable into a real church |
 | `docs/redesign/plan.md` | How the work was broken into HRT-307 to HRT-336 | Historical | ARCHIVE in place | The stories it describes are on the board. Keep as the record of the argument |
@@ -192,7 +199,7 @@ not a reason to remove them.
 
 | Path | Finding | Action | Risk |
 |---|---|---|---|
-| `.nvmrc` | Says `24`. CI pins `NODE_VERSION: "22"`. `package.json` engines says `>=20` | UPDATE: align `.nvmrc` to 22 so a local shell matches CI | Low |
+| `.nvmrc` | Said `24` while CI pins `NODE_VERSION: "22"` | **DONE.** Now 22 | Low |
 | `packages/songs` | 19 files, full test suite, nothing in this repository imports it | ARCHIVE or DELETE, needs a decision | Medium |
 | `.github` | No issue template, though four discussion templates exist | Optional | Low |
 
@@ -218,17 +225,22 @@ Not touched by this overhaul, and not candidates for anything:
 
 ## Decisions needed
 
-Nothing below has been acted on.
+**Nothing in this section has been acted on. Each one needs your approval.**
 
-1. **Delete the nine dead application files** listed above. Evidence is in that table. The two
-   Supabase browser clients are the only ones with a plausible future use.
+1. **Delete the nine dead application files** listed under "Dead application code". Each was
+   confirmed twice: once by a scan for modules with no importer, once by searching for the exported
+   symbol by name. The two Supabase browser clients are the only ones with a plausible future use,
+   so they could be kept while the other seven go.
 2. **Remove `saveBlockout`, `dropBlockout` and `saveFrequency`** from
    `apps/web/app/(app)/schedule/actions.ts` if `members/availability.tsx` goes. They have no other
-   caller. Alternatively keep both and give `Availability` a screen again, since blockout dates are a
-   real R10.x requirement with no other UI.
+   caller. The alternative is to keep both and give `Availability` a screen again, since blockout
+   dates are a real R10.x requirement with no other UI. That is a product decision rather than a
+   cleanup one.
 3. **`packages/songs`:** archive it, delete it, or keep it as the specification's reference
-   implementation. It costs a typecheck and a test run per CI build and nothing else.
-4. **`scripts/vercel-env.sh`:** document it or delete it.
-5. **Move the four finished repair scripts** to `packages/db/scripts/historical/`.
-6. **Rename the ten design prototypes** from `Hearth ...` to `ConnectApp ...` so the documentation
-   references resolve, or change the references back to match the files.
+   implementation. Nothing imports it, Stage has its own library, and it costs a typecheck and a
+   test run per CI build. Its header now says all of this, so leaving it costs nothing but noise.
+
+Done since this file was written, and recorded in place above: the four finished repair scripts
+moved to `packages/db/scripts/historical/`, the nine design prototypes renamed, five development
+seeds wired into `package.json`, `scripts/vercel-env.sh` documented, `.nvmrc` aligned with CI, and
+`AGENTS.md` committed.

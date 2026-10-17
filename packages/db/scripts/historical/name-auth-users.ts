@@ -6,7 +6,7 @@
  * many times the record was corrected. Local development only: in production
  * this follows whatever somebody saved on their own profile.
  */
-import { owner, closeConnections } from "../src/client";
+import { owner, closeConnections } from "../../src/client";
 
 async function main() {
   const sql = owner();

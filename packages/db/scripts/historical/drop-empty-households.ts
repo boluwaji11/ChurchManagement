@@ -1,4 +1,4 @@
-import { owner } from "../src/client";
+import { owner } from "../../src/client";
 
 /**
  * Removes archived households that nobody is in.

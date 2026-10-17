@@ -245,6 +245,21 @@ environment mode, so a variable absent from the `env` list never reaches the bui
 first deployment came up with an empty `NEXT_PUBLIC_SUPABASE_URL` inlined into its middleware and
 failed on every request. The build said so, in a warning under a green build.
 
+## The scripts beside this document
+
+| Script | What it does |
+|---|---|
+| `scripts/set-dev-stripe.sh sk_test_... pk_test_...` | Writes the development Stripe keys into `.env.local` and into Vercel's Preview environment |
+| `scripts/set-dev-resend.sh re_...` | The same for the development Resend key |
+| `scripts/vercel-env.sh` | Copies the production environment from `.env.local` into the linked Vercel project, run from the repo root. Values are piped, never printed, and `PLATFORM_HOST` and `AUTH_COOKIE_DOMAIN` are overridden because the local ones name localhost |
+| `pnpm --filter @connectapp/db dev:account` | Creates `dev@connectapp.church` and prints a password |
+| `pnpm --filter @connectapp/db seed:dev` | Four seeded churches for the development environment |
+
+**`vercel-env.sh` holds a list of variable names, and that list has gone stale once.** The messaging
+work added `PROVIDER_CREDENTIAL_KEY`, the deployment never received it, every church's sealed
+credential failed to open in production, and the queue worker answered 500 every five minutes while
+working perfectly on a laptop. Add a name to that list in the same commit that first reads it.
+
 ## When a secret has to be replaced
 
 Development's secrets were generated for development and appear nowhere else, so replacing one is

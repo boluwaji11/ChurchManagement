@@ -1,4 +1,4 @@
-import { owner } from "../src/client";
+import { owner } from "../../src/client";
 
 /**
  * R2.1. Folds one-per-person households into one per surname, per church.
