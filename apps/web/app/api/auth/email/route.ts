@@ -85,41 +85,51 @@ function confirmUrl(hook: Hook): string | null {
  */
 const DRAWN = new Set(["signup", "email_change", "recovery", "magiclink"]);
 
+/**
+ * R1.7. Every answer is JSON, and says so.
+ *
+ * Supabase reads the Content-Type on the way back and refuses a reply without
+ * one, whatever its status: an empty 200 came back as
+ * `hook_payload_invalid_content_type` and the church was told its account
+ * could not be made. The body is for us reading a log; the header is what the
+ * other end is actually checking.
+ */
+const answer = (status: number, said?: string): NextResponse =>
+  NextResponse.json(said ? { error: said } : {}, { status });
+
 export async function POST(request: Request) {
   const secret = process.env["SEND_EMAIL_HOOK_SECRET"];
   /*
    * Unset means the hook is not in use and Supabase is sending its own mail.
    * Answering 200 to an unsigned request would let anybody make this send.
    */
-  if (!secret) return new NextResponse("Not configured", { status: 503 });
+  if (!secret) return answer(503, "Not configured");
 
   const body = await request.text();
-  if (!signed(body, request.headers, secret)) {
-    return new NextResponse("Bad signature", { status: 401 });
-  }
+  if (!signed(body, request.headers, secret)) return answer(401, "Bad signature");
 
   let hook: Hook;
   try {
     hook = JSON.parse(body) as Hook;
   } catch {
-    return new NextResponse("Unreadable", { status: 400 });
+    return answer(400, "Unreadable");
   }
 
   const to = hook.user?.email;
   const link = confirmUrl(hook);
-  if (!to || !link) return new NextResponse("Nothing to send", { status: 400 });
+  if (!to || !link) return answer(400, "Nothing to send");
 
   const action = hook.email_data.email_action_type;
   /* A kind we do not draw is refused rather than swallowed. */
-  if (!DRAWN.has(action)) return new NextResponse("Not handled", { status: 400 });
+  if (!DRAWN.has(action)) return answer(400, "Not handled");
 
   const sent = await sendAsPlatform({ to, ...authMessage(action as Action, link) });
   if (!sent.ok) {
     console.error("[auth mail] not sent", sent.said);
     /* Supabase retries a failure and tells the person it could not send,
        which is the truth and better than a silent nothing in their inbox. */
-    return new NextResponse("Not sent", { status: 500 });
+    return answer(500, "Not sent");
   }
 
-  return new NextResponse(null, { status: 200 });
+  return answer(200);
 }
