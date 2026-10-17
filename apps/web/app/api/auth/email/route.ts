@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
-import { sendAsPlatform, authMessage } from "@connectapp/mail";
+import { sendAsPlatform, authMessage, HOME } from "@connectapp/mail";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -29,7 +29,6 @@ interface Hook {
     token_hash: string;
     redirect_to?: string;
     email_action_type: string;
-    site_url?: string;
   };
 }
 
@@ -75,7 +74,15 @@ function signed(body: string, headers: Headers, secret: string): boolean {
  * meets. So the fallback written here is the callback rather than the root.
  */
 function confirmUrl(hook: Hook): string | null {
-  const site = (hook.email_data.site_url || process.env["PLATFORM_SITE"] || "").replace(/\/$/, "");
+  /*
+   * Our own address, from our own configuration.
+   *
+   * `site_url` in the payload is not the church-facing site: Supabase hands
+   * over its auth API's own base, so building on it produced
+   * `<project>.supabase.co/auth/v1/auth/verify`, which is the doubled path
+   * that gave the game away. The one name this link may carry is ours.
+   */
+  const site = HOME.replace(/\/$/, "");
   if (!site) return null;
 
   const back = hook.email_data.redirect_to || `${site}/auth/callback`;
