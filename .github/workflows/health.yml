@@ -1,0 +1,50 @@
+# HRT-394, N3. Ask every service the platform depends on whether it is there.
+#
+# The operator portal's status screen probes when somebody opens it, which
+# covers the minutes a person is looking. A thing that fails at three in the
+# morning and recovers by eight leaves no trace unless something was asking
+# while nobody was, and "has it been up" is the question an operator actually
+# arrives with. This is what asks.
+#
+# It lives here rather than in vercel.json for the same reason the send queue's
+# worker does: Vercel's Hobby plan runs a cron once a day, and a service
+# checked once a day is not a service being watched.
+name: Check the platform's own services
+
+on:
+  schedule:
+    # Every fifteen minutes. Four readings an hour is enough to tell a blip
+    # from an outage and nowhere near enough to matter to anybody's API quota.
+    - cron: "*/15 * * * *"
+  # So it can be run by hand while something is being tested.
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask each one
+        env:
+          SECRET: ${{ secrets.CRON_SECRET }}
+          PORTAL: ${{ vars.ADMIN_URL || 'https://admin.connectapp.church' }}
+        run: |
+          if [ -z "$SECRET" ]; then
+            echo "::error::CRON_SECRET is not set, so nothing can be checked."
+            exit 1
+          fi
+
+          code=$(curl -s -o /tmp/health.json -w "%{http_code}" --max-time 120 \
+            -H "Authorization: Bearer $SECRET" "$PORTAL/api/health")
+          echo "answered $code"
+          cat /tmp/health.json
+          echo
+
+          # 503 is the route's own way of saying something it depends on is
+          # down, so this run goes red and the failure is visible on the
+          # Delivery screen without anybody opening the log.
+          if [ "$code" = "503" ]; then
+            echo "::error::A service the platform depends on is not answering."
+            exit 1
+          fi
+
+          [ "$code" = "200" ]

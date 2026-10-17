@@ -1,7 +1,8 @@
 import { platform } from "@connectapp/db";
 import { requireOperator } from "@/lib/admin";
-import { Shell } from "@/components/shell";
+import { Screen } from "@/components/screen";
 import { Find } from "./find";
+import { EmptyState } from "@connectapp/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -24,17 +25,15 @@ export default async function AccountsPage({
   const hits = q ? await platform.findAccount(who.id, q) : [];
 
   return (
-    <Shell who={who} title="Accounts" lede="Which churches an address can sign in to.">
+    <Screen title="Accounts" lede="Which churches an address can sign in to.">
       <Find query={q ?? ""} />
 
       {q && hits.length === 0 ? (
-        <p className="rounded-[16px] border border-dashed border-line-strong p-10 text-center text-[length:var(--d-text-body)] text-fg-muted">
-          No account signs in with that.
-        </p>
+        <EmptyState title="No account signs in with that." />
       ) : null}
 
       {hits.length > 0 ? (
-        <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-[16px] border border-line bg-surface">
+        <ul className="m-0 flex list-none flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface p-0">
           {hits.map((hit) => (
             <li key={hit.userId} className="flex flex-col gap-2 px-5 py-4">
               <span className="font-semibold text-fg">{hit.email}</span>
@@ -56,6 +55,6 @@ export default async function AccountsPage({
           ))}
         </ul>
       ) : null}
-    </Shell>
+    </Screen>
   );
 }

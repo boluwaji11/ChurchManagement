@@ -26,7 +26,14 @@ export function Mark({ className }: { className?: string }) {
  * It says ConnectApp Admin rather than ConnectApp, because the one thing this
  * screen must never be mistaken for is a church's own.
  */
-export function Brand({ size = "sm" }: { size?: "sm" | "md" }) {
+export function Brand({
+  size = "sm",
+  onShell,
+}: {
+  size?: "sm" | "md";
+  /** Drawn on the rail's dark surface rather than on the page. */
+  onShell?: boolean;
+}) {
   const big = size === "md";
 
   return (
@@ -35,15 +42,29 @@ export function Brand({ size = "sm" }: { size?: "sm" | "md" }) {
         className={cn(
           "grid shrink-0 place-items-center bg-primary",
           big ? "size-10 rounded-[11px]" : "size-9 rounded-[10px]",
+          /* On the rail the tile and the surface behind it are both ink, so
+             the tile needs an edge or the mark reads as floating. */
+          onShell && "ring-1 ring-shell-line",
         )}
       >
         <Mark className={big ? "text-[1.25rem]" : "text-[1.125rem]"} />
       </span>
       <span className="flex min-w-0 flex-col leading-tight">
-        <span className={cn("font-display text-fg", big ? "text-[19px]" : "text-[17px]")}>
+        <span
+          className={cn(
+            "font-display",
+            big ? "text-[19px]" : "text-[17px]",
+            onShell ? "text-shell-fg" : "text-fg",
+          )}
+        >
           ConnectApp
         </span>
-        <span className="text-[12px] font-medium tracking-[0.08em] text-primary uppercase">
+        <span
+          className={cn(
+            "text-[12px] font-semibold tracking-[0.08em] uppercase",
+            onShell ? "text-shell-muted" : "text-primary",
+          )}
+        >
           Admin
         </span>
       </span>

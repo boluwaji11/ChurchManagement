@@ -4,6 +4,26 @@
 /* Tailwind must see the component sources to generate their utilities. */
 @source "../../../packages/ui/src";
 
+/*
+ * HRT-393. The rail is darker here than it is in the product.
+ *
+ * The product's shell is ink-600, a blue a church reads as the product's own
+ * colour. This portal reaches every church on the platform, and the one thing
+ * it must never be mistaken for is a church's own screen, so its chrome is the
+ * near-black ink the palette already carries for dark mode. It is a token
+ * override rather than a branch inside a component, so nothing in
+ * `packages/ui` knows this app is different.
+ *
+ * Never pure black: docs/design-system.md refuses it, and this is --ink at the
+ * darkest step the ramp has.
+ */
+:root {
+  --shell: oklch(0.202 0.058 285);
+  --shell-fg: #ffffff;
+  --shell-muted: oklch(0.888 0.034 285);
+  --shell-line: oklch(1 0 0 / 0.14);
+}
+
 /* R24.4. The wash the public pages carry, over the operator's own screens. */
 .site-wash {
   background-color: var(--canvas);
@@ -14,4 +34,18 @@
       transparent 72%
     );
   background-attachment: fixed;
+}
+
+/*
+ * A scrollbar inside the rail, where the edge of the column already says the
+ * list continues. Scrolling itself is untouched: wheel, trackpad, touch and
+ * the arrow keys all still move it.
+ */
+.scroll-quiet {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-quiet::-webkit-scrollbar {
+  display: none;
 }

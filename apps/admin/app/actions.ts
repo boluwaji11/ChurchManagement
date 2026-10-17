@@ -1,11 +1,12 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { platform } from "@connectapp/db";
+import { platform, platformHealth } from "@connectapp/db";
+import { approvedMessage, sendAsPlatform } from "@connectapp/mail";
 import { supabaseServer } from "@/lib/supabase/server";
 import { requireOperator } from "@/lib/admin";
-import { approvedMessage, sendAsPlatform } from "@connectapp/mail";
 
 export interface Done {
   error?: string;
@@ -14,24 +15,72 @@ export interface Done {
 const say = (error: unknown) =>
   error instanceof Error ? error.message : "That did not work. Try again.";
 
-/** R21.x. Signing in to the portal, with the same account the product uses. */
+/**
+ * HRT-396, R21.1. Where the request came from.
+ *
+ * Vercel sets x-forwarded-for and the left-most entry is the client. It is
+ * written down rather than trusted: nothing is decided from it, it is only
+ * there so a burst of attempts reads as a burst when somebody looks.
+ */
+async function from(): Promise<{ ip: string | null; agent: string | null }> {
+  const head = await headers();
+  const forwarded = head.get("x-forwarded-for");
+  return {
+    ip: forwarded?.split(",")[0]?.trim() ?? head.get("x-real-ip"),
+    agent: head.get("user-agent"),
+  };
+}
+
+/**
+ * HRT-396, R21.x. Signing in to the portal.
+ *
+ * Three gates. The address has to not be waiting out a lockout, Supabase has
+ * to accept the password, and `platform_admins` has to say this account
+ * operates the platform. Every attempt is written down, including the ones
+ * that fail: this portal reaches every church on the platform, so who has
+ * tried the door is worth as much as who got in.
+ *
+ * The refusals are all the same sentence on purpose. Telling somebody that the
+ * password was right but the account is not an operator tells them they have
+ * found a real address and that the only thing left to get is a grant.
+ */
 export async function signIn(_state: Done, data: FormData): Promise<Done> {
   const email = String(data.get("email") ?? "").trim().toLowerCase();
   const password = String(data.get("password") ?? "");
   if (!email || !password) return { error: "Both an address and a password are needed." };
 
+  const where = await from();
+
+  const waiting = await platformHealth.waitingOut(email);
+  if (waiting > 0) {
+    await platformHealth.recordSignIn({ email, outcome: "throttled", ...where });
+    return {
+      error: `Too many attempts. Try again in ${waiting} minutes.`,
+    };
+  }
+
+  const refused = "That address and password do not match an operator's account.";
+
   const supabase = await supabaseServer();
   const result = await supabase.auth.signInWithPassword({ email, password });
   if (result.error || !result.data.user) {
-    return { error: "That address and password do not match an account." };
+    await platformHealth.recordSignIn({ email, outcome: "wrong", ...where });
+    return { error: refused };
   }
 
   const admin = await platform.platformAdmin(result.data.user.id);
   if (!admin) {
+    /*
+     * A real account with a real password that is not an operator. The session
+     * is thrown away rather than left behind, because this app's middleware
+     * would otherwise treat it as signed in and bounce them round a loop.
+     */
     await supabase.auth.signOut();
-    return { error: "That account does not operate the platform." };
+    await platformHealth.recordSignIn({ email, outcome: "refused", ...where });
+    return { error: refused };
   }
 
+  await platformHealth.recordSignIn({ email, outcome: "in", ...where });
   redirect("/");
 }
 
@@ -131,7 +180,7 @@ export async function grantAdmin(data: FormData): Promise<Done> {
   const who = await requireOperator();
   try {
     await platform.grant(who.id, String(data.get("email") ?? ""), String(data.get("name") ?? ""));
-    revalidatePath("/admins");
+    revalidatePath("/operators");
     return {};
   } catch (error) {
     return { error: say(error) };
@@ -142,15 +191,9 @@ export async function revokeAdmin(userId: string): Promise<Done> {
   const who = await requireOperator();
   try {
     await platform.revoke(who.id, userId);
-    revalidatePath("/admins");
+    revalidatePath("/operators");
     return {};
   } catch (error) {
     return { error: say(error) };
   }
-}
-
-/** R21.x. The support lookup: which churches an address can sign in to. */
-export async function lookupAccount(query: string) {
-  const who = await requireOperator();
-  return platform.findAccount(who.id, query);
 }
