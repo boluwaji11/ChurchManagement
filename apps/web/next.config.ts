@@ -1,14 +1,17 @@
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
 import type { NextConfig } from "next";
+import { loadAndCheck } from "@connectapp/env/load";
 
 /**
  * Secrets live in one file at the repo root, not duplicated per app. Next only
  * reads env files from its own directory, so load the root one here. This runs
  * before compilation, which is early enough for NEXT_PUBLIC_ values to be inlined.
+ *
+ * HRT-397. Which file is now the environment's to choose, and the keys in it
+ * are checked against the environment that was declared. A build or a server
+ * start holding production credentials while calling itself development stops
+ * here rather than three screens later. See docs/environments.md.
  */
-const rootEnv = resolve(import.meta.dirname, "../../.env.local");
-if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
+loadAndCheck(import.meta.dirname);
 
 const config: NextConfig = {
   /**

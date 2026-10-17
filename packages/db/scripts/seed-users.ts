@@ -28,6 +28,25 @@ const NEWCOMER = {
   fullName: "No Church Yet",
 };
 
+/**
+ * R21.x. Somebody to sign in to the operator portal with.
+ *
+ * The portal's two gates are a real session and a row in `platform_admins`, so
+ * testing it needs an account holding both, and an account holding the first
+ * and not the second. A church's own pastor is the second case and stays that
+ * way: making a seeded owner an operator as well would mean the only account
+ * on the machine passed both gates, and the gate that matters would never be
+ * exercised.
+ *
+ * This one belongs to no church, which is also true of the people who run the
+ * platform.
+ */
+const OPERATOR = {
+  id: "11111111-2222-4333-8444-666666666666",
+  email: "operator@connectapp.example.org",
+  fullName: "Dev Operator",
+};
+
 async function main() {
   const sql = owner();
   const password = required("SEED_USER_PASSWORD");
@@ -41,7 +60,8 @@ async function main() {
     delete from auth.users
     where email like ${"%@riverside.example.org"}
        or email like ${"%@northgate.example.org"}
-       or email = ${NEWCOMER.email}`;
+       or email = ${NEWCOMER.email}
+       or email = ${OPERATOR.email}`;
 
   const rows = await sql<{ id: string; email: string; full_name: string | null; tenant: string; role: string }[]>`
     select u.id, u.email, u.full_name, t.name as tenant, m.role::text as role
@@ -56,6 +76,7 @@ async function main() {
   const members = [
     ...rows,
     { id: NEWCOMER.id, email: NEWCOMER.email, full_name: NEWCOMER.fullName, tenant: "No church", role: "none" },
+    { id: OPERATOR.id, email: OPERATOR.email, full_name: OPERATOR.fullName, tenant: "No church", role: "operator" },
   ];
 
   for (const m of members) {
@@ -101,7 +122,26 @@ async function main() {
     console.log(`  ${m.email.padEnd(34)} ${m.role.padEnd(9)} ${m.tenant}`);
   }
 
+  /*
+   * R21.x. The operator needs an `app_users` row before it can hold a grant,
+   * because `platform_admins.user_id` points at that table rather than at
+   * Supabase's. Everybody else here gets theirs the first time they sign in,
+   * which is what a real account does; the operator never signs in to the
+   * product at all, so nothing would ever write it.
+   */
+  await sql`
+    insert into app_users (id, email, full_name)
+    values (${OPERATOR.id}::uuid, ${OPERATOR.email}, ${OPERATOR.fullName})
+    on conflict (id) do update set email = excluded.email, full_name = excluded.full_name`;
+
+  await sql`
+    insert into platform_admins (user_id, name)
+    values (${OPERATOR.id}::uuid, ${OPERATOR.fullName})
+    on conflict (user_id) do update
+      set name = excluded.name, granted_at = now(), revoked_at = null`;
+
   console.log(`\n${members.length} accounts ready. Password is SEED_USER_PASSWORD from .env.local.`);
+  console.log(`${OPERATOR.email} operates the platform, for the portal at :4489.`);
   await closeConnections();
 }
 

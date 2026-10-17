@@ -1,18 +1,16 @@
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { loadEnvFiles } from "@connectapp/env/load";
 
-/** Load .env.local from the repo root if present. Never committed. */
-let loaded = false;
+/**
+ * Load the environment's own secrets file from the repo root, if there is one.
+ *
+ * HRT-397. Which file that is depends on the environment: `.env.local` holds
+ * development and `.env.production.local` holds the live credentials, read
+ * only when CONNECTAPP_ENV says production. See docs/environments.md.
+ *
+ * Kept as a named export because the migration and seed scripts call it.
+ */
 export function loadEnv(): void {
-  if (loaded) return;
-  loaded = true;
-  for (const candidate of [".env.local", "../../.env.local", "../../../.env.local"]) {
-    const path = resolve(process.cwd(), candidate);
-    if (existsSync(path)) {
-      process.loadEnvFile(path);
-      return;
-    }
-  }
+  loadEnvFiles(process.cwd());
 }
 
 export function required(name: string): string {

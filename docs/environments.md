@@ -1,0 +1,194 @@
+# Environments
+
+HRT-397. Two of everything, so that working on ConnectApp cannot reach a church.
+
+Until 17 October 2026 there was one of each: one Supabase project, one Stripe account, one Resend
+grant, and a single `.env.local` holding the live credentials for all of them. `pnpm dev` on a
+laptop read and wrote the production database. Every seed, every test send and every careless
+delete was one keystroke from a real church's records.
+
+There are now two environments. This document says what is in each, how a process decides which one
+it is, and what to do when a credential has to be replaced.
+
+## The two
+
+| | Production | Development |
+|---|---|---|
+| Who uses it | churches | us |
+| Supabase project | `nvdovjuqcnxacvhxfrmi`, ConnectApp, us-east-2 | `koaegntsyvvulioesufn`, ConnectApp Dev, us-east-1 |
+| Runs at | `connectapp.church`, `admin.connectapp.church` | `localhost:4488`, `localhost:4489`, `dev.connectapp.church` |
+| Vercel environment | Production | Preview |
+| Branch | `production` | `develop`, and every pull request |
+| Stripe | the live account, live keys | a sandbox, test keys |
+| Resend | the live key, OAuth client `b52d3683…` | its own key, OAuth client `e2355dfb…` |
+| Secrets | generated once, held by Vercel | generated for development, used nowhere else |
+| Records | real churches | two seeded churches and ten accounts |
+
+There is no third tier. Preview and local development share the development project, which is the
+usual arrangement at this size: a staging database of its own costs money and buys nothing while one
+person is building. Supabase's own branching is the other option and is a Pro-plan feature billed per
+branch per hour, which a donation-funded product does not spend money on.
+
+## How a process knows which it is
+
+`@connectapp/env`. One small module with no dependencies, read before anything else is set up.
+
+The environment is **declared, never inferred**:
+
+1. `CONNECTAPP_ENV`, if it names one.
+2. Vercel's own `VERCEL_ENV`, which is set automatically on every deployment.
+3. Otherwise development.
+
+`NODE_ENV` is not consulted at all. Every screen in this repository is checked by building it and
+serving it from a laptop, which sets `NODE_ENV=production` and is not production. An environment
+nobody has declared is development, so the only way to be production is to say so.
+
+## The guard
+
+`assertEnvironment()` runs from each app's `next.config.ts`, which is the first of our own code in
+every build and every server start. It compares the keys the process is holding against the
+environment it says it is, and it is asymmetric on purpose:
+
+- **A production credential outside production stops the process.** A live Stripe key, the
+  production Supabase project or the production database on a laptop is how a real church gets a
+  test email or a real charge. The error names the variable.
+- **A development credential inside production is written to the log and drawn on the operator
+  portal's status screen.** That direction is a product that does not work rather than one that does
+  damage, and a guard able to take the live site down over a misread variable is a worse risk than
+  the thing it guards against.
+
+```
+$ pnpm dev
+Error: Refusing to start. This process says it is development and is holding
+production credentials:
+  DATABASE_URL: The production database in development.
+```
+
+## The files
+
+Both are at the repo root and both are gitignored. Next reads an env file beside the app it is
+serving and this is a workspace, so the secrets live once at the root and `@connectapp/env/load`
+loads them from there.
+
+| File | Holds | Read when |
+|---|---|---|
+| `.env.local` | development | always, by default |
+| `.env.production.local` | the live credentials | only when `CONNECTAPP_ENV=production` is set in the shell |
+
+A variable already set in the shell wins over the file, which is how one value is overridden for a
+single command. Production itself holds no file: Vercel passes the variables in and the loader finds
+nothing.
+
+### Running against production on purpose
+
+Reading the real database from this desk is sometimes the only way to answer a question. It takes
+saying so:
+
+```
+CONNECTAPP_ENV=production pnpm --filter @connectapp/db platform:admin list
+```
+
+Nothing else reaches it.
+
+## The database
+
+The development project was built from the migrations rather than copied from production, which is
+the point: it proves the schema is reproducible. It was not, until this was done. `sql/security.sql`
+created `church_takes_files` in a schema named after the old product that nothing creates, and it
+only worked in production because that schema is there from history. A fresh project stopped with
+"schema hearth does not exist", and finishing the rename was the fix.
+
+Setting the development database up again from nothing:
+
+```
+pnpm --filter @connectapp/db migrate      # 162 migrations, then search.sql, then security.sql
+pnpm --filter @connectapp/db seed         # two churches, 13 members
+pnpm --filter @connectapp/db seed:users   # ten accounts, including an operator
+```
+
+The accounts all take `SEED_USER_PASSWORD` from `.env.local`.
+
+| Account | Is |
+|---|---|
+| `pastor@riverside.example.org` | owner of Riverside Fellowship |
+| `admin@riverside.example.org` | administrator |
+| `care@riverside.example.org` | pastoral |
+| `member@riverside.example.org` | member |
+| the same four at `@northgate.example.org` | the second church, for the isolation tests |
+| `founder@newchurch.example.org` | an account in no church, for the way in |
+| `operator@connectapp.example.org` | operates the platform, for the portal |
+
+The operator belongs to no church and no church's owner operates the platform, so the portal's two
+gates are both exercised by accounts that exist.
+
+**A migration is written once and applied to both.** Development first, because that is where it is
+allowed to be wrong.
+
+## What is still to be filled in
+
+Two credentials cannot be minted from this desk, because both would mean creating something inside
+an account. Development runs without them and the screens that need them say so.
+
+### Stripe
+
+Development needs a **sandbox inside the ConnectApp Stripe account**, not a new standalone one:
+Connect's platform settings belong to the account, so a sandbox anywhere else cannot create a
+connected account the way production does. Stripe's own guidance is now to use a general sandbox
+rather than the legacy test mode for new work, and to keep local development and CI in separate
+sandboxes.
+
+1. Stripe Dashboard, the account picker, **Sandboxes**, create one called `ConnectApp Dev`.
+2. Inside it, Developers, API keys. Copy the publishable key and a secret key.
+3. Set them:
+
+```
+scripts/set-dev-stripe.sh sk_test_... pk_test_...
+```
+
+That writes both into `.env.local` and into Vercel's Preview environment. The webhook destinations
+are made the same way as production's, pointed at `https://dev.connectapp.church`.
+
+### Resend
+
+The OAuth client a church connects through is already registered for development, with callbacks on
+`localhost:4488` and `dev.connectapp.church`. What is missing is the platform's own API key, which
+is what sends the welcome, the approval and the confirmation.
+
+Resend has no sandbox. A key of its own in the same account is the separation, and
+`delivered@resend.dev` is the address to send to while testing, which Resend accepts and never
+delivers to a person.
+
+1. Resend, API keys, create one called `ConnectApp Dev`.
+2. `scripts/set-dev-resend.sh re_...`
+
+Until then, development sends nothing and says so rather than failing quietly.
+
+### Upstash
+
+Unset in development. The rate limiter falls back to refusing nothing, which is the right behaviour
+on a machine with one person on it.
+
+## Vercel
+
+| Environment | Branch | Variables | Domain |
+|---|---|---|---|
+| Production | `production` | 25, live | `connectapp.church` |
+| Preview | `develop` and pull requests | 16, development | `dev.connectapp.church` |
+
+Preview had no variables at all before this, so every preview deployment had been failing. The
+production variables were not touched: they were listed before and after, and the count went from 25
+to 26 only because `CONNECTAPP_ENV=production` was added to make production say so itself.
+
+## When a secret has to be replaced
+
+Development's secrets were generated for development and appear nowhere else, so replacing one is
+local. Generate, write it into `.env.local`, push it to Preview:
+
+```
+openssl rand -base64 32                                   # an encryption key
+node -e "console.log(require('web-push').generateVAPIDKeys())"   # a push pair
+printf '%s' "<value>" | vercel env add <NAME> preview --force
+```
+
+Never `vercel env add ... production` while doing development work. That is the one line that
+reaches a church.

@@ -38,6 +38,9 @@ importers:
       '@connectapp/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@connectapp/env':
+        specifier: workspace:*
+        version: link:../../packages/env
       '@connectapp/mail':
         specifier: workspace:*
         version: link:../../packages/mail
@@ -87,6 +90,9 @@ importers:
       '@connectapp/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@connectapp/env':
+        specifier: workspace:*
+        version: link:../../packages/env
       '@connectapp/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
@@ -181,6 +187,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@connectapp/env':
+        specifier: workspace:*
+        version: link:../env
       '@connectapp/i18n':
         specifier: workspace:*
         version: link:../i18n
@@ -215,6 +224,15 @@ importers:
       tsx:
         specifier: ^4.19.2
         version: 4.23.15
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.4)(lightningcss@1.32.0)
+
+  packages/env:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.4
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.4)(lightningcss@1.32.0)

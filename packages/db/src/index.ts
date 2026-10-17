@@ -216,3 +216,4 @@ export { withAuditTriggersOff, deleteTenants, deleteTenantsLike } from "./mainte
 export { loadEnv } from "./env";
 export * from "./repo/notifications";
 export * as platform from "./repo/platform";
+export * as platformHealth from "./repo/platform-health";

@@ -18,7 +18,7 @@ import { createTag, setPersonTag } from "../src/repo/tags";
 import {
   createGroup, addToGroup, removeFromGroup, groupRoster, seedGroupTypes, listGroupTypes,
 } from "../src/repo/groups";
-import { enterPipeline, addTask, peopleIn, listPipelines } from "../src/repo/followups";
+import { enterPipeline, addTask, peopleIn, listPipelines, createPipeline } from "../src/repo/followups";
 import { createNote, countNotes } from "../src/repo/notes";
 import { PermissionError, type TenantRole } from "../src/roles";
 import { InvalidInputError } from "../src/errors";
@@ -510,10 +510,24 @@ describe("what a merge takes with it (R2.8)", () => {
   it.skipIf(!HAS_ACCOUNTS)("moves an open pipeline entry and the tasks written about them", async () => {
     const winner = await make("Dee");
     const loser = await make("Deedee");
-    const [pipeline] = await run(riverside, "owner", (tx) => listPipelines(tx));
+    /*
+     * Made here rather than taken from whatever the church happens to hold.
+     *
+     * This read the first pipeline the church had, which worked only because
+     * the database it was always run against had one somebody made by hand. A
+     * new church is created with none, so on a database built from the
+     * migrations there was nothing to read and the test failed on an
+     * undefined. A test that depends on ambient data is a test that passes for
+     * a reason nobody wrote down.
+     */
+    const pipeline =
+      (await run(riverside, "owner", (tx) => listPipelines(tx)))[0] ??
+      (await run(riverside, "owner", (tx) =>
+        createPipeline(tx, as(riverside), { name: "First contact" }),
+      ));
 
     await run(riverside, "owner", (tx) =>
-      enterPipeline(tx, as(riverside), { pipelineId: pipeline!.id, memberId: loser.id, on: today }),
+      enterPipeline(tx, as(riverside), { pipelineId: pipeline.id, memberId: loser.id, on: today }),
     );
     await run(riverside, "owner", (tx) =>
       addTask(tx, as(riverside), { memberId: loser.id, title: "Call them back", dueOn: today }),

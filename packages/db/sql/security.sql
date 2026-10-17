@@ -621,9 +621,6 @@ begin
     using (bucket_id = 'church' and connectapp.user_in_church((storage.foldername(name))[1]))
   $pol$;
 
-  /* The old schema's copy, now that nothing points at it any more. */
-  execute 'drop function if exists hearth.user_in_church(text)';
-
   -- R4.1. What somebody with no account may write, and only that.
   --
   -- A form question can ask for a file, and whoever answers it has no session
@@ -637,7 +634,7 @@ begin
   -- takes files, the type is one it asks for, the size is inside the ceiling
   -- and the church has the room. The policy is the second say, not the first.
   execute $fn$
-    create or replace function hearth.church_takes_files(p_slug text)
+    create or replace function connectapp.church_takes_files(p_slug text)
     returns boolean
     language sql
     security definer
@@ -653,7 +650,7 @@ begin
     $body$
   $fn$;
   execute 'grant usage on schema connectapp to anon';
-  execute 'grant execute on function hearth.church_takes_files(text) to anon';
+  execute 'grant execute on function connectapp.church_takes_files(text) to anon';
 
   execute 'drop policy if exists church_public_answer on storage.objects';
   execute $pol$
@@ -661,9 +658,28 @@ begin
     with check (
       bucket_id = 'church'
       and (storage.foldername(name))[2] = 'form_answer'
-      and hearth.church_takes_files((storage.foldername(name))[1])
+      and connectapp.church_takes_files((storage.foldername(name))[1])
     )
   $pol$;
+
+  /*
+   * What the rename left behind.
+   *
+   * Both functions were written into a schema named after the old product and
+   * the rename reached only one of them, so `church_takes_files` was still
+   * being created in `hearth` while nothing created that schema. A database
+   * made before the rename has it and carried on working; a database made
+   * from this file on a fresh project stopped here with "schema hearth does
+   * not exist", which is how it was found.
+   *
+   * Dropped once nothing points at either of them, and only where the schema
+   * is actually there: `drop ... if exists` forgives a missing function and
+   * still raises on a missing schema.
+   */
+  if exists (select 1 from pg_namespace where nspname = 'hearth') then
+    execute 'drop function if exists hearth.user_in_church(text)';
+    execute 'drop function if exists hearth.church_takes_files(text)';
+  end if;
 
   -- Where it used to live, when it was also an RPC endpoint.
   execute 'drop function if exists public.user_in_church(text)';
