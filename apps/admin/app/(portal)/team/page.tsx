@@ -1,12 +1,12 @@
 import { platform } from "@connectapp/db";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 import { Screen } from "@/components/screen";
 import { On } from "@/components/since";
-import { Operators } from "./operators";
+import { TeamMembers } from "./members";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Operators - ConnectApp Admin" };
+export const metadata = { title: "Team - ConnectApp Admin" };
 
 /**
  * R21.x. Who operates the platform.
@@ -15,13 +15,13 @@ export const metadata = { title: "Operators - ConnectApp Admin" };
  * account to make and no password to send. Revoking leaves the row, because the
  * log names them and a name that cannot be looked up is a worse record.
  */
-export default async function OperatorsPage() {
-  const who = await requireOperator();
+export default async function TeamPage() {
+  const who = await requireTeamMember();
   const rows = await platform.admins(who.id);
 
   return (
-    <Screen title="Operators" lede="The accounts that can approve and archive a church.">
-      <Operators
+    <Screen title="Team" lede="The people who can approve and archive a church.">
+      <TeamMembers
         me={who.id}
         rows={rows.map((one) => ({
           userId: one.userId,

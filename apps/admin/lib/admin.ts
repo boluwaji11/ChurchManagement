@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { platform } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export interface Operator {
+export interface TeamMember {
   id: string;
   name: string;
   email: string;
@@ -21,9 +21,9 @@ export interface Operator {
  * asks, and then the screen inside it asks again for the id it reads with;
  * without this that is two sessions resolved and two queries to answer one
  * question. `cache` is per request and per render, so nothing is held between
- * one operator's request and the next.
+ * one team member's request and the next.
  */
-export const operator = cache(async (): Promise<Operator | null> => {
+export const teamMember = cache(async (): Promise<TeamMember | null> => {
   const supabase = await supabaseServer();
   const { data } = await supabase.auth.getUser();
   const user = data.user;
@@ -36,8 +36,8 @@ export const operator = cache(async (): Promise<Operator | null> => {
 });
 
 /** The same check, for a page that cannot render without one. */
-export async function requireOperator(): Promise<Operator> {
-  const who = await operator();
+export async function requireTeamMember(): Promise<TeamMember> {
+  const who = await teamMember();
   if (!who) redirect("/sign-in");
   return who;
 }

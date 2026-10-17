@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { environment } from "@connectapp/env";
-import { operator } from "@/lib/admin";
+import { teamMember } from "@/lib/admin";
 import { Brand } from "@/components/brand";
 import { SignInForm } from "./form";
 
@@ -10,7 +10,7 @@ export const metadata = { title: "Sign in - ConnectApp Admin" };
 
 /** R21.x. The one door into the portal. */
 export default async function SignInPage() {
-  if (await operator()) redirect("/");
+  if (await teamMember()) redirect("/");
   const env = environment();
 
   return (

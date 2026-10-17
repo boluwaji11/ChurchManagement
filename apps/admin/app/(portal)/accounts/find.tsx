@@ -9,7 +9,7 @@ export function Find({ query }: { query: string }) {
         <input
           name="q"
           defaultValue={query}
-          placeholder="e.g. mike@connectapp.church"
+          placeholder="Search by email address"
           aria-label="Search accounts"
           className="min-w-0 flex-1 bg-transparent py-2.5 text-[length:var(--d-text-body)] text-fg outline-none"
         />

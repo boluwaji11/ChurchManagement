@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Search } from "lucide-react";
 import { platform } from "@connectapp/db";
 import { EmptyState, cn } from "@connectapp/ui";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 import { Screen } from "@/components/screen";
 import { Since, On } from "@/components/since";
 import { Blank } from "@/components/blank";
@@ -32,7 +32,7 @@ export default async function ChurchesPage({
 }: {
   searchParams: Promise<{ q?: string; standing?: string }>;
 }) {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   const params = await searchParams;
   const standing = (STANDINGS.find((one) => one.key === params.standing)?.key ?? "all") as Standing;
   const query = params.q ?? "";

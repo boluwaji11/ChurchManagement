@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { platform, platformHealth } from "@connectapp/db";
 import { approvedMessage, sendAsPlatform } from "@connectapp/mail";
 import { supabaseServer } from "@/lib/supabase/server";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 
 export interface Done {
   error?: string;
@@ -41,7 +41,7 @@ async function from(): Promise<{ ip: string | null; agent: string | null }> {
  * tried the door is worth as much as who got in.
  *
  * The refusals are all the same sentence on purpose. Telling somebody that the
- * password was right but the account is not an operator tells them they have
+ * password was right but the account is not a team member tells them they have
  * found a real address and that the only thing left to get is a grant.
  */
 export async function signIn(_state: Done, data: FormData): Promise<Done> {
@@ -59,7 +59,7 @@ export async function signIn(_state: Done, data: FormData): Promise<Done> {
     };
   }
 
-  const refused = "That address and password do not match an operator's account.";
+  const refused = "That address and password do not match a team member's account.";
 
   const supabase = await supabaseServer();
   const result = await supabase.auth.signInWithPassword({ email, password });
@@ -71,7 +71,7 @@ export async function signIn(_state: Done, data: FormData): Promise<Done> {
   const admin = await platform.platformAdmin(result.data.user.id);
   if (!admin) {
     /*
-     * A real account with a real password that is not an operator. The session
+     * A real account with a real password that is not a team member. The session
      * is thrown away rather than left behind, because this app's middleware
      * would otherwise treat it as signed in and bounce them round a loop.
      */
@@ -92,7 +92,7 @@ export async function signOut(): Promise<void> {
 
 /** R1.1. A human has looked at this church. */
 export async function approveChurch(data: FormData): Promise<Done> {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   const id = String(data.get("id"));
 
   try {
@@ -106,7 +106,7 @@ export async function approveChurch(data: FormData): Promise<Done> {
    * HRT-388, R1.1, R22.1. The church is told, by the thing that happened.
    *
    * After the write rather than inside it, and outside the try above, because
-   * the church is approved either way: an operator who pressed Approve and saw
+   * the church is approved either way: a team member who pressed Approve and saw
    * a mail provider's refusal would reasonably press it again, and the
    * approval is already done.
    */
@@ -123,7 +123,7 @@ export async function approveChurch(data: FormData): Promise<Done> {
  */
 async function tellThemApproved(id: string): Promise<void> {
   try {
-    const who = await requireOperator();
+    const who = await requireTeamMember();
     const found = await platform.church(who.id, id);
     if (!found?.ownerEmail) return;
 
@@ -142,7 +142,7 @@ async function tellThemApproved(id: string): Promise<void> {
 }
 
 export async function unapproveChurch(data: FormData): Promise<Done> {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   try {
     await platform.unapprove(who.id, String(data.get("id")), String(data.get("note") ?? ""));
     revalidatePath("/churches");
@@ -154,7 +154,7 @@ export async function unapproveChurch(data: FormData): Promise<Done> {
 
 /** R21.x. Out of service, with every record it holds kept. */
 export async function archiveChurch(data: FormData): Promise<Done> {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   try {
     await platform.archive(who.id, String(data.get("id")), String(data.get("note") ?? ""));
     revalidatePath("/churches");
@@ -165,7 +165,7 @@ export async function archiveChurch(data: FormData): Promise<Done> {
 }
 
 export async function restoreChurch(data: FormData): Promise<Done> {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   try {
     await platform.restore(who.id, String(data.get("id")), String(data.get("note") ?? ""));
     revalidatePath("/churches");
@@ -175,12 +175,12 @@ export async function restoreChurch(data: FormData): Promise<Done> {
   }
 }
 
-/** R21.x. Another operator, by the address they sign in with. */
+/** R21.x. Another team member, by the address they sign in with. */
 export async function grantAdmin(data: FormData): Promise<Done> {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   try {
     await platform.grant(who.id, String(data.get("email") ?? ""), String(data.get("name") ?? ""));
-    revalidatePath("/operators");
+    revalidatePath("/team");
     return {};
   } catch (error) {
     return { error: say(error) };
@@ -188,10 +188,10 @@ export async function grantAdmin(data: FormData): Promise<Done> {
 }
 
 export async function revokeAdmin(userId: string): Promise<Done> {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   try {
     await platform.revoke(who.id, userId);
-    revalidatePath("/operators");
+    revalidatePath("/team");
     return {};
   } catch (error) {
     return { error: say(error) };

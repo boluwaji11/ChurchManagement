@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * HRT-396, R21.1. Refreshes the session, and turns away anybody without one.
  *
  * Two jobs, and the order matters. A Server Component cannot write cookies, so
- * an expired token would otherwise sign an operator out mid-task; that is what
+ * an expired token would otherwise sign a team member out mid-task; that is what
  * the refresh is for and it is unchanged.
  *
  * What is new is the second half. The portal's own layout holds the real gate,

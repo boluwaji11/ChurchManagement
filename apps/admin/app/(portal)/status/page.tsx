@@ -2,7 +2,7 @@ import { AlertTriangle, Mail, CreditCard } from "lucide-react";
 import { platformHealth } from "@connectapp/db";
 import { check, environment, whereWeAre } from "@connectapp/env";
 import { Badge, Banner, StatTile, Table, Thead, Th, Tr, Td } from "@connectapp/ui";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 import { probeEverything, SHAPE } from "@/lib/probes";
 import { Screen, Block, Panel } from "@/components/screen";
 import { StateDot, worst, wordFor } from "@/components/state-dot";
@@ -41,7 +41,7 @@ export default async function StatusPage({
 }: {
   searchParams: Promise<{ now?: string }>;
 }) {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   /* Check again puts this in the address, so a press probes even when what is
      on record is still inside the minute above. */
   const forced = (await searchParams).now !== undefined;

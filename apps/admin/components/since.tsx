@@ -2,7 +2,7 @@
  * R24.6. How long ago, in the words a person uses.
  *
  * Rendered on the server from a fixed clock, so the markup the browser gets
- * matches what the server sent. An operator reading "4 minutes ago" wants the
+ * matches what the server sent. A team member reading "4 minutes ago" wants the
  * shape of it rather than the second.
  */
 

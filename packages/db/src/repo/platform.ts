@@ -75,7 +75,7 @@ export interface Signals {
   active: number;
 }
 
-/** R21.x. Whether this account may operate the platform at all. */
+/** R21.x. Whether this account is on the platform team at all. */
 export async function platformAdmin(userId: string): Promise<{ id: string; name: string } | null> {
   if (!userId) return null;
   const rows = await owner()<{ id: string; name: string }[]>`
@@ -88,7 +88,7 @@ export async function platformAdmin(userId: string): Promise<{ id: string; name:
 
 async function requireAdmin(userId: string): Promise<{ id: string; name: string }> {
   const who = await platformAdmin(userId);
-  if (!who) throw new PlatformError("This account does not operate the platform.");
+  if (!who) throw new PlatformError("This account is not on the platform team.");
   return who;
 }
 
@@ -238,7 +238,7 @@ export async function events(
      limit ${limit}`;
 }
 
-/** R21.x. Who may operate the platform. */
+/** R21.x. Who is on the platform team. */
 export async function admins(by: string): Promise<PlatformAdmin[]> {
   await requireAdmin(by);
   return owner()<PlatformAdmin[]>`
@@ -274,14 +274,14 @@ export async function grant(by: string, email: string, name: string): Promise<vo
 /** R21.x. Taking it away. The row stays, so the log still reads. */
 export async function revoke(by: string, userId: string): Promise<void> {
   const actor = await requireAdmin(by);
-  if (actor.id === userId) throw new PlatformError("Taking your own access away would leave you locked out.");
+  if (actor.id === userId) throw new PlatformError("Revoking your own access would lock you out.");
 
   const rows = await owner()<{ name: string }[]>`
     update platform_admins set revoked_at = now()
      where user_id = ${userId} and revoked_at is null
      returning name`;
   const gone = rows[0];
-  if (!gone) throw new PlatformError("That account does not operate the platform.");
+  if (!gone) throw new PlatformError("That account is not on the platform team.");
   await record(actor, "revoked", { note: gone.name });
 }
 

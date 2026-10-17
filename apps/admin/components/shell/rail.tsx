@@ -12,7 +12,7 @@ import { Brand, Mark } from "../brand";
 import { GROUPS, activeHref } from "./nav";
 import { setRailCollapsed } from "./rail-actions";
 import { signOut } from "@/app/actions";
-import type { Operator } from "@/lib/admin";
+import type { TeamMember } from "@/lib/admin";
 
 /**
  * One mark a section. Kept here rather than in `nav.ts` because that file is
@@ -25,11 +25,11 @@ const MARKS: Record<string, React.ComponentType<{ className?: string }>> = {
   "/status": Activity,
   "/delivery": GitBranch,
   "/log": ScrollText,
-  "/operators": ShieldCheck,
+  "/team": ShieldCheck,
 };
 
 /**
- * HRT-393, R24.6, R24.14. The navigation down the left of the operator portal.
+ * HRT-393, R24.6, R24.14. The navigation down the left of the team portal.
  *
  * 240px open, 64px shut, remembered in a cookie so it comes back the way it
  * was left. Collapsed, every row keeps its words in a tooltip, which is what
@@ -51,7 +51,7 @@ export function Rail({
   onNavigate,
   floating,
 }: {
-  who: Operator;
+  who: TeamMember;
   collapsed: boolean;
   environment: string;
   /** Whether this portal is pointed at the churches' own records. */
@@ -126,7 +126,7 @@ export function Rail({
       {/*
         HRT-397. Which set of records is behind this screen.
         The portal runs against development as readily as production, and an
-        operator archiving a church needs to know which one they are archiving.
+        A team member archiving a church needs to know which one they are archiving.
       */}
       <Here environment={environment} productionData={productionData} shut={shut} />
 
@@ -237,7 +237,7 @@ export function Rail({
  *
  * Production says so quietly, because it is the ordinary case and a warning
  * that fires every time is a warning nobody reads. Anything else is marked in
- * the accent, because an operator who thinks they are in development and is
+ * the accent, because a team member who thinks they are in development and is
  * not would archive a real church.
  */
 function Here({

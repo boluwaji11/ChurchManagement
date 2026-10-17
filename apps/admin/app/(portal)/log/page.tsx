@@ -1,6 +1,6 @@
 import { platform } from "@connectapp/db";
 import { EmptyState } from "@connectapp/ui";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 import { Screen } from "@/components/screen";
 import { Trail } from "@/components/trail";
 
@@ -15,7 +15,7 @@ export const metadata = { title: "Log - ConnectApp Admin" };
  * or deleted by anybody, including the person who wrote it.
  */
 export default async function LogPage() {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   const log = await platform.events(who.id, { limit: 200 });
 
   return (

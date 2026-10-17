@@ -1,7 +1,7 @@
 import { CheckCircle2, CircleDot, ExternalLink, GitCommitHorizontal, XCircle } from "lucide-react";
 import { platformHealth } from "@connectapp/db";
 import { Badge, Banner, EmptyState, Progress, StatTile, Table, Thead, Th, Tr, Td } from "@connectapp/ui";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 import { commits, runs, waitingToShip, repoUrl } from "@/lib/github";
 import { board, doneness, DEFINED } from "@/lib/board";
 import { Screen, Block, Panel } from "@/components/screen";
@@ -32,7 +32,7 @@ const TONE: Record<string, "success" | "warning" | "danger" | "info" | "neutral"
  * quietly stop matching the truth.
  */
 export default async function DeliveryPage() {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
 
   const [ship, recent, workflows, plan, weeks] = await Promise.all([
     waitingToShip(),

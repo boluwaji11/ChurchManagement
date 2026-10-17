@@ -250,10 +250,29 @@ end $$;
 -- than by a list. A list is a thing somebody forgets to add to, and an unaudited
 -- table looks identical to an audited one until the day someone asks who changed
 -- a record. audit_entries itself is excluded: auditing the audit log recurses.
+--
+-- The platform's own tables are excluded too, and that one is not a convenience.
+-- `platform_events.tenant_id` names the church an operator acted on, which is a
+-- different thing from the column this loop is looking for: it is null for every
+-- action that is not about one church, and granting an operator is one of those.
+-- Auditing it therefore wrote an audit_entries row with no tenant and the insert
+-- was refused, so nobody could be granted the portal at all. Those tables sit
+-- outside the tenancy and keep their own append-only log in platform_events.
 do $$
 declare t text;
 declare old_trigger text;
 begin
+  /* A database set up before the exclusion above carries the trigger already,
+     and the loop below cannot take off a trigger from a table it no longer
+     visits. */
+  for t in
+    select c.relname from pg_class c
+      join pg_namespace n on n.oid = c.relnamespace
+     where n.nspname = 'public' and c.relkind = 'r' and c.relname like 'platform\_%'
+  loop
+    execute format('drop trigger if exists audit_%1$s on public.%1$I', t);
+  end loop;
+
   for t in
     select c.relname
       from pg_class c
@@ -262,6 +281,7 @@ begin
      where n.nspname = 'public'
        and c.relkind = 'r'
        and c.relname <> 'audit_entries'
+       and c.relname not like 'platform\_%'
      order by c.relname
   loop
     /*

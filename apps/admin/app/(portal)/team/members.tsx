@@ -9,7 +9,7 @@ import {
 } from "@connectapp/ui";
 import { grantAdmin, revokeAdmin } from "@/app/actions";
 
-export interface OperatorRow {
+export interface TeamMemberRow {
   userId: string;
   name: string;
   email: string;
@@ -19,10 +19,13 @@ export interface OperatorRow {
 }
 
 /** R21.x. The list, and the two things that change it. */
-export function Operators({ me, rows }: { me: string; rows: OperatorRow[] }) {
+export function TeamMembers({ me, rows }: { me: string; rows: TeamMemberRow[] }) {
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const [open, setOpen] = React.useState(false);
+  /* The row whose access is about to go, which is what the confirmation is
+     asking about. One box driven by state rather than one per row. */
+  const [losing, setLosing] = React.useState<TeamMemberRow>();
   const [pending, startTransition] = React.useTransition();
 
   const live = rows.filter((one) => !one.revoked);
@@ -35,9 +38,9 @@ export function Operators({ me, rows }: { me: string; rows: OperatorRow[] }) {
       <div className="flex justify-end">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button><Plus /> Add an operator</Button>
+            <Button><Plus /> Add a team member</Button>
           </DialogTrigger>
-          <DialogContent title="Add an operator" closeLabel="Close">
+          <DialogContent title="Add a team member" closeLabel="Close">
             <form
               noValidate
               className="flex flex-col gap-4"
@@ -45,10 +48,12 @@ export function Operators({ me, rows }: { me: string; rows: OperatorRow[] }) {
                 startTransition(async () => {
                   const result = await grantAdmin(data);
                   setError(result.error);
-                  if (!result.error) {
-                    setOpen(false);
-                    router.refresh();
-                  }
+                  if (!result.error) setOpen(false);
+                  /* Refreshed either way. A refusal is often the list being
+                     out of date rather than the press being wrong, and a
+                     screen that argues with a server it has not re-read is
+                     the most confusing thing it can do. */
+                  router.refresh();
                 });
               }}
             >
@@ -87,16 +92,10 @@ export function Operators({ me, rows }: { me: string; rows: OperatorRow[] }) {
               <Badge tone="neutral">You</Badge>
             ) : (
               <IconButton
-                label={`Take ${one.name}'s access away`}
+                label={`Revoke ${one.name}'s access`}
                 variant="ghost"
                 disabled={pending}
-                onClick={() => {
-                  startTransition(async () => {
-                    const result = await revokeAdmin(one.userId);
-                    setError(result.error);
-                    if (!result.error) router.refresh();
-                  });
-                }}
+                onClick={() => setLosing(one)}
               >
                 <UserMinus />
               </IconButton>
@@ -105,9 +104,40 @@ export function Operators({ me, rows }: { me: string; rows: OperatorRow[] }) {
         ))}
       </ul>
 
+      {/* Reaching every church is the most access this product hands out, so
+          revoking it is asked about rather than done on one press. */}
+      <Dialog open={losing !== undefined} onOpenChange={(to) => { if (!to) setLosing(undefined); }}>
+        <DialogContent alert title={`Revoke ${losing?.name ?? ""}'s access?`}>
+          <p className="text-[length:var(--d-text-body)] text-fg-muted">
+            Their ConnectApp account stays. Every church on the platform goes out of reach.
+          </p>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setLosing(undefined)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              disabled={pending}
+              onClick={() => {
+                const who = losing;
+                if (!who) return;
+                startTransition(async () => {
+                  const result = await revokeAdmin(who.userId);
+                  setError(result.error);
+                  setLosing(undefined);
+                  router.refresh();
+                });
+              }}
+            >
+              Revoke
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {gone.length > 0 ? (
         <div className="flex flex-col gap-2">
-          <h2 className="text-label text-fg-muted">No longer operators</h2>
+          <h2 className="text-label text-fg-muted">No longer on the team</h2>
           {gone.map((one) => (
             <span key={one.userId} className="text-[length:var(--d-text-body)] text-fg-muted">
               {one.name} · {one.email}

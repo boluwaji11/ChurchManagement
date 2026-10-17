@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { whereWeAre } from "@connectapp/env";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 import { Rail } from "@/components/shell/rail";
 import { TopBar } from "@/components/shell/top-bar";
 import { RAIL_COOKIE } from "@/components/shell/rail-cookie";
@@ -10,16 +10,16 @@ export const dynamic = "force-dynamic";
 /**
  * HRT-396, R21.x. One gate, in front of every screen in the portal.
  *
- * Every page used to call `requireOperator()` itself, which works until
+ * Every page used to call `requireTeamMember()` itself, which works until
  * somebody adds a page and forgets. Authorization that depends on remembering
- * is not authorization. Every operator screen now lives under this layout and
+ * is not authorization. Every portal screen now lives under this layout and
  * the check runs once, here, before any of them renders.
  *
  * The sign-in screen is deliberately outside it, which is the only reason
  * there is a group at all.
  */
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   const jar = await cookies();
   const collapsed = jar.get(RAIL_COOKIE)?.value === "1";
   const here = whereWeAre();

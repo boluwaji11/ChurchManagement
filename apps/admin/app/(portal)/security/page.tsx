@@ -1,7 +1,7 @@
 import { KeyRound, ShieldAlert, ShieldCheck } from "lucide-react";
 import { platformHealth } from "@connectapp/db";
 import { Badge, Banner, EmptyState, Table, Thead, Th, Tr, Td } from "@connectapp/ui";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 import { Screen, Block, Panel } from "@/components/screen";
 import { Since } from "@/components/since";
 
@@ -18,7 +18,7 @@ export const metadata = { title: "Security - ConnectApp Admin" };
  * somewhere a person actually looks.
  */
 export default async function SecurityPage() {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   const [ready, attempts] = await Promise.all([
     platformHealth.watching(),
     platformHealth.signIns(who.id, 50),
@@ -38,7 +38,7 @@ export default async function SecurityPage() {
       )}
 
       {refused.length > 0 ? (
-        <Banner tone="warning" title={`${refused.length} ${refused.length === 1 ? "attempt" : "attempts"} by an account that is not an operator`}>
+        <Banner tone="warning" title={`${refused.length} ${refused.length === 1 ? "attempt" : "attempts"} by an account that is not on the team`}>
           The password was right and the account does not operate the platform. That is somebody
           with a real ConnectApp account looking for this door.
         </Banner>
@@ -52,14 +52,14 @@ export default async function SecurityPage() {
               <span className="block font-semibold text-fg">{who.name}</span>
               <span className="block text-caption text-fg-subtle">{who.email}</span>
             </span>
-            <Badge tone="success">Operator</Badge>
+            <Badge tone="success">Team member</Badge>
           </div>
 
           <dl className="m-0 flex flex-col gap-2 border-t border-line pt-3">
             <Rule
               icon={<KeyRound className="size-4" />}
               title="Two gates"
-              body="Supabase has to accept the password, and platform_admins has to say this account operates the platform. A church's own owner has the first and not the second."
+              body="Supabase has to accept the password, and platform_admins has to name this account. A church's own owner clears the first gate and stops at the second."
             />
             <Rule
               icon={<ShieldAlert className="size-4" />}
@@ -77,7 +77,7 @@ export default async function SecurityPage() {
           <>
             <p className="text-caption text-fg-muted">
               {attempts.filter((one) => one.outcome === "in").length} got in, {wrong.length} wrong
-              password, {refused.length} not an operator.
+              password, {refused.length} not on the team.
             </p>
             <Table>
               <Thead>
@@ -108,7 +108,7 @@ export default async function SecurityPage() {
 
 function Outcome({ outcome }: { outcome: string }) {
   if (outcome === "in") return <Badge tone="success">Signed in</Badge>;
-  if (outcome === "refused") return <Badge tone="warning">Not an operator</Badge>;
+  if (outcome === "refused") return <Badge tone="warning">Not on the team</Badge>;
   if (outcome === "throttled") return <Badge tone="neutral">Made to wait</Badge>;
   return <Badge tone="danger">Wrong password</Badge>;
 }

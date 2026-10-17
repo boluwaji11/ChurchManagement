@@ -57,7 +57,7 @@ export const GROUPS: Group[] = [
     label: "Record",
     entries: [
       { href: "/log", label: "Log" },
-      { href: "/operators", label: "Operators" },
+      { href: "/team", label: "Team" },
     ],
   },
 ];

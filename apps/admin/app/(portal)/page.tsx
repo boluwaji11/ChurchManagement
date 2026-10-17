@@ -3,7 +3,7 @@ import { ArrowRight, Building2, CircleUser, Clock, HeartPulse, Users } from "luc
 import { platform, platformHealth } from "@connectapp/db";
 import { environment } from "@connectapp/env";
 import { EmptyState, StatTile } from "@connectapp/ui";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 import { Screen, Block } from "@/components/screen";
 import { Trail } from "@/components/trail";
 import { StateDot } from "@/components/state-dot";
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Overview - ConnectApp Admin" };
 
 /**
- * R22.x. Where the platform stands, in the order an operator needs it.
+ * R22.x. Where the platform stands, in the order a team member needs it.
  *
  * The queue first, because every church in it is a church waiting on a person
  * and the sixty-minute promise is made of that number being small. Then the
@@ -24,7 +24,7 @@ export const metadata = { title: "Overview - ConnectApp Admin" };
  * each in turn is three round trips nobody asked for.
  */
 export default async function OverviewPage() {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   const env = environment();
 
   const [signals, recent, checks, spread] = await Promise.all([

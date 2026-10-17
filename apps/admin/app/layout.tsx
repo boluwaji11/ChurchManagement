@@ -35,7 +35,7 @@ export const viewport: Viewport = {
 };
 
 /**
- * R21.x. The operator's portal.
+ * R21.x. The team's portal.
  *
  * Light only and office density: this is a desk screen for the people running
  * ConnectApp, read on a laptop rather than on a phone in a foyer.

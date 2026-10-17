@@ -129,6 +129,20 @@ gates are both exercised by accounts that exist.
 **A migration is written once and applied to both.** Development first, because that is where it is
 allowed to be wrong.
 
+## What production is owed
+
+One command, run from a desk holding the production database URL:
+
+```
+CONNECTAPP_ENV=production pnpm --filter @connectapp/db migrate
+```
+
+It applies migration `0163_platform_watch.sql`, which is what the status bars and the sign-in
+throttle are waiting on, and it reapplies `security.sql`, which takes the audit trigger off
+`platform_events` (HRT-400). Until it runs, granting an operator fails against production with
+`null value in column "tenant_id" of relation "audit_entries"`, from the terminal and from the
+portal's own Operators screen alike, so there is no way to let a second person in.
+
 ## What is still to be filled in
 
 Two credentials cannot be minted from this desk, because both would mean creating something inside

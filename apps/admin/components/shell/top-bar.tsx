@@ -10,13 +10,13 @@ import {
 import { Brand } from "../brand";
 import { GROUPS, activeHref, screenName } from "./nav";
 import { signOut } from "@/app/actions";
-import type { Operator } from "@/lib/admin";
+import type { TeamMember } from "@/lib/admin";
 
 /**
  * HRT-393, R24.6. The portal on a narrow screen.
  *
  * The rail is 240px of a 390px screen, which leaves nothing to read an
- * operator's own screens in, so below the sidebar's breakpoint it comes off
+ * a team member's own screens in, so below the sidebar's breakpoint it comes off
  * and the sections move into a menu.
  *
  * A menu rather than the row of chips that was here before. Seven sections
@@ -28,7 +28,7 @@ export function TopBar({
   environment,
   productionData,
 }: {
-  who: Operator;
+  who: TeamMember;
   environment: string;
   productionData: boolean;
 }) {

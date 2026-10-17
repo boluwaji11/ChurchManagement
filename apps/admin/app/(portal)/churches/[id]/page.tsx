@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { CreditCard, Mail } from "lucide-react";
 import { platform, platformHealth } from "@connectapp/db";
 import { Badge, EmptyState } from "@connectapp/ui";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 import { Screen, Block, Panel } from "@/components/screen";
 import { Since, On } from "@/components/since";
 import { Blank } from "@/components/blank";
@@ -15,8 +15,8 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Church - ConnectApp Admin" };
 
 /**
- * R21.x. One church: what it is, how it is wired, and the two decisions an
- * operator makes about it.
+ * R21.x. One church: what it is, how it is wired, and the two decisions a team
+ * member makes about it.
  *
  * The wiring is new and is the reason this screen is worth opening when a
  * church writes in. "Our giving page is broken" and "our emails are not
@@ -25,7 +25,7 @@ export const metadata = { title: "Church - ConnectApp Admin" };
  * church's name.
  */
 export default async function ChurchPage({ params }: { params: Promise<{ id: string }> }) {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   const { id } = await params;
 
   const found = await platform.church(who.id, id);

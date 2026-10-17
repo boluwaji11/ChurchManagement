@@ -14,7 +14,7 @@ type Act = (data: FormData) => Promise<Done>;
  * R1.1, R21.x. The decisions, each behind a panel that asks for a note.
  *
  * The note is the point: a year later the question is never what happened but
- * why, and an operator who has to type one sentence writes the sentence.
+ * why, and a team member who has to type one sentence writes the sentence.
  */
 export function Standing({
   id,

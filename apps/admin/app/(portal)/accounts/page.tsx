@@ -1,5 +1,5 @@
 import { platform } from "@connectapp/db";
-import { requireOperator } from "@/lib/admin";
+import { requireTeamMember } from "@/lib/admin";
 import { Screen } from "@/components/screen";
 import { Find } from "./find";
 import { EmptyState } from "@connectapp/ui";
@@ -20,7 +20,7 @@ export default async function AccountsPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  const who = await requireOperator();
+  const who = await requireTeamMember();
   const { q } = await searchParams;
   const hits = q ? await platform.findAccount(who.id, q) : [];
 
