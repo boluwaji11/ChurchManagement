@@ -42,10 +42,11 @@ const url64 = (raw: Buffer): string => raw.toString("base64url");
  * church through a sign-in in the middle of connecting.
  *
  * So the state carries it: which church, who pressed it, what mail goes out
- * as, and the verifier. Sealed with a key derived from the provider key, so
- * it is unreadable and unforgeable outside this server, and good for fifteen
- * minutes, which is long enough to sign up at Resend and short enough that a
- * link left in a browser's history is spent.
+ * as, and the PKCE verifier. Sealed with AES-256-GCM under a key derived from
+ * the provider key, so what travels through the browser is opaque and cannot
+ * be altered without the tag failing, and good for fifteen minutes, which is
+ * long enough to sign up at Resend and short enough that a link left in a
+ * browser's history is spent.
  */
 export interface Handshake {
   tenantId: string;

@@ -220,6 +220,16 @@ export interface SendingAccount {
   fromName: string | null;
   fromAddress: string | null;
   settings: SmtpSettings | null;
+  /**
+   * HRT-290, R16.1. The short-lived token, while it still has minutes on it.
+   *
+   * Null means it has to be refreshed, and refreshing rotates the credential
+   * above: Resend issues a new refresh token every time, refuses a spent one
+   * and revokes the whole grant when one is replayed. So this is read before
+   * a send rather than refreshed on every send, and the pair is written back
+   * together through `storeTokens`.
+   */
+  access: string | null;
 }
 
 export async function emailCredentialForSend(
@@ -236,12 +246,22 @@ export async function emailCredentialForSend(
       fromName: churchProviders.fromName,
       fromAddress: churchProviders.fromAddress,
       settings: churchProviders.settings,
+      access: churchProviders.accessToken,
+      accessExpires: churchProviders.accessExpires,
     })
     .from(churchProviders)
     .where(and(eq(churchProviders.channel, "email"), eq(churchProviders.state, "connected")))
     .limit(1);
 
   if (!row?.credential) return null;
+
+  /* A minute's grace, so a token that expires between this read and the send
+     is refreshed first rather than refused halfway through. The same window
+     the worker uses. */
+  const good =
+    row.access !== null
+    && row.accessExpires !== null
+    && row.accessExpires.getTime() > Date.now() + 60_000;
 
   return {
     providerId: row.id,
@@ -250,34 +270,10 @@ export async function emailCredentialForSend(
     fromName: row.fromName,
     fromAddress: row.fromAddress,
     settings: asSmtp(row.settings),
+    access: good ? openCredential(row.access!) : null,
   };
 }
 
-/**
- * HRT-290, R21.15. The new credential, written down before it is used.
- *
- * Resend rotates its refresh token on every refresh and refuses one that has
- * been used twice, which can take the whole grant with it. So the new one
- * lands here first and the send happens after: a send that fails costs a
- * message, and a token written down after a crash costs the church its
- * connection.
- */
-export async function rotateEmailCredential(
-  db: Tx,
-  actor: WriteActor,
-  input: { providerId: string; credential: string },
-): Promise<void> {
-  if (!canManageChurch(actor)) throw new PermissionError(actor.role, "editChurch");
-
-  await db
-    .update(churchProviders)
-    .set({
-      credential: sealCredential(input.credential),
-      credentialKeyId: CREDENTIAL_KEY_ID,
-      updatedAt: new Date(),
-    })
-    .where(eq(churchProviders.id, input.providerId));
-}
 
 /** R16.1. What the provider said when it last refused, kept for the screen. */
 export async function markEmailTrouble(

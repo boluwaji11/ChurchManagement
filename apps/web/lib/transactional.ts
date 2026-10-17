@@ -1,7 +1,7 @@
 import "server-only";
 import {
   withTenant,
-  emailCredentialForSend, rotateEmailCredential, markEmailTrouble,
+  emailCredentialForSend, storeTokens, markEmailTrouble,
 } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { sendBySmtp, sendByResend, sender, type Message } from "@/lib/email-provider";
@@ -62,17 +62,37 @@ export async function sendAsChurch(
     const clientId = resendClientId();
     if (!clientId) return { ok: false as const, said: t("email.said.unconfigured") };
 
-    const fresh = await refreshTokens(clientId, held.credential);
-    if (!fresh.ok) return fresh;
+    /*
+     * HRT-290, R16.1. The token this church already has, while it still has
+     * minutes on it.
+     *
+     * Refreshing on every message is a rotation a message, and Resend issues
+     * a new refresh token every time, refuses a spent one, and revokes the
+     * whole grant when one is replayed. Two messages sent at the same moment
+     * both read the same stored token, both refresh, and the slower of them
+     * replays a spent one: the church's email stops, for every send, until
+     * somebody connects Resend again. The worker has always done it this way;
+     * this path did not.
+     */
+    let token = held.access;
 
-    await withTenant(ctx, (tx) =>
-      rotateEmailCredential(tx, actor, {
-        providerId: held.providerId,
-        credential: fresh.tokens.refreshToken,
-      }),
-    );
+    if (!token) {
+      const fresh = await refreshTokens(clientId, held.credential);
+      if (!fresh.ok) return fresh;
 
-    return sendByResend(fresh.tokens.accessToken, whole);
+      /* Both halves of the exchange in one statement: a rotated refresh token
+         written without its access token would be refreshed again next time
+         for no reason, and an access token written without it would leave the
+         spent one in the column. */
+      await storeTokens(session.tenantId, {
+        refresh: fresh.tokens.refreshToken,
+        access: fresh.tokens.accessToken,
+        seconds: fresh.tokens.expiresIn,
+      });
+      token = fresh.tokens.accessToken;
+    }
+
+    return sendByResend(token, whole);
   })();
 
   /* R16.1. What the provider last said, kept for the email screen, so a key
