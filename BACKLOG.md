@@ -148,6 +148,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-388 | A church is welcomed when it is created and told when it is approved | R1.1, R22.1 | Resolved |
 | HRT-389 | The invitation email draws itself from the shared brand shell | R16.4 | Resolved |
 | HRT-390 | A form says which field is wrong, and a refused sign-up keeps what was typed | R1.7, R22.1 | Resolved |
+| HRT-391 | The messages Supabase Auth sends are drawn in our brand and leave through Resend | R1.7, R16.4 | Resolved |
 
 The pass against the reference screens, October 2026. Phase A builds the vocabulary once,
 B puts it in the shell, C applies it a screen at a time, D adds what the reference has and
