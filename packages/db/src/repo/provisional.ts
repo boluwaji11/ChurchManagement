@@ -3,6 +3,7 @@ import type { Tx } from "../client";
 import { tenants } from "../schema/tenancy";
 import { members } from "../schema/members";
 import { InvalidInputError } from "../errors";
+import { PROVISIONAL_PEOPLE } from "./provisional-rules";
 
 /**
  * R1.1, R21.x. A new church is provisional until a human has looked at it.
@@ -19,8 +20,7 @@ import { InvalidInputError } from "../errors";
  * no way to reach anybody, and no congregation to put in it.
  */
 
-/** How many members a church can hold before a human has looked at it. */
-export const PROVISIONAL_PEOPLE = 25;
+export { PROVISIONAL_PEOPLE } from "./provisional-rules";
 
 export interface ChurchStanding {
   approved: boolean;

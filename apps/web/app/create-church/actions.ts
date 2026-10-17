@@ -5,6 +5,7 @@ import { createChurch } from "@connectapp/db";
 import { explain } from "@/lib/explain";
 import { currentUser, emailIsVerified } from "@/lib/session";
 import { rememberChurch } from "@/lib/church-choice";
+import { welcomeMessage, sendAsPlatform } from "@connectapp/mail";
 
 export interface CreateResult {
   error?: string;
@@ -56,6 +57,29 @@ export async function createChurchAccount(data: FormData): Promise<CreateResult>
    * Founding a second one would otherwise land on the chooser between them.
    */
   await rememberChurch(slug);
+
+  /*
+   * HRT-388, R22.1. The welcome, sent once, by the thing that happened.
+   *
+   * Here rather than on a timer or on verification: the address was proved
+   * before this screen could be reached, and this is the moment there is a
+   * church to welcome them to. It says what a provisional church can do, so
+   * the cap is read here rather than met on a screen.
+   *
+   * Nothing waits on it. A church that is through the form is through the
+   * form, and a provider having a bad minute is not a reason to hold somebody
+   * on a spinner or to lose the church they just made.
+   */
+  if (user.email) {
+    const sent = await sendAsPlatform(
+      welcomeMessage({
+        to: user.email,
+        firstName: user.firstName,
+        church: name.trim(),
+      }),
+    );
+    if (!sent.ok && sent.connected) console.error("[welcome] not sent", sent.said);
+  }
 
   /*
    * R22.1. Straight into the product, where the guide is already beside the

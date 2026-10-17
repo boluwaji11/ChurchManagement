@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { platform } from "@connectapp/db";
 import { supabaseServer } from "@/lib/supabase/server";
 import { requireOperator } from "@/lib/admin";
+import { approvedMessage, sendAsPlatform } from "@connectapp/mail";
 
 export interface Done {
   error?: string;
@@ -43,12 +44,51 @@ export async function signOut(): Promise<void> {
 /** R1.1. A human has looked at this church. */
 export async function approveChurch(data: FormData): Promise<Done> {
   const who = await requireOperator();
+  const id = String(data.get("id"));
+
   try {
-    await platform.approve(who.id, String(data.get("id")), String(data.get("note") ?? ""));
+    await platform.approve(who.id, id, String(data.get("note") ?? ""));
     revalidatePath("/churches");
-    return {};
   } catch (error) {
     return { error: say(error) };
+  }
+
+  /*
+   * HRT-388, R1.1, R22.1. The church is told, by the thing that happened.
+   *
+   * After the write rather than inside it, and outside the try above, because
+   * the church is approved either way: an operator who pressed Approve and saw
+   * a mail provider's refusal would reasonably press it again, and the
+   * approval is already done.
+   */
+  await tellThemApproved(id);
+  return {};
+}
+
+/**
+ * HRT-388, R1.1. The word to whoever founded the church.
+ *
+ * The owner's address is what the platform screens already read for this
+ * church, so nothing new is looked up. A church with no owner address is a
+ * church nobody can be told about, which is quiet rather than a failure.
+ */
+async function tellThemApproved(id: string): Promise<void> {
+  try {
+    const who = await requireOperator();
+    const found = await platform.church(who.id, id);
+    if (!found?.ownerEmail) return;
+
+    const sent = await sendAsPlatform(
+      approvedMessage({
+        to: found.ownerEmail,
+        /* The owner's name is held whole, and the greeting wants the first of it. */
+        firstName: found.ownerName?.trim().split(/\s+/)[0] ?? null,
+        church: found.name,
+      }),
+    );
+    if (!sent.ok && sent.connected) console.error("[approved] not sent", sent.said);
+  } catch (error) {
+    console.error("[approved] not sent", error);
   }
 }
 
