@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import { syncUserAndAcceptInvitations } from "@connectapp/db";
 import { t } from "@connectapp/i18n";
 import { supabaseServer } from "@/lib/supabase/server";
-import { explainAuth } from "@/lib/auth-errors";
+import { explainAuth, authField } from "@/lib/auth-errors";
 import { PASSWORD_LENGTH } from "@/lib/password";
 
 async function origin() {
@@ -17,10 +17,9 @@ async function origin() {
 }
 
 /** R1.8. They have an account. Sign in, and the way back in is on that screen. */
-const taken = (email: string, next: string): never =>
-  redirect(
-    `/sign-in?taken=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`,
-  );
+const taken = (email: string, next: string): { go: string } => ({
+  go: `/sign-in?taken=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`,
+});
 
 /**
  * R1.7, R22.1. A form that was refused comes back as a message, not a
@@ -32,7 +31,8 @@ const taken = (email: string, next: string): never =>
  * address as well. The message goes back to the form instead, and the form is
  * still standing.
  */
-const fail = (message: string): { error: string } => ({ error: message });
+const fail = (message: string, field?: string): { error: string; field?: string } =>
+  ({ error: message, field });
 
 /**
  * R1.7, R22.1. Making an account.
@@ -41,7 +41,9 @@ const fail = (message: string): { error: string } => ({ error: message });
  * matched to a verified address, and a church's first owner is granted to one.
  * So this sends a confirmation and nothing happens until they open it.
  */
-export async function signUp(data: FormData): Promise<{ error?: string } | void> {
+export async function signUp(
+  data: FormData,
+): Promise<{ error?: string; field?: string; go?: string } | void> {
   const email = String(data.get("email") ?? "").trim().toLowerCase();
   const password = String(data.get("password") ?? "");
   const firstName = String(data.get("firstName") ?? "").trim().replace(/\s+/g, " ");
@@ -49,9 +51,9 @@ export async function signUp(data: FormData): Promise<{ error?: string } | void>
   const fullName = [firstName, lastName].filter(Boolean).join(" ");
   const next = String(data.get("next") ?? "") || "/choose-church";
 
-  if (!firstName || !lastName) return fail(t("signUp.error.name"));
-  if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email)) return fail(t("signUp.error.email"));
-  if (password.length < PASSWORD_LENGTH) return fail(t("signUp.error.password"));
+  if (!firstName || !lastName) return fail(t("signUp.error.name"), firstName ? "lastName" : "firstName");
+  if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(email)) return fail(t("signUp.error.email"), "email");
+  if (password.length < PASSWORD_LENGTH) return fail(t("signUp.error.password"), "password");
 
   const supabase = await supabaseServer();
   const { data: created, error } = await supabase.auth.signUp({
@@ -67,7 +69,9 @@ export async function signUp(data: FormData): Promise<{ error?: string } | void>
     if (/already registered|already exists|user_already_exists/i.test(error.message)) {
       return taken(email, next);
     }
-    return fail(explainAuth(error));
+    /* Where the provider was talking about one box, the message goes
+       under that box rather than over the whole form. */
+    return fail(explainAuth(error), authField(error) ?? undefined);
   }
 
   // With confirmations on, Supabase answers an address that already has an
@@ -92,10 +96,10 @@ export async function signUp(data: FormData): Promise<{ error?: string } | void>
     // R24.x. Their own palette, brought onto this device.
     await adoptTheme(created.user!.id);
 
-    redirect(next);
+    return { go: next };
   }
 
-  redirect(`/sign-up?sent=${encodeURIComponent(email)}`);
+  return { go: `/sign-up?sent=${encodeURIComponent(email)}` };
 }
 
 /**

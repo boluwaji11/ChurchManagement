@@ -85,7 +85,8 @@ function MagicLinkForm({ next, email }: { next?: string; email?: string }) {
     (data: FormData): Errors => ({ email: check(String(data.get("email") ?? ""), validEmail) }),
     [],
   );
-  const { formRef, errors, pending, ready, action, revalidate, touch } = useValidatedForm(validate, sendMagicLink);
+  const { formRef, errors, pending, ready, action, revalidate, touch, field } =
+    useValidatedForm(validate, sendMagicLink, { email: email ?? "" });
 
   return (
     <form
@@ -99,10 +100,9 @@ function MagicLinkForm({ next, email }: { next?: string; email?: string }) {
       <input type="hidden" name="next" value={next ?? ""} />
       <Field label={t("signIn.email")} htmlFor="email-link" error={errors["email"]} required>
         <Input
-          name="email"
+          {...field("email")}
           type="email"
           autoComplete="email"
-          defaultValue={email}
           className={AUTH_INPUT}
         />
       </Field>
@@ -121,8 +121,8 @@ function PasswordForm({ next, email }: { next?: string; email?: string }) {
     }),
     [],
   );
-  const { formRef, errors, pending, ready, action, revalidate, touch } =
-    useValidatedForm(validate, signInWithPassword);
+  const { formRef, errors, pending, ready, action, revalidate, touch, field } =
+    useValidatedForm(validate, signInWithPassword, { email: email ?? "" });
 
   return (
     <form
@@ -136,16 +136,15 @@ function PasswordForm({ next, email }: { next?: string; email?: string }) {
       <input type="hidden" name="next" value={next ?? ""} />
       <Field label={t("signIn.email")} htmlFor="email-pw" error={errors["email"]} required>
         <Input
-          name="email"
+          {...field("email")}
           type="email"
           autoComplete="email"
-          defaultValue={email}
           className={AUTH_INPUT}
         />
       </Field>
       <Field label={t("signIn.password")} htmlFor="password" error={errors["password"]} required>
         <Input
-          name="password"
+          {...field("password")}
           type="password"
           autoComplete="current-password"
           className={AUTH_INPUT}

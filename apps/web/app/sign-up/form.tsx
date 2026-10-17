@@ -29,8 +29,8 @@ export function SignUpForm({ next, email }: { next?: string; email?: string }) {
     }),
     [],
   );
-  const { formRef, errors, failed, pending, ready, action, revalidate, touch } =
-    useValidatedForm(validate, signUp);
+  const { formRef, errors, failed, pending, ready, action, revalidate, touch, field } =
+    useValidatedForm(validate, signUp, { email: email ?? "" });
 
   return (
     <form
@@ -52,20 +52,19 @@ export function SignUpForm({ next, email }: { next?: string; email?: string }) {
           and guessing where a name splits gets some of them wrong. */}
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label={t("signUp.firstName")} htmlFor="firstName" error={errors["firstName"]} required>
-          <Input id="firstName" name="firstName" autoComplete="given-name" autoFocus className={AUTH_INPUT} />
+          <Input id="firstName" {...field("firstName")} autoComplete="given-name" autoFocus className={AUTH_INPUT} />
         </Field>
         <Field label={t("signUp.lastName")} htmlFor="lastName" error={errors["lastName"]} required>
-          <Input id="lastName" name="lastName" autoComplete="family-name" className={AUTH_INPUT} />
+          <Input id="lastName" {...field("lastName")} autoComplete="family-name" className={AUTH_INPUT} />
         </Field>
       </div>
 
       <Field label={t("signIn.email")} htmlFor="email" error={errors["email"]} required>
         <Input
           id="email"
-          name="email"
+          {...field("email")}
           type="email"
           autoComplete="email"
-          defaultValue={email}
           className={AUTH_INPUT}
         />
       </Field>
@@ -73,7 +72,7 @@ export function SignUpForm({ next, email }: { next?: string; email?: string }) {
       <Field label={t("signUp.password")} htmlFor="password" error={errors["password"]} required>
         <Input
           id="password"
-          name="password"
+          {...field("password")}
           type="password"
           autoComplete="new-password"
           className={AUTH_INPUT}

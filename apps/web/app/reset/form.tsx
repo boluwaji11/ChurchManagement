@@ -24,7 +24,7 @@ export function ResetForm() {
     [],
   );
 
-  const { formRef, errors, pending, ready, action, revalidate, touch } = useValidatedForm(
+  const { formRef, errors, pending, ready, action, revalidate, touch, field } = useValidatedForm(
     validate,
     async (data) => {
       const result = await setPassword(data);
@@ -44,7 +44,7 @@ export function ResetForm() {
       {failed ? <Banner tone="danger">{failed}</Banner> : null}
 
       <Field label={t("signUp.password")} htmlFor="password" error={errors["password"]} required>
-        <Input id="password" name="password" type="password" autoComplete="new-password" autoFocus />
+        <Input id="password" {...field("password")} type="password" autoComplete="new-password" autoFocus />
       </Field>
 
       <Button type="submit" full disabled={!ready} loading={pending}>
