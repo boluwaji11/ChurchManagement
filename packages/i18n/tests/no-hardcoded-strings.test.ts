@@ -11,7 +11,10 @@
  * failure mode that gets a check like this deleted.
  *
  * The /design gallery is excluded. It is an internal tool for the people
- * building this, not a screen a church sees.
+ * building this, not a screen a church sees. So is the development gate and
+ * the bar that marks a sandbox: both exist only outside production, both are
+ * read by the people building this, and putting their words in the catalogue
+ * would hand a translator sentences no church will ever be shown.
  */
 import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -22,6 +25,9 @@ const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..", "..", ".."
 const SCAN = [join(ROOT, "apps/web/app"), join(ROOT, "apps/web/components")];
 const SKIP = [
   "/design",
+  // HRT-402. Drawn only outside production, and only for us.
+  "/dev-gate",
+  "sandbox-banner",
   // Only rendered inside the design gallery, which is an internal tool.
   "gallery-controls",
   "/api/",
