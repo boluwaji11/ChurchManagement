@@ -34,7 +34,9 @@ export function EnvironmentBar({
     <div
       role="status"
       className={cn(
-        "flex h-9 w-full shrink-0 items-center justify-center gap-2.5",
+        /* Stays at the top of the window while the screen scrolls under it.
+           Sticky rather than fixed, so it keeps its place in the layout. */
+        "sticky top-0 z-50 flex h-9 w-full shrink-0 items-center justify-center gap-2.5",
         "text-[13px] font-semibold tracking-[0.14em] uppercase",
         wrong
           ? "bg-danger text-white"

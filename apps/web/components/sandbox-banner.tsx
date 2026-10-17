@@ -34,7 +34,11 @@ export function SandboxBanner() {
     <div
       role="status"
       className={
-        "flex h-[var(--env-bar,2rem)] w-full shrink-0 items-center justify-center gap-2 px-4 " +
+        /* Sticky rather than fixed: it stays in the flow, so the height it
+           takes is the height the viewport utilities give back, and it still
+           never leaves the top of the window. Above the shells, which sit at
+           z-20, so a sticky header scrolls under it. */
+        "sticky top-0 z-50 flex h-[var(--env-bar,2rem)] w-full shrink-0 items-center justify-center gap-2 px-4 " +
         "text-[12px] font-semibold tracking-[0.14em] uppercase print:hidden " +
         (wrong ? "bg-danger text-white" : "bg-accent text-accent-fg")
       }
