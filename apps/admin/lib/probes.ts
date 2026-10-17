@@ -72,7 +72,7 @@ async function ask(url: string, init: RequestInit = {}): Promise<Response> {
  * one thing a status check must never do. A deadline that reports a service as
  * not answering is information; a request that never returns is not.
  */
-function within<T>(ms: number, work: Promise<T>, whenLate: T): Promise<T> {
+export function within<T>(ms: number, work: Promise<T>, whenLate: T): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   const late = new Promise<T>((resolve) => {
     timer = setTimeout(() => resolve(whenLate), ms);
