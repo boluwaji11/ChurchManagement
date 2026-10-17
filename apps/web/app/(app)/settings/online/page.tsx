@@ -6,7 +6,7 @@ import { publicLink } from "@/lib/church-address";
 import { SettingsHeading } from "../heading";
 import { Denied } from "@/components/denied";
 import { Banner } from "@connectapp/ui";
-import { stripeConfigured } from "@/lib/stripe";
+import { stripeConfigured, stripeLive } from "@/lib/stripe";
 import { syncStripe, accountFace } from "./actions";
 import { OnlineGiving } from "./online-giving";
 import { t } from "@connectapp/i18n";
@@ -68,8 +68,22 @@ export default async function OnlineGivingPage({
   /* R13.1. And where Stripe says it does not know the account we hold, the
      screen says so rather than falling over: the id is theirs, so this is
      either an account deleted at their end or keys pointing somewhere else. */
+  /*
+   * R13.1. An account written down under the other set of keys is not an
+   * account this platform can use.
+   *
+   * The pill on this screen is drawn from our own row rather than from
+   * Stripe, and the row is only re-read while the account is not yet taking
+   * gifts. So a church that connected while the platform was on test keys
+   * went on reading "Active for online giving" after the swap to live, with
+   * an id the live key cannot see, and would have found out at the moment
+   * somebody tried to give. Where the mode on the row disagrees with the key
+   * this platform holds, Stripe is asked again whatever the row says.
+   */
+  const wrongMode = Boolean(account) && account?.livemode !== stripeLive();
+
   let unreachable = false;
-  if (stale && account && !account.chargesEnabled) {
+  if (stale && account && (!account.chargesEnabled || wrongMode)) {
     unreachable = (await syncStripe()).error === "stripe.unreachable";
     account = await withTenant(
       { tenantId: session.tenantId, role: session.role },

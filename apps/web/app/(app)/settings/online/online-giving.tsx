@@ -11,7 +11,7 @@ import { StripeWordmark } from "@/components/stripe-wordmark";
 import { Steps, Step } from "@/components/steps";
 import type { ChurchStripeAccountRead } from "@connectapp/db";
 import type { AccountFace } from "./actions";
-import { connectStripe, refreshStripe, setNonprofitRate } from "./actions";
+import { connectStripe, refreshStripe } from "./actions";
 import { NonprofitRate } from "./nonprofit-rate";
 
 /**
@@ -116,7 +116,6 @@ export function OnlineGiving({
   const ready = Boolean(account?.chargesEnabled);
   /* HRT-386, R13.5. Which rate Stripe charges this church, as it told us. */
   const nonprofit = Boolean(account?.nonprofitRateAt);
-  const [restoring, restore] = React.useTransition();
 
   /*
    * R13.1. Stripe addresses each account by its id, so this goes to the
@@ -409,27 +408,12 @@ export function OnlineGiving({
       ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <p className="m-0 text-[13px] text-fg-muted">
-          {t("stripe.fees.a")} <strong className="font-semibold text-fg underline underline-offset-4">
-            {t("stripe.fees.takes")}
-          </strong>{" "}
-          {nonprofit ? t("stripe.fees.nonprofit") : t("stripe.fees.standard")}
-        </p>
-
-        {/* HRT-386, R13.5. The way back, for a church that pressed it too
-            early or lost the rate. Pressing it brings the card above back. */}
-        {ready && nonprofit ? (
-          <Button
-            variant="ghost"
-            disabled={restoring}
-            onClick={() => restore(() => void setNonprofitRate(false))}
-          >
-            {restoring ? <Loader2 className="animate-spin" /> : null}
-            {t("stripe.rate.ungranted")}
-          </Button>
-        ) : null}
-      </div>
+      <p className="m-0 text-[13px] text-fg-muted">
+        {t("stripe.fees.a")} <strong className="font-semibold text-fg underline underline-offset-4">
+          {t("stripe.fees.takes")}
+        </strong>{" "}
+        {nonprofit ? t("stripe.fees.nonprofit") : t("stripe.fees.standard")}
+      </p>
     </div>
   );
 }

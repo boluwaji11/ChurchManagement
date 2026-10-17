@@ -2323,7 +2323,6 @@ export const en = {
   "stripe.rate.copied": "Copied",
   "stripe.rate.read": "What Stripe says",
   "stripe.rate.granted": "Stripe has granted it",
-  "stripe.rate.ungranted": "Stripe has not granted it",
   "stripe.rate.subject": "Nonprofit rate request for {church}",
   "stripe.rate.message": "Hello,\n\n{church} is a church and a registered 501(c)(3). We would like to request the nonprofit processing rate on our Stripe account.\n\nStripe account: {id}\nEIN: [your EIN]\n\nMore than 80% of the payment volume on this account is tax-deductible giving. Our IRS determination letter is attached.\n\nThank you,\n{name}",
   "stripe.unreachable": "We cannot reach your church's Stripe account. It may have been closed at Stripe. Connect again to take gifts online.",
