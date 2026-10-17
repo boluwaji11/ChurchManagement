@@ -129,9 +129,9 @@ export async function sendReset(data: FormData) {
   /*
    * R1.8. Back to the screen they pressed it on.
    *
-   * This used to answer an empty box by sending somebody to sign up, which
-   * is the one place a person who already has an account does not want to
-   * be, and it read as the press having gone wrong in some larger way.
+   * An empty box previously sent the reader to sign up, which is the wrong
+   * destination for somebody who already has an account, and read as the press
+   * having failed.
    */
   if (!email) {
     redirect(`/forgot?error=${encodeURIComponent(t("signIn.error.noEmail"))}`);

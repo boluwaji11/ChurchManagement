@@ -47,18 +47,11 @@ const shift = (iso: string, days: number): string => {
 };
 
 /**
- * R11.1. What is coming, and what each one has planned.
+ * R11.1. How long after its start time a service still counts as current.
  *
- * A card a service, in the order they happen, with the two numbers that say
- * whether anybody has done anything about it yet. Opening one goes to its
- * order of service, which is what a church came here to write.
- */
-/**
- * R11.1. How long after it starts a service is still the one to look at.
- *
- * A church mid-service should still see this morning under "upcoming", and at
- * eleven at night it should be behind them. There is no recorded finish, so
- * three hours stands in for one.
+ * A church mid-service should still see that service under "upcoming", and by
+ * late evening it should be behind them. Nothing records when a service
+ * finishes, so three hours stands in for it.
  */
 const RUNS_FOR_HOURS = 3;
 
@@ -71,6 +64,13 @@ const hasBeen = (one: { occursOn: string; startsAt: string }, today: string, tim
 };
 
 
+/**
+ * R11.1. What is coming, and what each service has planned.
+ *
+ * One card per service, in the order they happen, with the two numbers that
+ * say whether anything has been done about it yet. Opening one goes to its
+ * order of service.
+ */
 export default async function ServicesPage({
   searchParams,
 }: {

@@ -493,9 +493,9 @@ export function Writer({
     setBody(draft);
   }, [draft]);
 
-  /* Kept a beat behind the last keystroke, and again the moment the box goes
-     away, because closing the panel used to cancel the save that had not
-     fired yet. */
+  /* Debounced after the last keystroke, and saved again when the box closes,
+     because closing the panel previously cancelled a save that had not yet
+     fired. */
   const latest = React.useRef({ to, body: draft });
   latest.current = { to, body };
 

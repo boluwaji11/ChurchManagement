@@ -109,23 +109,19 @@ export async function connectStripe(): Promise<ConnectResult> {
       const name = profile?.legalName || profile?.name || session.tenantName || "Church";
 
       /*
-       * R13.1. An Accounts v2 account with the merchant configuration and the
-       * full Stripe dashboard, which is what used to be called a Standard
-       * account: the church is the merchant of record, it signs in to Stripe
-       * itself, and Stripe collects the fees and carries the losses. The
-       * platform is named on the account and takes nothing from it.
+       * R13.1, R22.x. An Accounts v2 account with the merchant configuration
+       * and the full Stripe dashboard, previously called a Standard account:
+       * the church is the merchant of record, signs in to Stripe itself, and
+       * Stripe collects the fees and carries the losses. The platform is named
+       * on the account and takes nothing from it. `non_profit` is a
+       * first-class entity type here, so a church is described accurately.
        *
-       * `non_profit` is a first-class entity type here, so a church is
-       * described to Stripe as what it is.
-       */
-      /*
-       * R13.1, R22.x. Everything the church has already told us goes with it.
-       *
-       * Stripe's form asks for the name, the address, the website, the trade
-       * and a description of what the money is for. A church has answered all
-       * of that on its own profile, and asking a volunteer the same questions
-       * again is how a ten-minute job becomes an abandoned one. What we cannot
-       * know, the EIN, the representative, the bank, Stripe asks for itself.
+       * Everything the church has already given us is prefilled. Stripe asks
+       * for the name, address, website, trade and a description of what the
+       * money is for, and the church has answered all of that on its own
+       * profile; asking a volunteer the same questions again is how a
+       * ten-minute task gets abandoned. What we cannot know, the EIN, the
+       * representative and the bank, Stripe collects itself.
        */
       const address = profile?.addressLine1
         ? {

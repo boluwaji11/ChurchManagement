@@ -78,9 +78,9 @@ export function usePush(): {
    *
    * A browser keeps its subscription across sessions, so it can hold one the
    * church has no row for: a save that failed, or a row dropped when a send
-   * came back 404. Reading the browser alone made the control say notifications
-   * were on while nothing could reach this machine. Where the two disagree the
-   * subscription is written again, which is the one thing that puts it right.
+   * returned 404. Reading the browser alone made the control report
+   * notifications as on while nothing could reach the machine. Where the two
+   * disagree, the subscription is written again, which reconciles them.
    */
   React.useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;

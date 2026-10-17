@@ -263,25 +263,17 @@ export async function PersonPanelPage({
   ) : undefined;
 
   /*
-   * R24.6. Edit and Close, on the window's own footer.
+   * R24.6. Edit sits on the heading of each section it acts on.
    *
-   * The design has them there, named, rather than a pencil in the corner. Edit
-   * is the one thing a reader does to a record they have opened, and an icon
-   * beside the close square is the quietest place on the window to put it.
-   */
-  /*
-   * R24.6. What a reader does to a record they have opened. Closing is not
-   * here: the square in the corner is the way out of every window in the
-   * product, and a second one at the other end is two answers to one question.
-   */
-  /*
-   * R24.6. Editing belongs to the sections that can be edited.
+   * Two of the seven sections hold fields the edit form writes: personal
+   * details, and address and contact. A single Edit on the window's footer was
+   * a press whose effect depended on which section happened to be open. The
+   * other sections carry their own controls already: a milestone, a check, a
+   * note.
    *
-   * Two of the seven hold fields the edit form writes: the personal details and
-   * the address and contact. One Edit on the window's footer was a press whose
-   * answer depended on which section happened to be open, so it moves onto the
-   * heading of each section it actually acts on. The others carry their own
-   * presses already: a milestone, a check, a note.
+   * There is no Close here. The square in the corner is the way out of every
+   * window in the product, and a second one at the other end would be two
+   * answers to one question.
    */
   const editMark = (part?: string) => canEdit ? (
     <Tooltip content={t("action.edit")}>

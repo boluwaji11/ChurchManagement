@@ -39,10 +39,10 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 /**
  * R24.6. The bell in the top bar.
  *
- * 36px square with a hairline, the unread count on a red pill hanging off its
- * corner, and a 380px panel underneath. Each line carries the hue of the thing
- * it is about, so a declined serving request and a new join request are told
- * apart before either is read.
+ * 36px square with a hairline, the unread count on a red pill at its corner,
+ * and a 380px panel underneath. Each line carries the hue of the record it is
+ * about, so a declined serving request and a new join request are
+ * distinguishable before either is read.
  */
 export function NotificationBell({
   items,

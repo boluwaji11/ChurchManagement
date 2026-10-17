@@ -150,17 +150,16 @@ export default async function ServingPage({
         .slice(0, COLUMNS);
 
       /*
-       * R10.3. A rota looks forward, with the weekend just gone still on it.
+       * R10.3. The schedule looks forward, keeping the services just gone.
        *
-       * By the end of a month the board was four dead columns and two live
-       * ones, and the live ones were off the right-hand edge. What comes off
-       * is only what is older than the grace: somebody filling in Monday
-       * morning still has the service they are filling in about, and the one
-       * before it, in front of them.
+       * By the end of a month the board was mostly past columns, with the
+       * upcoming ones pushed off the right-hand edge. Only services older than
+       * the grace period are dropped, so somebody filling in a schedule still
+       * has the most recent service and the one before it in view.
        *
-       * Only the month they are standing in is cut this way. Opening last
-       * September is a deliberate act of looking back, and a board with
-       * nothing on it is no answer to it.
+       * Only the current month is trimmed this way. Opening an earlier month
+       * is a deliberate act of looking back, and an empty board would be no
+       * answer to it.
        */
       const current = monthKey === clock.date.slice(0, 7);
       const keepFrom = new Date(`${clock.date}T00:00:00Z`);

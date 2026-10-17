@@ -162,11 +162,11 @@ export function Rail({
    * R22.1. Which section is open: the one somebody chose, or the one their
    * own progress is up to.
    *
-   * The screen they are looking at does not come into it. The guide used to
-   * follow them, and following somebody means moving under them: opening
-   * Teams to look at a rota shut the section they were reading and opened the
-   * one holding a step finished a week ago. What follows somebody onto a
-   * screen is the coachmark, and that is asked for by pressing Show me.
+   * The screen currently open does not affect it. The rail previously tracked
+   * the screen, which moved the guide under the reader: opening Teams for an
+   * unrelated reason closed the section being read and opened one holding a
+   * step finished days earlier. The coachmark is what follows somebody onto a
+   * screen, and it is requested by pressing Show me.
    */
   const showing = opened ?? phase;
 

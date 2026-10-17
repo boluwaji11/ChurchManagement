@@ -8,10 +8,10 @@ import { t } from "@connectapp/i18n";
 /**
  * R24.9. What the reader gets when something broke.
  *
- * Never the fault itself: a stack trace tells a volunteer nothing and tells
- * anybody reading over their shoulder too much. It says what happened, offers
- * the one thing worth trying, and the digest is there for whoever is asked
- * about it afterwards.
+ * The fault itself is not shown. A stack trace tells a volunteer nothing and
+ * tells anybody reading over their shoulder too much. This says what happened
+ * and offers the one action worth trying, and the digest is there for whoever
+ * investigates afterwards.
  */
 export default function Fault({
   error,

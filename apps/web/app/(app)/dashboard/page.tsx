@@ -221,8 +221,7 @@ async function Board({ session }: { session: Session }) {
       weeks: byService,
       tasks: followUps,
       week: entries,
-      // The service the church is heading towards, which is the one thing
-      // worth saying beside today's date.
+      // The next service, which is what the date line reports.
       next: occurrences.find((one) => !hasHappened(clockNow, one.occursOn, one.startsAt)) ?? null,
     };
   });

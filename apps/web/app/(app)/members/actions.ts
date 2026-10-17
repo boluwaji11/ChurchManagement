@@ -126,12 +126,11 @@ export async function savePerson(data: FormData): Promise<SaveResult> {
   revalidatePath("/members");
 
   /*
-   * R2.1, R24.6. Back to the record, not to the list.
+   * R2.1, R24.6. Saving an edit returns to the record.
    *
-   * Saving an edit used to land on the directory, so somebody who had just
-   * corrected a phone number had to find the person again to see whether it
-   * had taken. The record is where the answer is, and closing it still goes
-   * wherever the editing started from.
+   * It previously returned to the directory, so somebody who had corrected a
+   * phone number had to find the person again to see whether it saved. Closing
+   * the record still returns to wherever the editing started.
    */
   const back = memberDirectoryReturnTo(data.get("returnTo"));
   const saved = await withTenant(ctx, async (tx) => {

@@ -225,10 +225,9 @@ export async function GroupPanelPage({
     : [];
 
   /*
-   * R9.5. Back to the list this group was opened from, which is a kind, or
-   * everything, or the kinds themselves. Walking somebody through two screens
-   * and then returning them to the first is the one thing a back link must not
-   * do.
+   * R9.5. Back to the list this group was opened from: a kind, everything, or
+   * the kinds themselves. Returning somebody to the first of two screens they
+   * walked through is the failure this avoids.
    */
   const closeTo = returnToList(
     returnTo ?? (type ? `/groups?type=${encodeURIComponent(type)}` : "/groups"),

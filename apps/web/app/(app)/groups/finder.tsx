@@ -342,9 +342,9 @@ export function Finder({
       {/*
        * R9.6. What this person owes an answer to, above what they are browsing.
        *
-       * Its own tint rather than another white card: it is the one thing on
-       * this screen that is waiting on somebody, and a church that has three
-       * members asking should see three members asking before it sees the groups.
+       * Its own tint rather than another white card: it is the only thing on
+       * this screen waiting on a decision, and three members asking to join
+       * should be visible before the group list is.
        */}
       {waiting.length > 0 ? (
         <section className="overflow-hidden rounded-[14px] border border-[var(--hue-amber-500)]/20 bg-[var(--hue-amber-tint)]/40">

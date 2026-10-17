@@ -126,9 +126,9 @@ export default async function GivingPage({
 
   const read = await withTenant(ctx, async (tx) => {
     /*
-     * Fourteen reads that have nothing to say to each other used to wait on
-     * each other, one round trip at a time, on the screen a treasurer opens
-     * most. They go down the one connection together.
+     * Fourteen independent reads previously ran in sequence, one round trip
+     * each, on the screen a treasurer opens most often. They are issued
+     * together on the one connection.
      */
     const [
       funds, everyFund, byFund, thisYear, thisMonth, counts, allCounts,

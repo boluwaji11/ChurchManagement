@@ -345,10 +345,10 @@ export function ScheduleGrid({
     setDragging(null);
 
     /*
-     * R10.4. A blockout is the one thing a member asked for in advance, and
-     * scheduling over it sends a request they have already said no to. The
-     * refusal names them and the date, because a drag that simply does
-     * nothing reads as a drag that missed.
+     * R10.4. A blockout is a date the member has already declined in advance,
+     * so scheduling over it sends a request they have answered. The refusal
+     * names them and the date, because a drag that silently does nothing reads
+     * as a drag that missed its target.
      */
     const onto = services.find((service) => service.id === occurrenceId);
     if (who && onto && who.awayOn.includes(onto.day)) {

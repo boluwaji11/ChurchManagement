@@ -105,9 +105,9 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     /*
-     * Answering 500 asks Stripe to deliver it again, which is what we want for
-     * a database that was briefly unreachable. An account Stripe no longer
-     * knows would be redelivered forever, so it is let go.
+     * Answering 500 asks Stripe to redeliver, which is correct for a database
+     * that was briefly unreachable. An account Stripe no longer recognises
+     * would be redelivered indefinitely, so that case is acknowledged instead.
      */
     const code = (error as { code?: string })?.code;
     if (code === "resource_missing" || code === "account_invalid") {

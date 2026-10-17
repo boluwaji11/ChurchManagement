@@ -14,7 +14,8 @@ A review of developer-facing comments across the repository against the code com
 | Comment blocks | 8,405 |
 | Files changed, first pass | 39 |
 | Files changed, second pass | 110 |
-| Comment lines rewritten in total | 678 |
+| Files changed, third pass | 24 |
+| Comment lines rewritten in total | 800 |
 | Executable lines changed | **0** |
 
 The diff was checked line by line to confirm that every changed line is inside a comment. Nothing in
@@ -209,9 +210,36 @@ is check-in reasoning, so it now says service day.
 **A repeated tic.** "the whole point", "which is the point", "the whole reason" appeared 16 times
 across source and tests. All are now plain statements.
 
+## The third pass
+
+The second pass read all 346 flagged blocks and rewrote the clear breaches, leaving 227 that the net
+had caught on a phrase rather than a fault. The owner asked for those to be gone through as well
+rather than left, so they were.
+
+**Five more stacked comment sites** were found, which is the same structural defect as before: two
+or three blocks sitting on one statement, each describing a different past design.
+
+| File | What was stacked |
+|---|---|
+| `groups/list-screen.tsx` | Three blocks on `const back`: the screen's action, the archived view, and where the back link sits |
+| `members/[id]/page-content.tsx` | Three blocks on `editMark`, two of them describing a footer Edit that no longer exists |
+| `settings/online/actions.ts` | Two blocks on the Stripe account payload |
+| `services/page.tsx` | The page's own doc comment stranded above a constant, so the page had none |
+| `components/form-actions.tsx` | The module header stranded above the busy registry |
+
+The rest was register: personification of reads that "have nothing to say to each other", "the one
+thing" as a rhetorical device, "Back to the record, not to the list" as a contrast construction, a
+comment that described plan changes by the day of the week they happen on, and "a rota" where the
+screen is called the schedule.
+
+199 blocks remain flagged. Every one has been read across the three passes. They are matches on
+phrases like "three in the morning", "a dead link" and "your church" inside comments that say the
+right thing in the right way.
+
 ## What this audit did not cover
 
-Stated plainly rather than implied. Every comment block was mechanically examined and every one the
-net flagged was read; a line-by-line human reading of all 31,430 comment lines was not done, and
-would have risked rewriting good reasoning for its own sake. The addendum asks for better comments
-rather than fewer, and the bulk of these were already carrying their weight.
+A line-by-line human reading of all 31,430 comment lines was not done, and would have risked
+rewriting good reasoning for its own sake. What was done instead: every comment block in the
+repository was mechanically examined, every block the net flagged was read in context across three
+passes, and the densest files were read end to end. The addendum asks for better comments rather
+than fewer, and the bulk of these were already carrying their weight.

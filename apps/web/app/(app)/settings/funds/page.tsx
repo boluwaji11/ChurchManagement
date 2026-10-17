@@ -23,12 +23,12 @@ export async function generateMetadata({
 /**
  * R13.9. The causes a church takes gifts for.
  *
- * The one thing this screen has to get right is which funds are restricted:
- * money given for a building is reported apart from the rest, because it
- * cannot be spent on the electricity bill.
+ * What this screen has to get right is which funds are restricted: money given
+ * for a building is reported separately, because it cannot be spent on general
+ * running costs.
  *
- * A fund that has been archived comes off this grid and sits behind the one
- * link under it, which is also the way back to bringing it out again.
+ * An archived fund comes off this grid and sits behind the link below it, which
+ * is also where it is restored from.
  */
 export default async function FundsPage({
   searchParams,

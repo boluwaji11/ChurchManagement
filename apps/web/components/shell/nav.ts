@@ -186,10 +186,10 @@ export function navFor(role: Who): NavEntry[] {
   /*
    * HRT-202. A volunteer's own work comes before the church's records.
    *
-   * Staff read the list in the design's order, because the whole of it is
-   * their job and the order was argued once. Somebody who came to run a
-   * check-in desk or a serving rota has one errand, and it belongs directly
-   * under their own screen rather than three rows down.
+   * Staff read the list in the design's order, because all of it is their
+   * work. Somebody who came to run a check-in desk or a serving schedule has
+   * one task, and it belongs directly under their own screen rather than
+   * several rows down.
    */
   if (!staff) {
     const own = OWN_WORK.find((href) => out.some((one) => one.href === href));

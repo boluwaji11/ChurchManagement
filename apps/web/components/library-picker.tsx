@@ -20,8 +20,8 @@ export interface LibraryItem {
  * keep, and picking one fills the same form somebody would have typed, so it
  * stays a head start rather than a second kind of record.
  *
- * Writing your own leads, because somebody who knows what they want should not
- * read a list to reach the blank form.
+ * The option to write your own comes first, so somebody who already knows what
+ * they want does not have to read the list to reach the blank form.
  */
 export function LibraryPicker({
   ownLabel,

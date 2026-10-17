@@ -230,15 +230,13 @@ export async function GroupsListScreen({
   );
 
   /*
-   * R24.6. The screen's one action, on the row its name is on.
+   * R9.2, R24.6. The way back: out of the archived view, otherwise to the
+   * kinds, which is offered wherever the kinds screen exists.
    *
-   * It used to sit over the list, which gave the screen two header rows: one
-   * with the name of the thing and one with the button that makes another.
+   * It sits on the same row as the screen's action rather than in a band above
+   * it. Separating them gave the screen two header rows, one carrying the name
+   * and one carrying the button.
    */
-  // R9.2. The way back out of the archived view, then the way back to the
-  // kinds, which is offered wherever the kinds screen exists.
-  /* R24.6. The way back rides the action's own row rather than sitting in a
-     band above it. */
   const back = putAway
     ? { href: "/groups", label: t("groups.archived.back") }
     : kinds.length > 0

@@ -8,18 +8,18 @@ import {
 } from "@connectapp/ui";
 import { t } from "@connectapp/i18n";
 
-/**
- * R24.6. The button that commits a form, and the warning that it has not been.
+/*
+ * R24.6. The control that submits a form, and the unsaved-changes warning.
  *
- * It listens to the form by id rather than sharing state with it, because the
- * two are often rendered as siblings by a server component with no client
+ * These listen to the form by id rather than sharing state with it, because
+ * the two are often rendered as siblings by a server component with no client
  * parent between them to hold a context.
  *
- * Save stays dead until something has been touched, so a reader who opened a
- * record to look at it is not offered a save that would do nothing. Once
- * something has been touched, every way out of the form asks first, in the
- * product's own words.
+ * Save stays disabled until something has been changed, so a reader who opened
+ * a record only to look at it is not offered a save that would do nothing.
+ * Once something has been changed, every way out of the form confirms first.
  */
+
 /**
  * R24.6. Which forms are busy, by id.
  *

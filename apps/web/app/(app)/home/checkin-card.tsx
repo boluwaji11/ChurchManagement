@@ -12,9 +12,9 @@ import { checkInMine } from "./actions";
 /**
  * R17.8. Checking your own children in before you arrive.
  *
- * The code is the point. It comes back on the screen and goes on the pair the
- * station prints, so a parent who has it can be matched to their child at
- * pickup whatever happened to the phone on the way in.
+ * The code is what matters here. It is shown on screen and printed on the
+ * label pair at the station, so a parent holding it can be matched to their
+ * child at pickup even if their phone is unavailable.
  */
 export function CheckinCard({
   occurrenceId,

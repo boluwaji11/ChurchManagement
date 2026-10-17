@@ -16,9 +16,9 @@ export const dynamic = "force-dynamic";
  * file should arrive as a file. The browser's own download handles a church with
  * ten thousand records better than anything built on top of it would.
  *
- * Nothing here checks a plan, a quota, or a support ticket. That is the point:
- * the promise that a church can leave is only worth something if they can prove
- * it on a Tuesday afternoon without asking anybody.
+ * Nothing here checks a plan, a quota or a support ticket, deliberately. The
+ * commitment that a church can leave is only worth something if they can prove
+ * it themselves, at any time, without asking us.
  */
 export async function GET(request: NextRequest) {
   const params = Object.fromEntries(request.nextUrl.searchParams) as DirectoryParams;

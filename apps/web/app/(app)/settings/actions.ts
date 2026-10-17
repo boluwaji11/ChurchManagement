@@ -53,8 +53,8 @@ export async function saveChurch(data: FormData): Promise<SettingsResult> {
         phone: text(data, "phone"),
         email: text(data, "email"),
         website: text(data, "website"),
-        /* R1.1, R24.4. The colour its public pages wear. Checked against the
-           eight the product has, so nothing else reaches the column. */
+        /* R1.1, R24.4. The colour used on its public pages. Checked against
+           the eight the product defines, so nothing else reaches the column. */
         brandHue: (HUES as readonly string[]).includes(text(data, "brandHue"))
           ? text(data, "brandHue")
           : undefined,

@@ -264,10 +264,10 @@ export function Register({
       {/* Where they are, and how much is left. Numbered, because a step the
           reader cannot count is a step they cannot judge the length of. */}
       {steps.length > 1 ? (
-        /* On a phone only the step being filled in is named. Three names and
-           two rules wrapped onto two lines with a rule hanging off the front
-           of the second, and a reader cannot count a row that ragged. The
-           names stay in the accessibility tree. */
+        /* On a phone only the current step is named. Three names and two
+           rules wrapped onto two lines, leaving a rule stranded at the start of
+           the second, which made the row impossible to read as a sequence. The
+           names remain in the accessibility tree. */
         <ol className="flex items-center gap-x-2.5 text-caption sm:flex-wrap sm:gap-y-1.5">
           {steps.map((one, index) => (
             <li key={one} className="flex items-center gap-2.5">

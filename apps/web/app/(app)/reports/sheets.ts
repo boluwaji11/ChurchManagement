@@ -20,10 +20,10 @@ import type { Session } from "@/lib/session";
 /**
  * R18.10. What a built-in report is, apart from the screen it is drawn on.
  *
- * The three reports a church gets without building one each have a spreadsheet,
- * a sheet of paper and a deck, and all three used to mean reading the same
- * figures out of the same repository in three places. This is that reading, done
- * once: the headline numbers, the tables and the one series worth a chart.
+ * The three built-in reports each export to a spreadsheet, a printed sheet and
+ * a slide deck, and all three previously read the same figures from the same
+ * repository in three places. This is that reading done once: the headline
+ * numbers, the tables, and the series the chart is drawn from.
  *
  * The screens keep their own charts, which are interactive and belong to the
  * browser. What leaves the product goes through here.
