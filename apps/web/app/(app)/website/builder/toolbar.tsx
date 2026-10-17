@@ -10,9 +10,8 @@
  */
 
 import * as React from "react";
-import Link from "next/link";
 import {
-  ArrowLeft, Check, CloudAlert, ExternalLink, Loader2, Monitor,
+  Check, CloudAlert, ExternalLink, Loader2, Monitor,
   Redo2, Smartphone, Tablet, Undo2,
 } from "lucide-react";
 import { t } from "@connectapp/i18n";
@@ -141,12 +140,6 @@ export function Toolbar({
 }) {
   return (
     <div className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-3">
-      <Tooltip content={t("website.back")}>
-        <Link href="/dashboard" aria-label={t("website.back")} className={BAR_BUTTON}>
-          <ArrowLeft className="size-4" aria-hidden />
-        </Link>
-      </Tooltip>
-
       <span className="hidden min-w-0 items-center gap-2 sm:flex">
         <span className="truncate text-sm font-semibold text-fg">
           {t("website.yourWebsite")}

@@ -43,6 +43,7 @@ import {
 import { keyUrl, mediaUrl } from "@/components/church-site/kit";
 import { SITE_FONT_CLASS } from "@/components/church-site/fonts";
 import { dateAndTime } from "@/lib/dates";
+import { ColourPicker } from "./colour-picker";
 import type { BuilderApi, MediaItem } from "./api";
 import {
   FOOTER, HEADER, addPage, atPath, duplicatePage, movePage, removePage,
@@ -570,7 +571,15 @@ function ColourRow({
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-[min(92vw,280px)]">
-          <div className="flex items-center gap-2">
+          <ColourPicker
+            value={HEX.test(text.trim()) ? `#${text.trim().replace("#", "")}` : value}
+            onChange={(hex) => {
+              setText(hex);
+              onWrite(hex);
+            }}
+            label={t(`website.colour.${token}`)}
+          />
+          <div className="mt-2 flex items-center gap-2">
             <span
               aria-hidden
               className="size-8 shrink-0 rounded-[8px] border border-line"

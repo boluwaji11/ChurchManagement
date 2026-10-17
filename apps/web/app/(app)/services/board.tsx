@@ -79,7 +79,16 @@ export function ServiceBoard({
 
       <div className="grid gap-6 lg:[grid-template-columns:1fr_auto_minmax(240px,280px)]">
         <div className="flex flex-col gap-3.5">
-          {view === "tiles" ? (
+          {/* R24.6. A church with services behind it and none ahead met an
+              empty column beside a list of what it had already run, which
+              reads as a screen that failed to load. */}
+          {upcoming.length === 0 ? (
+            <p
+              className="m-0 grid min-h-[200px] place-items-center text-center text-body text-fg-muted"
+            >
+              {t("services.noneUpcoming")}
+            </p>
+          ) : view === "tiles" ? (
             <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))]">
               {upcoming.slice(0, shown).map((one, i) => (
                 <Card key={one.id} service={one} next={i === 0} />
