@@ -99,6 +99,32 @@ export function pickOut(sentence: string, marker: string, inside: string): strin
   );
 }
 
+/**
+ * A sentence with one phrase in it that is a link.
+ *
+ * The catalogue holds the whole sentence, so the markup goes in after the
+ * escaping rather than through it, which is what the marker is for.
+ */
+export function linkInto(
+  sentence: string,
+  marker: string,
+  href: string,
+  label: string,
+): string {
+  return safe(sentence).replace(
+    marker,
+    `<a href="${safe(href)}" style="color:${INK};font-weight:600">${safe(label)}</a>`,
+  );
+}
+
+/** A quiet paragraph whose contents are already marked up. */
+export const asideHtml = (inner: string): string =>
+  `<p style="margin:14px 0 0;font-size:15px;line-height:1.6;color:${MUTED}">${inner}</p>`;
+
+/** A body paragraph whose contents are already marked up. */
+export const lineHtml = (inner: string): string =>
+  `<p style="margin:18px 0 0;font-size:16px;line-height:1.6">${inner}</p>`;
+
 /** The one thing to press. A message has one or it has none. */
 export const button = (label: string, href: string): string =>
   `<table role="presentation" cellpadding="0" cellspacing="0" border="0"`
