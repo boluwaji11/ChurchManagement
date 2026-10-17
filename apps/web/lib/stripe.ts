@@ -1,3 +1,9 @@
+/*
+ * The platform's key lives in this module, so importing it from anything
+ * the browser is sent is a build error rather than a key on a page. Every
+ * importer is a server module today; this is what keeps it that way.
+ */
+import "server-only";
 import Stripe from "stripe";
 import { PROVIDER_BUDGET_MS } from "./budget";
 
