@@ -5,7 +5,33 @@ Supabase rather than by this product, because Supabase mints and owns the token
 in the link. What it does not own is how the message looks, or which mail
 server it leaves through.
 
-## Send them through Resend
+## Two ways, and why the hook is the better one
+
+Supabase has to be told where mail goes, and that is a setting on the project
+either way. What differs is how much of the message is ours afterwards.
+
+**The send hook, which is what this product uses.** Supabase posts the token to
+`/api/auth/email` instead of sending anything, and the route draws the message
+out of the same brand as the welcome and the approval and puts it through
+Resend on our own account. The wording lives in `packages/i18n` and reaches the
+inbox without anybody pasting it anywhere.
+
+Authentication, Hooks, Send Email: point it at
+`https://connectapp.church/api/auth/email`, generate the secret, and put that
+secret in `SEND_EMAIL_HOOK_SECRET`. The route refuses every request while the
+secret is unset, so the order is: set it, then switch the hook on.
+
+**Custom SMTP, which is the fallback.** Supabase keeps sending, through Resend
+rather than its own server, out of templates pasted into its dashboard. Set it
+up if the hook is ever switched off, because that is what Supabase falls back
+to.
+
+**What this product will not do** is mint the token itself. That needs the
+service role key, and this product keeps that key out of every request path:
+it bypasses row level security entirely, so a leak of it is a leak of every
+church's records. A sign-up happens in a request path.
+
+## The fallback: send them through Resend
 
 Supabase's own mail server is for development. It is rate limited to a handful
 of messages an hour across the whole project, shared with everybody, and a

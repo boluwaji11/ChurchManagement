@@ -5648,15 +5648,18 @@ export const en = {
 
   /* HRT-370, R1.7, R16.4. The invitation that reaches the person it names. */
   "mail.greeting": "Hi {name},",
+  "mail.verify.subject": "Confirm your email address | ConnectApp",
   "mail.verify.headline": "Confirm your email address",
   "mail.verify.thanks": "Thanks for signing up for ConnectApp!",
   "mail.verify.opening": "Please confirm your email address to get started setting up your church.",
   "mail.verify.button": "Confirm my email address",
   "mail.verify.ignore": "If you didn't create a ConnectApp account, you can safely ignore this email.",
+  "mail.reset.subject": "Set a new password | ConnectApp",
   "mail.reset.headline": "Set a new password",
   "mail.reset.opening": "Use the button below to set a new password for your ConnectApp account.",
   "mail.reset.button": "Set a new password",
   "mail.reset.ignore": "If you didn't ask for this, ignore this email. Your password stays as it is.",
+  "mail.magic.subject": "Sign in to ConnectApp",
   "mail.magic.headline": "Sign in to ConnectApp",
   "mail.magic.opening": "Use the button below to sign in. It works once, and only for an hour.",
   "mail.magic.button": "Sign in to ConnectApp",

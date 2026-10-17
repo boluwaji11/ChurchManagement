@@ -16,8 +16,13 @@ import { button, line, safe, sentBy, shell } from "./brand";
  * has to reach the template untouched, which is why it is not escaped.
  */
 
-/** Supabase's placeholder for the link it mints. It must survive verbatim. */
-const LINK = "{{ .ConfirmationURL }}";
+/**
+ * Supabase's own placeholder, for the copy that goes in its dashboard.
+ *
+ * The hook below is given a real address instead. The same markup serves
+ * both, so the message a church reads cannot depend on which route sent it.
+ */
+export const SUPABASE_LINK = "{{ .ConfirmationURL }}";
 
 function message(input: {
   headline: string;
@@ -25,18 +30,21 @@ function message(input: {
   says: string[];
   press: string;
   ignore: string;
+  /** Where the button goes. */
+  link: string;
 }): string {
   const APP = "\u0000app\u0000";
   return shell({
     headline: input.headline,
-    body: input.says.map(line).join("") + button(input.press, LINK),
+    body: input.says.map(line).join("") + button(input.press, input.link),
     foot: sentBy(t("mail.sentBy", { app: APP }), APP) + `<br>${safe(input.ignore)}`,
   });
 }
 
 /** "Confirm signup", which is the first thing anybody gets from us. */
-export const verifyMarkup = (): string =>
+export const verifyMarkup = (link: string = SUPABASE_LINK): string =>
   message({
+    link,
     headline: t("mail.verify.headline"),
     says: [t("mail.verify.thanks"), t("mail.verify.opening")],
     press: t("mail.verify.button"),
@@ -44,8 +52,9 @@ export const verifyMarkup = (): string =>
   });
 
 /** "Reset password". */
-export const resetMarkup = (): string =>
+export const resetMarkup = (link: string = SUPABASE_LINK): string =>
   message({
+    link,
     headline: t("mail.reset.headline"),
     says: [t("mail.reset.opening")],
     press: t("mail.reset.button"),
@@ -53,10 +62,64 @@ export const resetMarkup = (): string =>
   });
 
 /** "Magic link". */
-export const magicMarkup = (): string =>
+export const magicMarkup = (link: string = SUPABASE_LINK): string =>
   message({
+    link,
     headline: t("mail.magic.headline"),
     says: [t("mail.magic.opening")],
     press: t("mail.magic.button"),
     ignore: t("mail.magic.ignore"),
   });
+
+
+/**
+ * HRT-392. The same three, whole, for the hook that sends them itself.
+ *
+ * The markup above is what goes in Supabase's dashboard; this is what goes
+ * out through Resend when the hook is on. One wording, one drawing, two ways
+ * of reaching an inbox.
+ */
+export function authMessage(
+  action: "signup" | "email_change" | "recovery" | "magiclink",
+  link: string,
+): { subject: string; text: string; html: string } {
+  const plain = (headline: string, says: string[], press: string, ignore: string) =>
+    [headline, "", ...says, "", `${press}: ${link}`, "", ignore].join("\n");
+
+  if (action === "recovery") {
+    return {
+      subject: t("mail.reset.subject"),
+      text: plain(
+        t("mail.reset.headline"),
+        [t("mail.reset.opening")],
+        t("mail.reset.button"),
+        t("mail.reset.ignore"),
+      ),
+      html: resetMarkup(link),
+    };
+  }
+
+  if (action === "magiclink") {
+    return {
+      subject: t("mail.magic.subject"),
+      text: plain(
+        t("mail.magic.headline"),
+        [t("mail.magic.opening")],
+        t("mail.magic.button"),
+        t("mail.magic.ignore"),
+      ),
+      html: magicMarkup(link),
+    };
+  }
+
+  return {
+    subject: t("mail.verify.subject"),
+    text: plain(
+      t("mail.verify.headline"),
+      [t("mail.verify.thanks"), t("mail.verify.opening")],
+      t("mail.verify.button"),
+      t("mail.verify.ignore"),
+    ),
+    html: verifyMarkup(link),
+  };
+}
