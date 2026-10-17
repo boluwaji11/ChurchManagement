@@ -81,7 +81,24 @@ the key can do before the church presses Connect, and it does.
 Our redirect URI is `https://connectapp.church/api/providers/resend/callback`.
 A remote client's redirect must be HTTPS on a domain we own, so development
 uses a loopback URI such as `http://127.0.0.1:4488/api/providers/resend/callback`
-rather than a `localhost` one.
+rather than a `localhost` one. Resend treats `localhost` and `127.0.0.1` as
+different hosts, so the one registered is the one that has to be used.
+
+**A client belongs to one redirect URI, and registering is the only way to
+change it.** Resend matches the redirect exactly, and the registration call
+hands back no token for editing the client afterwards, so a client registered
+against the wrong address is replaced rather than corrected. Pointing the
+production deployment at a client registered for development is what that
+looks like from the church's side:
+
+```json
+{"error":"invalid_request","error_description":"redirect_uri is not registered for this client"}
+```
+
+Each environment therefore gets its own client, and `RESEND_OAUTH_CLIENT_ID`
+holds that environment's. A new one is checked before it is handed to a church
+by asking for the consent page with it: a 302 to `resend.com/oauth/authorize`
+means the redirect is registered, and the JSON above means it is not.
 
 ---
 
