@@ -1962,7 +1962,7 @@ There is nothing to press to find out whether the settings are in. Add them at t
 back to this tab, and confirm the screen moves to Ready to send on its own. A tab left open does the
 same within half a minute. A tab in the background reads nothing.
 
-The one-click is in [docs/domain-connect](../docs/domain-connect/README.md): the template is
+The one-click is in [docs/domain-connect](docs/domain-connect/README.md): the template is
 written, and the submission and the signing key are named there as work outside this repository.
 
 Work item: HRT-289

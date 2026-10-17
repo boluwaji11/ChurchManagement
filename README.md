@@ -2,169 +2,267 @@
 
 [![CI](https://github.com/boluwaji11/ConnectApp/actions/workflows/ci.yml/badge.svg)](https://github.com/boluwaji11/ConnectApp/actions/workflows/ci.yml)
 
-**Church management software.**
+**Free church management software, built for the people who serve.**
 
-ConnectApp is a complete church management platform for small churches, given to them at no cost. Every
-feature, every church, every time. No modules, no tiers, no upsell.
+[ConnectApp.church](https://connectapp.church) is a free, open-source platform that helps churches
+manage their people, organize ministry, plan services, communicate with their congregations, and
+build their online presence.
 
-Phase 2 adds **Hearth Stage**, a worship presenter that replaces ProPresenter and already knows what
-is happening at the service, because it reads the same service plan and the same song library.
+We are building ConnectApp for churches that rely on small teams and volunteers. Churches deserve
+thoughtful, dependable software that is easy to learn and a pleasure to use.
 
-> **Status: in build, before the first church.** People, check-in, groups, serving, service
-> planning, follow-ups, forms, events, the member portal, reporting and giving are built and in
-> use internally. No church is running on it yet, so the schema still moves and screens still
-> change. What is built, what is left and what is deliberately deferred are all on the board in
-> [BACKLOG.md](BACKLOG.md); [PRD.md](PRD.md) is the full specification and [ROADMAP.md](ROADMAP.md)
-> is the release order.
+Every platform feature is free. There are no subscriptions, paid tiers, or per-member charges.
+Third-party providers may charge their own fees.
 
-## Why this exists
+> **Status: in development, before the first church.** The platform is substantially built and we use
+> it internally. No church is running on it yet, so the schema still moves and screens still change.
+> [BACKLOG.md](BACKLOG.md) carries every deliverable and its state,
+> [docs/repository-inventory.md](docs/repository-inventory.md) says what each area actually is today,
+> and [ROADMAP.md](ROADMAP.md) is the release criteria.
 
-Church software is priced as if every church has a budget. Verified September 2026:
+## Why ConnectApp exists
 
-| Product | Price |
-|---|---|
-| Breeze | $72/mo |
-| Tithe.ly | $72/mo, $119/mo bundled |
-| Planning Center | Up to $239/mo, charged per module across nine products |
-| ProPresenter | $289/yr per seat, plus $199/yr for content |
+Running a church involves more administration than most people realize.
 
-And the subscription is not the real cost. Online giving carries roughly 2.9% plus 30 cents, so a
-church receiving $40,000 a month online pays about $1,200 a month in processing fees. Add a
-presenter, a website, a bulk email tool, and a church app, and a two hundred member congregation is
-carrying five subscriptions and a four figure annual software line.
+Membership records, children's check-in, volunteer scheduling, attendance, events, communication,
+and giving can consume hours every week.
 
-Zero-cost options exist. They do not work. Rock RMS is open source and needs a Windows and .NET
-developer. ChurchCRM is self-hostable with a dated interface. Both assume a technical person the
-target church does not have.
+Smaller churches often manage these responsibilities with spreadsheets, disconnected tools, and
+software that requires more time or money than they can comfortably spare. Verified in September
+2026, the established products start at $72 a month and reach $239 a month charged per module, and a
+presenter, a website and a bulk email tool are usually separate again.
 
-**Software churches can afford exists. Software churches can use exists. Nothing is both.**
+Zero-cost options exist and they assume a technical person the target church does not have. Rock RMS
+is open source and needs a Windows and .NET developer. ChurchCRM is self-hostable with a dated
+interface.
 
-ConnectApp is Rock RMS's price with Breeze's usability.
+ConnectApp brings these everyday responsibilities into one connected platform.
 
-## Who it is for
+Our goal is to make church administration simple enough for a volunteer to manage, while giving
+churches the tools they need to serve their communities well.
 
-Churches of 50 to 500 weekly attendance, with zero to two paid staff, run by a volunteer
-administrator or a part time secretary.
+## What ConnectApp helps churches do
 
-Not for multi-site churches, congregations over 2,000, or denominational rollups. Those churches have
-budgets, and excluding them is what makes shipping possible.
+### People and households
 
-## What it does
+Organize member profiles, households, relationships, and relevant church records, with tags, custom
+fields, duplicate merging, and import and export.
 
-| | |
-|---|---|
-| **People** | Individuals, households, relationships, milestones, custom fields, duplicate merge |
-| **Directory** | Member-facing, per-field privacy controlled by the member, printable |
-| **Check-in** | Children's check-in with matching security codes, authorised pickup, allergy alerts, room ratios, and it keeps working when the wifi drops |
-| **Attendance** | Headcount or individual, visitor flagging, absence detection |
-| **Giving** | Stripe Connect on your own account at a **zero** platform fee, cash and cheque batches, pledges, and IRS-compliant year end statements |
-| **Groups** | Group finder, join requests, leader-scoped access, attendance in under a minute on a phone |
-| **Volunteers** | Scheduling with conflict detection, blockout dates, accept and decline, substitute swaps, background check gating |
-| **Service planning** | Order of service with running time, notes per position, templates, live mode |
-| **Songs** | Presenter-grade library with arrangements, sequences, ChordPro charts, and CCLI usage reporting |
-| **Events** | Registration, waitlists, family sign-up, discount codes |
-| **Calendar** | Room and resource booking with conflict detection and facility use approvals |
-| **Communication** | Email and SMS through your own provider, print letters and mailing labels |
-| **Portal** | A PWA for members: give, join a group, accept a serving request, check your kids in |
-| **Reports** | Twenty canned reports including a first-time visitor conversion funnel |
+### Attendance and check-in
 
-Full requirements in [PRD.md](PRD.md). Release order in [ROADMAP.md](ROADMAP.md).
+Track attendance and support children's ministry check-in, including matching security codes,
+authorized pickup, allergy alerts, room ratios, and continued operation when the network drops.
+
+### Groups and ministries
+
+Organize groups, manage participation, and help people connect through a public group finder with
+leader-approved join requests.
+
+### Volunteers and services
+
+Coordinate serving teams, schedules with conflict detection, and service plans with running times
+and templates.
+
+### Events and forms
+
+Create events, manage registrations and waitlists, and collect information through forms.
+
+### Communication
+
+Connect a supported email provider and communicate with the congregation, with targeting, templates,
+delivery status, bounce handling, and consent.
+
+### Giving
+
+Manage contributions and support online giving through the church's own Stripe account, with funds,
+campaigns, cash and cheque batches, payouts, and year-end statements.
+
+### Church websites
+
+Create and publish a church website using a visual editor, customizable layouts, and reusable
+sections.
+
+### Member experience
+
+Give members access to their household, groups, events, giving, and serving requests through an
+installable member portal.
+
+### Administration
+
+Support church onboarding, account management, permissions, and operational oversight through a
+separate platform administration portal.
+
+ConnectApp is under active development. Features may require additional testing or release
+validation before becoming available to churches.
+
+## A website that belongs to your church
+
+A church's website is often the first place someone encounters its ministry.
+
+ConnectApp includes a website builder designed to help churches create and maintain websites without
+web development experience.
+
+The builder includes reusable sections, visual editing, responsive layouts, revisions, and publishing
+tools, and a church can connect its own domain.
+
+See [Website Builder Documentation](docs/website-builder.md).
+
+## Built for everyday ministry
+
+ConnectApp is guided by five principles:
+
+- **Easy to learn:** Everyday tasks should be understandable to volunteers.
+- **Thoughtfully designed:** Clear interfaces and accessible interactions matter.
+- **Connected:** Church information should flow naturally between relevant tools.
+- **Secure:** Sensitive information requires appropriate protection and access control.
+- **Free:** Churches should have access to the platform without subscription charges.
+
+The interface is one design system in three densities: a dense, keyboard-first layout for an
+administrator at a desk, a kiosk layout for a check-in station at 56px targets and 7:1 contrast, and
+an app-like layout for members on a phone. Accessibility is WCAG 2.2 AA and audited in CI. Details in
+[docs/design-system.md](docs/design-system.md).
 
 ## How it is paid for
 
-A platform with no revenue and no funding model dies in eighteen months and takes its churches' data
-with it. So the model is part of the design.
+- **Donations and grants.** No paid tier, no enterprise edition, no per-seat charges.
+- **We never hold your money.** Giving runs through the church's own Stripe account with a platform
+  application fee of zero. Stripe charges its own processing fee directly to the church.
+- **Bring your own email and SMS.** A church supplies its Resend, SMTP or Twilio credentials and we
+  send through them. ConnectApp does not resell messaging credits.
+- **Storage quotas are enforced and visible.** Sermon video belongs on a video host.
+- **AGPL-3.0.** Read the code, run the code, fork the code.
+- **Export everything, at any time.** No plan gate and no support ticket.
+- **We do not train models on church data**, and no processor is permitted to either.
 
-- **Funded by donations and grants.** No paid tier, no enterprise edition, no per-seat anything.
-- **We never touch your money.** Giving runs through your own Stripe account with a platform fee of
-  zero. Funds go from the giver to your Stripe account to your bank, which costs you less than
-  Tithe.ly, because there is no margin stacked on top.
-- **Bring your own email and SMS.** You supply your Resend, SMTP, or Twilio credentials and we send
-  through them. That is what keeps our costs low enough to carry.
-- **Storage quotas are real and visible.** Sermon video belongs on YouTube.
-- **Support is a community forum**, not an inbox. That is what a donation-funded platform can carry.
+## Technology
 
-## Why you can trust it
+ConnectApp is a TypeScript monorepo built with pnpm workspaces and Turborepo.
 
-Promises are cheap, so these are structural instead.
+Its technology includes:
 
-- **AGPL-3.0.** Read the code, run the code, fork the code. A closed commercial fork is not possible,
-  which is what makes the pricing a property of the licence rather than a promise.
-- **Export everything, one click, any time.** No plan gate, no support ticket. The exit is the trust.
-- **A published wind-down commitment.** If we ever stop, you get ninety days' notice, final exports,
-  and the self-host guide.
-- **We never train models on your data.** Contractual, and no processor is permitted to either.
-- **Nonprofit governance** for the hosted service.
+- Next.js
+- React
+- TypeScript
+- Supabase
+- PostgreSQL, with row-level security as the tenant isolation boundary
+- Drizzle ORM
+- Tailwind CSS
+- Shared UI components and design tokens
+- Localization infrastructure
+- Stripe Connect integrations
+- Automated testing and CI
 
-## What it looks like
+See [Architecture](docs/architecture.md) for additional detail.
 
-Every competitor is a blue SaaS dashboard, grey on grey, one accent colour, no joy. ConnectApp uses a
-warm canvas and eight hues that do real work: every room, team, group type, fund, and ministry owns
-one, so a calendar, a check-in floor, and a giving chart are readable at a glance instead of after
-reading. Your check-in room's colour prints on the child's label, so a volunteer can point a parent
-to the teal room without reading a word. Everywhere that colour would not mean anything, there
-isn't any.
+## Getting started
 
-One design system, three densities. **Office** is dense and keyboard-first for the admin at a desk.
-**Station** is a check-in kiosk with 56px targets, 20px text, and 7:1 contrast, because two minutes
-before a service with forty families queuing is the hardest screen in church software. **Portal** is app-like on
-a phone for members.
+### Prerequisites
 
-And it is accessible because volunteers span every age and ability, not because a standard says so.
-Body text never under 400 weight, a focus ring that is never removed, and reduced motion means no
-motion. WCAG 2.2 AA is the floor.
+- Node.js 22, which is what CI uses
+- pnpm 10.18.3, pinned in `package.json`
+- A Supabase project, or any PostgreSQL 15 or later database, for the schema and the seed
 
-Details in [docs/design-system.md](docs/design-system.md).
-
-## Built with
-
-TypeScript end to end. Next.js App Router, **Supabase** for Postgres, auth, and storage, with Postgres
-row-level security as the tenant isolation boundary. Drizzle, Tailwind CSS v4, shadcn/ui on Radix,
-Lucide icons, Motion. Stripe Connect at a zero platform fee. A PWA for members now, native later.
-Phase 2's presenter is Electron sharing the song library code with the web app.
-
-## Running it
-
-Nothing but the design system exists yet, and that is the point: it is the only thing reviewable
-before any feature is built, and three density modes cannot be retrofitted onto finished screens.
+### Clone
 
 ```bash
-pnpm install
-cp .env.example .env.local     # fill in your Supabase project
-pnpm db:migrate                # tables, RLS policies, audit triggers
-pnpm db:seed                   # two churches, so isolation is demonstrable
-pnpm dev                       # http://localhost:4488
-pnpm test                      # the cross-tenant isolation suite
+git clone https://github.com/boluwaji11/ConnectApp.git
+cd ConnectApp
 ```
 
-Port 4488, because 3000 and 3001 are crowded. Override it with `PORT=5000 pnpm dev`.
+### Install
 
-No database, no keys, no accounts. Supabase arrives with the next step.
-
-```
-apps/web              Next.js app. The /design gallery and /people live here.
-packages/ui           Design tokens, components, the token generator.
-packages/ui/tokens    Platform-neutral token source. Web CSS is generated from it.
-packages/db           Drizzle schema, RLS policies, repositories, isolation tests.
-packages/db/sql       The security layer: app role, policies, grants, audit triggers.
+```bash
+corepack enable
+pnpm install --frozen-lockfile
 ```
 
-`pnpm tokens` regenerates `packages/ui/src/tokens.css` from the JSON in `packages/ui/tokens`. Colours,
-type sizes, and motion durations are edited there and nowhere else.
+### Configure
+
+```bash
+cp .env.example .env.local
+```
+
+Follow [Environment Setup](docs/environments.md) for configuration. `.env.example` lists every
+variable with a comment saying what it is for and whether it is required.
+
+### Database setup
+
+```bash
+pnpm db:migrate
+pnpm db:seed
+pnpm db:seed:users
+```
+
+These commands require a correctly configured development database. `db:migrate` applies the
+migrations and then reapplies the full-text search and security layers. `db:seed` writes two
+churches, which is what makes tenant isolation demonstrable. `db:seed:users` adds the accounts to
+sign in with.
+
+### Run
+
+```bash
+pnpm dev
+```
+
+The web application serves on port 4488 and the administration portal on 4489. Override with
+`PORT=5000 pnpm dev`.
+
+### Validate
+
+```bash
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm build
+```
+
+The database suite needs a running development database. Everything else runs without one.
+
+## Repository layout
+
+```
+apps/web                  The product: staff screens, the member portal, public church sites
+apps/admin                The platform administration portal
+packages/db               Drizzle schema, RLS policies, repositories, isolation tests
+packages/db/sql           The security layer: app role, policies, grants, audit triggers
+packages/ui               Design tokens, the token generator, shared components
+packages/ui/tokens        Platform-neutral token source. Web CSS is generated from it
+packages/i18n             The message catalogue, and the typed t() and plural() readers
+packages/mail             Transactional email
+packages/env              Environment declaration and the credential guard
+docs/                     Architecture, data model, design system, operations
+```
+
+`pnpm tokens` regenerates `packages/ui/src/tokens.css` from the JSON in `packages/ui/tokens`.
+Colours, type sizes and motion durations are edited there and nowhere else.
+
+## Contributing
+
+ConnectApp welcomes contributions from developers, designers, church administrators, ministry
+leaders, and volunteers.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) to get started, and
+[docs/contributor-development.md](docs/contributor-development.md) for how development works.
+
+Approved contributors can request access to our development environment at
+[dev.connectapp.church](https://dev.connectapp.church) by emailing
+[support@connectapp.church](mailto:support@connectapp.church).
 
 ## Documentation
 
-| | |
-|---|---|
-| [PRD.md](PRD.md) | Full specification, 23 domains with numbered requirements |
-| [ROADMAP.md](ROADMAP.md) | Release plan, 0.1 through 1.0, then Phase 2 |
-| [BACKLOG.md](BACKLOG.md) | The board: what is being built right now, and what is done |
-| [docs/architecture.md](docs/architecture.md) | Stack, tenancy, offline check-in, presenter sync |
-| [docs/data-model.md](docs/data-model.md) | Entities, and the song schema in full |
-| [docs/design-system.md](docs/design-system.md) | Tokens, colour, type, motion, components, station rules |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | How to help |
-| [docs/engineering-guidelines.md](docs/engineering-guidelines.md) | Decisions, constraints, and rules for every change |
+Start with [docs/README.md](docs/README.md).
 
-## Licence
+Additional references:
 
-[AGPL-3.0](LICENSE).
+- [Roadmap](ROADMAP.md)
+- [Product Requirements](PRD.md)
+- [Engineering Guidelines](docs/engineering-guidelines.md)
+- [UX Writing](docs/ux-writing.md)
+- [Architecture](docs/architecture.md)
+- [Website Builder](docs/website-builder.md)
+- [Security](SECURITY.md)
+
+## License
+
+ConnectApp is licensed under the
+[GNU Affero General Public License version 3](LICENSE).

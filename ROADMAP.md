@@ -1,131 +1,334 @@
 # Roadmap
 
-Five releases to GA, then Phase 2. Each release is defined by what a church can do with it, not by a
-feature count. Requirement IDs refer to [PRD.md](PRD.md).
+What each area of ConnectApp is for, where it stands, and what it has to satisfy before a church
+depends on it.
 
-**Built one step at a time, tested after each deliverable.** The steps inside a release are shipped and
-reviewed individually rather than as a batch, and the first step of all is the design gallery, because
-that is what can be judged before any feature exists.
+This document describes areas and their release criteria. It carries no delivery dates, because
+there are none to promise. [BACKLOG.md](BACKLOG.md) is the authority on what is being built next, and
+every story referenced here is a row in it. Requirement IDs refer to [PRD.md](PRD.md).
 
-## 0.1 Foundation
+Status words used below:
 
-Internal only. No church touches this.
+| Word | Meaning |
+|---|---|
+| **Implemented and verified** | Built, and tested by a person |
+| **Implemented, needs validation** | Built, and not yet proved against a real church, a real provider or a real account |
+| **In development** | Being worked on now |
+| **Planned** | On the board, not started |
+| **Deferred** | Deliberately set down, and built only when asked for by name |
 
-**The design system comes first**, because it is the thing that is reviewable before any feature
-exists, and because retrofitting three density modes onto built screens does not work. Tokens,
-the twelve-hue spectrum, type, motion, and the component library, all rendered in a `/design` gallery.
+## 1. Current development status
 
-Then the platform: Supabase with multi-tenancy on Postgres row-level security, authentication and MFA,
-roles with field-level permissions, people and households, relationships, milestones, custom fields,
-tags, the audit log, CSV and Excel import with dry-run and rollback, and complete export.
+The platform is substantially built and used internally. **No church is running on it.** That single
+fact sets every criterion below: the next milestone is not a feature, it is the first pilot church
+completing real services.
 
-**Exit criteria:** an adversarial test suite attempts cross-tenant reads and writes on every table
-through both the ORM and raw SQL, and every attempt fails. Field-level permission enforcement is
-verified at the query layer. Every component renders in all three densities, light and dark, and the
-contrast audit passes in CI.
+Of 397 stories on the board, 227 are Closed, 80 are Resolved and waiting to be tested by a person,
+37 are New, and 14 are deferred.
 
-**Progress.** The design system and the `/design` gallery are built. The data foundation is built:
-20 tables, RLS enabled with an isolation policy on every one, an append-only audit log written by
-trigger, application-level encryption for confidential pastoral notes, and a 24-test adversarial
-suite that passes against a real Postgres. Authentication is built, with membership-verified
-sessions and invitations. People can now be added, edited and archived, with the write refused at
-the query layer rather than in the page. Still to come in 0.1: multi-factor, tags and custom fields
-in the UI, church creation, duplicate detection and merge, the import wizard, and full export.
+What is built sits in two groups. Everything a church needs to keep its records and run a service
+day is implemented and verified. Everything that depends on an outside account, meaning giving,
+email sending, and a published website on a church's own domain, is implemented and needs validation
+against that outside account.
 
-Story by story, with current state, in [BACKLOG.md](BACKLOG.md).
+What is not built: SMS, TOTP multi-factor, DSAR handling, a public REST API for churches, and the
+children's ministry paperwork.
 
-Requirements: R24.x, R1.x, R2.x, R19.1 to R19.4, R19.7, R19.8, R21.1 to R21.6, R21.12, R21.15, R22.8
+## 2. Church onboarding
 
-## 0.2 Sunday Core
+**Implemented and verified.**
 
-The first release real churches run. A church can run Sunday and know who came.
+Sign-up, email verification, church creation, and a provisional period: a new church is held
+provisional until a person has looked at it, with a 25-member cap and an invitation gate while it
+waits. Approval happens in the administration portal. The setup guide then travels with the church
+across every screen, naming the control to press on each one, deriving its progress from the
+church's own records, and letting a step be skipped or the whole guide be put away and brought back.
 
-Attendance including headcount-only mode, children's check-in with offline operation, the directory
-with per-field member privacy, groups with a public finder, the six follow-up pipelines, saved lists,
-background check status, the setup wizard, and the Planning Center, Breeze, and ChurchTrac importers.
+Release criteria:
 
-**Exit criteria:** three pilot churches complete four consecutive Sundays of children's check-in with
-zero safety incidents, including at least one Sunday with a deliberate network failure.
+- A church signs up, is approved, and reaches a usable directory inside sixty minutes, measured in
+  the product rather than estimated (R22.3).
+- The setup guide's walk is re-verified in a browser whenever a flow it names gains or loses a step.
+- The provisional cap and the invitation gate hold against a church that tries to grow past them.
 
-Requirements: R3.x, R5.x, R7.x, R8.x, R9.1 to R9.8, R19.5, R21.10, R21.11, R22.1 to R22.3, R22.7
+Requirements: R22.1 to R22.3, R22.7, R22.8, R1.4, R1.7. Stories: HRT-105 to HRT-108, HRT-115,
+HRT-213, HRT-367.
 
-## 0.3 Money
+## 3. People and households
 
-A church can take and record giving, and file statements in January.
+**Implemented and verified.**
 
-Stripe Connect onboarding at a zero platform fee, online one-time and recurring giving, funds with
-restricted designations, cash and cheque batch entry with dual control, non-cash gifts, pledges and
-campaigns, IRS Publication 1771 compliant year end statements, deposit slips, the QuickBooks export,
-and the lapsed donor report.
+Individuals, households, relationships, milestones, tags, custom fields, duplicate detection and
+merge, archive and restore, saved lists, a member-facing directory with per-field privacy controlled
+by the member, printable directories and labels, CSV and Excel import with a dry run and a rollback
+window, importers for Planning Center, Breeze and ChurchTrac in their own export formats, and
+complete export.
 
-**Exit criteria:** one pilot church issues compliant year end statements from real data, and a CPA
-reviews a sample statement against IRS Publication 1771 before release.
+Release criteria:
 
-Requirements: R13.x, R19.6, R21.9
+- An adversarial suite attempts cross-tenant reads and writes on every table, through both the ORM
+  and raw SQL, and every attempt fails.
+- Field-level permissions are enforced at the query layer, verified by test rather than by reading a
+  template.
+- A merge is reversible for 30 days and an import is rollback-able for 30 days.
+- Export is complete, ungated, and needs no support ticket.
 
-## 0.4 Service Ops
+Requirements: R2.x, R19.1 to R19.8, R1.x. Stories: F1, F2, F19 and F3 on the board.
 
-A church can plan and staff the service. This release also lays the Phase 2 spine.
+## 4. Attendance and children's check-in
 
-Service plans with ordered items and a live running total, notes per position, attachments, templates,
-live mode, the **presenter-grade song library** with arrangements, sequences, ChordPro transposition,
-and CCLI usage export, plus volunteer teams, scheduling with conflict detection, blockout dates,
-accept and decline without login, substitute swaps, the background check gate, and the coverage gap
-dashboard.
+**Attendance: implemented and verified. Check-in: implemented, needs pilot validation.**
 
-**Exit criteria:** one pilot church plans and staffs four consecutive services entirely in ConnectApp.
-A song's lyrics round-trip through export and import with section types and labels intact.
+Attendance by headcount or by individual, visitor flagging, and absence detection. Children's
+check-in with matching label pairs carrying unique per-visit codes, authorized pickup enforced at
+checkout, allergies shown on screen at the moment of check-in, room ratios, a supervisor floor view,
+room rosters, incident reports, and continued operation with no network.
 
-Requirements: R10.1 to R10.9, R10.12, R11.1 to R11.12, R12.1 to R12.7, R12.9, R12.10, R12.12
+This is the one safety-critical area in the product. A defect here can cause physical harm to a
+child, so no R8 requirement is weakened for implementation convenience.
 
-## 1.0 GA
+Release criteria:
 
-A church can replace its existing ChMS entirely. Public launch.
+- Three pilot churches complete four consecutive service days of children's check-in with zero
+  safety incidents.
+- At least one of those days includes a deliberate network failure, and check-in continues through
+  it and reconciles afterwards.
+- A label pair cannot be produced without a matching code, and a checkout cannot complete for an
+  unauthorized person.
+- The station screen holds 7:1 contrast and 56px targets throughout.
 
-Forms with conditional logic, pastoral care with a separate confidential tier, events and
-registrations, the calendar with room booking and facility use approvals, communication with
-bring-your-own email and SMS, the member and volunteer PWA, twenty canned reports including the
-first-time visitor conversion funnel, the REST API and webhooks, custom roles, Google SSO, DSAR
-handling, and the community forum.
+Acceptance detail is in [docs/checkin-acceptance.md](docs/checkin-acceptance.md).
 
-**Exit criteria:** ten churches migrated off a paid product, 12-week retention above 80%, and the
-donation coverage ratio at 1.0.
+Requirements: R7.x, R8.x. Stories: F7, F8.
 
-Requirements: R4.x, R6.x, R14.x, R15.x, R16.x, R17.x, R18.x, R20.1 to R20.5, R1.6, R1.9, R1.15,
-R9.9 to R9.11, R10.10, R10.11, R10.13, R11.13, R12.8, R13.7, R13.26, R19.9, R21.7, R21.8, R21.13,
-R21.14, R22.4 to R22.6, R22.9
+## 5. Groups and volunteers
 
-## 1.x Post-GA
+**Implemented and verified.**
 
-Configurable pipeline builder, scheduled reports, Google and Outlook calendar sync, Zapier, CCLI
-SongSelect import, background check provider integration, Mailchimp sync, barcode household cards.
+Groups with types, participation, leader-scoped access, attendance taken on a phone, and a public
+group finder where a request goes to the leader for approval rather than adding the person
+immediately. Serving teams, scheduling with conflict detection, blockout dates, accept and decline
+without signing in, substitute swaps, a background check gate, and a coverage gap view.
 
-## Phase 2: Hearth Stage
+Release criteria:
 
-Specified in [PRD-STAGE.md](PRD-STAGE.md), built on its own board,
-[BACKLOG-STAGE.md](BACKLOG-STAGE.md). Outline in [PRD.md section 8.23](PRD.md).
+- A group leader sees their own group and nothing else in the church.
+- A volunteer accepts or declines from an emailed link with no account.
+- Scheduling refuses a double-booking rather than recording one.
+- A background check requirement blocks assignment where the role demands it.
 
-An Electron desktop presenter for macOS, Windows, and Linux, sharing a `@connectapp/songs` package with
-the web platform. Offline always.
+Requirements: R9.1 to R9.11, R10.x, R11.x. Stories: F9, F10.
 
-**Stage installs and runs on its own**, holding its own song library, importing the library a church
-already has, and presenting a Sunday service for a church that has never heard of ConnectApp. That is
-what gets it onto a laptop, and it is also how Stage becomes the front door to the platform.
+## 6. Service planning
 
-**Paired with ConnectApp it renders slides directly from the song sections and arrangement sequences
-Phase 1 already stores**, with no import step, which is the entire reason the two products are one
-platform and the thing no other presenter can copy.
+**Implemented and verified.**
 
-Stage does not win by being a better standalone presenter. OpenLP, FreeShow, Quelea, and Church
-Presenter are already free and already good. Stage wins by being the only presenter that already
-knows this Sunday's plan, this Sunday's songs, the keys they are in, and who is on the team.
+Service plans with ordered items, a live running total, notes per position, attachments, templates,
+a live mode, and a print view. Services sit on the calendar, and the calendar carries room and
+resource booking with conflict detection and facility use approvals.
 
-Phase 1 owes Phase 2 exactly two things, and both ship in 0.4: the song schema and the sync contract.
-Nothing else about Stage may influence Phase 1 scope. The contract is written out in full in
-[docs/stage-sync-contract.md](docs/stage-sync-contract.md), including the six platform deliverables
-0.4 has to carry.
+A church does not only meet on Sunday, and nothing in this area assumes a weekday.
 
-**Stage releases** are labelled S0.1 to S1.0 so they are never confused with the platform's. S0.1 the
-slide, S0.2 the library and the importers, and S0.3 the room are a complete standalone presenter with
-no platform dependency, built alongside platform 0.2 and 0.3. **S0.4, the plan, is the only release
-that waits on platform 0.4**, and it is the one that closes the loop.
+Release criteria:
+
+- One pilot church plans and staffs four consecutive services entirely in ConnectApp.
+- A plan's running time is correct against the items on it, and the print view matches the screen.
+- A room cannot be double-booked.
+
+The song library (R12.x) is **deferred** here and is not part of this area. See section 14.
+
+Requirements: R11.x, R15.x. Stories: F11, F15.
+
+## 7. Website builder
+
+**Implemented, needs validation.**
+
+A church builds and publishes its own website: a structured document model, a visual builder, a
+section library, reusable layouts, palettes and fonts, media, revisions, autosave, preview,
+publishing, starter content, and connection of the church's own domain with DNS guidance.
+
+The earlier scope, a single bounded church homepage, has been superseded by what shipped. The
+settled non-goal that remains is a general-purpose site builder for anything other than a church's
+own site.
+
+Release criteria:
+
+- A church with no web experience publishes a site carrying its service times, location and contact
+  details, without help.
+- A published site is accessible and legible on a phone, and scores against the same WCAG 2.2 AA
+  floor as the product.
+- A custom domain verifies, serves over TLS, and the guidance in the product matches what the
+  registrar actually asks for.
+- A revision can be restored.
+
+See [docs/website-builder.md](docs/website-builder.md). Requirements: R23.x. Stories: HRT-285 and the
+Website Builder 2.0 section of the board.
+
+## 8. Messaging
+
+**Email: implemented, needs validation with a church's own provider. SMS: planned.**
+
+The deferral was lifted on 12 October 2026. A church connects its own Resend account or SMTP server,
+composes email, targets recipients from its own lists and groups, sends through a durable queue, and
+sees delivery status, bounces and consent. Templates are stored and reusable. In-app messages work
+with no provider at all.
+
+ConnectApp never resells messaging credits. The shared email quota is transactional only.
+
+SMS waits on a Twilio subaccount decision that has to be made outside this repository (HRT-286).
+Group messaging (HRT-87) and serving reminders (HRT-126) wait on a church having a provider
+connected.
+
+Release criteria:
+
+- A church connects its own provider and a real message reaches a real inbox, verified by reading
+  the message rather than by reasoning that it must have worked.
+- A bounce marks the address and stops further sending to it.
+- Consent is respected on every send path, with no way to send to somebody who has opted out.
+- The queue survives a restart without losing or duplicating a send.
+
+See [docs/messaging.md](docs/messaging.md),
+[docs/messaging-architecture.md](docs/messaging-architecture.md) and
+[docs/messaging-setup.md](docs/messaging-setup.md). Requirements: R16.x, R17.1. Stories: F16,
+HRT-286, HRT-287.
+
+## 9. Giving
+
+**Implemented, needs validation against a real Stripe account.**
+
+The deferral was lifted on 12 October 2026 and release 0.3 shipped this area. Stripe Connect
+onboarding, online one-time and recurring giving, funds with restricted designations, campaigns and
+pledges, cash and cheque batch entry with dual control, non-cash gifts, payouts, deposit slips,
+year-end statements, a giving QR code, and the lapsed donor report.
+
+The constraint behind all of it does not move: the money runs on Stripe Connect against the church's
+own account, the platform application fee is **zero**, we are not a money transmitter, PCI scope
+stays SAQ-A, and card data never enters a request path we control.
+
+Release criteria:
+
+- One pilot church issues year-end statements from real data, and a CPA reviews a sample against IRS
+  Publication 1771 before release.
+- A gift reaches the church's own Stripe balance with a zero application fee, confirmed in Stripe.
+- Batch entry under dual control cannot be completed by one person.
+- A refund, a failed payment and a disputed payment each leave the records correct.
+
+See [docs/giving.md](docs/giving.md). Requirements: R13.x, R19.6, R21.9. Stories: E3 on the board.
+
+## 10. Events and forms
+
+**Implemented and verified.**
+
+Events with registration, waitlists, family sign-up, discount codes, a public preview and a roster.
+Forms with conditional logic, file uploads, submissions and validation.
+
+Release criteria:
+
+- A member registers a whole family in one pass, on a phone.
+- A full event waitlists rather than overbooks, and promotes correctly when a place opens.
+- A form submission is attributed to the right person, or captured without one where the form is
+  public.
+
+Requirements: R4.x, R14.x. Stories: F4, F14.
+
+## 11. Member portal
+
+**Implemented and verified.**
+
+An installable progressive web app for members: their own profile and household, their groups, events
+they can register for, giving and statements, serving requests they can accept or decline, and
+account settings. Notifications are delivered by push where the member has turned them on.
+
+Release criteria:
+
+- A member completes each of giving, joining a group, accepting a serving request and updating a
+  detail on a phone, in under a minute each.
+- Per-field privacy set by the member is respected everywhere the directory is read, including in
+  print.
+- The portal installs and opens offline to something useful.
+
+Requirements: R17.x. Stories: F17.
+
+## 12. Security and reliability
+
+**Implemented, with named gaps.**
+
+Tenant isolation is enforced by PostgreSQL row-level security on every table, never by application
+filtering. Authorization is enforced at the query layer. The audit log is append only and cannot be
+modified by any application role, including the church's owner. Confidential pastoral notes carry
+application-level encryption. Development and production are separate Supabase projects, Stripe
+accounts and Resend keys, with a guard that refuses to start a non-production process holding a
+production credential. Backups have a written restore runbook and a quarterly drill.
+
+Gaps, each on the board: TOTP multi-factor is deferred (HRT-13), and DSAR handling is planned.
+
+Release criteria:
+
+- The adversarial cross-tenant suite passes as a release gate on every change.
+- A restore drill completes within the stated window, with a census taken before and after and
+  compared row for row.
+- No deploy lands inside a church's service window, 07:00 to 14:00 local on its own service days.
+- Every migration is zero-downtime.
+
+See [SECURITY.md](SECURITY.md) and
+[docs/backup-and-restore.md](docs/backup-and-restore.md). Requirements: R21.x, R1.8.
+
+## 13. Pilot validation
+
+**The next milestone, and the one that matters.**
+
+Everything above is software that works in our hands. Pilot validation is the only thing that turns
+that into software a church can rely on, and children's check-in cannot be signed off any other way.
+
+What a pilot needs:
+
+- Three churches, at least one willing to run children's check-in on a pre-1.0 product.
+- Four consecutive service days per church, with a person from ConnectApp reachable throughout.
+- One deliberate network failure during a check-in, planned with the church.
+- Real giving through a real Stripe account, and a real send through the church's own email provider.
+- A written record of every defect and every moment a volunteer had to ask what to do.
+
+Exit: zero safety incidents, and a volunteer who completes check-in without help on the fourth day.
+
+Being a pilot church is the single most useful contribution anybody can make right now. See
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+## 14. Hearth Stage
+
+**A separately scoped project, in its own repository.**
+
+Hearth Stage is an Electron desktop presenter for macOS, Windows and Linux, built on its own board
+with its own releases labelled S0.1 to S1.0 so they are never confused with the platform's. It holds
+its own song library and its own importers, and it presents a service for a church that has never
+heard of ConnectApp.
+
+**This repository owes Stage nothing right now.** The song library (R12.x), the song schema and
+`/api/stage/v1` are deferred here, and no Stage functionality is built in this repository. The
+specification stays: [PRD-STAGE.md](PRD-STAGE.md), [BACKLOG-STAGE.md](BACKLOG-STAGE.md),
+[docs/stage-architecture.md](docs/stage-architecture.md) and
+[docs/stage-sync-contract.md](docs/stage-sync-contract.md).
+
+If pairing is taken up later, the shape in PRD section 9.4 still holds: lyrics as ordered labeled
+sections rather than a blob, arrangement sequences as data, translations section-aligned. It would be
+additive on both sides, and it is not scheduled.
+
+## 15. General availability criteria
+
+GA means a church can replace its existing ChMS entirely. It is not a feature count.
+
+Before ConnectApp is offered publicly:
+
+1. **Pilot validation complete.** Section 13, including the check-in exit criteria.
+2. **Every area in sections 2 to 11 at "implemented and verified"**, with the outside-account areas
+   proved against real accounts.
+3. **The named gaps closed or consciously accepted:** multi-factor, DSAR handling, and SMS each
+   either shipped or recorded as a known limitation on a public page.
+4. **Accessibility audited** to WCAG 2.2 AA across the product, with the station screens at 7:1.
+5. **Operational readiness:** a restore drill passed within the quarter, health checks green, the
+   job queue draining, and a written wind-down commitment published.
+6. **Support that a donation-funded platform can carry:** self-serve onboarding and migration good
+   enough that a church does not need us, and a community forum for when it does.
+7. **Retention and funding measured rather than assumed:** churches migrated off a paid product,
+   twelve-week retention, and the donation coverage ratio, each reported as a real number.
+
+Nothing here is a date. The board moves one story at a time, and the first church decides the rest.
