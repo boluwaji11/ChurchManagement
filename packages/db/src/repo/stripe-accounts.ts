@@ -22,8 +22,21 @@ export interface ChurchStripeAccount {
   livemode: boolean;
 }
 
+/**
+ * HRT-386, R13.5. The same, plus what it costs the church.
+ *
+ * Kept apart from the write shape above because the rate is the church's own
+ * answer rather than anything Stripe reports, so the calls that write down
+ * what Stripe said must not be able to touch it by passing the whole record
+ * back.
+ */
+export interface ChurchStripeAccountRead extends ChurchStripeAccount {
+  /** The day the church said Stripe granted it the nonprofit rate. */
+  nonprofitRateAt: Date | null;
+}
+
 /** R13.1. What this church is connected to, if anything. */
-export async function getStripeAccount(db: Tx): Promise<ChurchStripeAccount | null> {
+export async function getStripeAccount(db: Tx): Promise<ChurchStripeAccountRead | null> {
   const [row] = await db
     .select({
       accountId: stripeAccounts.accountId,
@@ -31,10 +44,32 @@ export async function getStripeAccount(db: Tx): Promise<ChurchStripeAccount | nu
       payoutsEnabled: stripeAccounts.payoutsEnabled,
       detailsSubmitted: stripeAccounts.detailsSubmitted,
       livemode: stripeAccounts.livemode,
+      nonprofitRateAt: stripeAccounts.nonprofitRateAt,
     })
     .from(stripeAccounts)
     .limit(1);
   return row ?? null;
+}
+
+/**
+ * HRT-386, R13.5. The church telling us which rate Stripe charges it.
+ *
+ * Stripe reports this nowhere, so the church is the only one who knows. It is
+ * a date rather than a flag because it is never backdated at Stripe's end
+ * either: gifts taken before it were charged at the full rate, and a statement
+ * worked out later has to be able to tell which side of the day a gift fell.
+ */
+export async function markNonprofitRate(
+  db: Tx,
+  actor: WriteActor,
+  granted: boolean,
+): Promise<void> {
+  if (!canManageGiving(actor)) throw new PermissionError(actor.role, "manageGiving");
+
+  await db
+    .update(stripeAccounts)
+    .set({ nonprofitRateAt: granted ? new Date() : null, updatedAt: new Date() })
+    .where(eq(stripeAccounts.tenantId, actor.tenantId));
 }
 
 /** R13.1. Writing down the account the church just created, or what it became. */

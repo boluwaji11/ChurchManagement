@@ -33,6 +33,7 @@ export function GiveForm({
   funds,
   accountId,
   publishableKey,
+  nonprofitRate,
   giver,
   inside,
 }: {
@@ -42,6 +43,12 @@ export function GiveForm({
   /** R13.2. The church's own account, which the payment is made on. */
   accountId: string;
   publishableKey: string;
+  /**
+   * HRT-386, R13.5. Whether Stripe charges this church 2.2% or 2.9%, so the
+   * fee a giver offers to cover is the fee Stripe actually takes. The server
+   * reads it again from the church's own record before it charges anything.
+   */
+  nonprofitRate: boolean;
   /** R13.6. What we already know, where the giver is signed in. */
   giver: { name: string; email: string };
   /**
@@ -74,7 +81,7 @@ export function GiveForm({
     .filter((one) => one.cents > 0);
   const placed = shares.reduce((sum, one) => sum + one.cents, 0);
   const left = cents - placed;
-  const fee = cents > 0 ? withFee(cents) - cents : 0;
+  const fee = cents > 0 ? withFee(cents, nonprofitRate) - cents : 0;
   const charged = cover ? cents + fee : cents;
 
   const give = () => {

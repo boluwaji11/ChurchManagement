@@ -127,6 +127,7 @@ export async function MyGiving({
               church={page.name}
               funds={page.funds}
               accountId={page.accountId}
+              nonprofitRate={page.nonprofitRate}
               publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""}
               giver={{ name: session.displayName, email: session.email }}
             />

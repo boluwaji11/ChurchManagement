@@ -77,7 +77,16 @@ export default async function OnlineGivingPage({
     );
   }
 
-  const read = { account, profile };
+  /*
+   * R13.1. An account Stripe will not answer for is not an account.
+   *
+   * Drawing what we last held about it offers the church a Finish setup it
+   * cannot finish, beside a Test mode badge about an account that is gone.
+   * The way out is a new one, so the screen asks for a new one: the same face
+   * a church sees before it has connected at all, with the banner above
+   * saying why it is being asked again.
+   */
+  const read = { account: unreachable ? null : account, profile };
 
   /*
    * R13.1. What this church has not told us, which Stripe will therefore ask

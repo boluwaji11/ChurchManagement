@@ -52,4 +52,4 @@ export const asChurch = (accountId: string): Stripe.RequestOptions => ({
   stripeAccount: accountId,
 });
 
-export { FEE_RATE, FEE_FIXED, withFee } from "./stripe-fee";
+export { NONPROFIT_RATE, STANDARD_RATE, FEE_FIXED, rateFor, withFee } from "./stripe-fee";

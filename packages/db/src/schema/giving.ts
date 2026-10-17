@@ -200,6 +200,12 @@ export const stripeAccounts = pgTable(
     detailsSubmitted: boolean("details_submitted").notNull().default(false),
     /** False while the church is connected to a test account. */
     livemode: boolean("livemode").notNull().default(false),
+    /**
+     * HRT-386, R13.5. The day the church said Stripe granted it the nonprofit
+     * rate. Null means it pays the full one, which is where every account
+     * starts: Stripe reports the rate nowhere, so the church is who knows.
+     */
+    nonprofitRateAt: timestamp("nonprofit_rate_at", { withTimezone: true }),
     createdAt: created(),
     updatedAt: updated(),
   },

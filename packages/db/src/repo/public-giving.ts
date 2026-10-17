@@ -21,6 +21,11 @@ export interface GivingPage {
   logoKey: string | null;
   /** The church's own Stripe account, which is where the money goes. */
   accountId: string;
+  /**
+   * HRT-386, R13.5. Whether Stripe charges this church the nonprofit rate,
+   * which is what the page works the covered fee out from.
+   */
+  nonprofitRate: boolean;
   funds: { id: string; name: string; description: string | null }[];
 }
 
@@ -43,11 +48,13 @@ export async function givingPage(slug: string): Promise<GivingPage | null> {
     brandHue: string;
     logoKey: string | null;
     accountId: string;
+    nonprofitRate: boolean;
   }[]>`
     select t.id as "tenantId", t.slug, t.name, t.website,
            t.self_signup as "selfSignup",
            t.brand_hue::text as "brandHue",
-           t.logo_key as "logoKey", s.account_id as "accountId"
+           t.logo_key as "logoKey", s.account_id as "accountId",
+           (s.nonprofit_rate_at is not null) as "nonprofitRate"
       from tenants t
       join stripe_accounts s on s.tenant_id = t.id
      where t.slug = ${slug}
@@ -73,6 +80,7 @@ export async function givingPage(slug: string): Promise<GivingPage | null> {
     brandHue: church.brandHue,
     logoKey: church.logoKey,
     accountId: church.accountId,
+    nonprofitRate: church.nonprofitRate,
     funds,
   };
 }

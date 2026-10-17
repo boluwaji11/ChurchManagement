@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { BadgePercent, Check, Copy, ExternalLink, Mail } from "lucide-react";
+import { useTransition } from "react";
+import { BadgeCheck, BadgePercent, Check, Copy, ExternalLink, Loader2, Mail } from "lucide-react";
 import { Button, Card } from "@connectapp/ui";
+import { setNonprofitRate } from "./actions";
 import { t } from "@connectapp/i18n";
 
 /** Where a church asks Stripe for the rate. */
@@ -31,6 +33,7 @@ export function NonprofitRate({
   signedInAs: string;
 }) {
   const [copied, setCopied] = React.useState(false);
+  const [saving, save] = useTransition();
 
   const subject = t("stripe.rate.subject", { church });
   const body = t("stripe.rate.message", { church, id: accountId, name: signedInAs });
@@ -99,14 +102,31 @@ export function NonprofitRate({
         </Button>
       </div>
 
-      <a
-        href={STRIPE_HELP}
-        target="_blank"
-        rel="noreferrer noopener"
-        className="inline-flex w-fit items-center gap-1.5 text-[13px] font-medium text-primary no-underline"
-      >
-        <ExternalLink className="size-3.5" aria-hidden /> {t("stripe.rate.read")}
-      </a>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <a
+          href={STRIPE_HELP}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex w-fit items-center gap-1.5 text-[13px] font-medium text-primary no-underline"
+        >
+          <ExternalLink className="size-3.5" aria-hidden /> {t("stripe.rate.read")}
+        </a>
+
+        {/*
+          HRT-386, R13.5. Stripe answers this by email and reports it nowhere,
+          so the church is the only one who can say the rate has changed. It
+          decides what a giver covering the fee is charged, so it is asked for
+          rather than assumed.
+        */}
+        <Button
+          variant="secondary"
+          disabled={saving}
+          onClick={() => save(() => void setNonprofitRate(true))}
+        >
+          {saving ? <Loader2 className="animate-spin" /> : <BadgeCheck />}
+          {t("stripe.rate.granted")}
+        </Button>
+      </div>
     </Card>
   );
 }

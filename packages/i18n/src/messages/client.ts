@@ -5,7 +5,7 @@
  * marked "use client" actually name. Run `pnpm catalogue` after changing a
  * screen's words; CI fails if this file is stale.
  *
- * 4001 of 5500 keys.
+ * 4004 of 5503 keys.
  */
 import type { Catalogue } from "../core";
 
@@ -1856,7 +1856,8 @@ export const browserWords: Catalogue = {
   "stripe.fees.title": "What it costs",
   "stripe.fees.a": "Gifts go to your church's own Stripe account and settle to your bank.",
   "stripe.fees.takes": "ConnectApp takes nothing.",
-  "stripe.fees.b": "Stripe's processing fee comes out of your balance at the rate Stripe gives your church.",
+  "stripe.fees.standard": "Stripe takes 2.9% and 30\u00a2 a gift out of your balance.",
+  "stripe.fees.nonprofit": "Stripe takes 2.2% and 30\u00a2 a gift out of your balance.",
   "stripe.rate.title": "Ask Stripe for the nonprofit rate",
   "stripe.rate.body": "Stripe charges a registered 501(c)(3) 2.2% + 30\u00a2 a gift instead of 2.9% + 30\u00a2.",
   "stripe.rate.saved": "On $40,000 of giving a year, that is about $280 saved.",
@@ -1869,6 +1870,8 @@ export const browserWords: Catalogue = {
   "stripe.rate.copy": "Copy it instead",
   "stripe.rate.copied": "Copied",
   "stripe.rate.read": "What Stripe says",
+  "stripe.rate.granted": "Stripe has granted it",
+  "stripe.rate.ungranted": "Stripe has not granted it",
   "stripe.rate.subject": "Nonprofit rate request for {church}",
   "stripe.rate.message": "Hello,\n\n{church} is a church and a registered 501(c)(3). We would like to request the nonprofit processing rate on our Stripe account.\n\nStripe account: {id}\nEIN: [your EIN]\n\nMore than 80% of the payment volume on this account is tax-deductible giving. Our IRS determination letter is attached.\n\nThank you,\n{name}",
   "stripe.unreachable": "We cannot reach your church's Stripe account. It may have been closed at Stripe. Connect again to take gifts online.",
