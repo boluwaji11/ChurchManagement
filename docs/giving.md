@@ -38,11 +38,31 @@ Stripe no longer recommends v1 for new integrations and refuses it unless a plat
 [Accounts v1 support](https://dashboard.stripe.com/settings/developers/api-policies/feat_accounts_v1_support)
 in the dashboard, which this platform has done.
 
-**HRT-251** moves this to Accounts v2 before 0.3 ships. It is not a one-line change: it touches
-account creation, the onboarding link, the account session behind the embedded views, and
-`account.updated`, which under v2 is a v2 event delivered to an event destination rather than to
-the classic webhook endpoint this product handles today. Gifts themselves are unaffected: a payment
-intent on a connected account is a v1 object either way.
+**HRT-251** moved account creation to Accounts v2. Gifts were unaffected by that: a payment intent
+on a connected account is a v1 object either way. What it did change is where Stripe sends news
+about the account itself, which is why there are now two destinations.
+
+### Two webhook destinations
+
+| Destination | Scope | Payload | Route |
+|---|---|---|---|
+| Gifts | Connected accounts | Snapshot | `/api/stripe/webhook` |
+| The account itself | Your account | Thin | `/api/stripe/account` |
+
+A gift happens inside the church's own account, so it arrives on the connected-accounts
+destination with the whole object inline. A church's account is an Accounts v2 account belonging
+to this platform, so Stripe routes its own events to the destination scoped to our account, in the
+thin style: the event names the object and where to read it rather than carrying it. Two shapes
+and two signing secrets, so two routes.
+
+The account route does not map the v2 shapes. Every event it listens for means the same thing,
+which is that the account is not what we last wrote down, so it reads the account back through the
+v1 view and writes that. Reading it back is also what makes it idempotent, because two deliveries
+of the same truth write the same row twice.
+
+`syncStripe` still re-reads the account when a church returns from onboarding and when it presses
+Refresh. The destination is what covers the church that closed the tab and the verification Stripe
+finishes hours later.
 
 ### The nonprofit rate
 
@@ -137,7 +157,8 @@ A closed count stops taking lines, because it is now the record of a deposit.
 | Variable | What it is |
 |---|---|
 | `STRIPE_SECRET_KEY` | The platform's own Stripe key. Creates connected accounts and reads their state. Never used to take a payment onto a platform balance. |
-| `STRIPE_WEBHOOK_SECRET` | Verifies every webhook. An event without a valid signature is refused. |
+| `STRIPE_WEBHOOK_SECRET` | Verifies the connected-accounts destination, which carries the gifts. An event without a valid signature is refused. |
+| `STRIPE_ACCOUNT_WEBHOOK_SECRET` | Verifies the destination scoped to our own account, which carries what Stripe says about a church's own account. |
 
 Without a key, the giving screens still work for cash and cheques, and the online giving screen says
 the platform is not set up for it.
