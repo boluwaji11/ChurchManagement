@@ -1110,6 +1110,7 @@ of money and after everything else.
 | HRT-405 | The portal's session cookie collides with the product's | R21.1, R1.7 | Resolved |
 | HRT-406 | The quarterly restore drill has never been run | R21.6 | New |
 | HRT-407 | HRT-283's domain reading was never wired to a screen | R22.2 | New |
+| HRT-408 | An opened slot on the schedule never went back to Open | R10.3 | Resolved |
 | HRT-370 | The invitation reaches the person it names | R1.7, R16.4, R22.1 | Resolved |
 | HRT-371 | A church can give a role on its first day, and only one it holds | R1.4, R1.6, R1.7 | Resolved |
 | HRT-372 | An invitation is ConnectApp's own mail, so it sends on day one | R16.4, R22.1 | Resolved |

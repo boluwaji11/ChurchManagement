@@ -156,6 +156,7 @@ function FillSlot({
   const [who, setWho] = React.useState<PlanCandidate[]>([]);
   const [error, setError] = useFormError(open);
   const [pending, startTransition] = React.useTransition();
+  const cell = React.useRef<HTMLDivElement>(null);
 
   const look = () => {
     setOpen(true);
@@ -163,6 +164,41 @@ function FillSlot({
       setWho(await whoCouldFill({ teamId, positionId, occurrenceId }));
     });
   };
+
+  /*
+   * R10.3. A slot opened and then left alone goes back to reading Open.
+   *
+   * Pressing an open slot turns the cell into a chooser, and nothing used to
+   * turn it back: only picking somebody closed it. Pressing away left the
+   * chooser standing, so working across a month left a grid of empty boxes
+   * where the word Open should be, and no way back but a reload.
+   *
+   * Watched on the document rather than through the cell's own blur, because
+   * the chooser's list is drawn in a portal: a blur handler would fire as the
+   * pointer moved onto an option and close the cell before the press landed.
+   */
+  React.useEffect(() => {
+    if (!open) return;
+
+    const away = (event: PointerEvent) => {
+      const at = event.target as Node | null;
+      if (!at) return;
+      if (cell.current?.contains(at)) return;
+      /* The list itself is somewhere else in the document. */
+      if ((at as Element).closest?.('[role="listbox"]')) return;
+      setOpen(false);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [open]);
 
   const pick = (memberId: string) => {
     startTransition(async () => {
@@ -199,7 +235,7 @@ function FillSlot({
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div ref={cell} className="flex flex-col gap-1">
       <Combobox
         aria-label={t("serving.fill")}
         options={who.map((one) => ({
