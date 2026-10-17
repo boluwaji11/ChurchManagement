@@ -1,11 +1,31 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "incremental": true,
-    "paths": { "@/*": ["./*"] },
-    "types": ["react", "react-dom", "node"]
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "types": [
+      "react",
+      "react-dom",
+      "node"
+    ]
   },
-  "include": ["**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "next-env.d.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "next-env.d.ts",
+    ".next-ci/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
