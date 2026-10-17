@@ -4,7 +4,7 @@ import {
   markStripeAccount, recordOnlineGift, failOnlineGift, markRefund,
   saveRecurring, markRecurring,
 } from "@connectapp/db";
-import { stripe, stripeConfigured } from "@/lib/stripe";
+import { stripe, stripeConfigured, stripeLive } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -79,6 +79,18 @@ export async function POST(request: Request) {
   } catch {
     return new NextResponse("Bad signature", { status: 400 });
   }
+
+  /*
+   * R13.2. A test event never writes into a real church's records.
+   *
+   * Stripe sends a production endpoint both live and test events, because a
+   * platform can transact either way under one application. Every church that
+   * connected before this platform swapped to live keys still holds a sandbox
+   * account id, and that id still resolves to a real church here, so a test
+   * payment on one of those accounts would otherwise have been written down
+   * as a gift somebody actually gave.
+   */
+  if (event.livemode !== stripeLive()) return NextResponse.json({ received: true });
 
   const account = event.account;
 

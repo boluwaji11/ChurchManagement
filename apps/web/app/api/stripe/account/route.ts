@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { markStripeAccount } from "@connectapp/db";
-import { stripe, stripeConfigured } from "@/lib/stripe";
+import { stripe, stripeConfigured, stripeLive } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -77,6 +77,13 @@ export async function POST(request: Request) {
   } catch {
     return new NextResponse("Bad signature", { status: 400 });
   }
+
+  /*
+   * R13.1. A production endpoint is sent both live and test events, because a
+   * platform can transact either way under one application. Only the ones
+   * from the side this platform's key is on are acted on.
+   */
+  if (notice.livemode !== stripeLive()) return NextResponse.json({ received: true });
 
   if (!ABOUT_THE_ACCOUNT.has(notice.type)) return NextResponse.json({ received: true });
 
