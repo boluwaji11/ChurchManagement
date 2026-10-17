@@ -1,0 +1,40 @@
+import { whereWeAre } from "@connectapp/env";
+
+/**
+ * HRT-402. Which set of records is behind this screen, on every screen.
+ *
+ * The operator portal has worn one since it was built. The product needs it
+ * for the same reason and more sharply: the portal is one site a team member
+ * opens on purpose, while this is a copy of the church-facing product, pixel
+ * for pixel, sitting at an address one letter away from the real one. Without
+ * a mark, the only thing telling somebody which of the two they are deleting
+ * a member from is the address bar.
+ *
+ * Production draws nothing. A bar on every screen a church sees would be a
+ * permanent stripe across a product that is theirs, and there is no second
+ * production to confuse it with.
+ */
+export function SandboxBanner() {
+  const here = whereWeAre();
+  const live = here.environment === "production";
+
+  if (live && here.productionData) return null;
+
+  /* Production serving records that are not production's own is a
+     misconfiguration rather than a place, and says so in red. */
+  const wrong = live;
+
+  return (
+    <div
+      role="status"
+      className={
+        "flex h-8 w-full shrink-0 items-center justify-center gap-2 px-4 " +
+        "text-[12px] font-semibold tracking-[0.14em] uppercase print:hidden " +
+        (wrong ? "bg-danger text-white" : "bg-accent text-accent-fg")
+      }
+    >
+      <span aria-hidden className="size-1.5 rounded-full bg-current" />
+      {wrong ? "Production, other records" : "Sandbox"}
+    </div>
+  );
+}

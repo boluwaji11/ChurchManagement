@@ -12,6 +12,7 @@ import { TooltipProvider } from "@connectapp/ui";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
+import { SandboxBanner } from "@/components/sandbox-banner";
 
 /**
  * IBM Plex across display, UI and codes. Self-hosted, no layout shift.
@@ -103,6 +104,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body
         className={`${display.variable} ${sans.variable} ${mono.variable} ${emoji.variable} font-sans`}
       >
+        {/* HRT-402. Outside production, every screen says so. */}
+        <SandboxBanner />
         <TooltipProvider>{children}</TooltipProvider>
         {/*
          * How many people reach a page, and nothing about who they are.
