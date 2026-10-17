@@ -5,6 +5,7 @@
  * be served to a browser. It is what makes an offline station behave the same
  * as an online one, because both run this code rather than two versions of it.
  */
+export * from "./repo/provisional-rules";
 export * from "./repo/which-service";
 export * from "./repo/age";
 export * from "./repo/match";
