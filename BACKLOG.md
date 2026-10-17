@@ -151,11 +151,12 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-391 | The messages Supabase Auth sends are drawn in our brand and leave through Resend | R1.7, R16.4 | Resolved |
 | HRT-392 | Supabase's send hook, so every auth message is ours to draw and goes out through Resend | R1.7, R16.4 | Resolved |
 | HRT-397 | A development environment of its own, from Supabase to Stripe, and a guard that refuses another environment's keys | R21.x, N3 | Resolved |
-| HRT-393 | The operator portal wears one frame: a collapsible rail, and every screen drawn from the component library | R21.x, R24.6, R24.14 | New |
-| HRT-394 | The platform's own status: every integration and every API probed, with what each one last said | R21.x, N3 | New |
-| HRT-395 | Delivery: what is on main, what is live, what CI said, and where the board stands | R21.x, R22.x | New |
-| HRT-396 | The portal's own door: one gate in front of every screen, a throttle, and a second factor | R21.1, R21.x | New |
-| HRT-398 | The operator portal on its own address, admin.connectapp.church | R21.x | New |
+| HRT-393 | The operator portal wears one frame: a collapsible rail, and every screen drawn from the component library | R21.x, R24.6, R24.14 | Resolved |
+| HRT-394 | The platform's own status: every integration and every API probed, with what each one last said | R21.x, N3 | Resolved. The bars stay empty until migration 0163 is applied to production |
+| HRT-395 | Delivery: what is on main, what is live, what CI said, and where the board stands | R21.x, R22.x | Resolved |
+| HRT-396 | The portal's own door: one gate in front of every screen, a throttle, and every attempt written down | R21.1, R21.x | Resolved |
+| HRT-399 | A second factor on the operator portal, and the setting that makes it compulsory | R21.1 | New |
+| HRT-398 | The operator portal on its own address, admin.connectapp.church | R21.x | Resolved. Live. Upstash is unset there, and the only operator is mike@connectapp.church |
 
 The pass against the reference screens, October 2026. Phase A builds the vocabulary once,
 B puts it in the shell, C applies it a screen at a time, D adds what the reference has and

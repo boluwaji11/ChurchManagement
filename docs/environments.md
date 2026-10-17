@@ -175,14 +175,41 @@ on a machine with one person on it.
 
 ## Vercel
 
-| Environment | Branch | Variables | Domain |
-|---|---|---|---|
-| Production | `production` | 25, live | `connectapp.church` |
-| Preview | `develop` and pull requests | 16, development | `dev.connectapp.church` |
+Two projects.
+
+| Project | Root | Environment | Branch | Domain |
+|---|---|---|---|---|
+| `connectapp` | `apps/web` | Production | `production` | `connectapp.church` |
+| `connectapp` | `apps/web` | Preview | pull requests | preview URLs |
+| `connectapp-admin` | `apps/admin` | Production | `main` | `admin.connectapp.church` |
+
+The operator portal deploys from `main` rather than from `production`, so it is
+always ahead of what the churches are running. That is deliberate for a tool
+whose job is to tell you what the platform is doing, and it is why the portal
+is written to work against a database that has not had its migration yet. To
+make it wait for `production` instead, change Production Branch in that
+project's Git settings; the API will not take that field.
+
+The portal holds 14 of its own variables. Five of the web project's are marked
+sensitive in Vercel and cannot be read back even by the API, so they were set
+from `.env.production.local` instead: `RESEND_API_KEY`, `PLATFORM_FROM_EMAIL`
+and `CRON_SECRET`. The two Upstash ones are in neither place, so the portal's
+status screen reports Upstash as having no credential here. Set them with:
+
+```
+printf '%s' "<value>" | vercel env add UPSTASH_REDIS_REST_URL production
+```
+
+run from `apps/admin`.
 
 Preview had no variables at all before this, so every preview deployment had been failing. The
 production variables were not touched: they were listed before and after, and the count went from 25
 to 26 only because `CONNECTAPP_ENV=production` was added to make production say so itself.
+
+**Turborepo removes what `turbo.json` does not name.** Vercel runs this workspace in strict
+environment mode, so a variable absent from the `env` list never reaches the build. The portal's
+first deployment came up with an empty `NEXT_PUBLIC_SUPABASE_URL` inlined into its middleware and
+failed on every request. The build said so, in a warning under a green build.
 
 ## When a secret has to be replaced
 
