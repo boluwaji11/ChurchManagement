@@ -77,7 +77,7 @@ export function Rail({
       className={cn(
         "flex shrink-0 flex-col gap-4 overflow-hidden bg-shell text-shell-fg",
         "border-r border-shell-line px-3 py-4",
-        floating ? "h-full w-full" : "sticky top-0 h-dvh",
+        floating ? "h-full w-full" : "h-full",
         !floating && "motion-safe:transition-[width] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-out)",
         !floating && (shut ? "w-16 px-2" : "w-60"),
       )}
