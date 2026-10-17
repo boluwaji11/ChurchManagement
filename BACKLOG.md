@@ -156,6 +156,7 @@ Internal only. No church touches this. Exit criteria in [ROADMAP.md](ROADMAP.md)
 | HRT-395 | Delivery: what is on main, what is live, what CI said, and where the board stands | R21.x, R22.x | Resolved |
 | HRT-396 | The portal's own door: one gate in front of every screen, a throttle, and every attempt written down | R21.1, R21.x | Resolved |
 | HRT-399 | A second factor on the operator portal, and the setting that makes it compulsory | R21.1 | New |
+| HRT-402 | The development deployment is behind the team, on its own addresses, with its own keys | R21.x | Resolved |
 | HRT-401 | Inviting a team member who has no ConnectApp account: one email, one press, and they are in | R21.x, R1.7 | Resolved |
 | HRT-400 | Granting an operator reaches the audit trigger, which refuses it, so nobody could be let into the portal | R21.x, R1.11 | Resolved. The fix is in security.sql and needs a migrate run against production |
 | HRT-398 | The operator portal on its own address, admin.connectapp.church | R21.x | Resolved. Live. Upstash is unset there, and the only operator is mike@connectapp.church |

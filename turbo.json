@@ -38,7 +38,9 @@
         "PROVIDER_CREDENTIAL_KEY",
         "DOMAIN_CONNECT_PRIVATE_KEY",
         "SEND_EMAIL_HOOK_SECRET",
-        "SEED_USER_PASSWORD"
+        "SEED_USER_PASSWORD",
+        "DEV_GATE_SECRET",
+        "VERCEL"
       ]
     },
     "dev": {

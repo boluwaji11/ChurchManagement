@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { spanningSubdomains } from "@/lib/cookie-domain";
 import { AUTH_BUDGET_MS, budgetedFetch } from "@/lib/budget";
+import { DEV_PASS, gated, openInDev, passHolds } from "@/lib/dev-gate";
 
 /**
  * Refreshes the Supabase session on every request, because a Server Component
@@ -49,6 +50,23 @@ export async function middleware(request: NextRequest) {
   );
 
   await supabase.auth.getClaims();
+
+  /*
+   * HRT-402. On the development deployment, everything is behind the team.
+   *
+   * After the refresh above, so somebody whose pass has run out is still
+   * carrying a live session when they reach the door and walks back through
+   * it without typing anything.
+   */
+  if (gated() && !openInDev(request.nextUrl.pathname)) {
+    if (!(await passHolds(request.cookies.get(DEV_PASS)?.value))) {
+      const away = request.nextUrl.clone();
+      away.pathname = "/dev-gate";
+      away.search = `?next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`;
+      return NextResponse.redirect(away);
+    }
+  }
+
   return response;
 }
 
