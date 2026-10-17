@@ -21,14 +21,15 @@ const LINK = "{{ .ConfirmationURL }}";
 
 function message(input: {
   headline: string;
-  opening: string;
+  /** What the message says, a paragraph at a time. */
+  says: string[];
   press: string;
   ignore: string;
 }): string {
   const APP = "\u0000app\u0000";
   return shell({
     headline: input.headline,
-    body: line(input.opening) + button(input.press, LINK),
+    body: input.says.map(line).join("") + button(input.press, LINK),
     foot: sentBy(t("mail.sentBy", { app: APP }), APP) + `<br>${safe(input.ignore)}`,
   });
 }
@@ -37,7 +38,7 @@ function message(input: {
 export const verifyMarkup = (): string =>
   message({
     headline: t("mail.verify.headline"),
-    opening: t("mail.verify.opening"),
+    says: [t("mail.verify.thanks"), t("mail.verify.opening")],
     press: t("mail.verify.button"),
     ignore: t("mail.verify.ignore"),
   });
@@ -46,7 +47,7 @@ export const verifyMarkup = (): string =>
 export const resetMarkup = (): string =>
   message({
     headline: t("mail.reset.headline"),
-    opening: t("mail.reset.opening"),
+    says: [t("mail.reset.opening")],
     press: t("mail.reset.button"),
     ignore: t("mail.reset.ignore"),
   });
@@ -55,7 +56,7 @@ export const resetMarkup = (): string =>
 export const magicMarkup = (): string =>
   message({
     headline: t("mail.magic.headline"),
-    opening: t("mail.magic.opening"),
+    says: [t("mail.magic.opening")],
     press: t("mail.magic.button"),
     ignore: t("mail.magic.ignore"),
   });

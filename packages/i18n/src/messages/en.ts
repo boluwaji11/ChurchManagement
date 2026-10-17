@@ -5649,7 +5649,8 @@ export const en = {
   /* HRT-370, R1.7, R16.4. The invitation that reaches the person it names. */
   "mail.greeting": "Hi {name},",
   "mail.verify.headline": "Confirm your email address",
-  "mail.verify.opening": "Thanks for signing up to ConnectApp. Confirm this address and you can get your church set up.",
+  "mail.verify.thanks": "Thanks for signing up for ConnectApp!",
+  "mail.verify.opening": "Please confirm your email address to get started setting up your church.",
   "mail.verify.button": "Confirm my email address",
   "mail.verify.ignore": "If you didn't create a ConnectApp account, you can safely ignore this email.",
   "mail.reset.headline": "Set a new password",
